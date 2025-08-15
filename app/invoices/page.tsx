@@ -1,0 +1,444 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Plus,
+  Search,
+  FileText,
+  Edit,
+  Trash2,
+  Download,
+  Filter,
+  Calendar,
+  DollarSign,
+  Eye,
+  CheckCircle,
+} from "lucide-react"
+import Link from "next/link"
+import { useCurrency } from "@/hooks/use-currency"
+
+export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("all")
+  const { formatCurrency } = useCurrency()
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
+
+  const fetchInvoices = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from("invoices")
+        .select(`
+          *,
+          clients(name, rnc),
+          projects(name),
+          drivers(name)
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      setInvoices(data || [])
+    } catch (error) {
+      console.error("Error fetching invoices:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredInvoices = invoices.filter((invoice) => {
+    const matchesSearch =
+      (invoice.invoice_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (invoice.clients?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (invoice.clients?.rnc || "").toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
+
+    let matchesDate = true
+    if (dateFilter !== "all") {
+      const invoiceDate = new Date(invoice.created_at)
+      const now = new Date()
+
+      switch (dateFilter) {
+        case "week":
+          matchesDate = invoiceDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          break
+        case "month":
+          matchesDate = invoiceDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          break
+        case "quarter":
+          matchesDate = invoiceDate >= new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+          break
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesDate
+  })
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "borrador":
+        return "bg-slate-100 text-slate-800 border-slate-200"
+      case "pendiente":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      case "enviada":
+        return "bg-amber-100 text-amber-800 border-amber-200"
+      case "pagada":
+        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+      case "vencida":
+        return "bg-red-100 text-red-800 border-red-200"
+      case "cancelada":
+        return "bg-gray-100 text-gray-800 border-gray-200"
+      default:
+        return "bg-slate-100 text-slate-800 border-slate-200"
+    }
+  }
+
+  const handleMarkAsPaid = async (id: string) => {
+    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) return
+
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({
+          status: "pagada",
+        })
+        .eq("id", id)
+
+      if (error) throw error
+      fetchInvoices() // Refresh the list
+    } catch (error) {
+      console.error("Error marking invoice as paid:", error)
+      alert("Error al marcar la factura como pagada")
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) return
+
+    try {
+      const { error } = await supabase.from("invoices").delete().eq("id", id)
+      if (error) throw error
+      fetchInvoices()
+    } catch (error) {
+      console.error("Error deleting invoice:", error)
+    }
+  }
+
+  const downloadInvoicePDF = async (invoiceId: string) => {
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/pdf`)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error generating PDF")
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `factura-${invoiceId}.html`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error("Error downloading PDF:", error)
+      alert("Error al descargar el PDF: " + (error instanceof Error ? error.message : "Error desconocido"))
+    }
+  }
+
+  const totalInvoices = filteredInvoices.length
+  const totalAmount = filteredInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+  const paidInvoices = filteredInvoices.filter((inv) => inv.status === "pagada").length
+  const pendingInvoices = filteredInvoices.filter((inv) => inv.status === "pendiente").length
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid gap-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+              Gestión de Facturas
+            </h1>
+            <p className="text-slate-600">Administra y controla todas tus facturas</p>
+          </div>
+          <Button
+            asChild
+            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <Link href="/invoices/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Factura
+            </Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700">Total Facturas</p>
+                  <p className="text-2xl font-bold text-blue-900">{totalInvoices}</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-emerald-700">Monto Total</p>
+                  <p className="text-2xl font-bold text-emerald-900">{formatCurrency(totalAmount)}</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700">Pagadas</p>
+                  <p className="text-2xl font-bold text-green-900">{paidInvoices}</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                  <Eye className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-amber-700">Pendientes</p>
+                  <p className="text-2xl font-bold text-amber-900">{pendingInvoices}</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <CardHeader>
+            <CardTitle className="text-slate-800 flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros y Búsqueda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar por número, cliente o RNC..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full lg:w-48 border-slate-200">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="borrador">Borrador</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="enviada">Enviada</SelectItem>
+                  <SelectItem value="pagada">Pagada</SelectItem>
+                  <SelectItem value="vencida">Vencida</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-full lg:w-48 border-slate-200">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las fechas</SelectItem>
+                  <SelectItem value="week">Última semana</SelectItem>
+                  <SelectItem value="month">Último mes</SelectItem>
+                  <SelectItem value="quarter">Último trimestre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <CardContent className="p-6">
+            {filteredInvoices.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <FileText className="h-10 w-10 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                  {searchTerm || statusFilter !== "all" || dateFilter !== "all"
+                    ? "No se encontraron facturas"
+                    : "No hay facturas"}
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  {searchTerm || statusFilter !== "all" || dateFilter !== "all"
+                    ? "Intenta ajustar los filtros de búsqueda"
+                    : "Comienza creando tu primera factura"}
+                </p>
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                >
+                  <Link href="/invoices/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nueva Factura
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredInvoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="group flex items-center justify-between p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-3">
+                        <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
+                          {invoice.invoice_number || "Sin número"}
+                        </h3>
+                        <Badge className={`${getStatusColor(invoice.status || "borrador")} border`}>
+                          {invoice.status || "borrador"}
+                        </Badge>
+                        {invoice.clients?.rnc && (
+                          <Badge variant="outline" className="text-xs">
+                            RNC: {invoice.clients.rnc}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-slate-600">
+                        <div>
+                          <span className="font-medium text-slate-700">Cliente:</span>
+                          <p>{invoice.clients?.name || "Sin cliente"}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-700">Fecha:</span>
+                          <p>{new Date(invoice.invoice_date || invoice.issue_date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-700">Vencimiento:</span>
+                          <p>{new Date(invoice.due_date).toLocaleDateString()}</p>
+                        </div>
+                        {invoice.projects?.name && (
+                          <div>
+                            <span className="font-medium text-slate-700">Proyecto:</span>
+                            <p>{invoice.projects.name}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-slate-900 group-hover:text-blue-900 transition-colors">
+                          {formatCurrency(invoice.total || 0)}
+                        </p>
+                        {invoice.include_itbis && <p className="text-xs text-slate-500">Incluye ITBIS</p>}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                        >
+                          <Link href={`/invoices/${invoice.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadInvoicePDF(invoice.id)}
+                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        {invoice.status !== "pagada" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMarkAsPaid(invoice.id)}
+                            className="hover:bg-green-100 hover:text-green-700 transition-colors"
+                            title="Marcar como pagada"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                          onClick={() => handleDelete(invoice.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
