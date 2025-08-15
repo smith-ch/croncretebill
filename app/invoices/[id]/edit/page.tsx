@@ -14,7 +14,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Plus, Trash2, Save, ArrowLeft, Calculator, FileText, AlertCircle } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  Save,
+  ArrowLeft,
+  Calculator,
+  FileText,
+  AlertCircle,
+  Percent,
+  DollarSign,
+} from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 
 export default function EditInvoicePage() {
@@ -36,6 +48,8 @@ export default function EditInvoicePage() {
   ])
   const [includeItbis, setIncludeItbis] = useState(false)
   const [ncf, setNcf] = useState("")
+  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
+  const [discountValue, setDiscountValue] = useState(0)
   const { formatCurrency } = useCurrency()
 
   useEffect(() => {
@@ -153,14 +167,16 @@ export default function EditInvoicePage() {
       } = await supabase.auth.getUser()
       if (!user) throw new Error("Usuario no autenticado")
 
-      const validItems = items.filter((item) => {
+      console.log("[v0] All items before validation:", items)
+
+      const validItems = items.filter((item, index) => {
         const hasValidQuantity = item.quantity > 0
         const hasValidPrice = item.unit_price >= 0
         const hasProductOrService =
           (item.type === "product" && item.product_id && item.product_id.trim() !== "") ||
           (item.type === "service" && item.service_id && item.service_id.trim() !== "")
 
-        console.log("Item validation:", {
+        console.log(`[v0] Item ${index} validation:`, {
           item,
           hasValidQuantity,
           hasValidPrice,
@@ -168,13 +184,46 @@ export default function EditInvoicePage() {
           isValid: hasValidQuantity && hasValidPrice && hasProductOrService,
         })
 
+        if (!hasValidQuantity) {
+          console.warn(`[v0] Item ${index} has invalid quantity:`, item.quantity)
+        }
+        if (!hasValidPrice) {
+          console.warn(`[v0] Item ${index} has invalid price:`, item.unit_price)
+        }
+        if (!hasProductOrService) {
+          console.warn(`[v0] Item ${index} has no product/service selected:`, {
+            type: item.type,
+            product_id: item.product_id,
+            service_id: item.service_id,
+          })
+        }
+
         return hasValidQuantity && hasValidPrice && hasProductOrService
       })
 
-      console.log("Valid items:", validItems)
+      console.log("[v0] Valid items after filtering:", validItems)
+      console.log("[v0] Valid items count:", validItems.length)
+      console.log("[v0] Total items count:", items.length)
 
       if (validItems.length === 0) {
-        throw new Error("Debe agregar al menos un producto o servicio con cantidad y precio válidos.")
+        const invalidReasons = items
+          .map((item, index) => {
+            const reasons = []
+            if (item.quantity <= 0) reasons.push("cantidad inválida")
+            if (item.unit_price < 0) reasons.push("precio inválido")
+            if (item.type === "product" && (!item.product_id || item.product_id.trim() === "")) {
+              reasons.push("producto no seleccionado")
+            }
+            if (item.type === "service" && (!item.service_id || item.service_id.trim() === "")) {
+              reasons.push("servicio no seleccionado")
+            }
+            return `Item ${index + 1}: ${reasons.join(", ")}`
+          })
+          .join("; ")
+
+        throw new Error(
+          `No hay items válidos para guardar. Problemas encontrados: ${invalidReasons}. Asegúrese de seleccionar productos/servicios de las listas desplegables y que tengan cantidad y precio válidos.`,
+        )
       }
 
       if (includeItbis && !ncf.trim()) {
@@ -182,8 +231,17 @@ export default function EditInvoicePage() {
       }
 
       const subtotal = validItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-      const itbisAmount = includeItbis ? subtotal * 0.18 : 0
-      const total = subtotal + itbisAmount
+      let discountAmount = 0
+      if (discountValue > 0) {
+        if (discountType === "percentage") {
+          discountAmount = subtotal * (discountValue / 100)
+        } else {
+          discountAmount = Math.min(discountValue, subtotal)
+        }
+      }
+      const discountedSubtotal = Math.max(subtotal - discountAmount, 0)
+      const itbisAmount = includeItbis ? discountedSubtotal * 0.18 : 0
+      const total = discountedSubtotal + itbisAmount
 
       const invoiceDate = formData.get("invoice_date") as string
       const dueDate = formData.get("due_date") as string
@@ -196,6 +254,8 @@ export default function EditInvoicePage() {
         invoice_date: invoiceDate,
         due_date: dueDate,
         subtotal,
+        discount_type: discountType,
+        discount_value: discountValue,
         tax_rate: includeItbis ? 18 : 0,
         tax_amount: itbisAmount,
         total,
@@ -205,12 +265,40 @@ export default function EditInvoicePage() {
         ncf: includeItbis ? ncf.trim() : null,
       }
 
-      const { error: invoiceError } = await supabase.from("invoices").update(invoiceData).eq("id", params.id)
-      if (invoiceError) throw invoiceError
+      console.log("[v0] Updating invoice with data:", invoiceData)
 
-      await supabase.from("invoice_items").delete().eq("invoice_id", params.id)
+      const { error: invoiceError, data: updatedInvoice } = await supabase
+        .from("invoices")
+        .update(invoiceData)
+        .eq("id", params.id)
+        .eq("user_id", user.id)
+        .select()
 
-      const invoiceItems = validItems.map((item) => {
+      if (invoiceError) {
+        console.error("[v0] Error updating invoice:", invoiceError)
+        throw new Error(`Error al actualizar la factura: ${invoiceError.message}`)
+      }
+
+      if (!updatedInvoice || updatedInvoice.length === 0) {
+        throw new Error("No se pudo actualizar la factura. Verifique que tenga permisos para editarla.")
+      }
+
+      console.log("[v0] Invoice updated successfully:", updatedInvoice)
+
+      console.log("[v0] Deleting old invoice items...")
+      const { error: deleteError, count: deletedCount } = await supabase
+        .from("invoice_items")
+        .delete({ count: "exact" })
+        .eq("invoice_id", params.id)
+
+      if (deleteError) {
+        console.error("[v0] Error deleting old invoice items:", deleteError)
+        throw new Error(`Error al eliminar items anteriores: ${deleteError.message}`)
+      }
+
+      console.log(`[v0] Deleted ${deletedCount} old items successfully`)
+
+      const invoiceItems = validItems.map((item, index) => {
         const itemData: any = {
           invoice_id: params.id,
           quantity: Math.max(item.quantity, 0.01),
@@ -226,35 +314,64 @@ export default function EditInvoicePage() {
           itemData.service_id = null
           itemData.description = product?.name || item.original_description || `Producto (ID: ${item.product_id})`
           itemData.unit = product?.unit || "unidad"
+          console.log(`[v0] Prepared product item ${index}:`, itemData)
         } else if (item.type === "service" && item.service_id) {
           const service = services.find((s) => String(s.id) === String(item.service_id))
           itemData.service_id = item.service_id
           itemData.product_id = null
           itemData.description = service?.name || item.original_description || `Servicio (ID: ${item.service_id})`
           itemData.unit = service?.unit || "servicio"
+          console.log(`[v0] Prepared service item ${index}:`, itemData)
+        } else {
+          console.error(`[v0] Invalid item configuration at index ${index}:`, item)
+          throw new Error(`Item ${index + 1} tiene una configuración inválida`)
+        }
+
+        if (!itemData.description || itemData.description.trim() === "") {
+          itemData.description = `${item.type === "product" ? "Producto" : "Servicio"} sin nombre`
         }
 
         return itemData
       })
 
-      console.log("Inserting items:", invoiceItems)
+      console.log("[v0] Final invoice items to insert:", invoiceItems)
 
-      const { error: itemsError } = await supabase.from("invoice_items").insert(invoiceItems)
+      const { error: itemsError, data: insertedItems } = await supabase
+        .from("invoice_items")
+        .insert(invoiceItems)
+        .select()
+
       if (itemsError) {
-        console.error("Error inserting invoice items:", itemsError)
-        throw new Error("Error al guardar los productos/servicios: " + itemsError.message)
+        console.error("[v0] Error inserting invoice items:", itemsError)
+        throw new Error(`Error al guardar los productos/servicios: ${itemsError.message}`)
       }
 
-      router.push("/invoices")
+      if (!insertedItems || insertedItems.length !== validItems.length) {
+        console.warn("[v0] Mismatch in inserted items count:", {
+          expected: validItems.length,
+          inserted: insertedItems?.length || 0,
+        })
+      }
+
+      console.log(`[v0] Successfully inserted ${insertedItems.length} invoice items:`, insertedItems)
+
+      console.log("[v0] Invoice update completed successfully!")
+
+      setError(null)
+
+      setTimeout(() => {
+        router.push("/invoices")
+      }, 500)
     } catch (error: any) {
-      console.error("Error updating invoice:", error)
-      setError(error.message)
+      console.error("[v0] Error updating invoice:", error)
+      setError(error.message || "Error desconocido al actualizar la factura")
     } finally {
       setLoading(false)
     }
   }
 
   const addItem = () => {
+    console.log("[v0] Adding new item")
     setItems([
       ...items,
       { product_id: "", service_id: "", quantity: 1, unit_price: 0, type: "product", original_description: "" },
@@ -262,22 +379,54 @@ export default function EditInvoicePage() {
   }
 
   const removeItem = (index: number) => {
+    console.log("[v0] Removing item at index:", index)
     setItems(items.filter((_, i) => i !== index))
   }
 
   const updateItem = (index: number, field: string, value: any) => {
-    const newItems = [...items]
-    newItems[index] = { ...newItems[index], [field]: value }
+    console.log("[v0] Updating item:", { index, field, value })
 
-    if (field === "type") {
-      if (value === "product") {
-        newItems[index].service_id = ""
-      } else {
-        newItems[index].product_id = ""
+    setItems((prevItems) => {
+      const newItems = [...prevItems]
+      const currentItem = { ...newItems[index] }
+
+      // Update the specific field
+      currentItem[field] = value
+
+      // Handle type changes
+      if (field === "type") {
+        if (value === "product") {
+          currentItem.service_id = ""
+          currentItem.unit_price = 0
+        } else {
+          currentItem.product_id = ""
+          currentItem.unit_price = 0
+        }
       }
-    }
 
-    setItems(newItems)
+      // Handle product selection - preserve service_id as empty and update price
+      if (field === "product_id" && value) {
+        updateItem(index, "service_id", "")
+        const product = products.find((p) => String(p.id) === String(value))
+        if (product && product.unit_price) {
+          updateItem(index, "unit_price", product.unit_price)
+        }
+      }
+      // Handle service selection - preserve product_id as empty and update price
+      else if (field === "service_id" && value) {
+        updateItem(index, "product_id", "")
+        const service = services.find((s) => String(s.id) === String(value))
+        if (service && service.price) {
+          updateItem(index, "unit_price", service.price)
+        }
+      }
+
+      // Replace the item in the array
+      newItems[index] = currentItem
+
+      console.log("[v0] Updated items:", newItems)
+      return newItems
+    })
   }
 
   if (fetchLoading) {
@@ -311,8 +460,17 @@ export default function EditInvoicePage() {
 
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient)
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-  const itbisAmount = includeItbis ? subtotal * 0.18 : 0
-  const total = subtotal + itbisAmount
+  let discountAmount = 0
+  if (discountValue > 0) {
+    if (discountType === "percentage") {
+      discountAmount = subtotal * (discountValue / 100)
+    } else {
+      discountAmount = Math.min(discountValue, subtotal)
+    }
+  }
+  const discountedSubtotal = Math.max(subtotal - discountAmount, 0)
+  const itbisAmount = includeItbis ? discountedSubtotal * 0.18 : 0
+  const total = discountedSubtotal + itbisAmount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
@@ -717,6 +875,78 @@ export default function EditInvoicePage() {
                 </div>
               ))}
 
+              <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-orange-800 flex items-center gap-2">
+                    <Percent className="h-5 w-5" />
+                    Descuentos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-3">
+                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
+                      <RadioGroup
+                        value={discountType}
+                        onValueChange={(value: "percentage" | "fixed") => {
+                          setDiscountType(value)
+                          setDiscountValue(0)
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="percentage" id="percentage" />
+                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
+                            <Percent className="h-3 w-3" />
+                            Porcentaje
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fixed" id="fixed" />
+                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
+                            <DollarSign className="h-3 w-3" />
+                            Monto Fijo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">
+                        {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={discountType === "percentage" ? "100" : undefined}
+                        value={discountValue}
+                        onChange={(e) => {
+                          const value = Number.parseFloat(e.target.value) || 0
+                          if (discountType === "percentage" && value > 100) return
+                          if (discountType === "fixed" && value > subtotal) return
+                          setDiscountValue(value)
+                        }}
+                        placeholder="0.00"
+                        className="focus:ring-2 focus:ring-orange-500 border-orange-300"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">Descuento Aplicado</Label>
+                      <Input
+                        value={formatCurrency(discountAmount)}
+                        disabled
+                        className="bg-orange-100 font-medium text-orange-800 border-orange-300"
+                      />
+                    </div>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
+                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <div className="border-t border-slate-200 pt-6">
                 <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -727,6 +957,18 @@ export default function EditInvoicePage() {
                         <span>Subtotal:</span>
                         <span className="font-medium">{formatCurrency(subtotal)}</span>
                       </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Descuento:</span>
+                          <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+                        </div>
+                      )}
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-slate-700">
+                          <span>Subtotal con descuento:</span>
+                          <span className="font-medium">{formatCurrency(discountedSubtotal)}</span>
+                        </div>
+                      )}
                       {includeItbis && (
                         <div className="flex justify-between text-slate-700">
                           <span>ITBIS (18%):</span>

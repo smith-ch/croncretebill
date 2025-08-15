@@ -8,14 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
-import { Plus, Search, Wrench, Edit, Trash2 } from "lucide-react"
+import { Plus, Search, Wrench, Edit, Trash2, DollarSign } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 
 interface Service {
   id: string
   name: string
   description?: string
-  price: number
+  price: number | null
   unit: string
   category?: string
   duration?: string
@@ -187,7 +187,14 @@ export default function ServicesPage() {
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Precio:</span>
                         <span className="font-medium text-blue-600">
-                          {formatCurrency(service.price)}/{service.unit}
+                          {service.price !== null ? (
+                            `${formatCurrency(service.price)}/${service.unit}`
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600">
+                              <DollarSign className="h-3 w-3" />
+                              Personalizado
+                            </span>
+                          )}
                         </span>
                       </div>
                       <div className="flex gap-2">
@@ -199,6 +206,11 @@ export default function ServicesPage() {
                         {service.duration && (
                           <Badge variant="outline" className="border-blue-300 text-blue-700">
                             {service.duration}
+                          </Badge>
+                        )}
+                        {service.price === null && (
+                          <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
+                            Precio personalizado
                           </Badge>
                         )}
                       </div>

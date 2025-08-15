@@ -8,6 +8,10 @@ import { supabase } from "@/lib/supabase"
 import { AuthForm } from "@/components/auth/auth-form"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
+import { NotificationProvider } from "@/components/notifications/notification-provider"
+import { NotificationCenter } from "@/components/notifications/notification-center"
+import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -54,7 +58,11 @@ export default function ClientLayout({
       <html lang="es">
         <body className={inter.className}>
           <ThemeProvider attribute="class" defaultTheme="light">
-            <AuthForm />
+            <NotificationProvider>
+              <AuthForm />
+              <Toaster />
+              <SonnerToaster />
+            </NotificationProvider>
           </ThemeProvider>
         </body>
       </html>
@@ -65,12 +73,19 @@ export default function ClientLayout({
     <html lang="es">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
-          <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-            <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
-              <div className="p-6">{children}</div>
-            </main>
-          </div>
+          <NotificationProvider>
+            <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+              <Sidebar />
+              <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
+                <div className="p-6">
+                  <NotificationCenter className="mb-6" />
+                  {children}
+                </div>
+              </main>
+            </div>
+            <Toaster />
+            <SonnerToaster />
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -13,7 +13,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, Plus, Trash2 } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 
 interface InvoiceItem {
@@ -42,6 +43,8 @@ export default function NewInvoicePage() {
   ])
   const [includeItbis, setIncludeItbis] = useState(false)
   const [ncf, setNcf] = useState("")
+  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
+  const [discountValue, setDiscountValue] = useState(0)
 
   useEffect(() => {
     fetchInitialData()
@@ -133,10 +136,26 @@ export default function NewInvoicePage() {
         unit_price: Math.max(item.unit_price || 0, 0),
       }))
 
-      // Calculate totals
       const subtotal = processedItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-      const itbis_amount = includeItbis ? subtotal * 0.18 : 0
-      const total = subtotal + itbis_amount
+
+      // Calculate discount amount
+      let discountAmount = 0
+      if (discountValue > 0) {
+        if (discountType === "percentage") {
+          discountAmount = subtotal * (discountValue / 100)
+        } else {
+          discountAmount = Math.min(discountValue, subtotal) // Don't allow discount greater than subtotal
+        }
+      }
+
+      // Validate discount doesn't make total negative
+      const discountedSubtotal = Math.max(subtotal - discountAmount, 0)
+      if (discountedSubtotal < 0) {
+        throw new Error("El descuento no puede ser mayor al subtotal")
+      }
+
+      const itbis_amount = includeItbis ? discountedSubtotal * 0.18 : 0
+      const total = discountedSubtotal + itbis_amount
 
       const invoiceData = {
         user_id: user.id,
@@ -146,7 +165,7 @@ export default function NewInvoicePage() {
         invoice_date: invoiceDate,
         issue_date: invoiceDate,
         due_date: dueDate,
-        subtotal,
+        subtotal: discountedSubtotal, // Store the discounted subtotal
         tax_rate: includeItbis ? 18 : 0,
         tax_amount: itbis_amount,
         total,
@@ -237,390 +256,538 @@ export default function NewInvoicePage() {
 
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient)
 
-  // Calculate totals for display
   const validItemsForDisplay = items.filter(
     (item) => item.item_id && item.item_id.trim() !== "" && item.item_id !== "no-items",
   )
   const subtotal = validItemsForDisplay.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-  const itbisAmount = includeItbis ? subtotal * 0.18 : 0
-  const total = subtotal + itbisAmount
+
+  // Calculate discount amount
+  let discountAmount = 0
+  if (discountValue > 0) {
+    if (discountType === "percentage") {
+      discountAmount = subtotal * (discountValue / 100)
+    } else {
+      discountAmount = Math.min(discountValue, subtotal)
+    }
+  }
+
+  const discountedSubtotal = Math.max(subtotal - discountAmount, 0)
+  const itbisAmount = includeItbis ? discountedSubtotal * 0.18 : 0
+  const total = discountedSubtotal + itbisAmount
 
   if (fetchLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-slate-600">Cargando datos...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Nueva Factura
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">Crear una nueva factura</p>
-      </div>
-
-      {products.length === 0 && services.length === 0 && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertDescription className="text-amber-800">
-            No tienes productos ni servicios registrados.{" "}
-            <a href="/products" className="underline font-medium">
-              Crea algunos productos
-            </a>{" "}
-            o{" "}
-            <a href="/services" className="underline font-medium">
-              servicios
-            </a>{" "}
-            antes de crear facturas.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {clients.length === 0 && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertDescription className="text-amber-800">
-            No tienes clientes registrados.{" "}
-            <a href="/clients" className="underline font-medium">
-              Crea algunos clientes
-            </a>{" "}
-            antes de crear facturas.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-            <CardTitle className="text-white">Información General</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Número de Factura</Label>
-                <Input value={invoiceNumber} disabled className="bg-gray-50 font-medium" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="invoice_date">Fecha de Factura *</Label>
-                <Input
-                  id="invoice_date"
-                  name="invoice_date"
-                  type="date"
-                  defaultValue={new Date().toISOString().split("T")[0]}
-                  required
-                  className="focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="due_date">Fecha de Vencimiento *</Label>
-                <Input
-                  id="due_date"
-                  name="due_date"
-                  type="date"
-                  defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                  required
-                  className="focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select name="status" defaultValue="borrador">
-                  <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="borrador">Borrador</SelectItem>
-                    <SelectItem value="enviada">Enviada</SelectItem>
-                    <SelectItem value="pagada">Pagada</SelectItem>
-                    <SelectItem value="cancelada">Cancelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="client_id">Cliente *</Label>
-                <Select value={selectedClient} onValueChange={setSelectedClient} required>
-                  <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.length > 0 ? (
-                      clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-clients" disabled>
-                        No hay clientes disponibles
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="project_id">Proyecto</Label>
-                <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedClient}>
-                  <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
-                    <SelectValue placeholder="Seleccionar proyecto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin proyecto</SelectItem>
-                    {filteredProjects.length > 0
-                      ? filteredProjects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.name}
-                          </SelectItem>
-                        ))
-                      : selectedClient && (
-                          <SelectItem value="no-projects" disabled>
-                            No hay proyectos para este cliente
-                          </SelectItem>
-                        )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* ITBIS and NCF Section */}
-            <div className="border-t pt-4 space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include_itbis"
-                  checked={includeItbis}
-                  onCheckedChange={(checked) => {
-                    setIncludeItbis(checked as boolean)
-                    if (!checked) {
-                      setNcf("")
-                    }
-                  }}
-                />
-                <Label htmlFor="include_itbis" className="text-sm font-medium">
-                  ¿Incluir ITBIS (18%)?
-                </Label>
-              </div>
-
-              {includeItbis && (
-                <div className="space-y-2">
-                  <Label htmlFor="ncf">Comprobante Fiscal (NCF) *</Label>
-                  <Input
-                    id="ncf"
-                    value={ncf}
-                    onChange={(e) => setNcf(e.target.value)}
-                    placeholder="Ej: B0100000001"
-                    required={includeItbis}
-                    className="max-w-md focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-t-lg">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-white">Productos/Servicios</CardTitle>
-              <Button
-                type="button"
-                onClick={addItem}
-                variant="secondary"
-                disabled={products.length === 0 && services.length === 0}
-                className="bg-white text-green-600 hover:bg-gray-100"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Elemento
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" onClick={() => router.back()} className="hover:bg-slate-100">
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 p-6">
-            {items.map((item) => {
-              const selectedItem =
-                item.item_type === "product"
-                  ? products.find((p) => p.id === item.item_id)
-                  : services.find((s) => s.id === item.item_id)
-
-              return (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg bg-white shadow-sm"
-                >
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select
-                      value={item.item_type}
-                      onValueChange={(value: "product" | "service") => {
-                        updateItem(item.id, "item_type", value)
-                        updateItem(item.id, "item_id", "")
-                        updateItem(item.id, "unit_price", 0)
-                      }}
-                    >
-                      <SelectTrigger className="focus:ring-2 focus:ring-green-500">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="product">Producto</SelectItem>
-                        <SelectItem value="service">Servicio</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{item.item_type === "product" ? "Producto" : "Servicio"} *</Label>
-                    <Select
-                      value={item.item_id || "default"}
-                      onValueChange={(value) => {
-                        if (value !== "default" && value !== "no-items") {
-                          handleItemChange(item.id, value, item.item_type)
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="focus:ring-2 focus:ring-green-500">
-                        <SelectValue
-                          placeholder={`Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
-                        >
-                          {selectedItem
-                            ? `${selectedItem.name} - ${formatCurrency(item.item_type === "product" ? selectedItem.unit_price || 0 : selectedItem.price || 0)}`
-                            : `Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default" disabled>
-                          Seleccionar {item.item_type === "product" ? "producto" : "servicio"}
-                        </SelectItem>
-                        {item.item_type === "product" ? (
-                          products.length > 0 ? (
-                            products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                {product.name} - {formatCurrency(product.unit_price || 0)}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="no-items" disabled>
-                              No hay productos disponibles
-                            </SelectItem>
-                          )
-                        ) : services.length > 0 ? (
-                          services.map((service) => (
-                            <SelectItem key={service.id} value={service.id}>
-                              {service.name} - {formatCurrency(service.price || 0)}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-items" disabled>
-                            No hay servicios disponibles
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cantidad *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, "quantity", Number.parseFloat(e.target.value) || 1)}
-                      required
-                      className="focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Precio Unitario *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={item.unit_price}
-                      onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
-                      required
-                      className="focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Total</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        value={formatCurrency(item.quantity * item.unit_price)}
-                        disabled
-                        className="bg-gray-50 font-medium"
-                      />
-                      {items.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(item.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className="border-t pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div></div>
-                <div></div>
-                <div className="space-y-2">
-                  <div className="text-right bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Subtotal: {formatCurrency(subtotal)}</p>
-                    {includeItbis && (
-                      <p className="text-sm text-gray-600">ITBIS (18%): {formatCurrency(itbisAmount)}</p>
-                    )}
-                    <p className="text-lg font-bold text-blue-600">Total: {formatCurrency(total)}</p>
-                  </div>
-                </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+                  Nueva Factura
+                </h1>
+                <p className="text-slate-600 mt-1">Crear una nueva factura</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
-            <CardTitle className="text-white">Notas Adicionales</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <Textarea
-              id="notes"
-              name="notes"
-              placeholder="Notas adicionales..."
-              rows={3}
-              className="focus:ring-2 focus:ring-purple-500"
-            />
-          </CardContent>
-        </Card>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => router.push("/invoices")} className="hover:bg-slate-100">
+              Cancelar
+            </Button>
+            <Button
+              form="invoice-form"
+              type="submit"
+              disabled={loading || (products.length === 0 && services.length === 0) || clients.length === 0}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Crear Factura
+            </Button>
+          </div>
+        </div>
 
-        {error && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
+        {products.length === 0 && services.length === 0 && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <AlertDescription className="text-amber-800">
+              No tienes productos ni servicios registrados.{" "}
+              <a href="/products" className="underline font-medium">
+                Crea algunos productos
+              </a>{" "}
+              o{" "}
+              <a href="/services" className="underline font-medium">
+                servicios
+              </a>{" "}
+              antes de crear facturas.
+            </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex gap-3">
-          <Button
-            type="submit"
-            disabled={loading || (products.length === 0 && services.length === 0) || clients.length === 0}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Crear Factura
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancelar
-          </Button>
-        </div>
-      </form>
+        {clients.length === 0 && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <AlertDescription className="text-amber-800">
+              No tienes clientes registrados.{" "}
+              <a href="/clients" className="underline font-medium">
+                Crea algunos clientes
+              </a>{" "}
+              antes de crear facturas.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Información General
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-medium">Número de Factura</Label>
+                  <Input
+                    value={invoiceNumber}
+                    disabled
+                    className="bg-slate-50 border-slate-200 text-slate-600 font-medium"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invoice_date" className="text-slate-700 font-medium">
+                    Fecha de Factura *
+                  </Label>
+                  <Input
+                    id="invoice_date"
+                    name="invoice_date"
+                    type="date"
+                    defaultValue={new Date().toISOString().split("T")[0]}
+                    required
+                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="due_date" className="text-slate-700 font-medium">
+                    Fecha de Vencimiento *
+                  </Label>
+                  <Input
+                    id="due_date"
+                    name="due_date"
+                    type="date"
+                    defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                    required
+                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-slate-700 font-medium">
+                    Estado
+                  </Label>
+                  <Select name="status" defaultValue="borrador">
+                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="borrador">Borrador</SelectItem>
+                      <SelectItem value="enviada">Enviada</SelectItem>
+                      <SelectItem value="pagada">Pagada</SelectItem>
+                      <SelectItem value="cancelada">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="client_id" className="text-slate-700 font-medium">
+                    Cliente *
+                  </Label>
+                  <Select value={selectedClient} onValueChange={setSelectedClient} required>
+                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.length > 0 ? (
+                        clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-clients" disabled>
+                          No hay clientes disponibles
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project_id" className="text-slate-700 font-medium">
+                    Proyecto
+                  </Label>
+                  <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedClient}>
+                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue placeholder="Seleccionar proyecto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin proyecto</SelectItem>
+                      {filteredProjects.length > 0
+                        ? filteredProjects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.name}
+                            </SelectItem>
+                          ))
+                        : selectedClient && (
+                            <SelectItem value="no-projects" disabled>
+                              No hay proyectos para este cliente
+                            </SelectItem>
+                          )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-6 space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="include_itbis"
+                    checked={includeItbis}
+                    onCheckedChange={(checked) => {
+                      setIncludeItbis(checked as boolean)
+                      if (!checked) {
+                        setNcf("")
+                      }
+                    }}
+                    className="border-slate-300"
+                  />
+                  <Label htmlFor="include_itbis" className="text-slate-700 font-medium">
+                    ¿Incluir ITBIS (18%)?
+                  </Label>
+                </div>
+
+                {includeItbis && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ncf" className="text-amber-800 font-medium">
+                        Comprobante Fiscal (NCF) *
+                      </Label>
+                      <Input
+                        id="ncf"
+                        value={ncf}
+                        onChange={(e) => setNcf(e.target.value)}
+                        placeholder="Ej: B0100000001"
+                        required={includeItbis}
+                        className="border-amber-300 focus:border-amber-500 focus:ring-amber-500 bg-white"
+                      />
+                      <p className="text-xs text-amber-700">El NCF es obligatorio cuando se incluye ITBIS</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-t-lg">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Productos/Servicios
+                </CardTitle>
+                <Button
+                  type="button"
+                  onClick={addItem}
+                  variant="secondary"
+                  disabled={products.length === 0 && services.length === 0}
+                  className="bg-white text-slate-700 hover:bg-slate-100"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Elemento
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              {items.map((item) => {
+                const selectedItem =
+                  item.item_type === "product"
+                    ? products.find((p) => p.id === item.item_id)
+                    : services.find((s) => s.id === item.item_id)
+
+                return (
+                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Tipo</Label>
+                        <Select
+                          value={item.item_type}
+                          onValueChange={(value: "product" | "service") => {
+                            updateItem(item.id, "item_type", value)
+                            updateItem(item.id, "item_id", "")
+                            updateItem(item.id, "unit_price", 0)
+                          }}
+                        >
+                          <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="product">Producto</SelectItem>
+                            <SelectItem value="service">Servicio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">
+                          {item.item_type === "product" ? "Producto" : "Servicio"} *
+                        </Label>
+                        <Select
+                          value={item.item_id || "default"}
+                          onValueChange={(value) => {
+                            if (value !== "default" && value !== "no-items") {
+                              handleItemChange(item.id, value, item.item_type)
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue
+                              placeholder={`Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                            >
+                              {selectedItem
+                                ? `${selectedItem.name} - ${formatCurrency(item.item_type === "product" ? selectedItem.unit_price || 0 : selectedItem.price || 0)}`
+                                : `Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="default" disabled>
+                              Seleccionar {item.item_type === "product" ? "producto" : "servicio"}
+                            </SelectItem>
+                            {item.item_type === "product" ? (
+                              products.length > 0 ? (
+                                products.map((product) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.name} - {formatCurrency(product.unit_price || 0)}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-items" disabled>
+                                  No hay productos disponibles
+                                </SelectItem>
+                              )
+                            ) : services.length > 0 ? (
+                              services.map((service) => (
+                                <SelectItem key={service.id} value={service.id}>
+                                  {service.name} -{" "}
+                                  {service.price !== null ? formatCurrency(service.price) : "Precio personalizado"}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-items" disabled>
+                                No hay servicios disponibles
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Cantidad *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, "quantity", Number.parseFloat(e.target.value) || 1)}
+                          required
+                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Precio Unitario *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
+                          required
+                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Total</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={formatCurrency(item.quantity * item.unit_price)}
+                            disabled
+                            className="bg-slate-50 border-slate-200 text-slate-600 font-medium"
+                          />
+                          {items.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeItem(item.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-orange-800 flex items-center gap-2">
+                    <Percent className="h-5 w-5" />
+                    Descuentos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-3">
+                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
+                      <RadioGroup
+                        value={discountType}
+                        onValueChange={(value: "percentage" | "fixed") => {
+                          setDiscountType(value)
+                          setDiscountValue(0)
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="percentage" id="percentage" />
+                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
+                            <Percent className="h-3 w-3" />
+                            Porcentaje
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fixed" id="fixed" />
+                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
+                            <DollarSign className="h-3 w-3" />
+                            Monto Fijo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">
+                        {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={discountType === "percentage" ? "100" : undefined}
+                        value={discountValue}
+                        onChange={(e) => {
+                          const value = Number.parseFloat(e.target.value) || 0
+                          if (discountType === "percentage" && value > 100) return
+                          if (discountType === "fixed" && value > subtotal) return
+                          setDiscountValue(value)
+                        }}
+                        placeholder="0.00"
+                        className="focus:ring-2 focus:ring-orange-500 border-orange-300"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">Descuento Aplicado</Label>
+                      <Input
+                        value={formatCurrency(discountAmount)}
+                        disabled
+                        className="bg-orange-100 font-medium text-orange-800 border-orange-300"
+                      />
+                    </div>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
+                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="border-t border-slate-200 pt-6">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div></div>
+                    <div></div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-slate-700">
+                        <span>Subtotal:</span>
+                        <span className="font-medium">{formatCurrency(subtotal)}</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Descuento:</span>
+                          <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+                        </div>
+                      )}
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-slate-700">
+                          <span>Subtotal con descuento:</span>
+                          <span className="font-medium">{formatCurrency(discountedSubtotal)}</span>
+                        </div>
+                      )}
+                      {includeItbis && (
+                        <div className="flex justify-between text-slate-700">
+                          <span>ITBIS (18%):</span>
+                          <span className="font-medium">{formatCurrency(itbisAmount)}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-slate-300 pt-3">
+                        <div className="flex justify-between text-lg font-bold text-slate-900">
+                          <span>Total:</span>
+                          <span>{formatCurrency(total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader>
+              <CardTitle className="text-slate-800">Notas Adicionales</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                id="notes"
+                name="notes"
+                placeholder="Agregar notas, términos y condiciones, o información adicional..."
+                rows={4}
+                className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </CardContent>
+          </Card>
+
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+      </div>
     </div>
   )
 }
