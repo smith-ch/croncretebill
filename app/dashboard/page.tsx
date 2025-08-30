@@ -20,6 +20,9 @@ import {
   Users,
   Settings,
   Clock,
+  Bell,
+  CalendarDays,
+  Repeat,
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -68,6 +71,15 @@ interface DashboardStats {
   }>
 }
 
+interface CalendarNotification {
+  notification_type: string
+  title: string
+  message: string
+  count: number
+  priority: string
+  action_url: string
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalInvoices: 0,
@@ -99,16 +111,19 @@ export default function DashboardPage() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [showTargetSettings, setShowTargetSettings] = useState(false)
   const [newTarget, setNewTarget] = useState(100000)
+  const [calendarNotifications, setCalendarNotifications] = useState<CalendarNotification[]>([])
   const { formatCurrency } = useCurrency()
 
   useEffect(() => {
     fetchStats()
     loadMonthlyTarget()
     updateMonthlyStats()
+    fetchCalendarNotifications()
 
     const interval = setInterval(
       () => {
         fetchStats()
+        fetchCalendarNotifications()
         setLastUpdate(new Date())
       },
       5 * 60 * 1000,
@@ -116,6 +131,75 @@ export default function DashboardPage() {
 
     return () => clearInterval(interval)
   }, [])
+
+  const fetchCalendarNotifications = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const notifications: CalendarNotification[] = []
+      const now = new Date()
+      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+      const { data: upcomingInvoices } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, due_date, clients!inner(name)")
+        .eq("user_id", user.id)
+        .eq("status", "pendiente")
+        .gte("due_date", now.toISOString().split("T")[0])
+        .lte("due_date", oneWeekFromNow.toISOString().split("T")[0])
+
+      if (upcomingInvoices && upcomingInvoices.length > 0) {
+        notifications.push({
+          notification_type: "invoice_due",
+          title: "Facturas por vencer",
+          message: `Tienes ${upcomingInvoices.length} factura${upcomingInvoices.length > 1 ? "s" : ""} que vence${upcomingInvoices.length > 1 ? "n" : ""} esta semana`,
+          count: upcomingInvoices.length,
+          priority: "high",
+          action_url: "/invoices",
+        })
+      }
+
+      const { data: overdueInvoices } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, due_date, clients!inner(name)")
+        .eq("user_id", user.id)
+        .eq("status", "pendiente")
+        .lt("due_date", now.toISOString().split("T")[0])
+
+      if (overdueInvoices && overdueInvoices.length > 0) {
+        notifications.push({
+          notification_type: "invoice_overdue",
+          title: "Facturas vencidas",
+          message: `Tienes ${overdueInvoices.length} factura${overdueInvoices.length > 1 ? "s" : ""} vencida${overdueInvoices.length > 1 ? "s" : ""} que requiere${overdueInvoices.length > 1 ? "n" : ""} atención`,
+          count: overdueInvoices.length,
+          priority: "urgent",
+          action_url: "/invoices",
+        })
+      }
+
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const daysUntilMonthEnd = Math.ceil((endOfMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (daysUntilMonthEnd <= 5 && daysUntilMonthEnd > 0) {
+        notifications.push({
+          notification_type: "month_end",
+          title: "Fin de mes próximo",
+          message: `Quedan ${daysUntilMonthEnd} día${daysUntilMonthEnd > 1 ? "s" : ""} para el cierre mensual`,
+          count: 1,
+          priority: "medium",
+          action_url: "/monthly-reports",
+        })
+      }
+
+      setCalendarNotifications(notifications)
+    } catch (error) {
+      console.error("Error fetching calendar notifications:", error)
+      setCalendarNotifications([])
+    }
+  }
 
   const loadMonthlyTarget = async () => {
     try {
@@ -389,6 +473,37 @@ export default function DashboardPage() {
     }
   }
 
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "invoice_due":
+      case "invoice_overdue":
+        return <FileText className="h-4 w-4" />
+      case "upcoming_events":
+        return <CalendarDays className="h-4 w-4" />
+      case "recurring_expense":
+        return <Repeat className="h-4 w-4" />
+      case "month_end":
+        return <Target className="h-4 w-4" />
+      default:
+        return <Bell className="h-4 w-4" />
+    }
+  }
+
+  const getNotificationColor = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return "border-red-200 bg-red-50 text-red-800"
+      case "high":
+        return "border-orange-200 bg-orange-50 text-orange-800"
+      case "medium":
+        return "border-blue-200 bg-blue-50 text-blue-800"
+      case "low":
+        return "border-green-200 bg-green-50 text-green-800"
+      default:
+        return "border-gray-200 bg-gray-50 text-gray-800"
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
@@ -445,6 +560,7 @@ export default function DashboardPage() {
               variant="ghost"
               onClick={() => {
                 fetchStats()
+                fetchCalendarNotifications()
                 setLastUpdate(new Date())
               }}
               className="hover:bg-gray-100"
@@ -454,6 +570,50 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {calendarNotifications.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
+              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Notificaciones
+              </h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {calendarNotifications.map((notification, index) => (
+                <Card key={index} className={`border shadow-lg ${getNotificationColor(notification.priority)}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-white/50">
+                          {getNotificationIcon(notification.notification_type)}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm">{notification.title}</h4>
+                          <p className="text-xs mt-1 opacity-90">{notification.message}</p>
+                        </div>
+                      </div>
+                      {notification.count > 1 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {notification.count}
+                        </Badge>
+                      )}
+                    </div>
+                    {notification.action_url && (
+                      <div className="mt-3">
+                        <Link href={notification.action_url}>
+                          <Button size="sm" variant="outline" className="text-xs h-7 bg-white/50 hover:bg-white/80">
+                            Ver detalles
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         <Card className="border-0 shadow-xl bg-gradient-to-r from-amber-50 to-orange-50">
           <CardHeader>
@@ -587,6 +747,30 @@ export default function DashboardPage() {
                       <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
                         <DollarSign className="h-4 w-4 mr-2" />
                         Ver Gastos
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-teal-50 to-teal-100 border-0 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full shadow-lg">
+                        <CalendarDays className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-teal-800 text-lg">Ver Agenda</CardTitle>
+                        <CardDescription className="text-teal-600 text-sm">
+                          Gestiona eventos y vencimientos
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Link href="/agenda">
+                      <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Ver Agenda
                       </Button>
                     </Link>
                   </CardContent>

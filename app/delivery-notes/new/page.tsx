@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,6 +35,7 @@ export default function NewDeliveryNotePage() {
 
   const fetchInitialData = async () => {
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -60,6 +61,7 @@ export default function NewDeliveryNotePage() {
 
   const generateDeliveryNumber = async () => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase.rpc("get_next_delivery_number")
       if (error) throw error
       setDeliveryNumber(data)
@@ -78,6 +80,7 @@ export default function NewDeliveryNotePage() {
     const formData = new FormData(e.currentTarget)
 
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()

@@ -25,8 +25,15 @@ import {
   Menu,
   X,
   LogOut,
+  Bell,
+  Calendar,
+  Repeat,
 } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../../lib/supabase"
+import { useNotifications } from "@/components/notifications/notification-provider"
+import { Badge } from "@/components/ui/badge"
+import { NotificationCenter } from "@/components/notifications/notification-center"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const navigation = [
   {
@@ -72,9 +79,26 @@ const navigation = [
     icon: FolderOpen,
   },
   {
+    name: "Agenda",
+    href: "/agenda",
+    icon: Calendar,
+  },
+  {
     name: "Gastos",
     href: "/expenses",
     icon: DollarSign,
+    children: [
+      {
+        name: "Gastos",
+        href: "/expenses",
+        icon: DollarSign,
+      },
+      {
+        name: "Gastos Recurrentes",
+        href: "/recurring-expenses",
+        icon: Repeat,
+      },
+    ],
   },
   {
     name: "Reportes",
@@ -95,8 +119,9 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [openItems, setOpenItems] = useState<string[]>(["Productos"])
+  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Gastos"])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { banners } = useNotifications()
 
   const toggleItem = (name: string) => {
     setOpenItems((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
@@ -135,9 +160,39 @@ export function Sidebar() {
             </span>
           </Link>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="h-8 w-8 p-0">
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn("h-8 w-8 p-0 relative", banners.length > 0 && "text-blue-600")}
+              >
+                <Bell className="h-4 w-4" />
+                {banners.length > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
+                  >
+                    {banners.length}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-96 p-4" align="end">
+              <NotificationCenter />
+              {banners.length === 0 && (
+                <div className="text-center py-8 text-slate-500">
+                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No hay notificaciones</p>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="h-8 w-8 p-0">
+            {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1 px-3 py-4">

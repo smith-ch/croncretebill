@@ -4,16 +4,16 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../../lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Info } from "lucide-react"
+import { useNotificationHelpers } from "@/hooks/use-notifications"
 
 interface ServiceFormProps {
   service?: any
@@ -23,13 +23,12 @@ interface ServiceFormProps {
 export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [isCustomPricing, setIsCustomPricing] = useState(service?.price === null || service?.price === undefined)
+  const { notifySuccess, notifyError, notifyFormSuccess, notifyFormError } = useNotificationHelpers()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
 
     const formData = new FormData(e.currentTarget)
     const priceValue = formData.get("price") as string
@@ -56,12 +55,14 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
       if (service) {
         const { error } = await supabase.from("services").update(serviceData).eq("id", service.id)
         if (error) throw error
+        notifyFormSuccess("Servicio actualizado")
       } else {
         const { error } = await supabase.from("services").insert({
           ...serviceData,
           user_id: user.id,
         })
         if (error) throw error
+        notifyFormSuccess("Servicio creado")
       }
 
       if (onSuccess) {
@@ -70,7 +71,7 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
         router.push("/services")
       }
     } catch (error: any) {
-      setError(error.message)
+      notifyFormError(service ? "actualizar el servicio" : "crear el servicio", error.message)
     } finally {
       setLoading(false)
     }
@@ -236,12 +237,6 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
               />
             </div>
           </div>
-
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
-            </Alert>
-          )}
 
           <div className="flex gap-3">
             <Button type="submit" disabled={loading}>

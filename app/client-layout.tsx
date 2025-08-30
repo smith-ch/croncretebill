@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { Inter } from "next/font/google"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../lib/supabase"
 import { AuthForm } from "@/components/auth/auth-form"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
