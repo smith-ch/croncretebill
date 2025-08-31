@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -26,31 +25,60 @@ import {
   AlertCircle,
   Percent,
   DollarSign,
+  Calendar,
 } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { useNotificationHelpers } from "@/hooks/use-notifications"
 
-export default function EditInvoicePage() {
+type InvoiceItem = {
+  product_id: string
+  service_id: string
+  quantity: number
+  unit_price: number
+  type: "product" | "service"
+  original_description: string
+}
+
+export default function EditInvoicePage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const params = useParams()
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [invoice, setInvoice] = useState<any>(null)
+  const [items, setItems] = useState<InvoiceItem[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [drivers, setDrivers] = useState<any[]>([])
-  const [vehicles, setVehicles] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
-  const [selectedClient, setSelectedClient] = useState("")
-  const [items, setItems] = useState([
-    { product_id: "", service_id: "", quantity: 1, unit_price: 0, type: "product", original_description: "" },
-  ])
   const [includeItbis, setIncludeItbis] = useState(false)
-  const [ncf, setNcf] = useState("")
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
   const { formatCurrency } = useCurrency()
+  const { notifySuccess, notifyError, notifyInvoiceCreated } = useNotificationHelpers()
+
+  const [invoice, setInvoice] = useState<any>(null)
+  const [vehicles, setVehicles] = useState<any[]>([])
+  const [selectedClient, setSelectedClient] = useState("")
+
+  const [ncf, setNcf] = useState("")
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "borrador":
+        return "bg-slate-100 text-slate-800 border-slate-200"
+      case "pendiente":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      case "enviada":
+        return "bg-amber-100 text-amber-800 border-amber-200"
+      case "pagada":
+        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+      case "vencida":
+        return "bg-red-100 text-red-800 border-red-200"
+      case "cancelada":
+        return "bg-gray-100 text-gray-800 border-gray-200"
+      default:
+        return "bg-slate-100 text-slate-800 border-slate-200"
+    }
+  }
 
   useEffect(() => {
     fetchInvoiceData()
@@ -107,6 +135,28 @@ export default function EditInvoicePage() {
       setIncludeItbis(invoiceData.include_itbis || false)
       setNcf(invoiceData.ncf || "")
 
+      const loadedItems = invoiceData.invoice_items.map((item: any) => {
+        const productId = item.product_id ? String(item.product_id) : ""
+        const serviceId = item.service_id ? String(item.service_id) : ""
+
+        const product = fetchedProducts.find((p) => String(p.id) === productId)
+        const service = fetchedServices.find((s) => String(s.id) === serviceId)
+
+        console.log("Processing item:", { item, product, service, productId, serviceId })
+
+        return {
+          product_id: productId,
+          service_id: serviceId,
+          quantity: Math.max(item.quantity || 1, 0.01),
+          unit_price: Math.max(item.unit_price || 0, 0),
+          type: productId ? "product" : serviceId ? "service" : "product",
+          original_description: item.description || product?.name || service?.name || "",
+        }
+      })
+
+      console.log("Loaded items:", loadedItems)
+      setItems(loadedItems)
+
       const [clientsRes, projectsRes, driversRes, vehiclesRes] = await Promise.all([
         supabase.from("clients").select("id, name").eq("user_id", user.id),
         supabase.from("projects").select("id, name, client_id").eq("user_id", user.id),
@@ -118,37 +168,9 @@ export default function EditInvoicePage() {
       setProjects(projectsRes.data || [])
       setDrivers(driversRes.data || [])
       setVehicles(vehiclesRes.data || [])
-
-      if (invoiceData.invoice_items && invoiceData.invoice_items.length > 0) {
-        const loadedItems = invoiceData.invoice_items.map((item: any) => {
-          const productId = item.product_id ? String(item.product_id) : ""
-          const serviceId = item.service_id ? String(item.service_id) : ""
-
-          const product = fetchedProducts.find((p) => String(p.id) === productId)
-          const service = fetchedServices.find((s) => String(s.id) === serviceId)
-
-          console.log("Processing item:", { item, product, service, productId, serviceId })
-
-          return {
-            product_id: productId,
-            service_id: serviceId,
-            quantity: Math.max(item.quantity || 1, 0.01),
-            unit_price: Math.max(item.unit_price || 0, 0),
-            type: productId ? "product" : serviceId ? "service" : "product",
-            original_description: item.description || product?.name || service?.name || "",
-          }
-        })
-
-        console.log("Loaded items:", loadedItems)
-        setItems(loadedItems)
-      } else {
-        setItems([
-          { product_id: "", service_id: "", quantity: 1, unit_price: 0, type: "product", original_description: "" },
-        ])
-      }
     } catch (error) {
       console.error("Error fetching invoice:", error)
-      setError("Error al cargar la factura")
+      notifyError("Error al cargar la factura")
     } finally {
       setFetchLoading(false)
     }
@@ -157,7 +179,6 @@ export default function EditInvoicePage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
 
     const formData = new FormData(e.currentTarget)
 
@@ -226,11 +247,15 @@ export default function EditInvoicePage() {
         )
       }
 
+      const selectedClient = formData.get("client_id") as string
+      const includeItbis = formData.get("include_itbis") === "on"
+      const ncf = formData.get("ncf") as string
+
       if (includeItbis && !ncf.trim()) {
         throw new Error("NCF es requerido cuando se incluye ITBIS")
       }
 
-      const subtotal = validItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
+      const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
       let discountAmount = 0
       if (discountValue > 0) {
         if (discountType === "percentage") {
@@ -247,7 +272,7 @@ export default function EditInvoicePage() {
       const dueDate = formData.get("due_date") as string
 
       const invoiceData = {
-        client_id: formData.get("client_id") as string,
+        client_id: selectedClient,
         project_id: (formData.get("project_id") as string) || null,
         driver_id: (formData.get("driver_id") as string) || null,
         vehicle_id: (formData.get("vehicle_id") as string) || null,
@@ -357,14 +382,14 @@ export default function EditInvoicePage() {
 
       console.log("[v0] Invoice update completed successfully!")
 
-      setError(null)
+      notifySuccess("Factura actualizada exitosamente")
 
       setTimeout(() => {
         router.push("/invoices")
       }, 500)
     } catch (error: any) {
       console.error("[v0] Error updating invoice:", error)
-      setError(error.message || "Error desconocido al actualizar la factura")
+      notifyError(error.message || "Error desconocido al actualizar la factura")
     } finally {
       setLoading(false)
     }
@@ -408,16 +433,16 @@ export default function EditInvoicePage() {
       if (field === "product_id" && value) {
         updateItem(index, "service_id", "")
         const product = products.find((p) => String(p.id) === String(value))
-        if (product && product.unit_price) {
-          updateItem(index, "unit_price", product.unit_price)
+        if (product) {
+          updateItem(index, "unit_price", product.unit_price || 0)
         }
       }
       // Handle service selection - preserve product_id as empty and update price
       else if (field === "service_id" && value) {
         updateItem(index, "product_id", "")
         const service = services.find((s) => String(s.id) === String(value))
-        if (service && service.price) {
-          updateItem(index, "unit_price", service.price)
+        if (service) {
+          updateItem(index, "unit_price", service.price || 0)
         }
       }
 
@@ -551,14 +576,23 @@ export default function EditInvoicePage() {
                   <Label htmlFor="due_date" className="text-slate-700 font-medium">
                     Fecha de Vencimiento *
                   </Label>
-                  <Input
-                    id="due_date"
-                    name="due_date"
-                    type="date"
-                    defaultValue={invoice.due_date ? invoice.due_date.split("T")[0] : ""}
-                    required
-                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="due_date"
+                      name="due_date"
+                      type="date"
+                      defaultValue={invoice.due_date ? invoice.due_date.split("T")[0] : ""}
+                      required
+                      className="border-slate-200 focus:border-blue-500 focus:ring-blue-500 pr-10"
+                    />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Calendar className="h-4 w-4 text-blue-500" title="Se actualizará automáticamente en la agenda" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-600 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Se actualizará automáticamente en tu agenda
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status" className="text-slate-700 font-medium">
@@ -1003,34 +1037,8 @@ export default function EditInvoicePage() {
               />
             </CardContent>
           </Card>
-
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
-            </Alert>
-          )}
         </form>
       </div>
     </div>
   )
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "borrador":
-      return "bg-slate-100 text-slate-800 border-slate-200"
-    case "pendiente":
-      return "bg-blue-100 text-blue-800 border-blue-200"
-    case "enviada":
-      return "bg-amber-100 text-amber-800 border-amber-200"
-    case "pagada":
-      return "bg-emerald-100 text-emerald-800 border-emerald-200"
-    case "vencida":
-      return "bg-red-100 text-red-800 border-red-200"
-    case "cancelada":
-      return "bg-gray-100 text-gray-800 border-gray-200"
-    default:
-      return "bg-slate-100 text-slate-800 border-slate-200"
-  }
 }

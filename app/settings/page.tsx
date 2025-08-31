@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -75,6 +75,7 @@ export default function SettingsPage() {
 
   const fetchSettings = async () => {
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -123,6 +124,7 @@ export default function SettingsPage() {
     if (!logoFile) return null
 
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -155,6 +157,7 @@ export default function SettingsPage() {
     setSuccess(null)
 
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()

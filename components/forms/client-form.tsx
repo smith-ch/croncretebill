@@ -4,14 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../../lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useNotificationHelpers } from "@/hooks/use-notifications"
 
 interface ClientFormProps {
   client?: any
@@ -21,12 +21,11 @@ interface ClientFormProps {
 export function ClientForm({ client, onSuccess }: ClientFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { notifyFormSuccess, notifyFormError } = useNotificationHelpers()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
 
     const formData = new FormData(e.currentTarget)
     const clientData = {
@@ -48,6 +47,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
         // Update existing client
         const { error } = await supabase.from("clients").update(clientData).eq("id", client.id)
         if (error) throw error
+        notifyFormSuccess("Cliente actualizado")
       } else {
         // Create new client
         const { error } = await supabase.from("clients").insert({
@@ -55,6 +55,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
           user_id: user.id,
         })
         if (error) throw error
+        notifyFormSuccess("Cliente creado")
       }
 
       if (onSuccess) {
@@ -63,7 +64,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
         router.push("/clients")
       }
     } catch (error: any) {
-      setError(error.message)
+      notifyFormError(client ? "actualizar el cliente" : "crear el cliente", error.message)
     } finally {
       setLoading(false)
     }
@@ -125,12 +126,6 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
               />
             </div>
           </div>
-
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
-            </Alert>
-          )}
 
           <div className="flex gap-3">
             <Button type="submit" disabled={loading}>

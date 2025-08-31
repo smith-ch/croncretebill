@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { Toaster } from "@/components/ui/toaster"
+import { Toaster as Sonner } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,6 +33,8 @@ export default function RootLayout({
       <body className="antialiased">
         <ErrorBoundary>
           <ClientLayout>{children}</ClientLayout>
+          <Toaster />
+          <Sonner />
         </ErrorBoundary>
       </body>
     </html>
