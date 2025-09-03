@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,7 +33,6 @@ export default function DriverDeliveriesPage() {
 
   const fetchData = async () => {
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -99,7 +98,6 @@ export default function DriverDeliveriesPage() {
 
   const updateDeliveryStatus = async (deliveryId: string, newStatus: string, arrivalTime?: string) => {
     try {
-      const supabase = createClient()
       const updateData: any = { status: newStatus }
       if (arrivalTime) {
         updateData.arrival_time = arrivalTime
@@ -125,7 +123,6 @@ export default function DriverDeliveriesPage() {
     if (!confirm("¿Estás seguro de que quieres eliminar esta entrega?")) return
 
     try {
-      const supabase = createClient()
       const { error } = await supabase.from("driver_deliveries").delete().eq("id", deliveryId)
 
       if (error) throw error

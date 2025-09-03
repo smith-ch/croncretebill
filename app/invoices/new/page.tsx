@@ -13,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, FileText, ArrowLeft, Calendar } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
-import { useNotificationHelpers } from "@/hooks/use-notifications"
 
 interface InvoiceItem {
   id: string
@@ -30,6 +30,7 @@ export default function NewInvoicePage() {
   const { formatCurrency } = useCurrency()
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [invoiceNumber, setInvoiceNumber] = useState("")
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
@@ -44,7 +45,6 @@ export default function NewInvoicePage() {
   const [ncf, setNcf] = useState("")
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
-  const { notifySuccess, notifyError, notifyInvoiceCreated } = useNotificationHelpers()
 
   useEffect(() => {
     fetchInitialData()
@@ -57,7 +57,7 @@ export default function NewInvoicePage() {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
-        notifyError("Usuario no autenticado")
+        setError("Usuario no autenticado")
         return
       }
 
@@ -74,7 +74,7 @@ export default function NewInvoicePage() {
       setServices(servicesRes.data || [])
     } catch (error) {
       console.error("Error fetching data:", error)
-      notifyError("Error al cargar los datos iniciales")
+      setError("Error al cargar los datos iniciales")
     } finally {
       setFetchLoading(false)
     }
@@ -94,6 +94,7 @@ export default function NewInvoicePage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     const formData = new FormData(e.currentTarget)
 
@@ -207,10 +208,9 @@ export default function NewInvoicePage() {
       const { error: itemsError } = await supabase.from("invoice_items").insert(invoiceItems)
       if (itemsError) throw itemsError
 
-      notifyInvoiceCreated(invoiceNumber)
       router.push("/invoices")
     } catch (error: any) {
-      notifyError(error.message || "Error al crear la factura")
+      setError(error.message || "Error al crear la factura")
     } finally {
       setLoading(false)
     }
@@ -386,23 +386,14 @@ export default function NewInvoicePage() {
                   <Label htmlFor="due_date" className="text-slate-700 font-medium">
                     Fecha de Vencimiento *
                   </Label>
-                  <div className="relative">
-                    <Input
-                      id="due_date"
-                      name="due_date"
-                      type="date"
-                      defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                      required
-                      className="border-slate-200 focus:border-blue-500 focus:ring-blue-500 pr-10"
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <Calendar className="h-4 w-4 text-blue-500" title="Se agregará automáticamente a la agenda" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-blue-600 flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    Se agregará automáticamente a tu agenda
-                  </p>
+                  <Input
+                    id="due_date"
+                    name="due_date"
+                    type="date"
+                    defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                    required
+                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status" className="text-slate-700 font-medium">
@@ -513,6 +504,269 @@ export default function NewInvoicePage() {
           </Card>
 
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-t-lg">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Productos/Servicios
+                </CardTitle>
+                <Button
+                  type="button"
+                  onClick={addItem}
+                  variant="secondary"
+                  disabled={products.length === 0 && services.length === 0}
+                  className="bg-white text-slate-700 hover:bg-slate-100"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Elemento
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              {items.map((item) => {
+                const selectedItem =
+                  item.item_type === "product"
+                    ? products.find((p) => p.id === item.item_id)
+                    : services.find((s) => s.id === item.item_id)
+
+                return (
+                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Tipo</Label>
+                        <Select
+                          value={item.item_type}
+                          onValueChange={(value: "product" | "service") => {
+                            updateItem(item.id, "item_type", value)
+                            updateItem(item.id, "item_id", "")
+                            updateItem(item.id, "unit_price", 0)
+                          }}
+                        >
+                          <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="product">Producto</SelectItem>
+                            <SelectItem value="service">Servicio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">
+                          {item.item_type === "product" ? "Producto" : "Servicio"} *
+                        </Label>
+                        <Select
+                          value={item.item_id || "default"}
+                          onValueChange={(value) => {
+                            if (value !== "default" && value !== "no-items") {
+                              handleItemChange(item.id, value, item.item_type)
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue
+                              placeholder={`Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                            >
+                              {selectedItem
+                                ? `${selectedItem.name} - ${formatCurrency(item.item_type === "product" ? selectedItem.unit_price || 0 : selectedItem.price || 0)}`
+                                : `Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="default" disabled>
+                              Seleccionar {item.item_type === "product" ? "producto" : "servicio"}
+                            </SelectItem>
+                            {item.item_type === "product" ? (
+                              products.length > 0 ? (
+                                products.map((product) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.name} - {formatCurrency(product.unit_price || 0)}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-items" disabled>
+                                  No hay productos disponibles
+                                </SelectItem>
+                              )
+                            ) : services.length > 0 ? (
+                              services.map((service) => (
+                                <SelectItem key={service.id} value={service.id}>
+                                  {service.name} -{" "}
+                                  {service.price !== null ? formatCurrency(service.price) : "Precio personalizado"}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-items" disabled>
+                                No hay servicios disponibles
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Cantidad *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, "quantity", Number.parseFloat(e.target.value) || 1)}
+                          required
+                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Precio Unitario *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
+                          required
+                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-700 font-medium">Total</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={formatCurrency(item.quantity * item.unit_price)}
+                            disabled
+                            className="bg-slate-50 border-slate-200 text-slate-600 font-medium"
+                          />
+                          {items.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeItem(item.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-orange-800 flex items-center gap-2">
+                    <Percent className="h-5 w-5" />
+                    Descuentos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-3">
+                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
+                      <RadioGroup
+                        value={discountType}
+                        onValueChange={(value: "percentage" | "fixed") => {
+                          setDiscountType(value)
+                          setDiscountValue(0)
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="percentage" id="percentage" />
+                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
+                            <Percent className="h-3 w-3" />
+                            Porcentaje
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fixed" id="fixed" />
+                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
+                            <DollarSign className="h-3 w-3" />
+                            Monto Fijo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">
+                        {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={discountType === "percentage" ? "100" : undefined}
+                        value={discountValue}
+                        onChange={(e) => {
+                          const value = Number.parseFloat(e.target.value) || 0
+                          if (discountType === "percentage" && value > 100) return
+                          if (discountType === "fixed" && value > subtotal) return
+                          setDiscountValue(value)
+                        }}
+                        placeholder="0.00"
+                        className="focus:ring-2 focus:ring-orange-500 border-orange-300"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-orange-700 font-medium">Descuento Aplicado</Label>
+                      <Input
+                        value={formatCurrency(discountAmount)}
+                        disabled
+                        className="bg-orange-100 font-medium text-orange-800 border-orange-300"
+                      />
+                    </div>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
+                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="border-t border-slate-200 pt-6">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div></div>
+                    <div></div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-slate-700">
+                        <span>Subtotal:</span>
+                        <span className="font-medium">{formatCurrency(subtotal)}</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Descuento:</span>
+                          <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+                        </div>
+                      )}
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-slate-700">
+                          <span>Subtotal con descuento:</span>
+                          <span className="font-medium">{formatCurrency(discountedSubtotal)}</span>
+                        </div>
+                      )}
+                      {includeItbis && (
+                        <div className="flex justify-between text-slate-700">
+                          <span>ITBIS (18%):</span>
+                          <span className="font-medium">{formatCurrency(itbisAmount)}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-slate-300 pt-3">
+                        <div className="flex justify-between text-lg font-bold text-slate-900">
+                          <span>Total:</span>
+                          <span>{formatCurrency(total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
             <CardHeader>
               <CardTitle className="text-slate-800">Notas Adicionales</CardTitle>
             </CardHeader>
@@ -526,6 +780,12 @@ export default function NewInvoicePage() {
               />
             </CardContent>
           </Card>
+
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            </Alert>
+          )}
         </form>
       </div>
     </div>

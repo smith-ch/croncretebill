@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -68,7 +68,6 @@ export default function NewBudgetPage() {
 
   const fetchInitialData = async () => {
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -97,7 +96,6 @@ export default function NewBudgetPage() {
 
   const generateBudgetNumber = async (userId: string) => {
     try {
-      const supabase = createClient()
       const currentYear = new Date().getFullYear()
 
       // Get the count of budgets for this user this year
@@ -202,7 +200,6 @@ export default function NewBudgetPage() {
     setError(null)
 
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()

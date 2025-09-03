@@ -5,7 +5,7 @@ import { CardDescription } from "@/components/ui/card"
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -97,7 +97,6 @@ export default function ExpensesPage() {
 
   const fetchExpenses = async () => {
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -120,7 +119,6 @@ export default function ExpensesPage() {
 
   const fetchCategories = async () => {
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -151,7 +149,6 @@ export default function ExpensesPage() {
     }
 
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -191,7 +188,6 @@ export default function ExpensesPage() {
     }
 
     try {
-      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -222,7 +218,6 @@ export default function ExpensesPage() {
     if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) return
 
     try {
-      const supabase = createClient()
       // Check if category is being used by any expenses
       const { data: expensesUsingCategory, error: checkError } = await supabase
         .from("expenses")
@@ -251,7 +246,6 @@ export default function ExpensesPage() {
     if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) return
 
     try {
-      const supabase = createClient()
       const { error } = await supabase.from("expenses").delete().eq("id", id)
       if (error) throw error
       fetchExpenses()
@@ -266,7 +260,6 @@ export default function ExpensesPage() {
     if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) return
 
     try {
-      const supabase = createClient()
       const { error } = await supabase.from("expenses").delete().in("id", selectedExpenses)
       if (error) throw error
 

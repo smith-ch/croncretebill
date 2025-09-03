@@ -31,15 +31,15 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
   const getStyles = () => {
     switch (type) {
       case "success":
-        return "bg-green-50 border-green-200 text-green-800 shadow-md"
+        return "bg-green-50 border-green-200 text-green-800"
       case "error":
-        return "bg-red-50 border-red-200 text-red-800 shadow-md"
+        return "bg-red-50 border-red-200 text-red-800"
       case "warning":
-        return "bg-amber-50 border-amber-200 text-amber-800 shadow-md"
+        return "bg-amber-50 border-amber-200 text-amber-800"
       case "info":
-        return "bg-blue-50 border-blue-200 text-blue-800 shadow-md"
+        return "bg-blue-50 border-blue-200 text-blue-800"
       default:
-        return "bg-gray-50 border-gray-200 text-gray-800 shadow-md"
+        return "bg-gray-50 border-gray-200 text-gray-800"
     }
   }
 
@@ -63,7 +63,7 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
   return (
     <div
       className={cn(
-        "flex items-start gap-3 p-4 border rounded-lg animate-in slide-in-from-top-2 duration-300 relative z-30 bg-opacity-100",
+        "flex items-start gap-3 p-4 border rounded-lg shadow-sm animate-in slide-in-from-top-2 duration-300",
         getStyles(),
         className,
       )}
@@ -71,7 +71,7 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
       <Icon className={cn("h-5 w-5 mt-0.5 flex-shrink-0", getIconStyles())} />
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-sm">{title}</h4>
-        {description && <p className="mt-1 text-sm">{description}</p>}
+        {description && <p className="mt-1 text-sm opacity-90">{description}</p>}
       </div>
       {onDismiss && (
         <Button variant="ghost" size="sm" onClick={onDismiss} className="h-6 w-6 p-0 hover:bg-black/10">

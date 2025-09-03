@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         projects (name),
         drivers (name),
         vehicles (model, plate),
-        invoice_items (
+        invoice_items:invoice_items_invoice_id_fkey (
           *,
           products (name, unit),
           services (name, unit)

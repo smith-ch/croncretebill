@@ -22,7 +22,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
-import { useNotificationHelpers } from "@/hooks/use-notifications"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -31,7 +30,6 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const { formatCurrency } = useCurrency()
-  const { notifySuccess, notifyError, notifyInvoicePaid } = useNotificationHelpers()
 
   useEffect(() => {
     fetchInvoices()
@@ -59,7 +57,6 @@ export default function InvoicesPage() {
       setInvoices(data || [])
     } catch (error) {
       console.error("Error fetching invoices:", error)
-      notifyError("Error al cargar las facturas")
     } finally {
       setLoading(false)
     }
@@ -125,15 +122,10 @@ export default function InvoicesPage() {
         .eq("id", id)
 
       if (error) throw error
-
-      const invoice = invoices.find((inv) => inv.id === id)
-      const invoiceNumber = invoice?.invoice_number || id.slice(0, 8)
-
-      notifyInvoicePaid(invoiceNumber)
-      fetchInvoices()
+      fetchInvoices() // Refresh the list
     } catch (error) {
       console.error("Error marking invoice as paid:", error)
-      notifyError("Error al marcar la factura como pagada")
+      alert("Error al marcar la factura como pagada")
     }
   }
 
@@ -143,12 +135,9 @@ export default function InvoicesPage() {
     try {
       const { error } = await supabase.from("invoices").delete().eq("id", id)
       if (error) throw error
-
-      notifySuccess("Factura eliminada exitosamente")
       fetchInvoices()
     } catch (error) {
       console.error("Error deleting invoice:", error)
-      notifyError("Error al eliminar la factura")
     }
   }
 
@@ -169,11 +158,9 @@ export default function InvoicesPage() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-
-      notifySuccess("PDF descargado exitosamente")
     } catch (error) {
       console.error("Error downloading PDF:", error)
-      notifyError("Error al descargar el PDF: " + (error instanceof Error ? error.message : "Error desconocido"))
+      alert("Error al descargar el PDF: " + (error instanceof Error ? error.message : "Error desconocido"))
     }
   }
 

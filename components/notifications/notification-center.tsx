@@ -17,7 +17,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   }
 
   return (
-    <div className={`space-y-3 relative z-20 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-slate-600" />
