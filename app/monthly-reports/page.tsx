@@ -37,6 +37,7 @@ import {
   PieChartIcon,
   RefreshCw,
   Loader2,
+  LineChart as LineChartIcon,
 } from "lucide-react"
 
 interface MonthlyData {
@@ -75,6 +76,7 @@ interface KPIData {
 export default function MonthlyReportsPage() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   const [kpiData, setKpiData] = useState<KPIData>({
     totalRevenue: 0,
     totalInvoices: 0,
@@ -96,6 +98,7 @@ export default function MonthlyReportsPage() {
   const { formatCurrency } = useCurrency()
 
   useEffect(() => {
+    setIsClient(true)
     fetchMonthlyData()
     fetchAdditionalMetrics()
   }, [selectedPeriod])
@@ -332,7 +335,8 @@ export default function MonthlyReportsPage() {
   const getQuarterlyData = () => {
     const quarters: { [key: string]: MonthlyData[] } = {}
     monthlyData.forEach((data) => {
-      const quarter = Math.ceil(data.month.split("/")[0] / 3)
+      const monthNumber = parseInt(data.month.split("/")[0])
+      const quarter = Math.ceil(monthNumber / 3)
       const year = data.year
       const key = `Q${quarter} ${year}`
       if (!quarters[key]) quarters[key] = []
@@ -481,7 +485,7 @@ export default function MonthlyReportsPage() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 animate-fade-in">
             <CardHeader className="card-responsive pb-4">
               <CardTitle className="text-slate-800 flex items-center gap-2 text-lg sm:text-xl">
-                <LineChart className="h-5 w-6" />
+                <LineChartIcon className="h-5 w-6" />
                 Evolución de Ingresos y Gastos
               </CardTitle>
               <CardDescription className="text-responsive">
@@ -497,9 +501,9 @@ export default function MonthlyReportsPage() {
                       dataKey="monthName"
                       stroke="#64748B"
                       fontSize={12}
-                      angle={window.innerWidth < 640 ? -45 : 0}
-                      textAnchor={window.innerWidth < 640 ? "end" : "middle"}
-                      height={window.innerWidth < 640 ? 60 : 30}
+                      angle={isClient && window.innerWidth < 640 ? -45 : 0}
+                      textAnchor={isClient && window.innerWidth < 640 ? "end" : "middle"}
+                      height={isClient && window.innerWidth < 640 ? 60 : 30}
                     />
                     <YAxis stroke="#64748B" fontSize={12} />
                     <Tooltip
@@ -652,8 +656,8 @@ export default function MonthlyReportsPage() {
                             data={categoryData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={window.innerWidth < 640 ? 40 : 60}
-                            outerRadius={window.innerWidth < 640 ? 80 : 120}
+                            innerRadius={isClient && window.innerWidth < 640 ? 40 : 60}
+                            outerRadius={isClient && window.innerWidth < 640 ? 80 : 120}
                             paddingAngle={5}
                             dataKey="value"
                           >
