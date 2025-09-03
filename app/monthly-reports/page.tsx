@@ -37,7 +37,6 @@ import {
   PieChartIcon,
   RefreshCw,
   Loader2,
-  LineChart as LineChartIcon,
 } from "lucide-react"
 
 interface MonthlyData {
@@ -76,7 +75,6 @@ interface KPIData {
 export default function MonthlyReportsPage() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
-  const [isClient, setIsClient] = useState(false)
   const [kpiData, setKpiData] = useState<KPIData>({
     totalRevenue: 0,
     totalInvoices: 0,
@@ -98,7 +96,6 @@ export default function MonthlyReportsPage() {
   const { formatCurrency } = useCurrency()
 
   useEffect(() => {
-    setIsClient(true)
     fetchMonthlyData()
     fetchAdditionalMetrics()
   }, [selectedPeriod])
@@ -209,21 +206,21 @@ export default function MonthlyReportsPage() {
             : 0
 
         // Find best and worst performing months
-        const bestMonth = processedData.reduce((best, current) => (current.netProfit > best.netProfit ? current : best))
-        const worstMonth = processedData.reduce((worst, current) =>
+        const bestMonth = processedData.length > 0 ? processedData.reduce((best, current) => (current.netProfit > best.netProfit ? current : best)) : { monthName: "N/A" }
+        const worstMonth = processedData.length > 0 ? processedData.reduce((worst, current) =>
           current.netProfit < worst.netProfit ? current : worst,
-        )
+        ) : { monthName: "N/A" }
 
         // Calculate growth trends
         const recentMonths = processedData.slice(-3)
         const olderMonths = processedData.slice(-6, -3)
-        const recentAvgRevenue = recentMonths.reduce((sum, m) => sum + m.totalRevenue, 0) / recentMonths.length
-        const olderAvgRevenue = olderMonths.reduce((sum, m) => sum + m.totalRevenue, 0) / olderMonths.length
+        const recentAvgRevenue = recentMonths.length > 0 ? recentMonths.reduce((sum, m) => sum + m.totalRevenue, 0) / recentMonths.length : 0
+        const olderAvgRevenue = olderMonths.length > 0 ? olderMonths.reduce((sum, m) => sum + m.totalRevenue, 0) / olderMonths.length : 0
         const revenueGrowthTrend =
           olderAvgRevenue > 0 ? ((recentAvgRevenue - olderAvgRevenue) / olderAvgRevenue) * 100 : 0
 
-        const recentAvgExpenses = recentMonths.reduce((sum, m) => sum + m.expenseAmount, 0) / recentMonths.length
-        const olderAvgExpenses = olderMonths.reduce((sum, m) => sum + m.expenseAmount, 0) / olderMonths.length
+        const recentAvgExpenses = recentMonths.length > 0 ? recentMonths.reduce((sum, m) => sum + m.expenseAmount, 0) / recentMonths.length : 0
+        const olderAvgExpenses = olderMonths.length > 0 ? olderMonths.reduce((sum, m) => sum + m.expenseAmount, 0) / olderMonths.length : 0
         const expenseGrowthTrend =
           olderAvgExpenses > 0 ? ((recentAvgExpenses - olderAvgExpenses) / olderAvgExpenses) * 100 : 0
 
@@ -335,7 +332,7 @@ export default function MonthlyReportsPage() {
   const getQuarterlyData = () => {
     const quarters: { [key: string]: MonthlyData[] } = {}
     monthlyData.forEach((data) => {
-      const monthNumber = parseInt(data.month.split("/")[0])
+      const monthNumber = parseInt(data.month.split("/")[0], 10)
       const quarter = Math.ceil(monthNumber / 3)
       const year = data.year
       const key = `Q${quarter} ${year}`
@@ -345,10 +342,10 @@ export default function MonthlyReportsPage() {
 
     return Object.entries(quarters).map(([quarter, data]) => ({
       quarter,
-      totalRevenue: data.reduce((sum, d) => sum + d.totalRevenue, 0),
-      totalExpenses: data.reduce((sum, d) => sum + d.expenseAmount, 0),
-      netProfit: data.reduce((sum, d) => sum + d.netProfit, 0),
-      avgGrowth: data.reduce((sum, d) => sum + d.growth, 0) / data.length,
+      totalRevenue: data.length > 0 ? data.reduce((sum, d) => sum + d.totalRevenue, 0) : 0,
+      totalExpenses: data.length > 0 ? data.reduce((sum, d) => sum + d.expenseAmount, 0) : 0,
+      netProfit: data.length > 0 ? data.reduce((sum, d) => sum + d.netProfit, 0) : 0,
+      avgGrowth: data.length > 0 ? data.reduce((sum, d) => sum + d.growth, 0) / data.length : 0,
       monthCount: data.length,
     }))
   }
@@ -485,7 +482,7 @@ export default function MonthlyReportsPage() {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 animate-fade-in">
             <CardHeader className="card-responsive pb-4">
               <CardTitle className="text-slate-800 flex items-center gap-2 text-lg sm:text-xl">
-                <LineChartIcon className="h-5 w-6" />
+                <LineChart className="h-5 w-6" />
                 Evolución de Ingresos y Gastos
               </CardTitle>
               <CardDescription className="text-responsive">
@@ -501,9 +498,9 @@ export default function MonthlyReportsPage() {
                       dataKey="monthName"
                       stroke="#64748B"
                       fontSize={12}
-                      angle={isClient && window.innerWidth < 640 ? -45 : 0}
-                      textAnchor={isClient && window.innerWidth < 640 ? "end" : "middle"}
-                      height={isClient && window.innerWidth < 640 ? 60 : 30}
+                      angle={window.innerWidth < 640 ? -45 : 0}
+                      textAnchor={window.innerWidth < 640 ? "end" : "middle"}
+                      height={window.innerWidth < 640 ? 60 : 30}
                     />
                     <YAxis stroke="#64748B" fontSize={12} />
                     <Tooltip
@@ -656,8 +653,8 @@ export default function MonthlyReportsPage() {
                             data={categoryData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={isClient && window.innerWidth < 640 ? 40 : 60}
-                            outerRadius={isClient && window.innerWidth < 640 ? 80 : 120}
+                            innerRadius={window.innerWidth < 640 ? 40 : 60}
+                            outerRadius={window.innerWidth < 640 ? 80 : 120}
                             paddingAngle={5}
                             dataKey="value"
                           >
