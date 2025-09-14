@@ -15,7 +15,7 @@ interface LazyWrapperProps {
 
 export function LazyWrapper({
   importFn,
-  fallback = <OptimizedSkeleton variant="card" />,
+  fallback = <OptimizedSkeleton lines={4} />,
   errorFallback,
   ...props
 }: LazyWrapperProps) {

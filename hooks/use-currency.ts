@@ -34,10 +34,35 @@ export function useCurrency() {
   }
 
   const formatCurrency = (amount: number) => {
-    return `${currencySymbol}${amount.toLocaleString("es-DO", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`
+    // Validar que amount sea un número válido
+    if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
+      return `${currencySymbol}0.00`
+    }
+
+    try {
+      // Intentar con locales comunes, comenzando con es-ES que es más compatible
+      const locales = ['es-ES', 'es', 'en-US', 'en']
+      
+      for (const locale of locales) {
+        try {
+          return `${currencySymbol}${amount.toLocaleString(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`
+        } catch (localeError) {
+          continue
+        }
+      }
+      
+      // Fallback final: formateo manual confiable
+      const formattedAmount = amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      return `${currencySymbol}${formattedAmount}`
+      
+    } catch (error) {
+      console.warn("Error formatting currency:", error)
+      // Último recurso: formato simple
+      return `${currencySymbol}${amount.toFixed(2)}`
+    }
   }
 
   return {

@@ -93,47 +93,103 @@ const systemFAQs = [
   {
     id: "11",
     category: "Dashboard",
-    question: "¿Cómo interpretar las métricas del dashboard?",
+    question: "¿Cómo usar el nuevo dashboard mejorado?",
     answer:
-      "El dashboard muestra:\n\nIngresos Reales: Solo facturas marcadas como 'Pagadas'\nIngresos Pendientes: Facturas emitidas pero no pagadas\nMeta Mensual: Objetivo configurable de ingresos\nActividad Reciente: Últimas facturas y gastos registrados\nMejores Clientes: Ranking por ingresos generados (solo facturas pagadas)\n\nLas métricas se actualizan automáticamente cada 5 minutos",
+      "El dashboard renovado incluye:\n\n✨ Diseño Premium: Cards con gradientes y animaciones modernas\n📊 Métricas Avanzadas: Indicadores de tendencias y crecimiento\n🎯 Meta Inteligente: Progreso visual con alertas y proyecciones\n⚡ Alertas Dinámicas: Notificaciones importantes destacadas\n📈 Analytics Mejorados: Comparativas de clientes y gastos\n🔄 Actualización Automática: Datos en tiempo real cada 5 minutos\n\nCada card muestra tendencias, porcentajes de cambio y métricas específicas para mejor análisis.",
   },
   {
     id: "12",
     category: "Dashboard",
-    question: "¿Cómo configurar mi meta mensual?",
+    question: "¿Qué significan los indicadores de tendencia en las cards?",
     answer:
-      "Para configurar tu meta mensual:\n1. En el dashboard, busca la tarjeta 'Meta Mensual'\n2. Haz clic en el ícono de configuración (engranaje)\n3. Ingresa tu nueva meta en el campo que aparece\n4. Haz clic en 'Guardar'\n5. El progreso se actualizará automáticamente basado en tus ingresos reales",
+      "Los indicadores de tendencia muestran:\n\n🔺 Flecha Verde Arriba: Crecimiento positivo comparado con el promedio\n🔻 Flecha Roja Abajo: Disminución comparada con el promedio\n📊 Porcentaje: Muestra el cambio exacto en números\n🏷️ Badges: Estado actual (Positivo, Negativo, Excelente, etc.)\n\nEstos indicadores te ayudan a:\n- Identificar tendencias rápidamente\n- Tomar decisiones informadas\n- Monitorear el rendimiento del negocio\n- Detectar áreas de mejora",
   },
   {
     id: "13",
-    category: "Reportes",
-    question: "¿Cómo usar los reportes mensuales?",
+    category: "Dashboard",
+    question: "¿Cómo funciona la meta mensual mejorada?",
     answer:
-      "Los reportes mensuales incluyen:\n\nAnálisis Financiero: Ingresos, gastos, rentabilidad\nRendimiento: Comparativas mes a mes\nDesglose Mensual: Métricas detalladas por mes\nInsights: Recomendaciones automáticas\n\nUsa las pestañas para navegar entre secciones y los filtros para personalizar la vista",
+      "La nueva meta mensual incluye:\n\n🎯 Progreso Visual: Barra de progreso con colores dinámicos\n📈 Métricas Detalladas: Monto actual vs meta, cantidad faltante\n⚙️ Configuración Fácil: Edita tu meta directamente desde el dashboard\n📋 Ingresos Pendientes: Muestra facturas emitidas pero no cobradas\n🏆 Indicadores de Logro: Badges que cambian según tu progreso\n\nColores del progreso:\n- Verde (75-100%): Excelente progreso\n- Amarillo (50-74%): Buen progreso\n- Rojo (0-49%): Necesita atención",
   },
   {
     id: "14",
+    category: "Reportes IA",
+    question: "¿Cómo funcionan los reportes con inteligencia artificial?",
+    answer:
+      "Los reportes con IA incluyen:\n\n🤖 Análisis Automático: El sistema analiza tus datos financieros\n📊 KPIs Inteligentes: 12+ métricas calculadas automáticamente\n🔮 Predicciones: Proyecciones de ingresos usando algoritmos avanzados\n📈 Tendencias: Identificación automática de patrones de crecimiento\n⚠️ Alertas Inteligentes: Recomendaciones basadas en tu rendimiento\n💡 Insights: Sugerencias para mejorar tu negocio\n\nFuncionalidades IA:\n- Predicción del próximo mes\n- Análisis de consistencia\n- Cálculo de ROI automático\n- Identificación de mejores/peores períodos",
+  },
+  {
+    id: "15",
+    category: "Reportes IA",
+    question: "¿Qué métricas incluye el desglose mensual detallado?",
+    answer:
+      "El desglose mensual muestra por cada mes:\n\n💰 Ingresos vs Gastos: Comparativa completa con márgenes\n📊 ROI Calculado: Retorno de inversión automático\n📈 Tendencias de Crecimiento: Comparación mes a mes\n🎯 Eficiencia: Métricas de productividad\n💳 Promedios: Ticket promedio y gasto promedio\n📋 Volumen: Cantidad de facturas y gastos\n\nVisualización:\n- Cards individuales por mes\n- Gráficos de barras de progreso\n- Indicadores de crecimiento\n- Comparativas automáticas",
+  },
+  {
+    id: "16",
+    category: "Reportes IA",
+    question: "¿Cómo interpretar las predicciones de IA?",
+    answer:
+      "Las predicciones de IA se basan en:\n\n📊 Datos Históricos: Análisis de patrones pasados\n📈 Tendencias Actuales: Comportamiento reciente del negocio\n🔄 Estacionalidad: Variaciones según épocas del año\n📉 Volatilidad: Consistencia en el rendimiento\n\nTipos de predicciones:\n- Ingresos del próximo mes\n- Proyección de gastos\n- Estimación de crecimiento\n- Recomendaciones de metas\n\nFactores considerados:\n- Promedio de ingresos mensuales\n- Tendencia de crecimiento\n- Variabilidad histórica\n- Época del año",
+  },
+  {
+    id: "17",
     category: "Gastos",
     question: "¿Cómo registrar y categorizar gastos?",
     answer:
       "Para gestionar gastos:\n1. Ve a la sección 'Gastos'\n2. Haz clic en 'Nuevo Gasto'\n3. Completa: descripción, monto, fecha, categoría\n4. Las categorías te ayudan a organizar y analizar gastos\n5. Puedes editar o eliminar gastos existentes\n6. Los gastos se reflejan automáticamente en reportes y dashboard",
   },
   {
-    id: "15",
+    id: "18",
+    category: "Gastos Fijos",
+    question: "¿Cómo gestionar gastos fijos recurrentes?",
+    answer:
+      "Los gastos fijos son gastos que se repiten mensualmente:\n\n💡 Ejemplos: Alquiler, servicios, seguros, sueldos\n📅 Configuración: Define monto, fecha de vencimiento y frecuencia\n🔔 Recordatorios: Alertas automáticas antes del vencimiento\n📊 Seguimiento: Aparecen en tu agenda y reportes\n⚡ Automatización: Opción de registro automático cada mes\n\nPara configurar:\n1. Ve a 'Gastos' → 'Gastos Fijos'\n2. Agrega nombre, monto y fecha de vencimiento\n3. Configura la frecuencia (mensual, trimestral, etc.)\n4. Activa recordatorios automáticos",
+  },
+  {
+    id: "19",
+    category: "Agenda",
+    question: "¿Cómo usar la nueva agenda de negocio?",
+    answer:
+      "La agenda centraliza todas tus fechas importantes:\n\n📅 Calendario Visual: Vista mensual con todos los eventos\n🔔 Recordatorios: Alertas de facturas por vencer, gastos fijos\n💳 Cuentas por Pagar: Seguimiento de proveedores y pagos\n📊 Cierre de Mes: Tareas automáticas para fin de mes\n📈 Metas y Objetivos: Recordatorios de seguimiento\n\nAcceso rápido:\n- Desde el dashboard: widget de próximas fechas\n- Menú principal: sección 'Agenda'\n- Alertas en tiempo real en toda la aplicación",
+  },
+  {
+    id: "20",
+    category: "Agenda",
+    question: "¿Qué incluye el widget de recordatorios de fin de mes?",
+    answer:
+      "El recordatorio de fin de mes incluye:\n\n📋 Tareas Pendientes:\n- Facturas por cobrar\n- Gastos fijos por pagar\n- Cuentas por pagar a proveedores\n- Seguimiento de metas mensuales\n\n📊 Métricas de Cierre:\n- Resumen de ingresos del mes\n- Total de gastos registrados\n- Balance mensual\n- Comparación con metas\n\n🔔 Alertas Automáticas:\n- 5 días antes del fin de mes\n- Facturas con vencimiento próximo\n- Recordatorios de gastos fijos\n- Tareas de administración pendientes",
+  },
+  {
+    id: "21",
+    category: "Cuentas por Pagar",
+    question: "¿Cómo gestionar cuentas por pagar a proveedores?",
+    answer:
+      "Las cuentas por pagar te ayudan a gestionar deudas:\n\n👥 Proveedores: Registra información de contacto y términos\n💰 Montos: Controla cuánto debes y fechas límite\n📅 Vencimientos: Alertas automáticas antes del vencimiento\n📊 Historial: Seguimiento de pagos realizados\n🔔 Recordatorios: Notificaciones en dashboard y agenda\n\nPara agregar:\n1. Ve a 'Agenda' → 'Cuentas por Pagar'\n2. Agrega proveedor, monto y fecha de vencimiento\n3. Incluye referencia (número de factura, concepto)\n4. Marca como pagada cuando realices el pago",
+  },
+  {
+    id: "22",
+    category: "General",
+    question: "¿Cómo personalizar las notificaciones y alertas?",
+    answer:
+      "Puedes configurar alertas para:\n\n🔔 Facturas: Vencimientos, pagos recibidos, recordatorios de cobro\n💰 Gastos Fijos: Recordatorios antes del vencimiento\n🎯 Metas: Progreso mensual, alertas de rendimiento\n📅 Agenda: Eventos próximos, tareas pendientes\n📊 Reportes: Nuevos insights de IA, cambios importantes\n\nConfiguraciones:\n- Días de anticipación para alertas\n- Tipos de notificaciones activas\n- Frecuencia de recordatorios\n- Canales de notificación (email, dashboard)\n\nAcceso: Configuración → Notificaciones",
+  },
+  {
+    id: "23",
     category: "General",
     question: "¿Cómo hacer backup de mi información?",
     answer:
       "Tu información se guarda automáticamente en la nube. Para mayor seguridad:\n\n1. Exporta reportes regularmente en PDF\n2. Descarga facturas importantes\n3. Mantén una copia de tu lista de clientes\n4. Los datos se sincronizan automáticamente entre dispositivos\n5. El sistema mantiene historial de cambios para recuperación",
   },
   {
-    id: "16",
+    id: "24",
     category: "General",
     question: "¿El sistema funciona en dispositivos móviles?",
     answer:
       "Sí, el sistema es completamente responsivo:\n\n✓ Funciona en teléfonos y tablets\n✓ Interfaz adaptada para pantallas pequeñas\n✓ Todas las funciones disponibles en móvil\n✓ Sincronización automática entre dispositivos\n✓ Puedes crear facturas, ver reportes y gestionar clientes desde cualquier lugar",
   },
   {
-    id: "17",
+    id: "25",
     category: "General",
     question: "¿Cómo obtener soporte técnico?",
     answer:

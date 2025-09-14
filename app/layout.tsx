@@ -22,13 +22,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={inter.className}>
+    <html lang="es">
       <head>
         <meta name="theme-color" content="#3b82f6" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="antialiased">
+      <body className={inter.className}>
         <ErrorBoundary>
           <ClientLayout>{children}</ClientLayout>
         </ErrorBoundary>

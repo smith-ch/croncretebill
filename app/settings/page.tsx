@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -12,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import type { User } from "@supabase/supabase-js"
 
 interface CompanySettings {
   id?: string
+  user_id?: string
   company_name: string
   company_address: string
   company_phone: string
@@ -49,6 +49,8 @@ const CURRENCIES = [
   { code: "NIO", symbol: "C$", name: "Córdoba Nicaragüense" },
   { code: "PAB", symbol: "B/.", name: "Balboa Panameño" },
 ]
+
+import { logger } from "@/lib/logger"
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -100,7 +102,7 @@ export default function SettingsPage() {
         }
       }
     } catch (error) {
-      console.error("Error fetching settings:", error)
+      logger.error("Error fetching settings", { error })
       setError("Error al cargar la configuración")
     } finally {
       setFetchLoading(false)
@@ -143,7 +145,7 @@ export default function SettingsPage() {
 
       return publicUrl
     } catch (error) {
-      console.error("Error uploading logo:", error)
+      logger.error("Error uploading logo", { error })
       throw error
     }
   }
@@ -160,18 +162,19 @@ export default function SettingsPage() {
       } = await supabase.auth.getUser()
       if (!user) throw new Error("Usuario no autenticado")
 
-      console.log("Starting settings save process...")
+      logger.debug("Starting settings save process")
 
       let logoUrl = settings.company_logo
 
       // Upload logo if a new file was selected
       if (logoFile) {
-        console.log("Uploading new logo...")
-        logoUrl = await uploadLogo()
-        console.log("Logo uploaded:", logoUrl)
+        logger.debug("Uploading new logo")
+        const uploadedLogo = await uploadLogo()
+        logoUrl = uploadedLogo === null ? undefined : uploadedLogo
+        logger.debug("Logo uploaded", { logoUrl })
       }
 
-      const settingsData: any = {
+      const settingsData: Partial<CompanySettings> = {
         user_id: user.id,
         company_name: settings.company_name,
         company_address: settings.company_address,
@@ -188,7 +191,7 @@ export default function SettingsPage() {
         settingsData.company_logo = logoUrl
       }
 
-      console.log("Settings data to save:", settingsData)
+      logger.debug("Settings data to save", { settingsData })
 
       const { data, error } = await supabase
         .from("company_settings")
@@ -199,17 +202,18 @@ export default function SettingsPage() {
         .single()
 
       if (error) {
-        console.error("Database error:", error)
+        logger.error("Database error", { error })
         throw error
       }
 
-      console.log("Settings saved successfully:", data)
+      logger.info("Settings saved successfully", { data })
       setSuccess("Configuración guardada exitosamente")
       setSettings(data)
       setLogoFile(null)
-    } catch (error: any) {
-      console.error("Error saving settings:", error)
-      setError(error.message || "Error al guardar la configuración")
+    } catch (error: unknown) {
+      logger.error("Error saving settings", { error })
+      const errorMessage = error instanceof Error ? error.message : "Error al guardar la configuración"
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

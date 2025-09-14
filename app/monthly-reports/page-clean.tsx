@@ -662,380 +662,140 @@ export default function MonthlyReportsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* KPI Cards Optimizadas - Dos Filas Compactas */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* Revenue Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs text-blue-600 font-medium uppercase">Ingresos</p>
-                      <p className="text-lg font-bold text-blue-900">{formatCurrency(kpiData.totalRevenue)}</p>
+                      <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">Ingresos Totales</p>
+                      <p className="text-xl font-bold text-blue-900">
+                        {formatCurrency(kpiData.totalRevenue)}
+                      </p>
                       <div className="flex items-center space-x-1">
                         {kpiData.revenueGrowthTrend >= 0 ? (
                           <ArrowUpRight className="h-3 w-3 text-emerald-600" />
                         ) : (
                           <ArrowDownRight className="h-3 w-3 text-red-600" />
                         )}
-                        <span className={`text-xs ${kpiData.revenueGrowthTrend >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {kpiData.revenueGrowthTrend !== 0 ? `${Math.abs(kpiData.revenueGrowthTrend).toFixed(1)}%` : '0%'}
+                        <span className={`text-xs font-medium ${kpiData.revenueGrowthTrend >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {kpiData.revenueGrowthTrend !== 0 ? `${Math.abs(kpiData.revenueGrowthTrend)}%` : 'Sin cambios'}
                         </span>
                       </div>
                     </div>
-                    <DollarSign className="h-6 w-6 text-blue-600" />
+                    <div className="p-2 bg-blue-200 rounded-full">
+                      <DollarSign className="h-5 w-5 text-blue-700" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Net Profit Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs text-emerald-600 font-medium uppercase">Ganancia</p>
-                      <p className="text-lg font-bold text-emerald-900">{formatCurrency(kpiData.netProfit)}</p>
-                      <p className="text-xs text-emerald-700">{kpiData.profitMargin.toFixed(1)}% margen</p>
-                    </div>
-                    <TrendingUp className="h-6 w-6 text-emerald-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Expenses Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-red-600 font-medium uppercase">Gastos</p>
-                      <p className="text-lg font-bold text-red-900">{formatCurrency(kpiData.totalExpenseAmount)}</p>
+                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide">Ganancia Neta</p>
+                      <p className="text-xl font-bold text-emerald-900">
+                        {formatCurrency(kpiData.netProfit)}
+                      </p>
                       <div className="flex items-center space-x-1">
-                        {kpiData.expenseGrowthTrend >= 0 ? (
-                          <ArrowUpRight className="h-3 w-3 text-red-600" />
-                        ) : (
-                          <ArrowDownRight className="h-3 w-3 text-emerald-600" />
-                        )}
-                        <span className={`text-xs ${kpiData.expenseGrowthTrend >= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                          {kpiData.expenseGrowthTrend !== 0 ? `${Math.abs(kpiData.expenseGrowthTrend).toFixed(1)}%` : '0%'}
+                        <Percent className="h-3 w-3 text-emerald-600" />
+                        <span className="text-xs text-emerald-700 font-medium">
+                          {kpiData.profitMargin.toFixed(1)}% margen
                         </span>
                       </div>
                     </div>
-                    <Receipt className="h-6 w-6 text-red-600" />
+                    <div className="p-2 bg-emerald-200 rounded-full">
+                      <TrendingUp className="h-5 w-5 text-emerald-700" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Health Score Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
+              {/* Business Health Score */}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs text-purple-600 font-medium uppercase">Salud</p>
-                      <p className="text-lg font-bold text-purple-900">{kpiData.businessHealthScore}/100</p>
-                      <p className="text-xs text-purple-700">
-                        {kpiData.businessHealthScore >= 75 ? 'Excelente' : kpiData.businessHealthScore >= 50 ? 'Bueno' : 'Atención'}
+                      <p className="text-xs text-purple-600 font-medium uppercase tracking-wide">Salud del Negocio</p>
+                      <p className="text-xl font-bold text-purple-900">
+                        {kpiData.businessHealthScore}/100
                       </p>
+                      <div className="flex items-center space-x-1">
+                        <Award className="h-3 w-3 text-purple-600" />
+                        <span className="text-xs text-purple-700 font-medium">
+                          {kpiData.businessHealthScore >= 75 ? 'Excelente' : 
+                           kpiData.businessHealthScore >= 50 ? 'Bueno' : 'Atención'}
+                        </span>
+                      </div>
                     </div>
-                    <Zap className="h-6 w-6 text-purple-600" />
+                    <div className="p-2 bg-purple-200 rounded-full">
+                      <Zap className="h-5 w-5 text-purple-700" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Growth Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
+              {/* Average Growth */}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs text-amber-600 font-medium uppercase">Crecimiento</p>
-                      <p className="text-lg font-bold text-amber-900">{kpiData.averageGrowth >= 0 ? '+' : ''}{kpiData.averageGrowth}%</p>
-                      <p className="text-xs text-amber-700">promedio</p>
-                    </div>
-                    <BarChart3 className="h-6 w-6 text-amber-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Prediction Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-teal-50 to-teal-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-teal-600 font-medium uppercase">Proyección IA</p>
-                      <p className="text-lg font-bold text-teal-900">{formatCurrency(kpiData.predictedNextMonth)}</p>
-                      <p className="text-xs text-teal-700">próximo mes</p>
-                    </div>
-                    <Brain className="h-6 w-6 text-teal-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Segunda Fila de Métricas */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {/* Total Invoices */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-cyan-600 font-medium uppercase">Facturas</p>
-                      <p className="text-lg font-bold text-cyan-900">{kpiData.totalInvoices}</p>
-                      <p className="text-xs text-cyan-700">documentos</p>
-                    </div>
-                    <FileText className="h-6 w-6 text-cyan-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Average Invoice */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-lime-50 to-lime-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-lime-600 font-medium uppercase">Ticket Prom.</p>
-                      <p className="text-lg font-bold text-lime-900">{formatCurrency(kpiData.avgInvoiceValue)}</p>
-                      <p className="text-xs text-lime-700">por factura</p>
-                    </div>
-                    <DollarSign className="h-6 w-6 text-lime-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Total Expenses Count */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-orange-600 font-medium uppercase">Gastos</p>
-                      <p className="text-lg font-bold text-orange-900">{kpiData.totalExpenses}</p>
-                      <p className="text-xs text-orange-700">registros</p>
-                    </div>
-                    <Receipt className="h-6 w-6 text-orange-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Average Expense */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-pink-50 to-pink-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-pink-600 font-medium uppercase">Gasto Prom.</p>
-                      <p className="text-lg font-bold text-pink-900">{formatCurrency(kpiData.avgExpenseValue)}</p>
-                      <p className="text-xs text-pink-700">por gasto</p>
-                    </div>
-                    <Receipt className="h-6 w-6 text-pink-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Consistency */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-indigo-600 font-medium uppercase">Consistencia</p>
-                      <p className="text-lg font-bold text-indigo-900">{kpiData.consistencyScore.toFixed(0)}%</p>
-                      <p className="text-xs text-indigo-700">estabilidad</p>
-                    </div>
-                    <Target className="h-6 w-6 text-indigo-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* ROI */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-violet-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs text-violet-600 font-medium uppercase">ROI Prom.</p>
-                      <p className="text-lg font-bold text-violet-900">
-                        {monthlyData.length > 0 ? 
-                          (monthlyData.reduce((sum, m) => sum + (m.roi || 0), 0) / monthlyData.length).toFixed(0) : '0'}%
+                      <p className="text-xs text-amber-600 font-medium uppercase tracking-wide">Crecimiento</p>
+                      <p className="text-xl font-bold text-amber-900">
+                        {kpiData.averageGrowth >= 0 ? '+' : ''}{kpiData.averageGrowth}%
                       </p>
-                      <p className="text-xs text-violet-700">rendimiento</p>
+                      <div className="flex items-center space-x-1">
+                        <Activity className="h-3 w-3 text-amber-600" />
+                        <span className="text-xs text-amber-700 font-medium">promedio</span>
+                      </div>
                     </div>
-                    <TrendingUp className="h-6 w-6 text-violet-600" />
+                    <div className="p-2 bg-amber-200 rounded-full">
+                      <BarChart3 className="h-5 w-5 text-amber-700" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Desglose Mensual Detallado */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Desglose Mensual */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-slate-600" />
-                    <span>Desglose Mensual Detallado</span>
-                  </CardTitle>
-                  <CardDescription>Análisis completo mes por mes de tu rendimiento financiero</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 max-h-80 overflow-y-auto">
-                  {monthlyData.map((month, index) => (
-                    <div key={index} className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-bold text-lg text-slate-800">{month.monthName} {month.year}</h4>
-                          <p className="text-sm text-slate-600">{month.totalInvoices} facturas • {month.totalExpenses} gastos</p>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-xl font-bold ${month.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {formatCurrency(month.netProfit)}
-                          </div>
-                          <div className="text-sm text-slate-600">{month.profitMargin.toFixed(1)}% margen</div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                          <p className="text-blue-700 font-medium">Ingresos</p>
-                          <p className="font-bold text-blue-900">{formatCurrency(month.totalRevenue)}</p>
-                          {index > 0 && (
-                            <p className={`text-xs ${month.growth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                              {month.growth >= 0 ? '+' : ''}{month.growth.toFixed(1)}%
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className="text-center p-2 bg-red-50 rounded border border-red-200">
-                          <p className="text-red-700 font-medium">Gastos</p>
-                          <p className="font-bold text-red-900">{formatCurrency(month.expenseAmount)}</p>
-                          <p className="text-xs text-red-600">{month.totalExpenses} registros</p>
-                        </div>
-                        
-                        <div className="text-center p-2 bg-emerald-50 rounded border border-emerald-200">
-                          <p className="text-emerald-700 font-medium">ROI</p>
-                          <p className="font-bold text-emerald-900">{month.roi.toFixed(1)}%</p>
-                          <p className="text-xs text-emerald-600">rendimiento</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-slate-300">
-                        <div className="flex justify-between text-xs text-slate-600">
-                          <span>Ticket Promedio: <strong className="text-slate-800">{formatCurrency(month.avgInvoiceValue)}</strong></span>
-                          <span>Gasto Promedio: <strong className="text-slate-800">{formatCurrency(month.avgExpenseValue)}</strong></span>
-                        </div>
-                        <div className="mt-1">
-                          <div className="w-full bg-slate-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full ${month.profitMargin >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
-                              style={{ width: `${Math.min(Math.abs(month.profitMargin), 100)}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Margen: {month.profitMargin.toFixed(1)}% • Eficiencia: {month.efficiency.toFixed(1)}%
-                          </p>
-                        </div>
+              {/* Consistency Score */}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs text-indigo-600 font-medium uppercase tracking-wide">Consistencia</p>
+                      <p className="text-xl font-bold text-indigo-900">
+                        {kpiData.consistencyScore}%
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-3 w-3 text-indigo-600" />
+                        <span className="text-xs text-indigo-700 font-medium">estabilidad</span>
                       </div>
                     </div>
-                  ))}
+                    <div className="p-2 bg-indigo-200 rounded-full">
+                      <Target className="h-5 w-5 text-indigo-700" />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Análisis Comparativo */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center space-x-2">
-                    <BarChart3 className="h-5 w-5 text-slate-600" />
-                    <span>Análisis Comparativo</span>
-                  </CardTitle>
-                  <CardDescription>Comparación de rendimiento entre meses</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Best vs Worst Performance */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <div>
-                        <p className="text-sm font-medium text-emerald-800">🏆 Mejor Mes</p>
-                        <p className="text-lg font-bold text-emerald-900">{kpiData.bestMonth}</p>
-                        <p className="text-xs text-emerald-600">Mayor ganancia neta</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-emerald-700">Ganancia:</p>
-                        <p className="font-bold text-emerald-900">
-                          {monthlyData.length > 0 ? formatCurrency(Math.max(...monthlyData.map(m => m.netProfit))) : '$0'}
-                        </p>
+              {/* Predicted Next Month */}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-teal-50 to-teal-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs text-teal-600 font-medium uppercase tracking-wide">Proyección</p>
+                      <p className="text-xl font-bold text-teal-900">
+                        {formatCurrency(kpiData.predictedNextMonth)}
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-3 w-3 text-teal-600" />
+                        <span className="text-xs text-teal-700 font-medium">próximo mes</span>
                       </div>
                     </div>
-
-                    <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                      <div>
-                        <p className="text-sm font-medium text-red-800">📉 Mes Más Débil</p>
-                        <p className="text-lg font-bold text-red-900">{kpiData.worstMonth}</p>
-                        <p className="text-xs text-red-600">Menor rendimiento</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-red-700">Ganancia:</p>
-                        <p className="font-bold text-red-900">
-                          {monthlyData.length > 0 ? formatCurrency(Math.min(...monthlyData.map(m => m.netProfit))) : '$0'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cash Flow Analysis */}
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
-                      <Activity className="h-4 w-4 mr-2" />
-                      Análisis de Flujo de Efectivo
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Flujo Neto Total:</span>
-                        <span className={`font-bold ${kpiData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {formatCurrency(kpiData.netProfit)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Relación Ingresos/Gastos:</span>
-                        <span className="font-bold text-blue-900">
-                          {kpiData.totalExpenseAmount > 0 ? 
-                            `${(kpiData.totalRevenue / kpiData.totalExpenseAmount).toFixed(1)}:1` : 
-                            '∞:1'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Cobertura de Gastos:</span>
-                        <span className="font-bold text-blue-900">
-                          {kpiData.totalExpenseAmount > 0 ? 
-                            `${Math.floor((kpiData.netProfit / kpiData.totalExpenseAmount) * 30)} días` : 
-                            'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Business Metrics */}
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-green-800 mb-3 flex items-center">
-                      <Users className="h-4 w-4 mr-2" />
-                      Métricas del Negocio
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Clientes:</span>
-                        <span className="font-bold text-green-900">{kpiData.totalClients}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Productos:</span>
-                        <span className="font-bold text-green-900">{kpiData.totalProducts}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Ingresos/Cliente:</span>
-                        <span className="font-bold text-green-900">
-                          {kpiData.totalClients > 0 ? 
-                            formatCurrency(kpiData.totalRevenue / kpiData.totalClients) : 
-                            formatCurrency(0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Facturas/Cliente:</span>
-                        <span className="font-bold text-green-900">
-                          {kpiData.totalClients > 0 ? 
-                            (kpiData.totalInvoices / kpiData.totalClients).toFixed(1) : 
-                            '0'}
-                        </span>
-                      </div>
+                    <div className="p-2 bg-teal-200 rounded-full">
+                      <Brain className="h-5 w-5 text-teal-700" />
                     </div>
                   </div>
                 </CardContent>

@@ -124,33 +124,25 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         }
       } else {
         // Use custom toast system
+        const iconElement = (
+          <Icon
+            className={`h-4 w-4 ${
+              type === "success"
+                ? "text-green-600"
+                : type === "error"
+                  ? "text-red-600"
+                  : type === "warning"
+                    ? "text-amber-600"
+                    : "text-blue-600"
+            }`}
+          />
+        )
+        
         toast({
-          title: (
-            <div className="flex items-center gap-2">
-              <Icon
-                className={`h-4 w-4 ${
-                  type === "success"
-                    ? "text-green-600"
-                    : type === "error"
-                      ? "text-red-600"
-                      : type === "warning"
-                        ? "text-amber-600"
-                        : "text-blue-600"
-                }`}
-              />
-              {title || message}
-            </div>
-          ),
+          title: title || message,
           description: description || (title ? message : undefined),
           variant: type === "error" ? "destructive" : "default",
           duration,
-          action: action
-            ? {
-                altText: action.label,
-                onClick: action.onClick,
-                children: action.label,
-              }
-            : undefined,
         })
       }
     },

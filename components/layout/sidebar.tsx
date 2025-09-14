@@ -25,6 +25,9 @@ import {
   Menu,
   X,
   LogOut,
+  Receipt,
+  CreditCard,
+  Calendar,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -77,6 +80,28 @@ const navigation = [
     icon: DollarSign,
   },
   {
+    name: "Agenda",
+    href: "/agenda",
+    icon: Calendar,
+  },
+  {
+    name: "Recibos",
+    href: "/thermal-receipts",
+    icon: Receipt,
+    children: [
+      {
+        name: "Recibos Térmicos",
+        href: "/thermal-receipts",
+        icon: Receipt,
+      },
+      {
+        name: "Comprobantes de Pago",
+        href: "/payment-receipts",
+        icon: CreditCard,
+      },
+    ],
+  },
+  {
     name: "Reportes",
     href: "/monthly-reports",
     icon: TrendingUp,
@@ -95,7 +120,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [openItems, setOpenItems] = useState<string[]>(["Productos"])
+  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos"])
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const toggleItem = (name: string) => {
@@ -120,11 +145,11 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-full flex-col bg-white border-r border-gray-200 transition-all duration-300",
+        "flex h-full flex-col bg-gray-50 border-r border-gray-200 transition-all duration-300",
         isCollapsed ? "w-16" : "w-64",
       )}
     >
-      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 bg-white">
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center">
@@ -135,8 +160,8 @@ export function Sidebar() {
             </span>
           </Link>
         )}
-        <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="h-8 w-8 p-0">
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="h-8 w-8 p-0 hover:bg-gray-100">
+          {isCollapsed ? <Menu className="h-4 w-4 text-gray-600" /> : <X className="h-4 w-4 text-gray-600" />}
         </Button>
       </div>
 
@@ -153,7 +178,7 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-gray-100",
+                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-blue-50 text-gray-700",
                         (isActive(item.href) || hasActiveChild) &&
                           "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-2 border-blue-600",
                       )}
@@ -162,13 +187,13 @@ export function Sidebar() {
                     </Button>
                     <div className="absolute left-full top-0 ml-2 hidden group-hover:block z-50">
                       <div className="bg-white border border-gray-200 rounded-md shadow-lg p-2 min-w-48">
-                        <div className="font-medium text-sm mb-2">{item.name}</div>
+                        <div className="font-medium text-sm mb-2 text-gray-800">{item.name}</div>
                         {item.children.map((child) => (
                           <Link key={child.href} href={child.href}>
                             <Button
                               variant="ghost"
                               className={cn(
-                                "w-full justify-start px-2 py-1 text-sm font-normal hover:bg-gray-100",
+                                "w-full justify-start px-2 py-1 text-sm font-normal hover:bg-blue-50 text-gray-700",
                                 isActive(child.href) && "bg-blue-50 text-blue-700",
                               )}
                             >
@@ -189,14 +214,14 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-between px-3 py-2 text-left font-normal hover:bg-gray-100",
+                        "w-full justify-between px-3 py-2 text-left font-normal hover:bg-blue-50 text-gray-700",
                         (isActive(item.href) || hasActiveChild) &&
                           "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-2 border-blue-600",
                       )}
                     >
                       <div className="flex items-center space-x-3">
                         <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
+                        <span className="font-medium">{item.name}</span>
                       </div>
                       {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </Button>
@@ -207,13 +232,13 @@ export function Sidebar() {
                         <Button
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start px-3 py-2 text-left font-normal hover:bg-gray-100",
+                            "w-full justify-start px-3 py-2 text-left font-normal hover:bg-blue-50 text-gray-600",
                             isActive(child.href) &&
                               "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-2 border-blue-600",
                           )}
                         >
                           <child.icon className="h-4 w-4 mr-3" />
-                          {child.name}
+                          <span className="font-medium">{child.name}</span>
                         </Button>
                       </Link>
                     ))}
@@ -227,7 +252,7 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full px-3 py-2 text-left font-normal hover:bg-gray-100",
+                    "w-full px-3 py-2 text-left font-normal hover:bg-blue-50 text-gray-700",
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive(item.href) &&
                       "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-2 border-blue-600",
@@ -235,7 +260,7 @@ export function Sidebar() {
                   title={isCollapsed ? item.name : undefined}
                 >
                   <item.icon className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
-                  {!isCollapsed && <span>{item.name}</span>}
+                  {!isCollapsed && <span className="font-medium">{item.name}</span>}
                 </Button>
               </Link>
             )
@@ -245,9 +270,9 @@ export function Sidebar() {
 
       {!isCollapsed && (
         <>
-          <Separator />
-          <div className="p-4">
-            <div className="rounded-lg bg-gradient-to-r from-blue-100 to-slate-100 p-3 text-center">
+          <Separator className="bg-gray-200" />
+          <div className="p-4 bg-white">
+            <div className="rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 p-3 text-center border border-blue-200">
               <p className="text-sm font-medium text-blue-800">ConcreteBill Pro</p>
               <p className="text-xs text-blue-600 mt-1">Sistema de Facturación</p>
             </div>
@@ -256,11 +281,11 @@ export function Sidebar() {
       )}
 
       {!isCollapsed && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 bg-white">
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start px-3 py-2 text-left font-normal hover:bg-red-50 hover:text-red-700 text-red-600"
+            className="w-full justify-start px-3 py-2 text-left font-medium hover:bg-red-50 hover:text-red-700 text-red-600"
           >
             <LogOut className="h-5 w-5 mr-3" />
             <span>Cerrar Sesión</span>

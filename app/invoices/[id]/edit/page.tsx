@@ -391,7 +391,7 @@ export default function EditInvoicePage() {
       const currentItem = { ...newItems[index] }
 
       // Update the specific field
-      currentItem[field] = value
+      ;(currentItem as any)[field] = value
 
       // Handle type changes
       if (field === "type") {

@@ -2,10 +2,22 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 // Server-side Supabase client with service role key
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('Supabase environment variables not found. API routes may not work properly.')
+}
+
+const supabaseAdmin = supabaseUrl && supabaseServiceKey ? 
+  createClient(supabaseUrl, supabaseServiceKey) : null
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Database connection not configured" }, { status: 500 })
+    }
+
     const deliveryNoteId = params.id
 
     // Get delivery note with related data
