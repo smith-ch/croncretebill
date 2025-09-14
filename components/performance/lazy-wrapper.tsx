@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { Suspense, lazy, type ComponentType } from "react"
+import React, { Suspense, lazy, type ComponentType } from "react"
 import { OptimizedSkeleton } from "@/components/ui/optimized-skeleton"
 import { ErrorBoundary } from "@/components/error-boundary"
 

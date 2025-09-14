@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -88,14 +88,12 @@ export default function ThermalReceiptsPage() {
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       // Fetch thermal receipts con manejo de error si la tabla no existe
       const { data: receiptsData, error: receiptsError } = await supabase
@@ -153,7 +151,11 @@ export default function ThermalReceiptsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notifyError])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const addItem = () => {
     setItems([...items, { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
@@ -207,7 +209,9 @@ export default function ThermalReceiptsPage() {
     try {
       setSaving(true)
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
       
@@ -270,7 +274,9 @@ export default function ThermalReceiptsPage() {
         .from("thermal_receipt_items")
         .insert(itemsToSave)
 
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        throw itemsError
+      }
 
       // Reset form
       setClientName("")

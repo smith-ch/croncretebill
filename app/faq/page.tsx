@@ -303,7 +303,9 @@ export default function FAQPage() {
           <div className="space-y-8">
             {categories.map((category) => {
               const categoryFaqs = filteredFaqs.filter((faq) => faq.category === category)
-              if (categoryFaqs.length === 0) return null
+              if (categoryFaqs.length === 0) {
+                return null
+              }
 
               return (
                 <motion.div

@@ -29,22 +29,17 @@ export function StatsCards({
   totalClients,
   totalProducts,
   totalProjects,
-  totalExpenses,
   totalExpenseAmount,
   weeklyRevenue,
   weeklyInvoices,
-  weeklyExpenses,
   weeklyExpenseAmount,
   monthlyRevenue,
   monthlyInvoices,
-  monthlyExpenses,
-  monthlyExpenseAmount,
 }: StatsCardsProps) {
   const { formatCurrency } = useCurrency()
 
   const netProfit = totalRevenue - totalExpenseAmount
   const weeklyNetProfit = weeklyRevenue - weeklyExpenseAmount
-  const monthlyNetProfit = monthlyRevenue - monthlyExpenseAmount
 
   // Calculate trends (simplified - comparing weekly to total averages)
   const avgWeeklyRevenue = totalRevenue / 4 // Rough monthly average divided by weeks

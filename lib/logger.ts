@@ -44,11 +44,11 @@ class Logger {
           break
         case 'warn':
           console.warn(`[${timestamp}] WARN: ${message}${contextStr}`)
-          if (error) console.warn(error)
+          if (error) {console.warn(error)}
           break
         case 'error':
           console.error(`[${timestamp}] ERROR: ${message}${contextStr}`)
-          if (error) console.error(error)
+          if (error) {console.error(error)}
           break
       }
     }

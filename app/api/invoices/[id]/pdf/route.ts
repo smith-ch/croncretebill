@@ -50,9 +50,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       .single()
 
     const currencySymbol = companySettings?.currency_symbol || "RD$"
-    const currencyCode = companySettings?.currency_code || "DOP"
-    const primaryColor = companySettings?.primary_color || "#2563eb"
-    const secondaryColor = companySettings?.secondary_color || "#1e40af"
 
     // Get user profile for company info
     const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", invoice.user_id).single()
@@ -63,9 +60,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       profile,
       companySettings,
       currencySymbol,
-      currencyCode,
-      primaryColor,
-      secondaryColor,
     )
 
     // Return HTML response that can be converted to PDF by the client
@@ -86,9 +80,6 @@ function generateInvoiceHTML(
   profile: any,
   companySettings: any,
   currencySymbol: string,
-  currencyCode: string,
-  primaryColor: string,
-  secondaryColor: string,
 ) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES")

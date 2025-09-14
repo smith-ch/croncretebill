@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -52,16 +50,14 @@ export default function EditInvoicePage() {
   const [discountValue, setDiscountValue] = useState(0)
   const { formatCurrency } = useCurrency()
 
-  useEffect(() => {
-    fetchInvoiceData()
-  }, [])
-
-  const fetchInvoiceData = async () => {
+  const fetchInvoiceData = useCallback(async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       console.log("Current user ID:", user.id)
 
@@ -101,7 +97,9 @@ export default function EditInvoicePage() {
         .eq("user_id", user.id)
         .single()
 
-      if (invoiceError) throw invoiceError
+      if (invoiceError) {
+        throw invoiceError
+      }
       setInvoice(invoiceData)
       setSelectedClient(invoiceData.client_id)
       setIncludeItbis(invoiceData.include_itbis || false)
@@ -152,7 +150,11 @@ export default function EditInvoicePage() {
     } finally {
       setFetchLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    fetchInvoiceData()
+  }, [fetchInvoiceData])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -165,7 +167,9 @@ export default function EditInvoicePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       console.log("[v0] All items before validation:", items)
 
@@ -209,8 +213,12 @@ export default function EditInvoicePage() {
         const invalidReasons = items
           .map((item, index) => {
             const reasons = []
-            if (item.quantity <= 0) reasons.push("cantidad inválida")
-            if (item.unit_price < 0) reasons.push("precio inválido")
+            if (item.quantity <= 0) {
+              reasons.push("cantidad inválida")
+            }
+            if (item.unit_price < 0) {
+              reasons.push("precio inválido")
+            }
             if (item.type === "product" && (!item.product_id || item.product_id.trim() === "")) {
               reasons.push("producto no seleccionado")
             }
@@ -922,8 +930,12 @@ export default function EditInvoicePage() {
                         value={discountValue}
                         onChange={(e) => {
                           const value = Number.parseFloat(e.target.value) || 0
-                          if (discountType === "percentage" && value > 100) return
-                          if (discountType === "fixed" && value > subtotal) return
+                          if (discountType === "percentage" && value > 100) {
+                            return
+                          }
+                          if (discountType === "fixed" && value > subtotal) {
+                            return
+                          }
                           setDiscountValue(value)
                         }}
                         placeholder="0.00"

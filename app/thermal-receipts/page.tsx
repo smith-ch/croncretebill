@@ -1,15 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { 
   Dialog,
   DialogContent,
@@ -21,32 +19,24 @@ import {
 import {
   Receipt,
   Plus,
-  Minus,
   Printer,
   QrCode,
   Eye,
   Search,
   Filter,
-  MoreVertical,
   Download,
-  CheckCircle,
-  Clock,
-  AlertCircle,
   DollarSign,
-  Calculator,
-  User,
   Trash2,
   CreditCard,
   Banknote,
   FileText,
   Building2,
-  Phone,
-  MapPin
+  Phone
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
-import { generateThermalReceiptPDF, generateQRCode } from "@/lib/thermal-receipt-utils"
+import { generateThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 
 interface Product {
   id: string
@@ -269,14 +259,12 @@ export default function ThermalReceiptsPage() {
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       // Fetch user profile/company information from company_settings
       const { data: profileData, error: profileError } = await supabase
@@ -347,7 +335,11 @@ export default function ThermalReceiptsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notifyError])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const addItem = () => {
     setItems([...items, { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
@@ -443,7 +435,9 @@ export default function ThermalReceiptsPage() {
     try {
       setSaving(true)
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
       
@@ -506,7 +500,9 @@ export default function ThermalReceiptsPage() {
         .from("thermal_receipt_items")
         .insert(itemsToSave)
 
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        throw itemsError
+      }
 
       // Reset form
       setClientName("")

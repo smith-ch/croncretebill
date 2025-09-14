@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,19 +15,13 @@ import {
   FileText,
   Download,
   Eye,
-  Search,
   Filter,
   MoreVertical,
   Mail,
-  Printer,
   DollarSign,
   Calendar,
-  User,
   CreditCard,
   Building,
-  AlertCircle,
-  Clock,
-  CheckCircle2,
   XCircle,
   TrendingUp,
   Receipt
@@ -144,27 +138,12 @@ export default function PaymentReceiptsPage() {
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
 
-  useEffect(() => {
-    fetchData()
-
-    // Listener para mensajes de la vista previa
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data.type === 'generatePDF' && event.data.receiptId) {
-        const receipt = paymentReceipts.find(r => r.id === event.data.receiptId)
-        if (receipt) {
-          await handleDownloadReceipt(receipt)
-        }
-      }
-    }
-
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [paymentReceipts])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       // Fetch company settings
       const { data: companyData, error: companyError } = await supabase
@@ -275,27 +254,31 @@ export default function PaymentReceiptsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notifyError])
 
   // Helper function to format receipt number display
   const formatReceiptNumber = (receiptNumber: string): string => {
-    // Extract clean number from database format
-    // Format: CP-YYYYMMDD-NNNN -> CPG-YYYY-NNNN
-    if (!receiptNumber || receiptNumber === 'cons') return receiptNumber
+    if (!receiptNumber || receiptNumber === 'cons') {
+      return receiptNumber
+    }
     
-    // Handle both old and new formats
+    // Si ya está en el formato nuevo CPG-NNNN, devolverlo tal como está
+    if (receiptNumber.startsWith('CPG-')) {
+      return receiptNumber
+    }
+    
+    // Manejar formato antiguo CP-YYYYMMDD-NNNN -> convertir a CPG-NNNN
     if (receiptNumber.includes('CP-')) {
-      // Extract the sequential number from end
       const parts = receiptNumber.split('-')
       if (parts.length >= 3) {
-        const year = new Date().getFullYear()
         const sequentialPart = parts[parts.length - 1]
-        // Get last 4 digits as sequence number
+        // Obtener últimos 4 dígitos como número de secuencia
         const seqNumber = sequentialPart.slice(-4).padStart(4, '0')
-        return `CPG-${year}-${seqNumber}`
+        return `CPG-${seqNumber}`
       }
     }
     
+    // Para cualquier otro formato, devolverlo tal como está
     return receiptNumber
   }
 
@@ -303,7 +286,9 @@ export default function PaymentReceiptsPage() {
     try {
       setGenerating(true)
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       if (!selectedInvoice) {
         notifyError("Debe seleccionar una factura")
@@ -336,7 +321,9 @@ export default function PaymentReceiptsPage() {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       // Reset form
       setManualReceiptData({
@@ -503,6 +490,7 @@ export default function PaymentReceiptsPage() {
       }
 
       // Preparar datos de la empresa
+      // eslint-disable-next-line no-unused-vars
       const companyData = companySettings ? {
         name: companySettings.company_name || 'TU EMPRESA',
         phone: companySettings.phone || '',
@@ -571,6 +559,11 @@ export default function PaymentReceiptsPage() {
       notifyError("Error al abrir la vista previa")
     }
   }
+
+  // useEffect to load data and set up event listeners
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
@@ -836,8 +829,48 @@ export default function PaymentReceiptsPage() {
                               </DialogHeader>
                               {selectedReceipt && (
                                 <div className="space-y-4">
-                                  <div className="bg-slate-50 p-4 rounded-lg">
-                                    <h3 className="font-semibold mb-2">Información del Pago</h3>
+                                  <div className="relative bg-slate-100 p-6 rounded-lg shadow-inner overflow-hidden">
+                                    {/* Watermark */}
+                                    <div
+                                      className="pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                                      style={{
+                                        zIndex: 0,
+                                        fontSize: '4rem',
+                                        color: '#64748b', // slate-500
+                                        opacity: 0.10,
+                                        fontWeight: 700,
+                                        whiteSpace: 'nowrap',
+                                        transform: 'translate(-50%, -50%) rotate(-30deg)',
+                                        userSelect: 'none',
+                                      }}
+                                    >
+                                      COMPROBANTE DE PAGO
+                                    </div>
+                                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      {/* Company Info */}
+                                      <div>
+                                        <h3 className="font-semibold mb-2 text-slate-700">Datos de la Empresa</h3>
+                                        <div className="text-sm text-slate-700">
+                                          <div><span className="font-medium">Nombre:</span> {companySettings?.company_name || 'Empresa'}</div>
+                                          <div><span className="font-medium">RNC:</span> {companySettings?.tax_id || 'N/A'}</div>
+                                          <div><span className="font-medium">Dirección:</span> {companySettings?.company_address || 'N/A'}</div>
+                                          <div><span className="font-medium">Teléfono:</span> {companySettings?.company_phone || 'N/A'}</div>
+                                        </div>
+                                      </div>
+                                      {/* Client Info */}
+                                      <div>
+                                        <h3 className="font-semibold mb-2 text-slate-700">Información del Cliente</h3>
+                                        <div className="text-sm text-slate-700">
+                                          <div><span className="font-medium">Nombre:</span> {selectedReceipt.invoice?.clients?.name || 'Cliente no encontrado'}</div>
+                                          <div><span className="font-medium">RNC/Cédula:</span> {selectedReceipt.invoice?.clients?.rnc || 'N/A'}</div>
+                                          <div><span className="font-medium">Dirección:</span> {selectedReceipt.invoice?.clients?.address || 'N/A'}</div>
+                                          <div><span className="font-medium">Teléfono:</span> {selectedReceipt.invoice?.clients?.phone || 'N/A'}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-slate-200 p-4 rounded-lg border border-slate-300">
+                                    <h3 className="font-semibold mb-2 text-slate-800">Información del Pago</h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                       <div>
                                         <span className="text-slate-600">Número:</span>
@@ -854,16 +887,14 @@ export default function PaymentReceiptsPage() {
                                         <p className="font-medium">{selectedReceipt.invoice?.invoice_number || 'N/A'}</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-600">Cliente:</span>
-                                        <p className="font-medium">{selectedReceipt.invoice?.clients?.name || 'Cliente no encontrado'}</p>
-                                      </div>
-                                      <div>
                                         <span className="text-slate-600">Método de Pago:</span>
                                         <p className="font-medium">{getPaymentMethodLabel(selectedReceipt.payment_method)}</p>
                                       </div>
-                                      <div>
-                                        <span className="text-slate-600">Monto Pagado:</span>
-                                        <p className="font-medium">{formatCurrency(selectedReceipt.amount_paid)}</p>
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-slate-400 bg-slate-300 -mx-4 -mb-4 px-4 pb-4 rounded-b-lg">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-lg font-semibold text-slate-800">Total Pagado:</span>
+                                        <span className="text-xl font-bold text-slate-900">{formatCurrency(selectedReceipt.amount_paid)}</span>
                                       </div>
                                     </div>
                                     {selectedReceipt.notes && (

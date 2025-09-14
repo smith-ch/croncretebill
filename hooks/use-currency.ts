@@ -16,7 +16,9 @@ export function useCurrency() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data: settings } = await supabase
         .from("company_settings")

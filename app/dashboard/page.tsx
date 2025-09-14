@@ -14,7 +14,6 @@ import {
   FileText,
   Receipt,
   TrendingUp,
-  DollarSign,
   Calendar,
   Target,
   AlertCircle,
@@ -25,7 +24,6 @@ import {
   BarChart3,
   PieChart,
   ArrowUpRight,
-  ArrowDownRight,
   Zap,
   Sparkles,
   Eye,
@@ -156,7 +154,9 @@ export default function DashboardPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const now = new Date()
       const currentMonth = now.getMonth() + 1
@@ -226,7 +226,9 @@ export default function DashboardPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const now = new Date()
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -284,7 +286,9 @@ export default function DashboardPage() {
       const pendingInvoices = invoices?.filter((inv) => inv.status === "pendiente").length || 0
       const overdueInvoices =
         invoices?.filter((inv) => {
-          if (inv.status !== "pendiente" || !inv.due_date) return false
+          if (inv.status !== "pendiente" || !inv.due_date) {
+            return false
+          }
           return new Date(inv.due_date) < now
         }).length || 0
 

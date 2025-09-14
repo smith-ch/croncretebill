@@ -1,13 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState, useCallback } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import {
-  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -15,39 +13,25 @@ import {
   Tooltip,
   ResponsiveContainer,
   Line,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
   Area,
   AreaChart,
   ComposedChart,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
-  Legend,
 } from "recharts"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import {
   TrendingUp,
-  FileText,
   DollarSign,
   BarChart3,
-  Receipt,
   Download,
   Target,
-  AlertCircle,
   CheckCircle2,
   ArrowUpRight,
   ArrowDownRight,
-  ArrowUpDown,
   Activity,
   PieChartIcon,
   RefreshCw,
   Loader2,
-  Users,
-  Package,
   Calendar,
   Percent,
   Clock,
@@ -131,7 +115,7 @@ interface AIInsights {
 
 // Funciones de IA para análisis inteligente
 const AIAnalytics = {
-  generateAdvancedPredictions: (monthlyData: MonthlyData[], kpiData: KPIData) => {
+  generateAdvancedPredictions: (monthlyData: MonthlyData[]) => {
     const recentData = monthlyData.slice(-6)
     const volatility = AIAnalytics.calculateVolatility(recentData)
     
@@ -143,7 +127,9 @@ const AIAnalytics = {
   },
 
   calculateVolatility: (data: MonthlyData[]) => {
-    if (data.length < 2) return 0
+    if (data.length < 2) {
+      return 0
+    }
     const revenues = data.map(d => d.totalRevenue)
     const mean = revenues.reduce((a, b) => a + b, 0) / revenues.length
     const variance = revenues.reduce((sum, rev) => sum + Math.pow(rev - mean, 2), 0) / revenues.length
@@ -151,7 +137,9 @@ const AIAnalytics = {
   },
 
   predictNextMonth: (data: MonthlyData[]) => {
-    if (data.length === 0) return 0
+    if (data.length === 0) {
+      return 0
+    }
     const trend = data.length >= 3 ? 
       (data[data.length - 1].totalRevenue - data[data.length - 3].totalRevenue) / 2 : 0
     const lastRevenue = data[data.length - 1].totalRevenue
@@ -248,7 +236,7 @@ const AIAnalytics = {
 export default function MonthlyReportsPage() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPeriod, setSelectedPeriod] = useState("12")
+  const [selectedPeriod] = useState("12")
   const [aiInsights, setAiInsights] = useState<AIInsights>({
     predictions: { nextMonthRevenue: 0, confidenceLevel: 0, nextQuarterRevenue: 0 },
     recommendations: [],
@@ -281,16 +269,14 @@ export default function MonthlyReportsPage() {
 
   const { formatCurrency } = useCurrency()
 
-  useEffect(() => {
-    fetchMonthlyData()
-  }, [selectedPeriod])
-
   const fetchAdditionalMetrics = async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const [clientsResult, productsResult] = await Promise.all([
         supabase.from("clients").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -307,13 +293,15 @@ export default function MonthlyReportsPage() {
     }
   }
 
-  const fetchMonthlyData = async () => {
+  const fetchMonthlyData = useCallback(async () => {
     setLoading(true)
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const monthsToFetch = Number.parseInt(selectedPeriod)
       
@@ -335,8 +323,12 @@ export default function MonthlyReportsPage() {
       console.log("Estados de facturas:", invoices?.map(inv => inv.status))
       console.log("Gastos encontrados:", expenses?.length || 0)
       
-      if (invoicesError) console.error("Error al obtener facturas:", invoicesError)
-      if (expensesError) console.error("Error al obtener gastos:", expensesError)
+      if (invoicesError) {
+        console.error("Error al obtener facturas:", invoicesError)
+      }
+      if (expensesError) {
+        console.error("Error al obtener gastos:", expensesError)
+      }
 
       // Filtrar facturas válidas
       const validInvoices = invoices?.filter(invoice => {
@@ -409,7 +401,9 @@ export default function MonthlyReportsPage() {
       // Convertir a array y ordenar
       const monthlyStats = Array.from(monthlyDataMap.values())
         .sort((a, b) => {
-          if (a.year !== b.year) return a.year - b.year
+          if (a.year !== b.year) {
+            return a.year - b.year
+          }
           return a.month - b.month
         })
         .slice(-monthsToFetch)
@@ -503,13 +497,15 @@ export default function MonthlyReportsPage() {
 
         const consistencyScore = processedData.length > 3 ? 
           100 - (processedData.slice(-6).reduce((acc, curr, idx, arr) => {
-            if (idx === 0) return acc
+            if (idx === 0) {
+              return acc
+            }
             const variance = Math.abs(curr.growth - arr[idx - 1].growth)
             return acc + variance
           }, 0) / 5) : 50
 
         const seasonalityIndex = processedData.length >= 12 ? 
-          Math.abs(processedData.slice(-12).reduce((sum, data, idx) => {
+          Math.abs(processedData.slice(-12).reduce((sum, data) => {
             const monthIndex = data.month.split('/')[0]
             const seasonalWeight = Math.sin((parseInt(monthIndex) - 1) * Math.PI / 6)
             return sum + (data.totalRevenue * seasonalWeight)
@@ -551,7 +547,7 @@ export default function MonthlyReportsPage() {
         setKpiData(currentKpiData)
 
         // Generar insights de IA
-        const aiPredictions = AIAnalytics.generateAdvancedPredictions(processedData, currentKpiData)
+        const aiPredictions = AIAnalytics.generateAdvancedPredictions(processedData)
         const recommendations = AIAnalytics.generateRecommendations(processedData, currentKpiData)
         const risks = AIAnalytics.identifyRisks(processedData, currentKpiData)
         const opportunities = AIAnalytics.identifyOpportunities(processedData, currentKpiData)
@@ -570,7 +566,11 @@ export default function MonthlyReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedPeriod])
+
+  useEffect(() => {
+    fetchMonthlyData()
+  }, [fetchMonthlyData])
 
   const handleExportReport = () => {
     const csvContent = [

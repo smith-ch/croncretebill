@@ -41,18 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Conduce no encontrado" }, { status: 404 })
     }
 
-    // Get company settings
-    const { data: companySettings } = await supabaseAdmin
-      .from("company_settings")
-      .select("*")
-      .eq("user_id", deliveryNote.user_id)
-      .single()
-
-    // Get user profile for company info
-    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", deliveryNote.user_id).single()
-
     // Generate HTML for PDF
-    const html = generateDeliveryNoteHTML(deliveryNote, profile, companySettings)
+    const html = generateDeliveryNoteHTML(deliveryNote)
 
     // Return HTML response that can be converted to PDF by the client
     return new NextResponse(html, {
@@ -67,13 +57,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-function generateDeliveryNoteHTML(deliveryNote: any, profile: any, companySettings: any) {
+function generateDeliveryNoteHTML(deliveryNote: any) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES")
   }
 
   const formatTime = (timeString: string) => {
-    if (!timeString) return ""
+    if (!timeString) {
+      return ""
+    }
     return timeString.slice(0, 5) // Format HH:MM
   }
 

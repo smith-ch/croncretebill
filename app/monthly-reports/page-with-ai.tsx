@@ -6,15 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
   Area,
   AreaChart,
 } from "recharts"
@@ -24,18 +20,13 @@ import {
   TrendingUp,
   DollarSign,
   BarChart3,
-  Download,
   Target,
-  AlertCircle,
   CheckCircle2,
   ArrowUpRight,
-  ArrowDownRight,
   Activity,
   RefreshCw,
   Loader2,
-  Calendar,
   Percent,
-  Clock,
   Zap,
   Award,
   Brain,
@@ -115,7 +106,7 @@ interface AIInsights {
 
 // Funciones de IA para análisis inteligente
 const AIAnalytics = {
-  generateAdvancedPredictions: (monthlyData: MonthlyData[], kpiData: KPIData) => {
+  generateAdvancedPredictions: (monthlyData: MonthlyData[]) => {
     const recentData = monthlyData.slice(-6)
     const volatility = AIAnalytics.calculateVolatility(recentData)
     
@@ -127,7 +118,9 @@ const AIAnalytics = {
   },
 
   calculateVolatility: (data: MonthlyData[]) => {
-    if (data.length < 2) return 0
+    if (data.length < 2) {
+      return 0
+    }
     const revenues = data.map(d => d.totalRevenue)
     const mean = revenues.reduce((a, b) => a + b, 0) / revenues.length
     const variance = revenues.reduce((sum, rev) => sum + Math.pow(rev - mean, 2), 0) / revenues.length
@@ -135,7 +128,9 @@ const AIAnalytics = {
   },
 
   predictNextMonth: (data: MonthlyData[]) => {
-    if (data.length === 0) return 0
+    if (data.length === 0) {
+      return 0
+    }
     const trend = data.length >= 3 ? 
       (data[data.length - 1].totalRevenue - data[data.length - 3].totalRevenue) / 2 : 0
     const lastRevenue = data[data.length - 1].totalRevenue
@@ -232,7 +227,7 @@ const AIAnalytics = {
 export default function MonthlyReportsWithAI() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPeriod, setSelectedPeriod] = useState("12")
+  const [selectedPeriod] = useState("12")
   const [aiInsights, setAiInsights] = useState<AIInsights>({
     predictions: { nextMonthRevenue: 0, confidenceLevel: 0, nextQuarterRevenue: 0 },
     recommendations: [],
@@ -275,7 +270,9 @@ export default function MonthlyReportsWithAI() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       // Simulación de datos para demo
       const mockData: MonthlyData[] = [
@@ -345,7 +342,7 @@ export default function MonthlyReportsWithAI() {
       setKpiData(mockKpiData)
 
       // Generar insights de IA
-      const aiPredictions = AIAnalytics.generateAdvancedPredictions(mockData, mockKpiData)
+      const aiPredictions = AIAnalytics.generateAdvancedPredictions(mockData)
       const recommendations = AIAnalytics.generateRecommendations(mockData, mockKpiData)
       const risks = AIAnalytics.identifyRisks(mockData, mockKpiData)
       const opportunities = AIAnalytics.identifyOpportunities(mockData, mockKpiData)

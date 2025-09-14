@@ -40,7 +40,9 @@ export default function InvoicesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("invoices")
@@ -53,7 +55,9 @@ export default function InvoicesPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setInvoices(data || [])
     } catch (error) {
       console.error("Error fetching invoices:", error)
@@ -111,7 +115,9 @@ export default function InvoicesPage() {
   }
 
   const handleMarkAsPaid = async (id: string) => {
-    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) return
+    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) {
+      return
+    }
 
     try {
       const { error } = await supabase
@@ -121,7 +127,9 @@ export default function InvoicesPage() {
         })
         .eq("id", id)
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchInvoices() // Refresh the list
     } catch (error) {
       console.error("Error marking invoice as paid:", error)
@@ -130,11 +138,15 @@ export default function InvoicesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("invoices").delete().eq("id", id)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchInvoices()
     } catch (error) {
       console.error("Error deleting invoice:", error)

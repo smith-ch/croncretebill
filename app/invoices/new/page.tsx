@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -83,7 +81,9 @@ export default function NewInvoicePage() {
   const generateInvoiceNumber = async () => {
     try {
       const { data, error } = await supabase.rpc("get_next_invoice_number")
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setInvoiceNumber(data)
     } catch (error) {
       console.error("Error generating invoice number:", error)
@@ -102,16 +102,24 @@ export default function NewInvoicePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       // Validate required fields
       const clientId = selectedClient
       const invoiceDate = formData.get("invoice_date") as string
       const dueDate = formData.get("due_date") as string
 
-      if (!clientId) throw new Error("Cliente es requerido")
-      if (!invoiceDate) throw new Error("Fecha de factura es requerida")
-      if (!dueDate) throw new Error("Fecha de vencimiento es requerida")
+      if (!clientId) {
+        throw new Error("Cliente es requerido")
+      }
+      if (!invoiceDate) {
+        throw new Error("Fecha de factura es requerida")
+      }
+      if (!dueDate) {
+        throw new Error("Fecha de vencimiento es requerida")
+      }
 
       // Validate NCF if ITBIS is included
       if (includeItbis && !ncf.trim()) {
@@ -181,7 +189,9 @@ export default function NewInvoicePage() {
         .select()
         .single()
 
-      if (invoiceError) throw invoiceError
+      if (invoiceError) {
+        throw invoiceError
+      }
 
       // Insert invoice items
       const invoiceItems = processedItems.map((item) => {
@@ -206,7 +216,9 @@ export default function NewInvoicePage() {
       })
 
       const { error: itemsError } = await supabase.from("invoice_items").insert(invoiceItems)
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        throw itemsError
+      }
 
       router.push("/invoices")
     } catch (error: any) {
@@ -700,8 +712,12 @@ export default function NewInvoicePage() {
                         value={discountValue}
                         onChange={(e) => {
                           const value = Number.parseFloat(e.target.value) || 0
-                          if (discountType === "percentage" && value > 100) return
-                          if (discountType === "fixed" && value > subtotal) return
+                          if (discountType === "percentage" && value > 100) {
+                            return
+                          }
+                          if (discountType === "fixed" && value > subtotal) {
+                            return
+                          }
                           setDiscountValue(value)
                         }}
                         placeholder="0.00"

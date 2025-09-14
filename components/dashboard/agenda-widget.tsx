@@ -31,10 +31,11 @@ export function AgendaWidget() {
   const fetchUpcomingItems = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      const today = new Date().toISOString().split('T')[0]
       const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
       // Fetch all recent invoices (last week to next week for visibility)
@@ -116,9 +117,15 @@ export function AgendaWidget() {
   }
 
   const getStatusColor = (status: string, priority: string) => {
-    if (status === "overdue") return "bg-red-100 text-red-800 border-red-200"
-    if (priority === "high") return "bg-orange-100 text-orange-800 border-orange-200"
-    if (priority === "medium") return "bg-blue-100 text-blue-800 border-blue-200"
+    if (status === "overdue") {
+      return "bg-red-100 text-red-800 border-red-200"
+    }
+    if (priority === "high") {
+      return "bg-orange-100 text-orange-800 border-orange-200"
+    }
+    if (priority === "medium") {
+      return "bg-blue-100 text-blue-800 border-blue-200"
+    }
     return "bg-gray-100 text-gray-800 border-gray-200"
   }
 
@@ -128,9 +135,15 @@ export function AgendaWidget() {
     const diffTime = targetDate.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     
-    if (diffDays < 0) return "Vencido"
-    if (diffDays === 0) return "Hoy"
-    if (diffDays === 1) return "Mañana"
+    if (diffDays < 0) {
+      return "Vencido"
+    }
+    if (diffDays === 0) {
+      return "Hoy"
+    }
+    if (diffDays === 1) {
+      return "Mañana"
+    }
     return `En ${diffDays} días`
   }
 

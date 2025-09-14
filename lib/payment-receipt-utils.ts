@@ -40,7 +40,9 @@ export interface CompanyData {
 
 // Función para obtener etiqueta del método de pago
 const getPaymentMethodLabel = (method: string): string => {
-  if (!method) return 'Efectivo'
+  if (!method) {
+    return 'Efectivo'
+  }
   
   const normalizedMethod = method.toLowerCase().trim()
   const methods: { [key: string]: string } = {
@@ -81,14 +83,9 @@ export const generatePaymentReceiptPDF = async (
       format: [pageWidth, pageHeight]
     })
 
-    // Paleta de colores de la web - más vibrante y profesional
-    const primaryBlue = '#3b82f6'      // Blue-500 - Color principal de la web
-    const primaryBlueDark = '#2563eb'  // Blue-600 - Azul más oscuro  
+    // Paleta de colores grises
     const slate700 = '#334155'         // Texto principal oscuro
     const slate500 = '#64748b'         // Texto secundario
-    const slate100 = '#f1f5f9'         // Fondo claro
-    const slate200 = '#e2e8f0'         // Bordes y divisores
-    const blue50 = '#eff6ff'           // Fondo azul muy claro
     
     let currentY = 0
 
@@ -110,7 +107,7 @@ export const generatePaymentReceiptPDF = async (
         const logoImage = new Image()
         logoImage.crossOrigin = 'anonymous'
         
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve) => {
           logoImage.onload = () => {
             try {
               // Calcular dimensiones manteniendo proporción original
@@ -174,7 +171,7 @@ export const generatePaymentReceiptPDF = async (
     // ===== TÍTULO PRINCIPAL CON ESTILO WEB =====
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(16)
-    doc.setTextColor(primaryBlue) // Azul principal de la web
+    doc.setTextColor(slate700) // Cambiar de azul a gris
     doc.text('COMPROBANTE DE PAGO', pageWidth / 2, currentY, { align: 'center' })
 
     currentY += 15
@@ -210,8 +207,23 @@ export const generatePaymentReceiptPDF = async (
 
     currentY += 12
 
+    // ===== INFORMACIÓN DE EMPRESA Y CLIENTE EN CAJA GRIS =====
+    // Caja gris de fondo para empresa y cliente
+    doc.setFillColor(241, 245, 249) // slate-100 - Fondo gris claro
+    doc.rect(8, currentY, pageWidth - 16, 55, 'F')
+    doc.setDrawColor(226, 232, 240) // slate-200 - Borde gris
+    doc.setLineWidth(0.5)
+    doc.rect(8, currentY, pageWidth - 16, 55)
+
+    // Guardar coordenadas para la marca de agua después
+    const watermarkBoxStartY = currentY
+    const watermarkBoxHeight = 55
+
+    // Ajustar posición Y para el contenido
+    currentY += 8
+
     // ===== SECCIÓN DE INFORMACIÓN CON DISEÑO DE DOS COLUMNAS =====
-    doc.setTextColor(primaryBlue) // Azul principal para encabezados
+    doc.setTextColor(71, 85, 105) // slate-600 - Títulos más oscuros para mejor contraste
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     
@@ -295,7 +307,7 @@ export const generatePaymentReceiptPDF = async (
       // Título de cliente
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8)
-      doc.setTextColor(primaryBlue) // Azul principal para encabezados
+      doc.setTextColor(71, 85, 105) // slate-600 - Color consistente con empresa
       doc.text('INFORMACIÓN DEL CLIENTE:', 75, clientY)
       
       clientY += 5
@@ -374,65 +386,58 @@ export const generatePaymentReceiptPDF = async (
     // Usar la Y más alta entre las dos columnas
     currentY = Math.max(companyY || currentY, clientY) + 8
 
-    // ===== DETALLE DEL PAGO CON MARCA DE AGUA =====
+    // ===== DETALLE DEL PAGO REORGANIZADO =====
+    // Caja con fondo gris para el detalle del pago
+    doc.setFillColor(241, 245, 249) // slate-100 - Fondo gris claro
+    doc.rect(8, currentY, pageWidth - 16, 25, 'F')
+    doc.setDrawColor(226, 232, 240) // slate-200 - Borde gris
+    doc.setLineWidth(0.5)
+    doc.rect(8, currentY, pageWidth - 16, 25)
+
+    currentY += 6
+
+    // Título de la sección
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(9)
     doc.setTextColor(slate700)
-    doc.text('DETALLE DEL PAGO:', 8, currentY)
+    doc.text('DETALLE DEL PAGO:', 12, currentY)
 
-    // ===== MARCA DE AGUA "PAGADO" + EMPRESA EN DOS LÍNEAS =====
-    doc.setTextColor(200, 200, 200) // Gris más notable
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(18) // Más grande
-    
-    // Primera línea: "PAGADO"
-    doc.text('PAGADO', 85, currentY + 2, { 
-      align: 'left'
-    })
-    
-    // Segunda línea: Nombre de la empresa debajo
-    doc.setFontSize(20) // Aún más grande para el nombre
-    doc.text(companyData.name || 'EMPRESA', 85, currentY + 10, { 
-      align: 'left'
-    })
-
-    currentY += 8
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
+    currentY += 6
 
     // Factura
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
     doc.setTextColor(slate500)
-    doc.text('Factura:', 8, currentY) // Más a la izquierda
+    doc.text('Factura:', 12, currentY)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(slate700)
-    doc.text(receiptData.invoice.invoice_number, 30, currentY) // Más pegado
+    doc.text(receiptData.invoice.invoice_number, 35, currentY)
     currentY += 5
 
-    // Método - Hacer más visible
+    // Método de Pago
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(slate500)
-    doc.text('Método de Pago:', 8, currentY) // Más a la izquierda
+    doc.text('Método de Pago:', 12, currentY)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(slate700)
     const paymentMethodText = getPaymentMethodLabel(receiptData.payment_method || 'cash')
-    console.log('Payment method:', receiptData.payment_method, 'Display text:', paymentMethodText) // Debug
-    doc.text(paymentMethodText, 45, currentY) // Más pegado
+    doc.text(paymentMethodText, 55, currentY)
 
     currentY += 15
 
-    // ===== TOTAL PAGADO CON ESTILO WEB =====
-    doc.setFillColor(59, 130, 246) // primaryBlue - Fondo azul del tema
+    // ===== TOTAL PAGADO CON ESTILO GRIS =====
+    doc.setFillColor(226, 232, 240) // slate-200 - Fondo gris claro
     doc.rect(8, currentY, pageWidth - 16, 12, 'F')
-    doc.setDrawColor(37, 99, 235) // primaryBlueDark - Borde azul más oscuro
+    doc.setDrawColor(148, 163, 184) // slate-400 - Borde gris más oscuro
     doc.setLineWidth(1)
     doc.rect(8, currentY, pageWidth - 16, 12)
 
     currentY += 8
 
-    // Total con colores del tema
+    // Total con colores grises
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
-    doc.setTextColor(255, 255, 255) // Texto blanco sobre fondo azul
+    doc.setTextColor(30, 41, 59) // slate-800 - Texto oscuro sobre fondo gris
     doc.text('TOTAL PAGADO:', 12, currentY)
     
     const formattedAmount = new Intl.NumberFormat('es-DO', {
@@ -498,6 +503,30 @@ export const generatePaymentReceiptPDF = async (
         doc.text(line, pageWidth / 2, currentY + (index * 3), { align: 'center' })
       })
     }
+
+    // ===== MARCA DE AGUA DIAGONAL "COMPROBANTE DE PAGO" AL FINAL =====
+    // Dibujar al final con un enfoque más simple para asegurar visibilidad
+    
+    // Primero dibujar un texto más claro (como sombra)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(26)
+    doc.setTextColor(180, 180, 180) // Gris claro
+    
+    const watermarkCenterX = pageWidth / 2
+    const watermarkCenterY = watermarkBoxStartY + (watermarkBoxHeight / 2)
+    
+    // Texto principal con rotación
+    doc.text('COMPROBANTE DE PAGO', watermarkCenterX + 0.5, watermarkCenterY + 0.5, {
+      align: 'center',
+      angle: -30
+    })
+    
+    // Ahora el texto principal un poco más oscuro encima
+    doc.setTextColor(140, 140, 140) // Gris medio
+    doc.text('COMPROBANTE DE PAGO', watermarkCenterX, watermarkCenterY, {
+      align: 'center',
+      angle: -30
+    })
 
     // Guardar el PDF
     doc.save(`comprobante-${receiptData.receipt_number}.pdf`)

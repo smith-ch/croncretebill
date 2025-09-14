@@ -1,17 +1,13 @@
 "use client"
 
-import { CardDescription } from "@/components/ui/card"
-
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -87,7 +83,6 @@ export default function ExpensesPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([])
-  const [showBulkActions, setShowBulkActions] = useState(false)
   const { formatCurrency } = useCurrency()
 
   useEffect(() => {
@@ -100,7 +95,9 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("expenses")
@@ -108,7 +105,9 @@ export default function ExpensesPage() {
         .eq("user_id", user.id)
         .order("expense_date", { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setExpenses(data || [])
     } catch (error) {
       console.error("Error fetching expenses:", error)
@@ -122,11 +121,15 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase.from("expense_categories").select("*").eq("user_id", user.id).order("name")
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setCategories(data || [])
     } catch (error) {
       console.error("Error fetching categories:", error)
@@ -152,17 +155,23 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (editingExpense) {
         const { error } = await supabase.from("expenses").update(expenseData).eq("id", editingExpense.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       } else {
         const { error } = await supabase.from("expenses").insert({
           ...expenseData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       }
 
       setShowExpenseForm(false)
@@ -191,17 +200,23 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (editingCategory) {
         const { error } = await supabase.from("expense_categories").update(categoryData).eq("id", editingCategory.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       } else {
         const { error } = await supabase.from("expense_categories").insert({
           ...categoryData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       }
 
       setShowCategoryForm(false)
@@ -215,7 +230,9 @@ export default function ExpensesPage() {
   }
 
   const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) return
+    if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) {
+      return
+    }
 
     try {
       // Check if category is being used by any expenses
@@ -225,7 +242,9 @@ export default function ExpensesPage() {
         .eq("category", categoryName)
         .limit(1)
 
-      if (checkError) throw checkError
+      if (checkError) {
+        throw checkError
+      }
 
       if (expensesUsingCategory && expensesUsingCategory.length > 0) {
         alert("No se puede eliminar esta categoría porque está siendo utilizada por uno o más gastos.")
@@ -233,7 +252,9 @@ export default function ExpensesPage() {
       }
 
       const { error } = await supabase.from("expense_categories").delete().eq("id", categoryId)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       fetchCategories()
     } catch (error) {
@@ -243,11 +264,15 @@ export default function ExpensesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("expenses").delete().eq("id", id)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchExpenses()
       setSelectedExpenses(selectedExpenses.filter((expenseId) => expenseId !== id))
     } catch (error) {
@@ -256,16 +281,21 @@ export default function ExpensesPage() {
   }
 
   const handleBulkDelete = async () => {
-    if (selectedExpenses.length === 0) return
-    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) return
+    if (selectedExpenses.length === 0) {
+      return
+    }
+    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("expenses").delete().in("id", selectedExpenses)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       fetchExpenses()
       setSelectedExpenses([])
-      setShowBulkActions(false)
     } catch (error) {
       console.error("Error deleting expenses:", error)
     }

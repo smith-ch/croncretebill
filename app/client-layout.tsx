@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Inter } from "next/font/google"
 import { supabase } from "@/lib/supabase"
 import { AuthForm } from "@/components/auth/auth-form"
@@ -12,6 +10,8 @@ import { NotificationProvider } from "@/components/notifications/notification-pr
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { useAutoLogout } from "@/hooks/use-auto-logout"
+import { SessionIndicator } from "@/components/auth/session-indicator"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,6 +22,13 @@ export default function ClientLayout({
 }) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Configurar auto-logout cuando hay un usuario logueado
+  useAutoLogout({
+    timeoutMinutes: 30, // Cerrar sesión después de 30 minutos de inactividad
+    warningMinutes: 5,  // Mostrar advertencia 5 minutos antes
+    enabled: !!user     // Solo activar cuando hay usuario logueado
+  })
 
   useEffect(() => {
     // Get initial session
@@ -83,6 +90,8 @@ export default function ClientLayout({
                 </div>
               </main>
             </div>
+            {/* Indicador de sesión flotante */}
+            <SessionIndicator timeoutMinutes={30} />
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

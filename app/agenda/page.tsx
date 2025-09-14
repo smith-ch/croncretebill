@@ -1,14 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Calendar,
@@ -18,21 +18,9 @@ import {
   CheckCircle,
   DollarSign,
   Receipt,
-  Users,
-  Bell,
-  Target,
-  TrendingUp,
-  FileText,
-  CalendarDays,
-  Settings,
-  Eye,
   Edit,
   Trash2,
-  Star,
   Search,
-  Filter,
-  BarChart3,
-  MapPin,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
@@ -103,7 +91,9 @@ export default function AgendaPage() {
   const fetchAgendaData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       // Fetch invoices for agenda
       const { data: invoiceData } = await supabase
@@ -160,7 +150,9 @@ export default function AgendaPage() {
   }
 
   const addNewItem = async () => {
-    if (!newItem.title) return
+    if (!newItem.title) {
+      return
+    }
 
     if (editingItem) {
       // Update existing item
@@ -230,7 +222,9 @@ export default function AgendaPage() {
   }
 
   const updateItem = () => {
-    if (!editingItem || !newItem.title) return
+    if (!editingItem || !newItem.title) {
+      return
+    }
 
     setAgendaItems(prev => 
       prev.map(item => 
@@ -290,7 +284,7 @@ export default function AgendaPage() {
         if (expense.id === expenseId) {
           // Calculate next payment date based on frequency
           const currentDate = new Date(expense.due_date)
-          let nextDate = new Date(currentDate)
+          const nextDate = new Date(currentDate)
           
           switch (expense.frequency) {
             case 'monthly':
@@ -317,7 +311,9 @@ export default function AgendaPage() {
   }
 
   const addFixedExpense = () => {
-    if (!newFixedExpense.name || !newFixedExpense.amount) return
+    if (!newFixedExpense.name || !newFixedExpense.amount) {
+      return
+    }
 
     if (editingExpense) {
       // Update existing expense
@@ -438,7 +434,9 @@ export default function AgendaPage() {
   }
 
   const getItemsForCalendarDate = (day: number) => {
-    if (!day) return []
+    if (!day) {
+      return []
+    }
     
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
@@ -475,7 +473,9 @@ export default function AgendaPage() {
   }
 
   const isToday = (day: number) => {
-    if (!day) return false
+    if (!day) {
+      return false
+    }
     const today = new Date()
     return today.getDate() === day && 
            today.getMonth() === currentDate.getMonth() && 
@@ -483,7 +483,9 @@ export default function AgendaPage() {
   }
 
   const isSelectedDate = (day: number) => {
-    if (!day || !selectedCalendarDate) return false
+    if (!day || !selectedCalendarDate) {
+      return false
+    }
     return selectedCalendarDate.getDate() === day &&
            selectedCalendarDate.getMonth() === currentDate.getMonth() &&
            selectedCalendarDate.getFullYear() === currentDate.getFullYear()
@@ -776,7 +778,7 @@ export default function AgendaPage() {
                   <CardContent className="p-0">
                     {/* Week day headers */}
                     <div className="grid grid-cols-7 border-b">
-                      {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day, index) => (
+                      {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
                         <div key={day} className="p-3 text-center text-sm font-medium text-slate-600 border-r last:border-r-0">
                           {day}
                         </div>
