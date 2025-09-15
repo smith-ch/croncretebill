@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -138,6 +138,31 @@ export default function PaymentReceiptsPage() {
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
 
+  // Memoize expensive calculations
+  const mostUsedPaymentMethod = useMemo(() => {
+    const entries = Object.entries(stats.methodStats)
+    if (entries.length === 0) {
+      return 'cash'
+    }
+    return entries.reduce((a, b) => a[1] > b[1] ? a : b)[0]
+  }, [stats.methodStats])
+
+  const mostUsedMethodLabel = useMemo(() => {
+    switch (mostUsedPaymentMethod) {
+      case 'cash': return 'Efectivo'
+      case 'card': return 'Tarjeta'
+      case 'transfer': return 'Transferencia'
+      case 'check': return 'Cheque'
+      default: return 'Efectivo'
+    }
+  }, [mostUsedPaymentMethod])
+
+  const availableInvoices = useMemo(() => {
+    return paidInvoices.filter(invoice => 
+      !paymentReceipts.some(receipt => receipt.invoice_id === invoice.id)
+    )
+  }, [paidInvoices, paymentReceipts])
+
   const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -145,28 +170,50 @@ export default function PaymentReceiptsPage() {
         return
       }
 
-      // Fetch company settings
-      const { data: companyData, error: companyError } = await supabase
-        .from("company_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .single()
-
-      if (companyError) {
-        console.warn("Company settings error:", companyError)
-      } else {
-        setCompanySettings(companyData)
-      }
-
-      // Fetch payment receipts con información completa de factura y cliente
-      const { data: receiptsData, error: receiptsError } = await supabase
-        .from("payment_receipts")
-        .select(`
-          *,
-          invoices (
+      // Batch fetch all data in parallel for better performance
+      const [
+        companyResult,
+        receiptsResult,
+        invoicesResult
+      ] = await Promise.all([
+        // Fetch company settings
+        supabase
+          .from("company_settings")
+          .select("*")
+          .eq("user_id", user.id)
+          .single(),
+        
+        // Fetch payment receipts with complete invoice and client info in one query
+        supabase
+          .from("payment_receipts")
+          .select(`
+            *,
+            invoices (
+              id,
+              invoice_number,
+              total,
+              clients (
+                id,
+                name,
+                email,
+                rnc,
+                phone,
+                address
+              )
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        
+        // Fetch paid invoices with client info
+        supabase
+          .from("invoices")
+          .select(`
             id,
             invoice_number,
             total,
+            status,
+            created_at,
             clients (
               id,
               name,
@@ -175,17 +222,27 @@ export default function PaymentReceiptsPage() {
               phone,
               address
             )
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+          `)
+          .eq("user_id", user.id)
+          .eq("status", "pagada")
+          .order("created_at", { ascending: false })
+      ])
 
-      if (receiptsError) {
-        console.warn("Payment receipts table may not exist yet:", receiptsError)
-        setPaymentReceipts([])
+      // Handle company settings
+      if (companyResult.error) {
+        console.warn("Company settings error:", companyResult.error)
       } else {
-        // Transformar los datos para que tengan la estructura esperada
-        const transformedReceipts = (receiptsData || []).map((receipt: any) => ({
+        setCompanySettings(companyResult.data)
+      }
+
+      // Handle payment receipts
+      if (receiptsResult.error) {
+        console.warn("Payment receipts table may not exist yet:", receiptsResult.error)
+        setPaymentReceipts([])
+        setStats({ totalPaid: 0, totalReceipts: 0, todayReceipts: 0, methodStats: { cash: 0, card: 0, transfer: 0, check: 0 } })
+      } else {
+        // Transform receipts data efficiently
+        const transformedReceipts = (receiptsResult.data || []).map((receipt: any) => ({
           ...receipt,
           invoice: receipt.invoices ? {
             id: receipt.invoices.id,
@@ -198,7 +255,7 @@ export default function PaymentReceiptsPage() {
         }))
         setPaymentReceipts(transformedReceipts)
 
-        // Calculate stats con los datos transformados
+        // Calculate stats efficiently
         const totalPaid = transformedReceipts.reduce((sum: number, receipt: any) => sum + receipt.amount_paid, 0)
         const totalReceipts = transformedReceipts.length
         const today = new Date().toDateString()
@@ -207,41 +264,21 @@ export default function PaymentReceiptsPage() {
         ).length
 
         const methodStats = transformedReceipts.reduce((acc: any, receipt: any) => {
-          acc[receipt.payment_method as keyof typeof acc] = (acc[receipt.payment_method as keyof typeof acc] || 0) + 1
+          const method = receipt.payment_method as keyof typeof acc
+          acc[method] = (acc[method] || 0) + 1
           return acc
         }, { cash: 0, card: 0, transfer: 0, check: 0 })
 
         setStats({ totalPaid, totalReceipts, todayReceipts, methodStats })
       }
 
-      // Fetch paid invoices - consulta con JOIN para obtener información completa del cliente
-      const { data: invoicesData, error: invoicesError } = await supabase
-        .from("invoices")
-        .select(`
-          id,
-          invoice_number,
-          total,
-          status,
-          created_at,
-          clients (
-            id,
-            name,
-            email,
-            rnc,
-            phone,
-            address
-          )
-        `)
-        .eq("user_id", user.id)
-        .eq("status", "pagada")
-        .order("created_at", { ascending: false })
-
-      if (invoicesError) {
-        console.error("Error fetching invoices:", invoicesError)
+      // Handle paid invoices
+      if (invoicesResult.error) {
+        console.error("Error fetching invoices:", invoicesResult.error)
         setPaidInvoices([])
       } else {
-        // Transformar los datos porque Supabase devuelve clients como array
-        const transformedInvoices = (invoicesData || []).map((invoice: any) => ({
+        // Transform invoices data efficiently
+        const transformedInvoices = (invoicesResult.data || []).map((invoice: any) => ({
           ...invoice,
           clients: Array.isArray(invoice.clients) ? invoice.clients[0] || null : invoice.clients
         }))
@@ -665,13 +702,11 @@ export default function PaymentReceiptsPage() {
               <div>
                 <p className="text-orange-600 font-medium text-sm">Método Más Usado</p>
                 <p className="text-lg font-bold text-orange-900">
-                  {Object.entries(stats.methodStats).reduce((a, b) => a[1] > b[1] ? a : b)[0] === 'cash' ? 'Efectivo' : 
-                   Object.entries(stats.methodStats).reduce((a, b) => a[1] > b[1] ? a : b)[0] === 'card' ? 'Tarjeta' :
-                   Object.entries(stats.methodStats).reduce((a, b) => a[1] > b[1] ? a : b)[0] === 'transfer' ? 'Transferencia' : 'Cheque'}
+                  {mostUsedMethodLabel}
                 </p>
               </div>
               <div className="p-3 bg-orange-200 rounded-full">
-                {getPaymentMethodIcon(Object.entries(stats.methodStats).reduce((a, b) => a[1] > b[1] ? a : b)[0])}
+                {getPaymentMethodIcon(mostUsedPaymentMethod)}
               </div>
             </div>
           </CardContent>
@@ -954,9 +989,6 @@ export default function PaymentReceiptsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {(() => {
-                          const availableInvoices = paidInvoices
-                            .filter(invoice => !paymentReceipts.some(receipt => receipt.invoice_id === invoice.id))
-                          
                           if (availableInvoices.length === 0) {
                             return (
                               <SelectItem disabled value="no-invoices">

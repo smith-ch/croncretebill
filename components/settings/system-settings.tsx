@@ -81,8 +81,8 @@ export function SystemSettings() {
   const [error, setError] = React.useState<string | null>(null)
   
   // Use theme and language contexts
-  const { theme, setTheme } = useTheme()
-  const { language, setLanguage } = useLanguage()
+  const { theme: currentTheme, setTheme } = useTheme()
+  const { language: currentLanguage, setLanguage } = useLanguage()
   
   const [settings, setSettings] = React.useState<SystemSettingsData>({
     theme: 'system',
@@ -101,6 +101,15 @@ export function SystemSettings() {
     two_factor_enabled: false,
     login_alerts: true,
   })
+
+  // Sync contexts with local state on mount
+  React.useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      theme: currentTheme,
+      language: currentLanguage
+    }))
+  }, [currentTheme, currentLanguage])
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme)

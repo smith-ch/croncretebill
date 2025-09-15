@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { Loader2, Sparkles, Zap, Activity } from "lucide-react"
+import { Loader2, Sparkles } from "lucide-react"
 
 interface LoadingSpinnerProps {
   className?: string
@@ -213,7 +213,9 @@ export function LoadingOverlay({
   text = "Procesando...", 
   className 
 }: LoadingOverlayProps) {
-  if (!isVisible) return null
+  if (!isVisible) {
+    return null
+  }
 
   return (
     <motion.div

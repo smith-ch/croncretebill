@@ -26,7 +26,9 @@ export default function ClientsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("clients")
@@ -34,7 +36,7 @@ export default function ClientsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) { throw error }
       setClients(data || [])
     } catch (error) {
       console.error("Error fetching clients:", error)
@@ -44,11 +46,13 @@ export default function ClientsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("clients").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchClients()
     } catch (error) {
       console.error("Error deleting client:", error)

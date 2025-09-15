@@ -6,6 +6,7 @@ import ClientLayout from "./client-layout"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ThemeProvider } from "@/contexts/theme-context"
 import { LanguageProvider } from "@/contexts/language-context"
+import { NotificationProvider } from "@/components/notifications/notification-system"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -33,9 +34,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <LanguageProvider>
-            <ErrorBoundary>
-              <ClientLayout>{children}</ClientLayout>
-            </ErrorBoundary>
+            <NotificationProvider>
+              <ErrorBoundary>
+                <ClientLayout>{children}</ClientLayout>
+              </ErrorBoundary>
+            </NotificationProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

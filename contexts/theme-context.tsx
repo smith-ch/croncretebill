@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type Theme = 'light' | 'dark' | 'system'
@@ -26,8 +26,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Function to apply theme to document
-  const applyTheme = (themeToApply: Theme) => {
-    if (typeof window === 'undefined') return
+  const applyTheme = useCallback((themeToApply: Theme) => {
+    if (typeof window === 'undefined') { return }
 
     const root = window.document.documentElement
     root.classList.remove('light', 'dark')
@@ -41,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     root.classList.add(finalTheme)
     setActualTheme(finalTheme)
-  }
+  }, [])
 
   // Function to set theme and save to database
   const setTheme = async (newTheme: Theme) => {
@@ -106,7 +106,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
+  }, [theme, applyTheme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { AgendaWidget } from "@/components/dashboard/agenda-widget"
+import { RevenueChart, ExpenseChart, ComparisonChart } from "@/components/dashboard/charts"
+import { FinancialHealthWidget, PerformanceComparisonWidget, QuickInsightsWidget } from "@/components/dashboard/interactive-widgets"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -32,6 +34,7 @@ import {
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
+import { useBusinessNotifications } from "@/components/notifications/notification-system"
 
 interface DashboardStats {
   totalInvoices: number
@@ -52,6 +55,7 @@ interface DashboardStats {
   monthlyPendingRevenue: number
   monthlyExpenses: number
   monthlyExpenseAmount: number
+  previousMonthRevenue: number
   recentActivity: Array<{
     id: string
     type: "invoice" | "expense"
@@ -96,6 +100,7 @@ export default function DashboardPage() {
     monthlyPendingRevenue: 0,
     monthlyExpenses: 0,
     monthlyExpenseAmount: 0,
+    previousMonthRevenue: 0,
     recentActivity: [],
     pendingInvoices: 0,
     overdueInvoices: 0,
@@ -104,10 +109,24 @@ export default function DashboardPage() {
     expensesByCategory: [],
   })
   const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [showTargetSettings, setShowTargetSettings] = useState(false)
   const [newTarget, setNewTarget] = useState(100000)
+  const [isClient, setIsClient] = useState(false)
+  const [notificationsShown, setNotificationsShown] = useState({
+    targetAchievement: false,
+    revenueGrowth: false,
+    overdueInvoices: false,
+    lowCashFlow: false
+  })
   const { formatCurrency } = useCurrency()
+  const businessNotifications = useBusinessNotifications()
+
+  // Check if we're on the client side
+  useEffect(() => {
+    setIsClient(true)
+    setLastUpdate(new Date())
+  }, [])
 
   useEffect(() => {
     fetchStats()
@@ -124,6 +143,43 @@ export default function DashboardPage() {
 
     return () => clearInterval(interval)
   }, [])
+
+  // Smart notifications based on data changes (won't repeat once dismissed)
+  useEffect(() => {
+    if (!loading && stats.monthlyTarget > 0 && isClient) {
+      const targetProgress = (stats.monthlyRevenue / stats.monthlyTarget) * 100
+      
+      // Notify about target achievement (only once per session)
+      if (targetProgress >= 100 && !notificationsShown.targetAchievement) {
+        businessNotifications.notifyTargetAchievement(targetProgress)
+        setNotificationsShown(prev => ({ ...prev, targetAchievement: true }))
+      }
+      
+      // Notify about revenue growth (only once per session)
+      if (stats.previousMonthRevenue > 0 && !notificationsShown.revenueGrowth) {
+        const revenueGrowth = ((stats.monthlyRevenue - stats.previousMonthRevenue) / stats.previousMonthRevenue) * 100
+        if (Math.abs(revenueGrowth) > 15) {
+          businessNotifications.notifyRevenueGrowth(revenueGrowth)
+          setNotificationsShown(prev => ({ ...prev, revenueGrowth: true }))
+        }
+      }
+      
+      // Notify about overdue invoices (only once per session)
+      if (stats.overdueInvoices > 0 && !notificationsShown.overdueInvoices) {
+        businessNotifications.notifyOverdueInvoices(stats.overdueInvoices)
+        setNotificationsShown(prev => ({ ...prev, overdueInvoices: true }))
+      }
+      
+      // Notify about low cash flow (only once per session)
+      if (stats.totalRevenue > 0 && !notificationsShown.lowCashFlow) {
+        const profitMargin = ((stats.totalRevenue - stats.totalExpenseAmount) / stats.totalRevenue) * 100
+        if (profitMargin < 20) {
+          businessNotifications.notifyLowCashFlow(profitMargin)
+          setNotificationsShown(prev => ({ ...prev, lowCashFlow: true }))
+        }
+      }
+    }
+  }, [stats, loading, businessNotifications, notificationsShown, isClient])
 
   const loadMonthlyTarget = async () => {
     try {
@@ -372,6 +428,15 @@ export default function DashboardPage() {
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )
 
+      // Calculate previous month revenue for growth comparison
+      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+      const previousMonthPaidInvoices = paidInvoices.filter((inv) => {
+        const invDate = new Date(inv.created_at)
+        return invDate >= previousMonthStart && invDate <= previousMonthEnd
+      })
+      const previousMonthRevenue = previousMonthPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+
       setStats((prev) => ({
         ...prev,
         totalInvoices,
@@ -392,6 +457,7 @@ export default function DashboardPage() {
         monthlyPendingRevenue,
         monthlyExpenses,
         monthlyExpenseAmount,
+        previousMonthRevenue,
         recentActivity,
         pendingInvoices,
         overdueInvoices,
@@ -448,7 +514,7 @@ export default function DashboardPage() {
               </Badge>
               <Badge variant="outline" className="bg-white/50 text-gray-600 border-gray-300">
                 <Clock className="h-3 w-3 mr-1" />
-                Actualizado: {lastUpdate.toLocaleTimeString()}
+                Actualizado: {lastUpdate?.toLocaleTimeString() || 'Cargando...'}
               </Badge>
               <Badge 
                 variant="outline" 
@@ -613,6 +679,178 @@ export default function DashboardPage() {
         </Card>
 
         <StatsCards {...stats} />
+
+        {/* Enhanced Analytics Section */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <FinancialHealthWidget
+            totalRevenue={stats.totalRevenue}
+            totalExpenses={stats.totalExpenseAmount}
+            monthlyTarget={stats.monthlyTarget}
+            monthlyRevenue={stats.monthlyRevenue}
+            pendingRevenue={stats.pendingRevenue}
+            overdueInvoices={stats.overdueInvoices}
+          />
+          
+          <PerformanceComparisonWidget
+            currentMonthRevenue={stats.monthlyRevenue}
+            previousMonthRevenue={stats.previousMonthRevenue}
+            currentMonthExpenses={stats.monthlyExpenseAmount}
+            previousMonthExpenses={stats.monthlyExpenseAmount}
+            currentMonthInvoices={stats.monthlyInvoices}
+            previousMonthInvoices={stats.monthlyInvoices}
+          />
+          
+          <QuickInsightsWidget insights={[
+            {
+              type: 'success',
+              title: 'Buen rendimiento',
+              message: `Has generado ${formatCurrency(stats.monthlyRevenue)} este mes`
+            },
+            {
+              type: 'info', 
+              title: 'Clientes activos',
+              message: `Tienes ${stats.totalClients} clientes registrados`
+            }
+          ]} />
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Revenue Trend Chart */}
+          <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
+            <CardHeader className="relative">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+                  <TrendingUp className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold text-emerald-900 flex items-center gap-2">
+                    Tendencia de Ingresos
+                    <TrendingUp className="h-5 w-5 text-emerald-600" />
+                  </CardTitle>
+                  <CardDescription className="text-emerald-700 text-base font-medium">
+                    Evolución de ingresos últimos 7 días
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="h-80">
+                <RevenueChart data={{
+                  labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                  datasets: [{
+                    label: 'Ingresos',
+                    data: [stats.weeklyRevenue / 7, stats.weeklyRevenue / 6, stats.weeklyRevenue / 5, stats.weeklyRevenue / 4, stats.weeklyRevenue / 3, stats.weeklyRevenue / 2, stats.weeklyRevenue],
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true
+                  }]
+                }} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Expense Chart */}
+          <Card className="shadow-2xl border-0 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/5"></div>
+            <CardHeader className="relative">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl shadow-lg">
+                  <Receipt className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold text-red-900 flex items-center gap-2">
+                    Gastos por Categoría
+                    <PieChart className="h-5 w-5 text-red-600" />
+                  </CardTitle>
+                  <CardDescription className="text-red-700 text-base font-medium">
+                    Distribución de gastos del mes
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="h-80">
+                {stats.expensesByCategory.length > 0 ? (
+                  <ExpenseChart data={{
+                    labels: stats.expensesByCategory.map(cat => cat.category),
+                    datasets: [{
+                      label: 'Gastos',
+                      data: stats.expensesByCategory.map(cat => cat.amount),
+                      backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 101, 101, 0.8)',
+                        'rgba(248, 113, 113, 0.8)',
+                        'rgba(252, 165, 165, 0.8)',
+                        'rgba(254, 202, 202, 0.8)'
+                      ],
+                      borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(245, 101, 101)',
+                        'rgb(248, 113, 113)',
+                        'rgb(252, 165, 165)',
+                        'rgb(254, 202, 202)'
+                      ],
+                      borderWidth: 2
+                    }]
+                  }} />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <Receipt className="h-16 w-16 text-red-300 mx-auto mb-4" />
+                      <p className="text-red-600 font-medium">No hay gastos registrados</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Comparison Chart */}
+        <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5"></div>
+          <CardHeader className="relative">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
+                <BarChart3 className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-purple-900 flex items-center gap-2">
+                  Comparación Mensual
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                </CardTitle>
+                <CardDescription className="text-purple-700 text-base font-medium">
+                  Ingresos vs Gastos del mes actual
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="h-80">
+              <ComparisonChart data={{
+                labels: ['Este Mes'],
+                datasets: [
+                  {
+                    label: 'Ingresos',
+                    data: [stats.monthlyRevenue],
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgb(34, 197, 94)',
+                    borderWidth: 2
+                  },
+                  {
+                    label: 'Gastos',
+                    data: [stats.monthlyExpenseAmount],
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgb(239, 68, 68)',
+                    borderWidth: 2
+                  }
+                ]
+              }} />
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1 space-y-6">

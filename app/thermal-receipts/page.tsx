@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -74,7 +74,7 @@ interface LivePreviewProps {
   profile: Profile | null
 }
 
-const LivePreview: React.FC<LivePreviewProps> = ({ 
+const LivePreview: React.FC<LivePreviewProps> = React.memo(({ 
   clientName, 
   paymentMethod, 
   amountReceived, 
@@ -84,22 +84,29 @@ const LivePreview: React.FC<LivePreviewProps> = ({
 }) => {
   const { formatCurrency } = useCurrency()
 
-  const calculateTotals = () => {
+  const calculateTotals = useCallback(() => {
     const subtotal = items.reduce((sum, item) => sum + item.line_total, 0)
     const tax_amount = subtotal * 0.18
     const total_amount = subtotal + tax_amount
     const change_amount = Math.max(0, amountReceived - total_amount)
     
     return { subtotal, tax_amount, total_amount, change_amount }
-  }
+  }, [items, amountReceived])
 
   const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
-  const currentDate = new Date()
-  const receiptNumber = `TRM-${currentDate.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+  
+  const receiptNumber = useMemo(() => {
+    const currentDate = new Date()
+    return `TRM-${currentDate.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+  }, [])
 
-  const paymentMethodText = paymentMethod === 'cash' ? 'Efectivo' : 
-                           paymentMethod === 'card' ? 'Tarjeta' : 
-                           'Transferencia'
+  const currentDate = useMemo(() => new Date(), [])
+
+  const paymentMethodText = useMemo(() => {
+    return paymentMethod === 'cash' ? 'Efectivo' : 
+           paymentMethod === 'card' ? 'Tarjeta' : 
+           'Transferencia'
+  }, [paymentMethod])
 
   return (
     <div className="bg-white border-2 border-gray-200 rounded-lg p-4 font-mono text-xs leading-tight max-w-xs mx-auto">
@@ -202,7 +209,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({
       </div>
     </div>
   )
-}
+})
+
+LivePreview.displayName = 'LivePreview'
 
 interface ThermalReceiptItem {
   id?: string
@@ -266,68 +275,82 @@ export default function ThermalReceiptsPage() {
         return
       }
 
-      // Fetch user profile/company information from company_settings
-      const { data: profileData, error: profileError } = await supabase
-        .from("company_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .single()
+      // Batch fetch all data in parallel for better performance
+      const [
+        profileResult,
+        receiptsResult,
+        productsResult,
+        servicesResult
+      ] = await Promise.all([
+        // Fetch user profile/company information
+        supabase
+          .from("company_settings")
+          .select("*")
+          .eq("user_id", user.id)
+          .single(),
+        
+        // Fetch thermal receipts with items in a single query
+        supabase
+          .from("thermal_receipts")
+          .select(`
+            *,
+            thermal_receipt_items (*)
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        
+        // Fetch products
+        supabase
+          .from("products")
+          .select("id, name, price, stock_quantity")
+          .eq("user_id", user.id)
+          .order("name"),
+        
+        // Fetch services
+        supabase
+          .from("services")
+          .select("id, name, price")
+          .eq("user_id", user.id)
+          .order("name")
+      ])
 
-      if (profileError) {
-        console.warn("Company settings error:", profileError)
+      // Handle profile data
+      if (profileResult.error) {
+        console.warn("Company settings error:", profileResult.error)
       } else {
-        setProfile(profileData)
+        setProfile(profileResult.data)
       }
 
-      // Fetch thermal receipts con manejo de error si la tabla no existe
-      const { data: receiptsData, error: receiptsError } = await supabase
-        .from("thermal_receipts")
-        .select(`
-          *,
-          thermal_receipt_items (*)
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-
-      if (receiptsError) {
-        console.warn("Thermal receipts table may not exist yet:", receiptsError)
-        if (receiptsError.message?.includes('relation "public.thermal_receipts" does not exist')) {
+      // Handle receipts data
+      if (receiptsResult.error) {
+        console.warn("Thermal receipts table may not exist yet:", receiptsResult.error)
+        if (receiptsResult.error.message?.includes('relation "public.thermal_receipts" does not exist')) {
           notifyError("Las tablas no están configuradas. Por favor aplica el schema de base de datos.")
         }
         setReceipts([])
       } else {
-        setReceipts(receiptsData?.map(receipt => ({
+        // Transform data efficiently
+        const transformedReceipts = receiptsResult.data?.map(receipt => ({
           ...receipt,
           items: receipt.thermal_receipt_items || []
-        })) || [])
+        })) || []
+        setReceipts(transformedReceipts)
       }
 
-      // Fetch products
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select("id, name, price, stock_quantity")
-        .eq("user_id", user.id)
-        .order("name")
-
-      if (productsError) {
-        console.warn("Products table error:", productsError)
+      // Handle products data
+      if (productsResult.error) {
+        console.warn("Products table error:", productsResult.error)
         setProducts([])
       } else {
-        setProducts(productsData || [])
+        setProducts(productsResult.data || [])
       }
 
-      // Fetch services
-      const { data: servicesData, error: servicesError } = await supabase
-        .from("services")
-        .select("id, name, price")
-        .eq("user_id", user.id)
-        .order("name")
-
-      if (servicesError) {
-        console.warn("Services table error:", servicesError)
+      // Handle services data
+      if (servicesResult.error) {
+        console.warn("Services table error:", servicesResult.error)
         setServices([])
       } else {
-        setServices(servicesData || [])
+        setServices(servicesResult.data || [])
       }
     } catch (error) {
       console.error("Error fetching data:", error)
