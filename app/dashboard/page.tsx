@@ -288,7 +288,10 @@ export default function DashboardPage() {
 
       const now = new Date()
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      
+      // Calculate current month start for accurate monthly calculations
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
       const { data: invoices } = await supabase
         .from("invoices")
@@ -298,6 +301,7 @@ export default function DashboardPage() {
           total,
           status,
           due_date,
+          issue_date,
           created_at,
           clients!inner(name)
         `)
@@ -360,16 +364,41 @@ export default function DashboardPage() {
           ?.filter((exp) => new Date(exp.created_at) >= weekAgo)
           .reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
-      const monthlyInvoices = invoices?.filter((inv) => new Date(inv.created_at) >= monthAgo).length || 0
-      const monthlyPaidInvoices = paidInvoices.filter((inv) => new Date(inv.created_at) >= monthAgo)
-      const monthlyUnpaidInvoices = unpaidInvoices.filter((inv) => new Date(inv.created_at) >= monthAgo)
+      const monthlyInvoices = invoices?.filter((inv) => {
+        const invDate = new Date(inv.issue_date || inv.created_at)
+        return invDate >= currentMonthStart && invDate <= currentMonthEnd
+      }).length || 0
+      
+      // Filter paid invoices by issue_date (not created_at) and status = 'pagada'
+      const monthlyPaidInvoices = invoices?.filter((inv) => {
+        if (inv.status !== "pagada") {
+          return false
+        }
+        const invDate = new Date(inv.issue_date || inv.created_at)
+        return invDate >= currentMonthStart && invDate <= currentMonthEnd
+      }) || []
+      
+      const monthlyUnpaidInvoices = invoices?.filter((inv) => {
+        if (inv.status === "pagada" || inv.status === "cancelada") {
+          return false
+        }
+        const invDate = new Date(inv.issue_date || inv.created_at)
+        return invDate >= currentMonthStart && invDate <= currentMonthEnd
+      }) || []
+      
       const monthlyRevenue = monthlyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       const monthlyPendingRevenue = monthlyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
 
-      const monthlyExpenses = expenses?.filter((exp) => new Date(exp.created_at) >= monthAgo).length || 0
+      const monthlyExpenses = expenses?.filter((exp) => {
+        const expDate = new Date(exp.created_at)
+        return expDate >= currentMonthStart && expDate <= currentMonthEnd
+      }).length || 0
       const monthlyExpenseAmount =
         expenses
-          ?.filter((exp) => new Date(exp.created_at) >= monthAgo)
+          ?.filter((exp) => {
+            const expDate = new Date(exp.created_at)
+            return expDate >= currentMonthStart && expDate <= currentMonthEnd
+          })
           .reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
       const clientRevenue = new Map()
