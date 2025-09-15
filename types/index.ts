@@ -155,3 +155,17 @@ export interface BudgetItem {
   unit_price: number
   total: number
 }
+
+export interface FixedExpense {
+  id: string
+  name: string
+  amount: number
+  due_date: string
+  frequency: 'monthly' | 'quarterly' | 'annually'
+  category?: string
+  is_active?: boolean
+  last_payment?: string
+  next_payment: string
+  created_at?: string
+  updated_at?: string
+}

@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { ThemeProvider } from "@/contexts/theme-context"
+import { LanguageProvider } from "@/contexts/language-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,9 +31,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className={inter.className}>
-        <ErrorBoundary>
-          <ClientLayout>{children}</ClientLayout>
-        </ErrorBoundary>
+        <ThemeProvider>
+          <LanguageProvider>
+            <ErrorBoundary>
+              <ClientLayout>{children}</ClientLayout>
+            </ErrorBoundary>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

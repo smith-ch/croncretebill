@@ -27,6 +27,14 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
+import { FixedExpense } from "@/types"
+import { 
+  getFixedExpenses, 
+  createFixedExpense, 
+  updateFixedExpense, 
+  deleteFixedExpense, 
+  calculateNextPayment 
+} from "@/lib/fixed-expenses"
 
 interface AgendaItem {
   id: string
@@ -38,18 +46,6 @@ interface AgendaItem {
   status: "pending" | "completed" | "overdue"
   priority: "low" | "medium" | "high"
   created_at: string
-}
-
-interface FixedExpense {
-  id: string
-  name: string
-  amount: number
-  due_date: string
-  frequency: "monthly" | "quarterly" | "annually"
-  category: string
-  is_active: boolean
-  last_payment?: string
-  next_payment: string
 }
 
 export default function AgendaPage() {
@@ -116,32 +112,11 @@ export default function AgendaPage() {
         created_at: new Date().toISOString(),
       }))
 
-      // Mock fixed expenses
-      const mockFixedExpenses: FixedExpense[] = [
-        {
-          id: 'expense-1',
-          name: 'Alquiler de oficina',
-          amount: 25000,
-          due_date: '2025-09-30',
-          frequency: 'monthly',
-          category: 'oficina',
-          is_active: true,
-          next_payment: '2025-09-30'
-        },
-        {
-          id: 'expense-2',
-          name: 'Servicios públicos',
-          amount: 8500,
-          due_date: '2025-09-28',
-          frequency: 'monthly',
-          category: 'servicios',
-          is_active: true,
-          next_payment: '2025-09-28'
-        }
-      ]
+      // Fetch fixed expenses from database
+      const fixedExpensesData = await getFixedExpenses()
 
       setAgendaItems(invoiceItems)
-      setFixedExpenses(mockFixedExpenses)
+      setFixedExpenses(fixedExpensesData)
     } catch (error) {
       console.error("Error fetching agenda data:", error)
     } finally {
@@ -260,9 +235,16 @@ export default function AgendaPage() {
     }
   }
 
-  const deleteFixedExpense = (expenseId: string) => {
+  const handleDeleteFixedExpense = async (expenseId: string) => {
     if (confirm("¿Estás seguro de que quieres eliminar este gasto fijo?")) {
-      setFixedExpenses(prev => prev.filter(expense => expense.id !== expenseId))
+      try {
+        const success = await deleteFixedExpense(expenseId)
+        if (success) {
+          setFixedExpenses(prev => prev.filter(expense => expense.id !== expenseId))
+        }
+      } catch (error) {
+        console.error('Error deleting fixed expense:', error)
+      }
     }
   }
 
@@ -273,90 +255,88 @@ export default function AgendaPage() {
       amount: expense.amount,
       due_date: expense.due_date,
       frequency: expense.frequency,
-      category: expense.category,
+      category: expense.category || '',
     })
     setShowFixedExpenseDialog(true)
   }
 
-  const markExpensePaid = (expenseId: string) => {
-    setFixedExpenses(prev => 
-      prev.map(expense => {
-        if (expense.id === expenseId) {
-          // Calculate next payment date based on frequency
-          const currentDate = new Date(expense.due_date)
-          const nextDate = new Date(currentDate)
-          
-          switch (expense.frequency) {
-            case 'monthly':
-              nextDate.setMonth(nextDate.getMonth() + 1)
-              break
-            case 'quarterly':
-              nextDate.setMonth(nextDate.getMonth() + 3)
-              break
-            case 'annually':
-              nextDate.setFullYear(nextDate.getFullYear() + 1)
-              break
-          }
-          
-          return {
-            ...expense,
-            last_payment: expense.due_date,
-            next_payment: nextDate.toISOString().split('T')[0],
-            due_date: nextDate.toISOString().split('T')[0],
-          }
-        }
-        return expense
+  const markExpensePaid = async (expenseId: string) => {
+    try {
+      const expense = fixedExpenses.find(exp => exp.id === expenseId)
+      if (!expense) {
+        return
+      }
+
+      const nextPayment = calculateNextPayment(expense.due_date, expense.frequency)
+      const updatedExpense = await updateFixedExpense(expenseId, {
+        last_payment: expense.due_date,
+        next_payment: nextPayment,
+        due_date: nextPayment
       })
-    )
+
+      if (updatedExpense) {
+        setFixedExpenses(prev => 
+          prev.map(exp => exp.id === expenseId ? updatedExpense : exp)
+        )
+      }
+    } catch (error) {
+      console.error('Error marking expense as paid:', error)
+    }
   }
 
-  const addFixedExpense = () => {
+  const addFixedExpense = async () => {
     if (!newFixedExpense.name || !newFixedExpense.amount) {
       return
     }
 
-    if (editingExpense) {
-      // Update existing expense
-      setFixedExpenses(prev => 
-        prev.map(expense => 
-          expense.id === editingExpense.id 
-            ? {
-                ...expense,
-                name: newFixedExpense.name,
-                amount: newFixedExpense.amount,
-                due_date: newFixedExpense.due_date,
-                frequency: newFixedExpense.frequency,
-                category: newFixedExpense.category,
-                next_payment: newFixedExpense.due_date,
-              }
-            : expense
-        )
-      )
-      setEditingExpense(null)
-    } else {
-      // Add new expense
-      const expense: FixedExpense = {
-        id: `expense-${Date.now()}`,
-        name: newFixedExpense.name,
-        amount: newFixedExpense.amount,
-        due_date: newFixedExpense.due_date,
-        frequency: newFixedExpense.frequency,
-        category: newFixedExpense.category,
-        is_active: true,
-        next_payment: newFixedExpense.due_date,
+    try {
+      if (editingExpense) {
+        // Update existing expense
+        const updatedExpense = await updateFixedExpense(editingExpense.id, {
+          name: newFixedExpense.name,
+          amount: newFixedExpense.amount,
+          due_date: newFixedExpense.due_date,
+          frequency: newFixedExpense.frequency,
+          category: newFixedExpense.category,
+          next_payment: calculateNextPayment(newFixedExpense.due_date, newFixedExpense.frequency),
+        })
+
+        if (updatedExpense) {
+          setFixedExpenses(prev => 
+            prev.map(expense => 
+              expense.id === editingExpense.id ? updatedExpense : expense
+            )
+          )
+        }
+        setEditingExpense(null)
+      } else {
+        // Add new expense
+        const newExpense = await createFixedExpense({
+          name: newFixedExpense.name,
+          amount: newFixedExpense.amount,
+          due_date: newFixedExpense.due_date,
+          frequency: newFixedExpense.frequency,
+          category: newFixedExpense.category || '',
+          is_active: true,
+          next_payment: calculateNextPayment(newFixedExpense.due_date, newFixedExpense.frequency),
+        })
+
+        if (newExpense) {
+          setFixedExpenses(prev => [...prev, newExpense])
+        }
       }
 
-      setFixedExpenses(prev => [...prev, expense])
+      setNewFixedExpense({
+        name: "",
+        amount: 0,
+        due_date: "",
+        frequency: "monthly",
+        category: "",
+      })
+      setShowFixedExpenseDialog(false)
+    } catch (error) {
+      console.error('Error saving fixed expense:', error)
     }
-
-    setNewFixedExpense({
-      name: "",
-      amount: 0,
-      due_date: "",
-      frequency: "monthly",
-      category: "",
-    })
-    setShowFixedExpenseDialog(false)
   }
 
   const getUpcomingItems = () => {
@@ -716,7 +696,7 @@ export default function AgendaPage() {
                           <Button size="sm" variant="outline" onClick={() => markExpensePaid(expense.id)}>
                             <CheckCircle className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => deleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-700">
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-700">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

@@ -1,177 +1,134 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
-import { getSupabaseClient } from "@/lib/supabase"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useRef, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 interface UseAutoLogoutOptions {
   timeoutMinutes?: number
-  warningMinutes?: number
-  enabled?: boolean
+  onWarning?: (minutesLeft: number) => void
+  onLogout?: () => void
 }
 
-export const useAutoLogout = (options: UseAutoLogoutOptions = {}) => {
-  const {
-    timeoutMinutes = 30, // 30 minutos por defecto
-    warningMinutes = 5,  // Aviso 5 minutos antes
-    enabled = true
-  } = options
+export function useAutoLogout(options: UseAutoLogoutOptions = {}) {
+  const { timeoutMinutes = 30, onWarning, onLogout } = options
+  const router = useRouter()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const warningTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const lastActivityRef = useRef<number>(Date.now())
 
-  const { toast } = useToast()
-  const supabase = getSupabaseClient()
-  const timeoutRef = useRef<number>()
-  const warningTimeoutRef = useRef<number>()
-  const warningShownRef = useRef(false)
+  const logout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push('/auth/login')
+      onLogout?.()
+    } catch (error) {
+      console.error('Error during auto-logout:', error)
+    }
+  }, [router, onLogout])
 
-  const clearTimeouts = useCallback(() => {
+  const showWarning = useCallback((minutesLeft: number) => {
+    onWarning?.(minutesLeft)
+  }, [onWarning])
+
+  const resetTimer = useCallback(() => {
+    lastActivityRef.current = Date.now()
+
+    // Clear existing timers
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
     if (warningTimeoutRef.current) {
       clearTimeout(warningTimeoutRef.current)
     }
-    warningShownRef.current = false
-  }, [])
 
-  const logout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut()
-      toast({
-        title: "Sesión cerrada",
-        description: "Tu sesión se cerró automáticamente por inactividad",
-        variant: "destructive",
-      })
-      // Recargar la página para ir al login
-      window.location.reload()
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error)
-    }
-  }, [supabase, toast])
-
-  const showWarning = useCallback(() => {
-    if (!warningShownRef.current) {
-      warningShownRef.current = true
-      toast({
-        title: "⚠️ Sesión expirando",
-        description: `Tu sesión se cerrará en ${warningMinutes} minutos por inactividad. Mueve el mouse o presiona cualquier tecla para continuar.`,
-        variant: "destructive",
-        duration: 10000, // Mostrar por 10 segundos
-      })
-    }
-  }, [warningMinutes, toast])
-
-  const resetTimer = useCallback(() => {
-    if (!enabled) {
-      return
+    // Set warning timer (5 minutes before logout)
+    const warningTime = Math.max(0, (timeoutMinutes - 5) * 60 * 1000)
+    if (warningTime > 0) {
+      warningTimeoutRef.current = setTimeout(() => {
+        showWarning(5)
+      }, warningTime)
     }
 
-    clearTimeouts()
-    warningShownRef.current = false
+    // Set logout timer
+    timeoutRef.current = setTimeout(() => {
+      logout()
+    }, timeoutMinutes * 60 * 1000)
+  }, [timeoutMinutes, logout, showWarning])
 
-    // Configurar aviso de advertencia
-    const warningMs = (timeoutMinutes - warningMinutes) * 60 * 1000
-    if (warningMs > 0) {
-      warningTimeoutRef.current = window.setTimeout(showWarning, warningMs)
-    }
-
-    // Configurar logout automático
+  const checkActivity = useCallback(() => {
+    const now = Date.now()
+    const timeSinceLastActivity = now - lastActivityRef.current
     const timeoutMs = timeoutMinutes * 60 * 1000
-    timeoutRef.current = window.setTimeout(logout, timeoutMs)
-  }, [enabled, timeoutMinutes, warningMinutes, logout, showWarning, clearTimeouts])
 
-  const extendSession = useCallback(() => {
-    if (warningShownRef.current) {
-      toast({
-        title: "✅ Sesión extendida",
-        description: "Tu sesión ha sido extendida exitosamente",
-        variant: "default",
-        duration: 3000,
-      })
+    if (timeSinceLastActivity >= timeoutMs) {
+      logout()
+    } else {
+      // Calculate remaining time and show warning if needed
+      const remainingMs = timeoutMs - timeSinceLastActivity
+      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
+      
+      if (remainingMinutes <= 5 && remainingMinutes > 0) {
+        showWarning(remainingMinutes)
+      }
     }
-    resetTimer()
-  }, [resetTimer, toast])
+  }, [timeoutMinutes, logout, showWarning])
 
   useEffect(() => {
-    if (!enabled) {
-      return
-    }
-
-    // Eventos que indican actividad del usuario
-    const events = [
-      'mousedown',
-      'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click',
-      'keydown'
-    ]
-
-    // Throttle para evitar resetear el timer demasiado frecuentemente
-    let throttleTimeout: number
-    const throttledResetTimer = () => {
-      if (throttleTimeout) {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
         return
       }
-      
-      throttleTimeout = window.setTimeout(() => {
-        extendSession()
-        throttleTimeout = 0
-      }, 1000) // Throttle de 1 segundo
-    }
 
-    // Agregar event listeners
-    events.forEach(event => {
-      document.addEventListener(event, throttledResetTimer, true)
-    })
+      // Activities to track
+      const activities = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
 
-    // Inicializar timer
-    resetTimer()
-
-    // Cleanup
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, throttledResetTimer, true)
+      // Add event listeners
+      activities.forEach(activity => {
+        document.addEventListener(activity, resetTimer, true)
       })
-      clearTimeouts()
-      if (throttleTimeout) {
-        clearTimeout(throttleTimeout)
+
+      // Check for page visibility changes
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          checkActivity()
+        }
+      }
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      // Initial timer setup
+      resetTimer()
+
+      // Periodic check (every minute)
+      const checkInterval = setInterval(checkActivity, 60 * 1000)
+
+      // Cleanup function
+      return () => {
+        activities.forEach(activity => {
+          document.removeEventListener(activity, resetTimer, true)
+        })
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        if (warningTimeoutRef.current) {
+          clearTimeout(warningTimeoutRef.current)
+        }
+        clearInterval(checkInterval)
       }
     }
-  }, [enabled, extendSession, resetTimer, clearTimeouts])
 
-  // Verificar si hay una sesión activa
-  useEffect(() => {
-    if (!enabled) {
-      return
-    }
-
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        clearTimeouts()
-      }
-    }
-
-    checkSession()
-
-    // Escuchar cambios de autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        clearTimeouts()
-      } else if (event === 'SIGNED_IN') {
-        resetTimer()
-      }
-    })
-
+    const cleanup = checkAuth()
     return () => {
-      subscription.unsubscribe()
+      cleanup?.then(cleanupFn => cleanupFn?.())
     }
-  }, [enabled, supabase, clearTimeouts, resetTimer])
+  }, [resetTimer, checkActivity, timeoutMinutes])
 
   return {
-    extendSession,
     resetTimer,
-    clearTimeouts
+    logout
   }
 }

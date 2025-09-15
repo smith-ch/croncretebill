@@ -28,6 +28,8 @@ import {
   Smartphone
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { useTheme } from "@/contexts/theme-context"
+import { useLanguage } from "@/contexts/language-context"
 
 interface SystemSettingsData {
   theme: 'light' | 'dark' | 'system'
@@ -78,6 +80,10 @@ export function SystemSettings() {
   const [success, setSuccess] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   
+  // Use theme and language contexts
+  const { theme, setTheme } = useTheme()
+  const { language, setLanguage } = useLanguage()
+  
   const [settings, setSettings] = React.useState<SystemSettingsData>({
     theme: 'system',
     language: 'es',
@@ -95,6 +101,16 @@ export function SystemSettings() {
     two_factor_enabled: false,
     login_alerts: true,
   })
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme)
+    setSettings(prev => ({ ...prev, theme: newTheme }))
+  }
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage as any)
+    setSettings(prev => ({ ...prev, language: newLanguage }))
+  }
 
   const handleSave = async () => {
     setLoading(true)
@@ -237,7 +253,7 @@ export function SystemSettings() {
                 return (
                   <button
                     key={theme.value}
-                    onClick={() => updateSetting('theme', theme.value as 'light' | 'dark' | 'system')}
+                    onClick={() => handleThemeChange(theme.value as 'light' | 'dark' | 'system')}
                     className={`
                       relative p-4 rounded-xl border-2 transition-all duration-200
                       ${settings.theme === theme.value 
@@ -273,7 +289,7 @@ export function SystemSettings() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label className="text-slate-700">Idioma de la Interfaz</Label>
-              <Select value={settings.language} onValueChange={(value) => updateSetting('language', value)}>
+              <Select value={settings.language} onValueChange={handleLanguageChange}>
                 <SelectTrigger className="bg-white border-slate-300">
                   <SelectValue />
                 </SelectTrigger>
