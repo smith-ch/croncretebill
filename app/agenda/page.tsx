@@ -24,9 +24,16 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  Bell,
+  TrendingUp,
+  User,
+  FileText,
+  Download,
+  RefreshCw,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { FixedExpense } from "@/types"
 import { 
   getFixedExpenses, 
@@ -35,13 +42,23 @@ import {
   deleteFixedExpense, 
   calculateNextPayment 
 } from "@/lib/fixed-expenses"
+import {
+  getAgendaEvents,
+  createAgendaEvent,
+  updateAgendaEvent,
+  deleteAgendaEvent,
+  markAgendaEventCompleted,
+  updateOverdueEvents,
+  AgendaEvent,
+  CreateAgendaEvent
+} from "@/lib/agenda-events"
 
 interface AgendaItem {
   id: string
   title: string
   description?: string
   due_date: string
-  type: "invoice" | "expense" | "payment" | "reminder" | "fixed_expense"
+  type: "invoice" | "expense" | "payment" | "reminder" | "fixed_expense" | "task"
   amount?: number
   status: "pending" | "completed" | "overdue"
   priority: "low" | "medium" | "high"
@@ -60,14 +77,16 @@ export default function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
   const [editingItem, setEditingItem] = useState<AgendaItem | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const { formatCurrency } = useCurrency()
+  const { permissions, canDelete } = useUserPermissions()
 
   // Form states
   const [newItem, setNewItem] = useState({
     title: "",
     description: "",
     due_date: "",
-    type: "reminder" as "invoice" | "expense" | "payment" | "reminder" | "fixed_expense",
+    type: "reminder" as "invoice" | "expense" | "payment" | "reminder" | "fixed_expense" | "task",
     amount: 0,
     priority: "medium" as "low" | "medium" | "high",
   })
@@ -84,12 +103,32 @@ export default function AgendaPage() {
     fetchAgendaData()
   }, [])
 
+  // Auto-refresh each 5 minutes if enabled
+  useEffect(() => {
+    if (!autoRefresh) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing agenda data...')
+      fetchAgendaData()
+    }, 5 * 60 * 1000) // 5 minutes
+
+    return () => clearInterval(interval)
+  }, [autoRefresh])
+
   const fetchAgendaData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         return
       }
+
+      // Update overdue events first
+      await updateOverdueEvents()
+
+      // Fetch agenda events from database
+      const agendaEventsData = await getAgendaEvents()
 
       // Fetch invoices for agenda
       const { data: invoiceData } = await supabase
@@ -112,10 +151,26 @@ export default function AgendaPage() {
         created_at: new Date().toISOString(),
       }))
 
+      // Convert database agenda events to AgendaItem format
+      const agendaEventItems: AgendaItem[] = agendaEventsData.map((event: AgendaEvent) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        due_date: event.due_date,
+        type: event.type === 'task' ? 'task' : event.type,
+        amount: event.amount,
+        status: event.status,
+        priority: event.priority,
+        created_at: event.created_at,
+      }))
+
       // Fetch fixed expenses from database
       const fixedExpensesData = await getFixedExpenses()
 
-      setAgendaItems(invoiceItems)
+      // Combine all agenda items
+      const allAgendaItems = [...agendaEventItems, ...invoiceItems]
+
+      setAgendaItems(allAgendaItems)
       setFixedExpenses(fixedExpensesData)
     } catch (error) {
       console.error("Error fetching agenda data:", error)
@@ -129,38 +184,64 @@ export default function AgendaPage() {
       return
     }
 
-    if (editingItem) {
-      // Update existing item
-      updateItem()
-      return
+    try {
+      if (editingItem) {
+        // Update existing item
+        await updateItem()
+        return
+      }
+
+      // Use selected calendar date if no date is specified
+      const itemDate = newItem.due_date || 
+        (selectedCalendarDate ? selectedCalendarDate.toISOString().split('T')[0] : '')
+
+      if (!itemDate) {
+        alert('Por favor selecciona una fecha para el evento')
+        return
+      }
+
+      // Create the agenda event in database
+      const newAgendaEvent: CreateAgendaEvent = {
+        title: newItem.title,
+        description: newItem.description || undefined,
+        due_date: itemDate,
+        type: newItem.type === 'fixed_expense' ? 'expense' : newItem.type,
+        amount: newItem.amount > 0 ? newItem.amount : undefined,
+        status: "pending",
+        priority: newItem.priority,
+      }
+
+      const createdEvent = await createAgendaEvent(newAgendaEvent)
+
+      // Add to local state
+      const newAgendaItem: AgendaItem = {
+        id: createdEvent.id,
+        title: createdEvent.title,
+        description: createdEvent.description,
+        due_date: createdEvent.due_date,
+        type: createdEvent.type === 'task' ? 'task' : createdEvent.type,
+        amount: createdEvent.amount,
+        status: createdEvent.status,
+        priority: createdEvent.priority,
+        created_at: createdEvent.created_at,
+      }
+
+      setAgendaItems(prev => [...prev, newAgendaItem])
+      
+      // Reset form
+      setNewItem({
+        title: "",
+        description: "",
+        due_date: "",
+        type: "reminder",
+        amount: 0,
+        priority: "medium",
+      })
+      setShowNewItemDialog(false)
+    } catch (error) {
+      console.error('Error creating agenda event:', error)
+      alert('Error al crear el evento. Por favor intenta de nuevo.')
     }
-
-    // Use selected calendar date if no date is specified
-    const itemDate = newItem.due_date || 
-      (selectedCalendarDate ? selectedCalendarDate.toISOString().split('T')[0] : '')
-
-    const newAgendaItem: AgendaItem = {
-      id: `item-${Date.now()}`,
-      title: newItem.title,
-      description: newItem.description,
-      due_date: itemDate,
-      type: newItem.type,
-      amount: newItem.amount,
-      status: "pending",
-      priority: newItem.priority,
-      created_at: new Date().toISOString(),
-    }
-
-    setAgendaItems(prev => [...prev, newAgendaItem])
-    setNewItem({
-      title: "",
-      description: "",
-      due_date: "",
-      type: "reminder",
-      amount: 0,
-      priority: "medium",
-    })
-    setShowNewItemDialog(false)
   }
 
   const openNewItemDialog = (preselectedDate?: Date) => {
@@ -173,14 +254,24 @@ export default function AgendaPage() {
     setShowNewItemDialog(true)
   }
 
-  const markItemCompleted = (itemId: string) => {
-    setAgendaItems(prev => 
-      prev.map(item => 
-        item.id === itemId 
-          ? { ...item, status: "completed" as const }
-          : item
+  const markItemCompleted = async (itemId: string) => {
+    try {
+      // Only mark agenda events as completed (not invoices)
+      if (!itemId.startsWith('invoice-')) {
+        await markAgendaEventCompleted(itemId)
+      }
+      
+      setAgendaItems(prev => 
+        prev.map(item => 
+          item.id === itemId 
+            ? { ...item, status: "completed" as const }
+            : item
+        )
       )
-    )
+    } catch (error) {
+      console.error('Error marking item as completed:', error)
+      alert('Error al marcar el evento como completado. Por favor intenta de nuevo.')
+    }
   }
 
   const editItem = (item: AgendaItem) => {
@@ -196,46 +287,85 @@ export default function AgendaPage() {
     setShowNewItemDialog(true)
   }
 
-  const updateItem = () => {
+  const updateItem = async () => {
     if (!editingItem || !newItem.title) {
       return
     }
 
-    setAgendaItems(prev => 
-      prev.map(item => 
-        item.id === editingItem.id 
-          ? {
-              ...item,
-              title: newItem.title,
-              description: newItem.description,
-              due_date: newItem.due_date,
-              type: newItem.type,
-              amount: newItem.amount,
-              priority: newItem.priority,
-            }
-          : item
-      )
-    )
+    try {
+      // Only update agenda events (not invoices)
+      if (!editingItem.id.startsWith('invoice-')) {
+        const updates = {
+          title: newItem.title,
+          description: newItem.description || undefined,
+          due_date: newItem.due_date,
+          type: newItem.type === 'fixed_expense' ? 'expense' : newItem.type,
+          amount: newItem.amount > 0 ? newItem.amount : undefined,
+          priority: newItem.priority,
+        }
 
-    setEditingItem(null)
-    setNewItem({
-      title: "",
-      description: "",
-      due_date: "",
-      type: "reminder",
-      amount: 0,
-      priority: "medium",
-    })
-    setShowNewItemDialog(false)
+        await updateAgendaEvent(editingItem.id, updates)
+      }
+
+      setAgendaItems(prev => 
+        prev.map(item => 
+          item.id === editingItem.id 
+            ? {
+                ...item,
+                title: newItem.title,
+                description: newItem.description,
+                due_date: newItem.due_date,
+                type: newItem.type,
+                amount: newItem.amount,
+                priority: newItem.priority,
+              }
+            : item
+        )
+      )
+
+      setEditingItem(null)
+      setNewItem({
+        title: "",
+        description: "",
+        due_date: "",
+        type: "reminder",
+        amount: 0,
+        priority: "medium",
+      })
+      setShowNewItemDialog(false)
+    } catch (error) {
+      console.error('Error updating agenda event:', error)
+      alert('Error al actualizar el evento. Por favor intenta de nuevo.')
+    }
   }
 
-  const deleteItem = (itemId: string) => {
+  const deleteItem = async (itemId: string) => {
+    if (!canDelete('agendaEvents')) {
+      alert("No tienes permisos para eliminar eventos de la agenda")
+      return
+    }
+    
     if (confirm("¿Estás seguro de que quieres eliminar este evento?")) {
-      setAgendaItems(prev => prev.filter(item => item.id !== itemId))
+      try {
+        // Only delete agenda events (not invoices)
+        if (!itemId.startsWith('invoice-')) {
+          await deleteAgendaEvent(itemId)
+        }
+
+        setAgendaItems(prev => prev.filter(item => item.id !== itemId))
+      } catch (error) {
+        console.error('Error deleting agenda event:', error)
+        alert('Error al eliminar el evento. Por favor intenta de nuevo.')
+      }
     }
   }
 
   const handleDeleteFixedExpense = async (expenseId: string) => {
+    if (!canDelete('expenses')) {
+      alert("No tienes permisos para eliminar gastos fijos")
+      return
+    }
+    
     if (confirm("¿Estás seguro de que quieres eliminar este gasto fijo?")) {
       try {
         const success = await deleteFixedExpense(expenseId)
@@ -349,6 +479,140 @@ export default function AgendaPage() {
 
   const getTotalMonthlyExpenses = () => {
     return fixedExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+  }
+
+  const getUpcomingNotifications = () => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const nextWeek = new Date(today)
+    nextWeek.setDate(nextWeek.getDate() + 7)
+
+    const notifications = []
+
+    // Eventos vencidos
+    const overdueItems = agendaItems.filter(item => 
+      item.status === "overdue" || 
+      (item.status === "pending" && new Date(item.due_date) < today)
+    )
+    if (overdueItems.length > 0) {
+      notifications.push({
+        type: "error",
+        title: "Eventos Vencidos",
+        message: `Tienes ${overdueItems.length} evento(s) vencido(s)`,
+        count: overdueItems.length
+      })
+    }
+
+    // Eventos para mañana
+    const tomorrowItems = agendaItems.filter(item => {
+      const itemDate = new Date(item.due_date)
+      return itemDate.toDateString() === tomorrow.toDateString() && item.status === "pending"
+    })
+    if (tomorrowItems.length > 0) {
+      notifications.push({
+        type: "warning",
+        title: "Eventos para Mañana",
+        message: `Tienes ${tomorrowItems.length} evento(s) programado(s) para mañana`,
+        count: tomorrowItems.length
+      })
+    }
+
+    // Gastos fijos próximos (solo para propietarios)
+    if (permissions.canViewFinances) {
+      const upcomingExpenses = fixedExpenses.filter(expense => {
+        const expenseDate = new Date(expense.due_date)
+        return expenseDate >= today && expenseDate <= nextWeek
+      })
+      if (upcomingExpenses.length > 0) {
+        notifications.push({
+          type: "info",
+          title: "Gastos Fijos Próximos",
+          message: `${upcomingExpenses.length} gasto(s) fijo(s) vencen esta semana`,
+          count: upcomingExpenses.length
+        })
+      }
+    }
+
+    return notifications
+  }
+
+  const getProductivityInsights = () => {
+    const completedThisWeek = agendaItems.filter(item => {
+      const completedDate = new Date(item.created_at)
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      return item.status === "completed" && completedDate >= weekAgo
+    }).length
+
+    const totalPending = agendaItems.filter(item => item.status === "pending").length
+    
+    return {
+      completedThisWeek,
+      totalPending,
+      completionRate: totalPending > 0 ? Math.round((completedThisWeek / (completedThisWeek + totalPending)) * 100) : 0
+    }
+  }
+
+  const exportToCSV = () => {
+    const headers = ['Título', 'Descripción', 'Fecha', 'Tipo', 'Estado', 'Prioridad', 'Monto']
+    const csvData = [
+      headers,
+      ...agendaItems.map(item => [
+        item.title,
+        item.description || '',
+        new Date(item.due_date).toLocaleDateString('es-ES'),
+        item.type === 'invoice' ? 'Factura' :
+        item.type === 'expense' ? 'Gasto' :
+        item.type === 'payment' ? 'Pago' : 'Recordatorio',
+        item.status === 'pending' ? 'Pendiente' :
+        item.status === 'completed' ? 'Completado' : 'Vencido',
+        item.priority === 'high' ? 'Alta' :
+        item.priority === 'medium' ? 'Media' : 'Baja',
+        item.amount ? formatCurrency(item.amount) : ''
+      ])
+    ]
+    
+    const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `agenda_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const exportExpensesToCSV = () => {
+    if (!permissions.canViewFinances) {
+      return
+    }
+    
+    const headers = ['Nombre', 'Monto', 'Frecuencia', 'Próximo Pago', 'Categoría']
+    const csvData = [
+      headers,
+      ...fixedExpenses.map(expense => [
+        expense.name,
+        formatCurrency(expense.amount),
+        expense.frequency === 'monthly' ? 'Mensual' :
+        expense.frequency === 'quarterly' ? 'Trimestral' : 'Anual',
+        new Date(expense.due_date).toLocaleDateString('es-ES'),
+        expense.category || ''
+      ])
+    ]
+    
+    const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `gastos_fijos_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const filteredItems = agendaItems.filter(item => {
@@ -504,12 +768,102 @@ export default function AgendaPage() {
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Evento
             </Button>
-            <Button onClick={() => setShowFixedExpenseDialog(true)} variant="outline">
-              <Receipt className="h-4 w-4 mr-2" />
-              Gasto Fijo
+            {/* Solo propietarios pueden gestionar gastos fijos */}
+            {permissions.canViewFinances && (
+              <Button onClick={() => setShowFixedExpenseDialog(true)} variant="outline">
+                <Receipt className="h-4 w-4 mr-2" />
+                Gasto Fijo
+              </Button>
+            )}
+            {/* Botones de exportación */}
+            <Button onClick={exportToCSV} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Agenda
+            </Button>
+            {permissions.canViewFinances && (
+              <Button onClick={exportExpensesToCSV} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar Gastos
+              </Button>
+            )}
+            <Button onClick={fetchAgendaData} variant="outline" size="sm" title="Actualizar datos">
+              <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </div>
+
+        {/* Notificaciones y Alertas */}
+        {getUpcomingNotifications().length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <Bell className="h-5 w-5 text-amber-500" />
+              Notificaciones Importantes
+            </h2>
+            <div className="grid gap-3">
+              {getUpcomingNotifications().map((notification, index) => (
+                <Card key={index} className={`border-l-4 ${
+                  notification.type === "error" ? "border-l-red-500 bg-red-50" :
+                  notification.type === "warning" ? "border-l-amber-500 bg-amber-50" :
+                  "border-l-blue-500 bg-blue-50"
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {notification.type === "error" && <AlertCircle className="h-5 w-5 text-red-600" />}
+                        {notification.type === "warning" && <Clock className="h-5 w-5 text-amber-600" />}
+                        {notification.type === "info" && <Bell className="h-5 w-5 text-blue-600" />}
+                        <div>
+                          <p className="font-medium text-slate-800">{notification.title}</p>
+                          <p className="text-sm text-slate-600">{notification.message}</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="ml-2">
+                        {notification.count}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Insights de Productividad */}
+        {!permissions.isRealEmployee && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    Resumen de Productividad
+                  </h3>
+                  <div className="flex items-center gap-6 text-sm text-slate-600">
+                    <div>
+                      <span className="font-medium text-green-600">{getProductivityInsights().completedThisWeek}</span> completadas esta semana
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-600">{getProductivityInsights().totalPending}</span> pendientes
+                    </div>
+                    <div>
+                      <span className="font-medium text-purple-600">{getProductivityInsights().completionRate}%</span> tasa de finalización
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">Rendimiento semanal</p>
+                  <div className={`text-2xl font-bold ${
+                    getProductivityInsights().completionRate >= 70 ? 'text-green-600' :
+                    getProductivityInsights().completionRate >= 40 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {getProductivityInsights().completionRate >= 70 ? '🎯' :
+                     getProductivityInsights().completionRate >= 40 ? '⚡' : '📈'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -535,28 +889,58 @@ export default function AgendaPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">Gastos Fijos</p>
-                  <p className="text-2xl font-bold text-orange-600">{fixedExpenses.length}</p>
-                </div>
-                <Receipt className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">Total Mensual</p>
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(getTotalMonthlyExpenses())}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+          {permissions.canViewFinances && (
+            <>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Gastos Fijos</p>
+                      <p className="text-2xl font-bold text-orange-600">{fixedExpenses.length}</p>
+                    </div>
+                    <Receipt className="h-8 w-8 text-orange-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Total Mensual</p>
+                      <p className="text-2xl font-bold text-green-600">{formatCurrency(getTotalMonthlyExpenses())}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+          {!permissions.canViewFinances && (
+            <>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Mis Tareas</p>
+                      <p className="text-2xl font-bold text-purple-600">{agendaItems.filter(item => item.type === 'reminder').length}</p>
+                    </div>
+                    <User className="h-8 w-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600">Facturas Activas</p>
+                      <p className="text-2xl font-bold text-green-600">{agendaItems.filter(item => item.type === 'invoice').length}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Search and Filter */}
@@ -591,9 +975,11 @@ export default function AgendaPage() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="agenda" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${permissions.canViewFinances ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="agenda">Agenda</TabsTrigger>
-            <TabsTrigger value="fixed-expenses">Gastos Fijos</TabsTrigger>
+            {permissions.canViewFinances && (
+              <TabsTrigger value="fixed-expenses">Gastos Fijos</TabsTrigger>
+            )}
             <TabsTrigger value="calendar">Calendario</TabsTrigger>
           </TabsList>
 
@@ -639,9 +1025,11 @@ export default function AgendaPage() {
                           <Button size="sm" variant="outline" onClick={() => markItemCompleted(item.id)}>
                             <CheckCircle className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => deleteItem(item.id)} className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDelete('agendaEvents') && (
+                            <Button size="sm" variant="outline" onClick={() => deleteItem(item.id)} className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -663,21 +1051,22 @@ export default function AgendaPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="fixed-expenses" className="space-y-4">
-            <div className="grid gap-4">
-              {fixedExpenses.length > 0 ? (
-                fixedExpenses.map((expense) => (
-                  <Card key={expense.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">{expense.name}</h3>
-                            <Badge variant="outline">
-                              {expense.frequency === "monthly" ? "Mensual" :
-                               expense.frequency === "quarterly" ? "Trimestral" : "Anual"}
-                            </Badge>
-                          </div>
+          {permissions.canViewFinances && (
+            <TabsContent value="fixed-expenses" className="space-y-4">
+              <div className="grid gap-4">
+                {fixedExpenses.length > 0 ? (
+                  fixedExpenses.map((expense) => (
+                    <Card key={expense.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-lg">{expense.name}</h3>
+                              <Badge variant="outline">
+                                {expense.frequency === "monthly" ? "Mensual" :
+                                 expense.frequency === "quarterly" ? "Trimestral" : "Anual"}
+                              </Badge>
+                            </div>
                           <div className="flex items-center gap-4 text-sm text-slate-500">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
@@ -696,29 +1085,32 @@ export default function AgendaPage() {
                           <Button size="sm" variant="outline" onClick={() => markExpensePaid(expense.id)}>
                             <CheckCircle className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDelete('expenses') && (
+                            <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))
-              ) : (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Receipt className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay gastos fijos configurados</h3>
-                    <p className="text-gray-500 mb-4">Agrega gastos recurrentes para un mejor control</p>
-                    <Button onClick={() => setShowFixedExpenseDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Agregar Gasto Fijo
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
+                ) : (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Receipt className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay gastos fijos configurados</h3>
+                      <p className="text-gray-500 mb-4">Agrega gastos recurrentes para un mejor control</p>
+                      <Button onClick={() => setShowFixedExpenseDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Agregar Gasto Fijo
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </TabsContent>
+          )}
 
           <TabsContent value="calendar" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -782,28 +1174,48 @@ export default function AgendaPage() {
                           >
                             {day && (
                               <>
-                                <div className={`text-sm font-medium mb-2 ${
+                                <div className={`text-sm font-medium mb-2 flex items-center justify-between ${
                                   dayIsToday ? 'text-blue-600 font-bold' : 'text-slate-900'
                                 }`}>
-                                  {day}
+                                  <span>{day}</span>
+                                  {items.length > 0 && (
+                                    <div className="flex gap-1">
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'invoice') ? 'bg-red-400' : ''
+                                      }`} />
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'expense') ? 'bg-orange-400' : ''
+                                      }`} />
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'reminder') ? 'bg-blue-400' : ''
+                                      }`} />
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="space-y-1">
-                                  {items.slice(0, 3).map((item, i) => (
+                                  {items.slice(0, 2).map((item, i) => (
                                     <div 
                                       key={i}
-                                      className={`text-xs p-1 rounded text-white truncate ${
-                                        item.type === 'invoice' ? 'bg-red-500' :
-                                        item.type === 'expense' ? 'bg-orange-500' :
-                                        'bg-blue-500'
+                                      className={`text-xs p-1.5 rounded-md text-white truncate transition-all hover:scale-105 ${
+                                        item.type === 'invoice' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                                        item.type === 'expense' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        item.type === 'payment' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        'bg-gradient-to-r from-blue-500 to-blue-600'
                                       }`}
-                                      title={item.title}
+                                      title={`${item.title} ${item.amount ? `- ${formatCurrency(item.amount)}` : ''}`}
                                     >
-                                      {item.title}
+                                      <div className="flex items-center gap-1">
+                                        {item.type === 'invoice' && <FileText className="h-3 w-3" />}
+                                        {item.type === 'expense' && <Receipt className="h-3 w-3" />}
+                                        {item.type === 'payment' && <DollarSign className="h-3 w-3" />}
+                                        {item.type === 'reminder' && <Clock className="h-3 w-3" />}
+                                        <span className="truncate">{item.title}</span>
+                                      </div>
                                     </div>
                                   ))}
-                                  {items.length > 3 && (
-                                    <div className="text-xs text-slate-500 pl-1">
-                                      +{items.length - 3} más
+                                  {items.length > 2 && (
+                                    <div className="text-xs text-slate-500 pl-1 font-medium">
+                                      +{items.length - 2} más eventos
                                     </div>
                                   )}
                                 </div>
@@ -875,24 +1287,54 @@ export default function AgendaPage() {
                 {/* Calendar Legend */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Leyenda</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Leyenda del Calendario
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-red-500 rounded"></div>
-                      <span className="text-sm">Facturas</span>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <FileText className="h-4 w-4 text-red-500" />
+                          <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded"></div>
+                        </div>
+                        <span className="text-sm font-medium">Facturas</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Receipt className="h-4 w-4 text-orange-500" />
+                          <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded"></div>
+                        </div>
+                        <span className="text-sm font-medium">Gastos</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="h-4 w-4 text-green-500" />
+                          <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-green-600 rounded"></div>
+                        </div>
+                        <span className="text-sm font-medium">Pagos</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4 text-blue-500" />
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded"></div>
+                        </div>
+                        <span className="text-sm font-medium">Recordatorios</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                      <span className="text-sm">Gastos Fijos</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                      <span className="text-sm">Eventos</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded"></div>
-                      <span className="text-sm">Hoy</span>
+                    <hr className="border-slate-200" />
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-blue-100 border-2 border-blue-400 rounded"></div>
+                        <span className="text-sm text-slate-600">Fecha seleccionada</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-blue-50 border border-blue-300 rounded relative">
+                          <div className="absolute inset-1 bg-blue-200 rounded-full"></div>
+                        </div>
+                        <span className="text-sm text-slate-600">Día actual</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -902,7 +1344,7 @@ export default function AgendaPage() {
                   <CardHeader>
                     <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-3">
                     <Button 
                       onClick={() => openNewItemDialog(selectedCalendarDate || undefined)} 
                       className="w-full" 
@@ -911,15 +1353,33 @@ export default function AgendaPage() {
                       <Plus className="h-4 w-4 mr-2" />
                       Nuevo Evento
                     </Button>
-                    <Button 
-                      onClick={() => setShowFixedExpenseDialog(true)} 
-                      variant="outline" 
-                      className="w-full" 
-                      size="sm"
-                    >
-                      <Receipt className="h-4 w-4 mr-2" />
-                      Gasto Fijo
-                    </Button>
+                    {permissions.canViewFinances && (
+                      <Button 
+                        onClick={() => setShowFixedExpenseDialog(true)} 
+                        variant="outline" 
+                        className="w-full" 
+                        size="sm"
+                      >
+                        <Receipt className="h-4 w-4 mr-2" />
+                        Gasto Fijo
+                      </Button>
+                    )}
+                    <div className="border-t pt-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">Auto-actualizar</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setAutoRefresh(!autoRefresh)}
+                          className={autoRefresh ? 'text-green-600' : 'text-slate-400'}
+                        >
+                          <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {autoRefresh ? 'Actualiza cada 5 minutos' : 'Actualización manual'}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

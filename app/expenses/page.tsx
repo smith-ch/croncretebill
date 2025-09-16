@@ -47,6 +47,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 interface Expense {
   id: string
@@ -84,6 +85,7 @@ export default function ExpensesPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([])
   const { formatCurrency } = useCurrency()
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchExpenses()
@@ -264,6 +266,11 @@ export default function ExpensesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('expenses')) {
+      alert("No tienes permisos para eliminar gastos")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
       return
     }
@@ -281,6 +288,11 @@ export default function ExpensesPage() {
   }
 
   const handleBulkDelete = async () => {
+    if (!canDelete('expenses')) {
+      alert("No tienes permisos para eliminar gastos")
+      return
+    }
+    
     if (selectedExpenses.length === 0) {
       return
     }
@@ -555,7 +567,7 @@ export default function ExpensesPage() {
               </Select>
             </div>
 
-            {selectedExpenses.length > 0 && (
+            {selectedExpenses.length > 0 && canDelete('expenses') && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -681,14 +693,16 @@ export default function ExpensesPage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(expense.id)}
-                        className="hover:bg-red-100 hover:text-red-700 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canDelete('expenses') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(expense.id)}
+                          className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </motion.div>
                 ))}

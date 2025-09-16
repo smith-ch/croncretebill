@@ -13,11 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Search, Car, Edit, Trash2, Loader2 } from "lucide-react"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const { canDelete } = useUserPermissions()
   const [editingVehicle, setEditingVehicle] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
@@ -90,6 +92,11 @@ export default function VehiclesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('vehicles')) {
+      alert("No tienes permisos para eliminar vehículos")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar este vehículo?")) return
 
     try {

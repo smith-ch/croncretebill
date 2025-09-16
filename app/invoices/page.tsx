@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -30,6 +31,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const { formatCurrency } = useCurrency()
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchInvoices()
@@ -138,6 +140,11 @@ export default function InvoicesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('invoices')) {
+      alert("No tienes permisos para eliminar facturas")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) {
       return
     }
@@ -434,14 +441,16 @@ export default function InvoicesPage() {
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="hover:bg-red-100 hover:text-red-700 transition-colors"
-                          onClick={() => handleDelete(invoice.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canDelete('invoices') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                            onClick={() => handleDelete(invoice.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

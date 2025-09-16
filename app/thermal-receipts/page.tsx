@@ -36,6 +36,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { generateThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 
 interface Product {
@@ -267,6 +268,10 @@ export default function ThermalReceiptsPage() {
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
+  const { permissions } = useUserPermissions()
+
+  // Para el modo empleado, no pueden eliminar cosas
+  const canDelete = permissions.isOwner && !permissions.isRealEmployee
 
   const fetchData = useCallback(async () => {
     try {
@@ -543,7 +548,8 @@ export default function ThermalReceiptsPage() {
         name: profile.company_name || "MI EMPRESA",
         phone: profile.company_phone || "",
         rnc: profile.tax_id || "",
-        address: profile.company_address || ""
+        address: profile.company_address || "",
+        logo: profile.company_logo || undefined
       } : undefined
       
       await generateThermalReceiptPDF(fullReceipt, companyData)
@@ -567,7 +573,8 @@ export default function ThermalReceiptsPage() {
         name: profile.company_name || "MI EMPRESA",
         phone: profile.company_phone || "",
         rnc: profile.tax_id || "",
-        address: profile.company_address || ""
+        address: profile.company_address || "",
+        logo: profile.company_logo || undefined
       } : undefined
       
       await generateThermalReceiptPDF(receipt, companyData)
@@ -575,6 +582,34 @@ export default function ThermalReceiptsPage() {
     } catch (error) {
       console.error("Error printing receipt:", error)
       notifyError("Error al imprimir el recibo")
+    }
+  }
+
+  const handleDeleteReceipt = async (receiptId: string) => {
+    if (!canDelete) {
+      notifyError("No tienes permisos para eliminar recibos")
+      return
+    }
+
+    if (!confirm("¿Estás seguro de que quieres eliminar este recibo? Esta acción no se puede deshacer.")) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('thermal_receipts')
+        .delete()
+        .eq('id', receiptId)
+
+      if (error) {
+        throw error
+      }
+
+      notifySuccess("Recibo eliminado exitosamente")
+      await fetchData()
+    } catch (error) {
+      console.error("Error deleting receipt:", error)
+      notifyError("Error al eliminar el recibo")
     }
   }
 
@@ -597,6 +632,22 @@ export default function ThermalReceiptsPage() {
   )
   const todayAmount = todayReceipts.reduce((sum, r) => sum + r.total_amount, 0)
 
+  // Weekly statistics (last 7 days)
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const weeklyReceipts = receipts.filter(r => 
+    new Date(r.created_at) >= weekAgo
+  )
+  const weeklyAmount = weeklyReceipts.reduce((sum, r) => sum + r.total_amount, 0)
+
+  // Monthly statistics (current month)
+  const now = new Date()
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthlyReceipts = receipts.filter(r => 
+    new Date(r.created_at) >= currentMonthStart
+  )
+  const monthlyAmount = monthlyReceipts.reduce((sum, r) => sum + r.total_amount, 0)
+
   const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
 
   if (loading) {
@@ -612,7 +663,28 @@ export default function ThermalReceiptsPage() {
       {/* Header with Company Info */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-blue-600">Facturas Térmicas</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-blue-600">Facturas Térmicas</h1>
+            <Button 
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser()
+                console.log("=== DEBUG THERMAL RECEIPTS ===")
+                console.log("Current user:", user?.id)
+                const { data, error } = await supabase
+                  .from('thermal_receipts')
+                  .select('*')
+                  .eq('user_id', user?.id || '')
+                console.log("Thermal receipts in DB:", data)
+                console.log("Error:", error)
+                console.log("Total amount sum:", data?.reduce((sum, r) => sum + (r.total_amount || 0), 0))
+              }}
+              variant="outline"
+              size="sm"
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+            >
+              🔍 Debug
+            </Button>
+          </div>
           
           {/* Debug info - temporary */}
           {!profile && !loading && (
@@ -930,7 +1002,7 @@ export default function ThermalReceiptsPage() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Total Recibos</CardTitle>
@@ -945,15 +1017,43 @@ export default function ThermalReceiptsPage() {
         </Card>
         <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">Total Vendido</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-600">Hoy</CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-700">
-              {formatCurrency(totalAmount)}
+              {formatCurrency(todayAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatCurrency(todayAmount)} hoy
+              {todayReceipts.length} recibos
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-blue-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-600">7 Días</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-700">
+              {formatCurrency(weeklyAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {weeklyReceipts.length} recibos
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-blue-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-600">Este Mes</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-700">
+              {formatCurrency(monthlyAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {monthlyReceipts.length} recibos
             </p>
           </CardContent>
         </Card>
@@ -1151,6 +1251,16 @@ export default function ThermalReceiptsPage() {
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
+                    {canDelete && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteReceipt(receipt.id)}
+                        className="border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1288,6 +1398,16 @@ export default function ThermalReceiptsPage() {
                   <Printer className="h-4 w-4 mr-2" />
                   Reimprimir
                 </Button>
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDeleteReceipt(selectedReceipt.id)}
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => setSelectedReceipt(null)}

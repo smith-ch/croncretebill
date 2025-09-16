@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
 import { Plus, Search, Wrench, Edit, Trash2, DollarSign } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 interface Service {
   id: string
@@ -29,6 +30,7 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchServices()
@@ -57,6 +59,11 @@ export default function ServicesPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('services')) {
+      alert("No tienes permisos para eliminar servicios")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) return
 
     try {
@@ -169,15 +176,17 @@ export default function ServicesPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(service.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          aria-label={`Eliminar servicio ${service.name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canDelete('services') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(service.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            aria-label={`Eliminar servicio ${service.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                     {service.description && (

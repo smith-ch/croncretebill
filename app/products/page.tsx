@@ -11,6 +11,7 @@ import { ProductForm } from "@/components/forms/product-form"
 import { Plus, Search, Package, Edit, Trash2, Calculator } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 interface Product {
   id: string
@@ -30,6 +31,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchProducts()
@@ -40,7 +42,7 @@ export default function ProductsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { return }
 
       const { data, error } = await supabase
         .from("products")
@@ -48,7 +50,7 @@ export default function ProductsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) { throw error }
       setProducts(data || [])
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -58,11 +60,18 @@ export default function ProductsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return
+    if (!canDelete('products')) {
+      alert("No tienes permisos para eliminar productos")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("products").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchProducts()
     } catch (error) {
       console.error("Error deleting product:", error)
@@ -188,15 +197,17 @@ export default function ProductsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(product.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                            aria-label={`Eliminar producto ${product.name}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDelete('products') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(product.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                              aria-label={`Eliminar producto ${product.name}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {product.description && <p className="text-sm text-slate-600 mb-4">{product.description}</p>}

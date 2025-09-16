@@ -28,6 +28,7 @@ interface CompanyData {
   phone: string
   rnc: string
   address: string
+  logo?: string
 }
 
 export const generateQRCode = async (data: any): Promise<string> => {
@@ -90,6 +91,19 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
     doc.setFont('courier', 'normal')
     doc.setFontSize(7)
 
+    // Logo de la empresa (si existe)
+    if (companyData?.logo) {
+      try {
+        const logoSize = 15
+        const logoX = centerX - (logoSize / 2)
+        doc.addImage(companyData.logo, 'PNG', logoX, currentY, logoSize, logoSize)
+        currentY += logoSize + 3
+      } catch (logoError) {
+        console.warn('Error adding logo to PDF:', logoError)
+        currentY += 2
+      }
+    }
+
     // Header de la empresa
     if (companyData?.name) {
       doc.setFont('courier', 'bold')
@@ -132,7 +146,7 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
     // Información del recibo
     doc.setFont('courier', 'bold')
     doc.setFontSize(8)
-    doc.text('RECIBO TÉRMICO', centerX, currentY, { align: 'center' })
+    doc.text('COMPROBANTE DE VENTA', centerX, currentY, { align: 'center' })
     currentY += 4
 
     doc.setFont('courier', 'normal')
@@ -237,10 +251,13 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
 
     try {
       const qrData = {
-        receipt: receiptData.receipt_number,
-        total: receiptData.total_amount,
-        verification: receiptData.verification_code,
-        date: receiptData.created_at
+        receipt_number: receiptData.receipt_number,
+        client_name: receiptData.client_name,
+        total_amount: receiptData.total_amount,
+        verification_code: receiptData.verification_code,
+        created_at: receiptData.created_at,
+        items: receiptData.items,
+        url: `${window?.location?.origin || 'https://miempresa.com'}/verify/${receiptData.verification_code}`
       }
       
       const qrCodeDataURL = await generateQRCode(qrData)
@@ -252,6 +269,8 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
       
       doc.setFont('courier', 'normal')
       doc.setFontSize(6)
+      doc.text('Verificación Digital', centerX, currentY, { align: 'center' })
+      currentY += 3
       doc.text(`Código: ${receiptData.verification_code}`, centerX, currentY, { align: 'center' })
       currentY += 4
       

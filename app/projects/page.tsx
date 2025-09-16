@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress"
 import { ProjectForm } from "@/components/forms/project-form"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import {
   Plus,
   Search,
@@ -46,6 +47,7 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchProjects()
@@ -124,6 +126,11 @@ export default function ProjectsPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('projects')) {
+      alert("No tienes permisos para eliminar proyectos")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) return
 
     try {
@@ -474,14 +481,16 @@ export default function ProjectsPage() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(project.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDelete('projects') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(project.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
 
@@ -572,14 +581,16 @@ export default function ProjectsPage() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(project.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDelete('projects') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(project.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>

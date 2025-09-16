@@ -59,7 +59,7 @@ interface DashboardStats {
   previousMonthRevenue: number
   recentActivity: Array<{
     id: string
-    type: "invoice" | "expense"
+    type: "invoice" | "expense" | "thermal_receipt"
     number: string
     client_name?: string
     description?: string
@@ -322,6 +322,17 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
+      const { data: thermalReceipts, error: thermalError } = await supabase
+        .from("thermal_receipts")
+        .select(`
+          id,
+          receipt_number,
+          total_amount,
+          created_at
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+
       const { count: clientsCount } = await supabase
         .from("clients")
         .select("*", { count: "exact", head: true })
@@ -338,7 +349,10 @@ export default function DashboardPage() {
       const paidInvoices = invoices?.filter((inv) => inv.status === "pagada") || []
       const unpaidInvoices = invoices?.filter((inv) => inv.status !== "pagada" && inv.status !== "cancelada") || []
 
-      const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const invoiceRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      // Si hay error en thermal receipts, usar 0 como fallback
+      const thermalReceiptRevenue = thermalError ? 0 : (thermalReceipts?.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0) || 0)
+      const totalRevenue = invoiceRevenue + thermalReceiptRevenue
       const pendingRevenue = unpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
 
       const totalExpenses = expenses?.length || 0
@@ -356,7 +370,11 @@ export default function DashboardPage() {
       const weeklyInvoices = invoices?.filter((inv) => new Date(inv.created_at) >= weekAgo).length || 0
       const weeklyPaidInvoices = paidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
       const weeklyUnpaidInvoices = unpaidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
-      const weeklyRevenue = weeklyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const weeklyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => new Date(receipt.created_at) >= weekAgo) || [])
+      
+      const weeklyInvoiceRevenue = weeklyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const weeklyThermalRevenue = weeklyThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
+      const weeklyRevenue = weeklyInvoiceRevenue + weeklyThermalRevenue
       const weeklyPendingRevenue = weeklyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
 
       const weeklyExpenses = expenses?.filter((exp) => new Date(exp.created_at) >= weekAgo).length || 0
@@ -387,7 +405,14 @@ export default function DashboardPage() {
         return invDate >= currentMonthStart && invDate <= currentMonthEnd
       }) || []
       
-      const monthlyRevenue = monthlyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const monthlyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => {
+        const receiptDate = new Date(receipt.created_at)
+        return receiptDate >= currentMonthStart && receiptDate <= currentMonthEnd
+      }) || [])
+      
+      const monthlyInvoiceRevenue = monthlyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const monthlyThermalRevenue = monthlyThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
+      const monthlyRevenue = monthlyInvoiceRevenue + monthlyThermalRevenue
       const monthlyPendingRevenue = monthlyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
 
       const monthlyExpenses = expenses?.filter((exp) => {
@@ -454,7 +479,18 @@ export default function DashboardPage() {
           created_at: exp.created_at,
         })) || []
 
-      const recentActivity = [...recentInvoices, ...recentExpenses].sort(
+      const recentThermalReceipts = thermalError ? [] : (
+        thermalReceipts?.slice(0, 2).map((receipt) => ({
+          id: receipt.id,
+          type: "thermal_receipt" as const,
+          number: receipt.receipt_number,
+          description: `Comprobante ${receipt.receipt_number}`,
+          total: receipt.total_amount || 0,
+          created_at: receipt.created_at,
+        })) || []
+      )
+
+      const recentActivity = [...recentInvoices, ...recentExpenses, ...recentThermalReceipts].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )
 
@@ -465,7 +501,14 @@ export default function DashboardPage() {
         const invDate = new Date(inv.created_at)
         return invDate >= previousMonthStart && invDate <= previousMonthEnd
       })
-      const previousMonthRevenue = previousMonthPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const previousMonthThermalReceipts = thermalReceipts?.filter((receipt) => {
+        const receiptDate = new Date(receipt.created_at)
+        return receiptDate >= previousMonthStart && receiptDate <= previousMonthEnd
+      }) || []
+      
+      const previousMonthInvoiceRevenue = previousMonthPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const previousMonthThermalRevenue = previousMonthThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
+      const previousMonthRevenue = previousMonthInvoiceRevenue + previousMonthThermalRevenue
 
       setStats((prev) => ({
         ...prev,
@@ -1086,21 +1129,29 @@ export default function DashboardPage() {
                               className={`p-3 rounded-2xl shadow-lg ${
                                 activity.type === "invoice" 
                                   ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" 
+                                  : activity.type === "thermal_receipt"
+                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
                                   : "bg-gradient-to-r from-red-500 to-pink-600 text-white"
                               }`}
                             >
                               {activity.type === "invoice" ? (
                                 <FileText className="h-5 w-5" />
+                              ) : activity.type === "thermal_receipt" ? (
+                                <Receipt className="h-5 w-5" />
                               ) : (
                                 <Receipt className="h-5 w-5" />
                               )}
                             </div>
                             <div>
                               <p className="font-bold text-gray-900 text-lg">
-                                {activity.type === "invoice" ? `Factura ${activity.number}` : activity.description}
+                                {activity.type === "invoice" 
+                                  ? `Factura ${activity.number}` 
+                                  : activity.type === "thermal_receipt"
+                                  ? `Comprobante ${activity.number}`
+                                  : activity.description}
                               </p>
                               <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span>{activity.client_name || "Gasto registrado"}</span>
+                                <span>{activity.client_name || activity.type === "thermal_receipt" ? "Venta directa" : "Gasto registrado"}</span>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />

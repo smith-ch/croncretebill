@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/forms/client-form"
 import { Plus, Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -16,6 +17,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingClient, setEditingClient] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
+  const { canDelete } = useUserPermissions()
 
   useEffect(() => {
     fetchClients()
@@ -46,6 +48,11 @@ export default function ClientsPage() {
   }
 
   const handleDelete = async (id: string) => {
+    if (!canDelete('clients')) {
+      alert("No tienes permisos para eliminar clientes")
+      return
+    }
+    
     if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
       return
     }
@@ -177,14 +184,16 @@ export default function ClientsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(client.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDelete('clients') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(client.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2 text-sm">

@@ -14,6 +14,16 @@ interface UserPermissions {
   isOwner: boolean
   wasOriginallyOwner?: boolean
   isRealEmployee?: boolean // Para distinguir empleados reales vs propietario en modo prueba
+  // Permisos específicos de eliminación
+  canDeleteInvoices: boolean
+  canDeleteClients: boolean
+  canDeleteProducts: boolean
+  canDeleteServices: boolean
+  canDeleteProjects: boolean
+  canDeleteVehicles: boolean
+  canDeleteThermalReceipts: boolean
+  canDeleteAgendaEvents: boolean
+  canDeleteExpenses: boolean
 }
 
 export function useUserPermissions() {
@@ -25,7 +35,17 @@ export function useUserPermissions() {
     maxInvoiceAmount: null,
     role: 'owner',
     isOwner: true,
-    wasOriginallyOwner: true
+    wasOriginallyOwner: true,
+    // Permisos de eliminación - por defecto para owner
+    canDeleteInvoices: true,
+    canDeleteClients: true,
+    canDeleteProducts: true,
+    canDeleteServices: true,
+    canDeleteProjects: true,
+    canDeleteVehicles: true,
+    canDeleteThermalReceipts: true,
+    canDeleteAgendaEvents: true,
+    canDeleteExpenses: true
   })
   const [loading, setLoading] = useState(true)
 
@@ -77,7 +97,17 @@ export function useUserPermissions() {
           maxInvoiceAmount: null as number | null,
           role: 'owner',
           isOwner: true,
-          wasOriginallyOwner: true
+          wasOriginallyOwner: true,
+          // Permisos de eliminación para owner por defecto
+          canDeleteInvoices: true,
+          canDeleteClients: true,
+          canDeleteProducts: true,
+          canDeleteServices: true,
+          canDeleteProjects: true,
+          canDeleteVehicles: true,
+          canDeleteThermalReceipts: true,
+          canDeleteAgendaEvents: true,
+          canDeleteExpenses: true
         }
 
         console.log('Using default owner permissions due to error')
@@ -93,7 +123,17 @@ export function useUserPermissions() {
             maxInvoiceAmount: 50000,
             role: 'employee',
             isOwner: false,
-            wasOriginallyOwner: true
+            wasOriginallyOwner: true,
+            // Los empleados NO pueden eliminar nada
+            canDeleteInvoices: false,
+            canDeleteClients: false,
+            canDeleteProducts: false,
+            canDeleteServices: false,
+            canDeleteProjects: false,
+            canDeleteVehicles: false,
+            canDeleteThermalReceipts: false,
+            canDeleteAgendaEvents: false,
+            canDeleteExpenses: false
           }
         }
 
@@ -115,7 +155,17 @@ export function useUserPermissions() {
           role: permissionsData.role || 'owner',
           isOwner: originalIsOwner,
           wasOriginallyOwner: originalIsOwner, // Nuevo campo para RoleSwitcher
-          isRealEmployee: isRealEmployee // Indica si es empleado real vs propietario en modo prueba
+          isRealEmployee: isRealEmployee, // Indica si es empleado real vs propietario en modo prueba
+          // Permisos de eliminación por defecto basados en si es owner
+          canDeleteInvoices: originalIsOwner,
+          canDeleteClients: originalIsOwner,
+          canDeleteProducts: originalIsOwner,
+          canDeleteServices: originalIsOwner,
+          canDeleteProjects: originalIsOwner,
+          canDeleteVehicles: originalIsOwner,
+          canDeleteThermalReceipts: originalIsOwner,
+          canDeleteAgendaEvents: originalIsOwner,
+          canDeleteExpenses: originalIsOwner
         }
 
         console.log('Processed permissions:', finalPermissions)
@@ -133,7 +183,17 @@ export function useUserPermissions() {
             role: 'employee',
             isOwner: false, // Temporalmente false para simular empleado
             wasOriginallyOwner: originalIsOwner, // Mantener el estado original
-            isRealEmployee: isRealEmployee // Empleado real no puede cambiar modos
+            isRealEmployee: isRealEmployee, // Empleado real no puede cambiar modos
+            // Los empleados NO pueden eliminar nada
+            canDeleteInvoices: false,
+            canDeleteClients: false,
+            canDeleteProducts: false,
+            canDeleteServices: false,
+            canDeleteProjects: false,
+            canDeleteVehicles: false,
+            canDeleteThermalReceipts: false,
+            canDeleteAgendaEvents: false,
+            canDeleteExpenses: false
           }
         }
 
@@ -153,7 +213,17 @@ export function useUserPermissions() {
           maxInvoiceAmount: null as number | null,
           role: 'owner',
           isOwner: true,
-          wasOriginallyOwner: true
+          wasOriginallyOwner: true,
+          // Permisos de eliminación para owner
+          canDeleteInvoices: true,
+          canDeleteClients: true,
+          canDeleteProducts: true,
+          canDeleteServices: true,
+          canDeleteProjects: true,
+          canDeleteVehicles: true,
+          canDeleteThermalReceipts: true,
+          canDeleteAgendaEvents: true,
+          canDeleteExpenses: true
         }
 
         // Si está en modo empleado, aplicar restricciones
@@ -167,7 +237,17 @@ export function useUserPermissions() {
             maxInvoiceAmount: 50000,
             role: 'employee',
             isOwner: false,
-            wasOriginallyOwner: true
+            wasOriginallyOwner: true,
+            // Los empleados NO pueden eliminar nada
+            canDeleteInvoices: false,
+            canDeleteClients: false,
+            canDeleteProducts: false,
+            canDeleteServices: false,
+            canDeleteProjects: false,
+            canDeleteVehicles: false,
+            canDeleteThermalReceipts: false,
+            canDeleteAgendaEvents: false,
+            canDeleteExpenses: false
           }
         }
 
@@ -183,7 +263,19 @@ export function useUserPermissions() {
         canManageClients: true,
         maxInvoiceAmount: null,
         role: 'owner',
-        isOwner: true
+        isOwner: true,
+        wasOriginallyOwner: true,
+        isRealEmployee: false,
+        // Permisos de eliminación para owner en caso de error
+        canDeleteInvoices: true,
+        canDeleteClients: true,
+        canDeleteProducts: true,
+        canDeleteServices: true,
+        canDeleteProjects: true,
+        canDeleteVehicles: true,
+        canDeleteThermalReceipts: true,
+        canDeleteAgendaEvents: true,
+        canDeleteExpenses: true
       })
     } finally {
       setLoading(false)
@@ -192,6 +284,22 @@ export function useUserPermissions() {
 
   const hasPermission = (permission: keyof UserPermissions): boolean => {
     return Boolean(permissions[permission])
+  }
+
+  const canDelete = (entity: 'invoices' | 'clients' | 'products' | 'services' | 'projects' | 'vehicles' | 'thermalReceipts' | 'agendaEvents' | 'expenses'): boolean => {
+    const permissionMap = {
+      invoices: permissions.canDeleteInvoices,
+      clients: permissions.canDeleteClients,
+      products: permissions.canDeleteProducts,
+      services: permissions.canDeleteServices,
+      projects: permissions.canDeleteProjects,
+      vehicles: permissions.canDeleteVehicles,
+      thermalReceipts: permissions.canDeleteThermalReceipts,
+      agendaEvents: permissions.canDeleteAgendaEvents,
+      expenses: permissions.canDeleteExpenses
+    }
+    
+    return Boolean(permissionMap[entity])
   }
 
   const canAccessModule = (module: string): boolean => {
@@ -265,6 +373,7 @@ export function useUserPermissions() {
     permissions,
     loading,
     hasPermission,
+    canDelete,
     canAccessModule,
     validateInvoiceAmount,
     refresh: loadUserPermissions
