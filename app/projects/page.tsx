@@ -59,11 +59,13 @@ export default function ProjectsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase.from("clients").select("id, name").eq("user_id", user.id).order("name")
 
-      if (error) throw error
+      if (error) { throw error }
       setClients(data || [])
     } catch (error) {
       console.error("Error fetching clients:", error)
@@ -75,7 +77,9 @@ export default function ProjectsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("projects")
@@ -87,7 +91,7 @@ export default function ProjectsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {throw error}
 
       const projectsWithMetrics = (data || []).map((project) => {
         const totalInvoiced = project.invoices?.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0) || 0
@@ -131,11 +135,13 @@ export default function ProjectsPage() {
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("projects").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchProjects()
     } catch (error) {
       console.error("Error deleting project:", error)
@@ -203,11 +209,12 @@ export default function ProjectsPage() {
         case "this_month":
           matchesDate = projectDate.getMonth() === now.getMonth() && projectDate.getFullYear() === now.getFullYear()
           break
-        case "last_month":
+        case "last_month": {
           const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1)
           matchesDate =
             projectDate.getMonth() === lastMonth.getMonth() && projectDate.getFullYear() === lastMonth.getFullYear()
           break
+        }
         case "this_year":
           matchesDate = projectDate.getFullYear() === now.getFullYear()
           break
@@ -219,7 +226,7 @@ export default function ProjectsPage() {
 
   const activeProjects = projects.filter((p) => p.status === "activo").length
   const completedThisMonth = projects.filter((p) => {
-    if (p.status !== "completado") return false
+    if (p.status !== "completado") {return false}
     const completedDate = new Date(p.end_date || p.updated_at)
     const now = new Date()
     return completedDate.getMonth() === now.getMonth() && completedDate.getFullYear() === now.getFullYear()

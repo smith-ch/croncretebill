@@ -41,7 +41,9 @@ export default function ServicesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("services")
@@ -49,7 +51,7 @@ export default function ServicesPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {throw error}
       setServices(data || [])
     } catch (error) {
       console.error("Error fetching services:", error)
@@ -64,11 +66,13 @@ export default function ServicesPage() {
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("services").delete().eq("id", id)
-      if (error) throw error
+      if (error) {throw error}
       fetchServices()
     } catch (error) {
       console.error("Error deleting service:", error)

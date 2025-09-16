@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { Inter } from "next/font/google"
 import { supabase } from "@/lib/supabase"
-import { AuthForm } from "@/components/auth/auth-form"
+import { ModernAuthForm } from "@/components/auth/modern-auth-form"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { NotificationProvider } from "@/components/notifications/notification-provider"
@@ -65,7 +65,7 @@ export default function ClientLayout({
         <body className={inter.className}>
           <ThemeProvider attribute="class" defaultTheme="light">
             <NotificationProvider>
-              <AuthForm />
+              <ModernAuthForm />
               <Toaster />
               <SonnerToaster />
             </NotificationProvider>
