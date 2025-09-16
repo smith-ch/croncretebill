@@ -1492,7 +1492,7 @@ export default function DGIIReportsPage() {
                       id="expense-ncf"
                       value={manualExpense.ncf}
                       onChange={(e) => setManualExpense({...manualExpense, ncf: e.target.value})}
-                      placeholder="B01000000XX (opcional)"
+                      placeholder="B0100000001 (opcional)"
                     />
                   </div>
                   <div>
@@ -1615,7 +1615,7 @@ export default function DGIIReportsPage() {
                       id="invoice-ncf"
                       value={manualInvoice.ncf}
                       onChange={(e) => setManualInvoice({...manualInvoice, ncf: e.target.value})}
-                      placeholder="B01000000XX (requerido)"
+                      placeholder="B0100000001 (requerido)"
                     />
                   </div>
                   <div>

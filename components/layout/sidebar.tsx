@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Badge } from "@/components/ui/badge"
 import {
   LayoutDashboard,
   FileText,
@@ -29,76 +30,98 @@ import {
   CreditCard,
   Calendar,
   ClipboardList,
+  Warehouse,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { useStockAlerts } from "@/components/inventory/stock-alerts"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 const navigation = [
   {
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    module: "dashboard",
   },
   {
     name: "Facturas",
     href: "/invoices",
     icon: FileText,
+    module: "invoices",
   },
   {
     name: "Clientes",
     href: "/clients",
     icon: Users,
+    module: "clients",
   },
   {
     name: "Productos",
     href: "/products",
     icon: Package,
+    module: "products",
     children: [
       {
         name: "Catálogo",
         href: "/products",
         icon: Package,
+        module: "products",
       },
       {
         name: "Presupuestos",
         href: "/products/budgets",
         icon: Calculator,
+        module: "budgets",
       },
     ],
+  },
+  {
+    name: "Inventario",
+    href: "/inventory",
+    icon: Warehouse,
+    module: "inventory",
   },
   {
     name: "Servicios",
     href: "/services",
     icon: Wrench,
+    module: "services",
   },
   {
     name: "Proyectos",
     href: "/projects",
     icon: FolderOpen,
+    module: "projects",
   },
   {
     name: "Gastos",
     href: "/expenses",
     icon: DollarSign,
+    module: "expenses",
   },
   {
     name: "Agenda",
     href: "/agenda",
     icon: Calendar,
+    module: "agenda",
   },
   {
     name: "Recibos",
     href: "/thermal-receipts",
     icon: Receipt,
+    module: "thermal-receipts",
     children: [
       {
         name: "Recibos Térmicos",
         href: "/thermal-receipts",
         icon: Receipt,
+        module: "thermal-receipts",
       },
       {
         name: "Comprobantes de Pago",
         href: "/payment-receipts",
         icon: CreditCard,
+        module: "payment-receipts",
       },
     ],
   },
@@ -106,16 +129,19 @@ const navigation = [
     name: "Reportes",
     href: "/monthly-reports",
     icon: TrendingUp,
+    module: "reports",
     children: [
       {
         name: "Reportes Mensuales",
         href: "/monthly-reports",
         icon: TrendingUp,
+        module: "reports",
       },
       {
         name: "Reportes DGII",
         href: "/dgii-reports",
         icon: ClipboardList,
+        module: "reports",
       },
     ],
   },
@@ -123,11 +149,13 @@ const navigation = [
     name: "Configuración",
     href: "/settings",
     icon: Settings,
+    module: "settings",
   },
   {
     name: "Ayuda",
     href: "/faq",
     icon: HelpCircle,
+    module: "faq",
   },
 ]
 
@@ -135,6 +163,26 @@ export function Sidebar() {
   const pathname = usePathname()
   const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos"])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { alertCount } = useStockAlerts()
+  const { canAccessModule, permissions } = useUserPermissions()
+
+  // Filter navigation items based on permissions
+  const filteredNavigation = navigation.filter(item => {
+    if (item.module && !canAccessModule(item.module)) {
+      return false
+    }
+    return true
+  })
+
+  // Filter children items based on permissions
+  const getFilteredChildren = (children?: typeof navigation[0]['children']) => {
+    if (!children) {
+      return undefined
+    }
+    return children.filter(child => 
+      !child.module || canAccessModule(child.module)
+    )
+  }
 
   const toggleItem = (name: string) => {
     setOpenItems((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
@@ -183,12 +231,40 @@ export function Sidebar() {
         </Button>
       </div>
 
+      {/* Distintivo de Modo Usuario */}
+      {!isCollapsed && (
+        <div className="px-4 py-2 border-b border-slate-200">
+          {permissions.isRealEmployee ? (
+            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-green-700">👤 Empleado - Vista de Trabajo</span>
+            </div>
+          ) : permissions.role === 'employee' ? (
+            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-blue-700">🔄 Owner - Modo Empleado (Prueba)</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
+              <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+              <span className="text-xs font-medium text-yellow-700">👑 Propietario - Acceso Completo</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-2">
-          {navigation.map((item, index) => {
-            if (item.children) {
+          {filteredNavigation.map((item, index) => {
+            const filteredChildren = getFilteredChildren(item.children)
+            if (item.children && filteredChildren && filteredChildren.length === 0) {
+              // If all children are filtered out, don't show parent either
+              return null
+            }
+            
+            if (filteredChildren) {
               const isOpen = openItems.includes(item.name)
-              const hasActiveChild = item.children.some((child) => isActive(child.href))
+              const hasActiveChild = filteredChildren.some((child) => isActive(child.href))
 
               if (isCollapsed) {
                 return (
@@ -202,12 +278,19 @@ export function Sidebar() {
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <div className="relative">
+                        <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                        {item.name === "Inventario" && alertCount > 0 && (
+                          <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs px-1 py-0 h-4 w-4 rounded-full flex items-center justify-center animate-pulse">
+                            {alertCount > 9 ? '9+' : alertCount}
+                          </Badge>
+                        )}
+                      </div>
                     </Button>
                     <div className="absolute left-full top-0 ml-2 hidden group-hover:block z-50 animate-slide-in-right">
                       <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg shadow-xl p-3 min-w-48 glass">
                         <div className="font-medium text-sm mb-3 text-slate-800 border-b border-slate-200 pb-2">{item.name}</div>
-                        {item.children.map((child, childIndex) => (
+                        {filteredChildren?.map((child, childIndex) => (
                           <Link key={child.href} href={child.href}>
                             <Button
                               variant="ghost"
@@ -243,6 +326,11 @@ export function Sidebar() {
                       <div className="flex items-center space-x-3">
                         <item.icon className="h-5 w-5 transition-transform duration-300 hover:scale-110" />
                         <span className="font-medium">{item.name}</span>
+                        {item.name === "Inventario" && alertCount > 0 && (
+                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5 animate-pulse">
+                            {alertCount}
+                          </Badge>
+                        )}
                       </div>
                       <div className={cn("transition-transform duration-300", isOpen && "rotate-180")}>
                         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -250,7 +338,7 @@ export function Sidebar() {
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-1 pl-6 mt-1 animate-slide-down">
-                    {item.children.map((child, childIndex) => (
+                    {filteredChildren?.map((child, childIndex) => (
                       <Link key={child.href} href={child.href}>
                         <Button
                           variant="ghost"

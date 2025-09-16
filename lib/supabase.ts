@@ -2,13 +2,33 @@ import { createClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+// Client for browser/frontend (uses anon key + RLS)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
   },
 })
+
+// Server-side client (uses service role key, bypasses RLS)
+// If service key is not available, fall back to anon key
+export const supabaseAdmin = createClient(
+  supabaseUrl, 
+  supabaseServiceKey || supabaseAnonKey, 
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+// Warn if we're using anon key for admin operations
+if (!supabaseServiceKey) {
+  console.warn('SUPABASE_SERVICE_ROLE_KEY not found, using anon key for admin operations. This may cause RLS issues.')
+}
 
 // Client-side Supabase client (singleton pattern)
 let supabaseClient: ReturnType<typeof createClient> | null = null

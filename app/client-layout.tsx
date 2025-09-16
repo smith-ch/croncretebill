@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { useAutoLogout } from "@/hooks/use-auto-logout"
 import { SessionIndicator } from "@/components/auth/session-indicator"
+import { RouteProtection } from "@/components/auth/route-protection"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,9 +26,7 @@ export default function ClientLayout({
 
   // Configurar auto-logout cuando hay un usuario logueado
   useAutoLogout({
-    timeoutMinutes: 30, // Cerrar sesión después de 30 minutos de inactividad
-    warningMinutes: 5,  // Mostrar advertencia 5 minutos antes
-    enabled: !!user     // Solo activar cuando hay usuario logueado
+    timeoutMinutes: 30 // Cerrar sesión después de 30 minutos de inactividad
   })
 
   useEffect(() => {
@@ -86,7 +85,9 @@ export default function ClientLayout({
               <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
                 <div className="p-6">
                   <NotificationCenter className="mb-6" />
-                  {children}
+                  <RouteProtection>
+                    {children}
+                  </RouteProtection>
                 </div>
               </main>
             </div>

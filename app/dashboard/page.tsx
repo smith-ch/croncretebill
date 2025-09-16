@@ -35,6 +35,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useBusinessNotifications } from "@/components/notifications/notification-system"
+import { RoleSwitcher } from "@/components/auth/role-switcher"
 
 interface DashboardStats {
   totalInvoices: number
@@ -586,6 +587,9 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {/* Role Switcher para owners */}
+        <RoleSwitcher />
 
         {/* Enhanced Monthly Target Card */}
         <Card className="border-0 shadow-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 relative overflow-hidden">

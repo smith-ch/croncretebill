@@ -195,6 +195,62 @@ const systemFAQs = [
     answer:
       "Para obtener ayuda:\n\n1. Revisa estas preguntas frecuentes primero\n2. Usa la función de búsqueda para encontrar respuestas específicas\n3. Para soporte directo, contacta a través de:\n   - Email de soporte del sistema\n   - Chat en vivo (si está disponible)\n   - Documentación en línea\n4. Incluye detalles específicos del problema para mejor asistencia",
   },
+  {
+    id: "26",
+    category: "Empleados y Roles",
+    question: "¿Qué son los roles de empleado y propietario?",
+    answer:
+      "El sistema tiene dos roles principales:\n\n👑 **Propietario (Owner):**\n- Acceso completo a toda la información\n- Puede ver todos los clientes, facturas y reportes\n- Acceso a configuraciones sensibles\n- Puede cambiar entre roles\n\n👨‍💼 **Empleado (Employee):**\n- Acceso limitado para proteger información confidencial\n- Puede crear facturas y gestionar productos\n- No puede ver información financiera sensible\n- No puede acceder a configuraciones críticas\n\n🔄 **Cambio de Roles:**\nEl sistema detecta automáticamente empleados por email y permite cambiar roles con verificación de contraseña.",
+  },
+  {
+    id: "27",
+    category: "Empleados y Roles",
+    question: "¿Cómo se detectan automáticamente los empleados?",
+    answer:
+      "La detección de empleados es automática y basada en email:\n\n📧 **Sistema de Detección:**\n- El sistema verifica si tu email está en la lista de empleados\n- Si coincide, automáticamente inicia en modo empleado\n- Si no coincide, inicia en modo propietario\n\n⚙️ **Configuración:**\n- Los emails se configuran en el archivo `lib/employee-config.ts`\n- Solo el propietario puede modificar esta lista\n- Se verifica en cada inicio de sesión\n\n🔄 **Funcionamiento:**\n1. Usuario hace login con su email\n2. Sistema verifica si está en lista de empleados\n3. Asigna rol correspondiente automáticamente\n4. Usuario puede cambiar rol si tiene permisos",
+  },
+  {
+    id: "28",
+    category: "Empleados y Roles",
+    question: "¿Cómo cambiar entre roles de empleado y propietario?",
+    answer:
+      "Para cambiar de rol usa el selector en el sidebar:\n\n🔄 **Proceso de Cambio:**\n1. Busca el indicador de rol en la barra lateral\n2. Haz clic en el botón que muestra tu rol actual\n3. Verifica tu identidad con la contraseña\n4. Selecciona el nuevo rol (Empleado/Propietario)\n5. El cambio es inmediato y se guarda en tu sesión\n\n🛡️ **Seguridad:**\n- Requiere verificación de contraseña\n- Solo usuarios autorizados pueden cambiar roles\n- El rol se mantiene durante toda la sesión\n- Opción de 'Reset de Emergencia' disponible\n\n💾 **Persistencia:**\n- El rol seleccionado se guarda automáticamente\n- Se mantiene entre sesiones del navegador\n- Se sincroniza con las preferencias del usuario",
+  },
+  {
+    id: "29",
+    category: "Empleados y Roles",
+    question: "¿Qué funciones están limitadas para empleados?",
+    answer:
+      "Los empleados tienen acceso limitado para proteger información sensible:\n\n❌ **Funciones Restringidas:**\n- Ver información financiera detallada\n- Acceder a reportes de ingresos y ganancias\n- Modificar configuraciones del sistema\n- Ver datos de otros empleados\n- Acceder a configuraciones de facturación\n\n✅ **Funciones Permitidas:**\n- Crear y editar facturas\n- Gestionar productos y servicios\n- Ver lista de clientes (información básica)\n- Crear notas de entrega\n- Acceder a la agenda de tareas\n- Usar funciones básicas del dashboard\n\n🔍 **Verificación:**\n- El sistema verifica permisos en cada acción\n- Mensajes claros cuando algo está restringido\n- Interfaz adaptada según el rol activo",
+  },
+  {
+    id: "30",
+    category: "Empleados y Roles",
+    question: "¿Cómo agregar o quitar empleados del sistema?",
+    answer:
+      "Para gestionar la lista de empleados:\n\n📝 **Agregar Empleado:**\n1. Accede al archivo `lib/employee-config.ts`\n2. Agrega el email a la lista `EMPLOYEE_EMAILS`\n3. Guarda los cambios\n4. El empleado será detectado automáticamente en su próximo login\n\n❌ **Quitar Empleado:**\n1. Remueve el email de la lista `EMPLOYEE_EMAILS`\n2. Guarda los cambios\n3. El usuario pasará automáticamente a modo propietario\n\n⚠️ **Consideraciones:**\n- Solo el propietario debe modificar este archivo\n- Los cambios son inmediatos\n- Asegúrate de usar emails exactos (case-sensitive)\n- Mantén la sintaxis correcta del array\n\n🔧 **Ejemplo de Configuración:**\n```typescript\nexport const EMPLOYEE_EMAILS = [\n  'empleado1@empresa.com',\n  'empleado2@empresa.com'\n]\n```",
+  },
+  {
+    id: "31",
+    category: "Empleados y Roles",
+    question: "¿Qué hacer si no puedo cambiar de rol?",
+    answer:
+      "Si tienes problemas para cambiar roles:\n\n🔧 **Soluciones Comunes:**\n\n1. **Verificar Contraseña:**\n   - Asegúrate de usar tu contraseña correcta\n   - La verificación es sensible a mayúsculas/minúsculas\n\n2. **Reset de Emergencia:**\n   - Usa el botón 'Reset de Emergencia' en el diálogo\n   - Esto restaura el rol basado en tu email\n   - Solo disponible si estás autorizado\n\n3. **Limpiar Datos Locales:**\n   - Cierra sesión y vuelve a iniciar\n   - Esto fuerza una nueva detección de rol\n\n4. **Verificar Configuración:**\n   - Confirma que tu email esté correctamente configurado\n   - Verifica que tengas permisos para el rol deseado\n\n🆘 **Si Persiste el Problema:**\n- Contacta al administrador del sistema\n- Verifica tu conexión a internet\n- Intenta desde otro navegador",
+  },
+  {
+    id: "32",
+    category: "Empleados y Roles",
+    question: "¿Cómo identificar mi rol actual en el sistema?",
+    answer:
+      "Hay varias formas de identificar tu rol activo:\n\n🎯 **Indicadores Visuales:**\n\n1. **Sidebar (Barra Lateral):**\n   - Badge azul: 👑 PROPIETARIO\n   - Badge verde: 👨‍💼 EMPLEADO\n   - Ubicado en la parte superior del menú\n\n2. **Selector de Rol:**\n   - Botón que muestra el rol actual\n   - Color distintivo según el rol\n   - Disponible para cambio rápido\n\n3. **Funciones Disponibles:**\n   - Menús y opciones cambian según el rol\n   - Restricciones visibles para empleados\n   - Acceso completo para propietarios\n\n🔍 **Verificación Rápida:**\n- Mira la barra lateral izquierda\n- El badge de rol siempre está visible\n- Los colores son consistentes en toda la aplicación",
+  },
+  {
+    id: "33",
+    category: "Empleados y Roles",
+    question: "¿Los cambios de rol se guardan entre sesiones?",
+    answer:
+      "Sí, el sistema mantiene tu preferencia de rol:\n\n💾 **Persistencia de Datos:**\n- El rol seleccionado se guarda en localStorage\n- Se mantiene al cerrar y abrir el navegador\n- Persiste entre diferentes pestañas\n- Se sincroniza con tus preferencias de usuario\n\n🔄 **Comportamiento del Sistema:**\n\n1. **Primera Vez:**\n   - Detección automática basada en email\n   - Asigna rol inicial según configuración\n\n2. **Sesiones Posteriores:**\n   - Carga el último rol seleccionado\n   - Verifica que aún tengas permisos\n   - Restaura automáticamente tu preferencia\n\n3. **Cambios Manuales:**\n   - Se guardan inmediatamente\n   - Prevalecen sobre la detección automática\n   - Requieren nueva verificación si cambia la configuración\n\n⚠️ **Nota:** Si tu email se remueve de la lista de empleados, volverás automáticamente a modo propietario.",
+  },
 ]
 
 export default function FAQPage() {
@@ -228,6 +284,8 @@ export default function FAQPage() {
         return <TrendingUp className="h-5 w-5" />
       case "Gastos":
         return <Settings className="h-5 w-5" />
+      case "Empleados y Roles":
+        return <Users className="h-5 w-5" />
       default:
         return <HelpCircle className="h-5 w-5" />
     }
@@ -247,6 +305,8 @@ export default function FAQPage() {
         return "from-green-500 to-green-600"
       case "Gastos":
         return "from-red-500 to-red-600"
+      case "Empleados y Roles":
+        return "from-indigo-500 to-indigo-600"
       default:
         return "from-slate-500 to-slate-600"
     }
