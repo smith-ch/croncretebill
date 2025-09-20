@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Download, Receipt, FileText, TrendingUp, Users, AlertTriangle, Plus, Eye } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import * as XLSX from 'xlsx'
 
 // Catálogos oficiales DGII
@@ -151,6 +152,8 @@ interface DGIIData {
 }
 
 export default function DGIIReportsPage() {
+  const { permissions } = useUserPermissions()
+  
   const [selectedMonth, setSelectedMonth] = useState(formatDateToYearMonth(new Date()))
   const [loading, setLoading] = useState(false)
   const [dgiiData, setDgiiData] = useState<DGIIData | null>(null)
@@ -306,6 +309,32 @@ export default function DGIIReportsPage() {
   useEffect(() => {
     fetchDGIIData()
   }, [fetchDGIIData])
+
+  // Check if user has permission to view financial reports
+  if (!permissions.canViewFinances) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los reportes DGII. Esta función requiere permisos financieros.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   // Función para obtener configuración de empresa
   const getCompanyName = async (): Promise<string> => {

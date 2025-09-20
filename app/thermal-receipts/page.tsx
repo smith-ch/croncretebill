@@ -34,6 +34,7 @@ import {
   Phone
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -259,6 +260,9 @@ export default function ThermalReceiptsPage() {
   
   // Form state
   const [clientName, setClientName] = useState("")
+  const [clientType, setClientType] = useState<"registered" | "occasional">("occasional")
+  const [selectedClientId, setSelectedClientId] = useState("")
+  const [registeredClients, setRegisteredClients] = useState<any[]>([])
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [amountReceived, setAmountReceived] = useState(0)
   const [notes, setNotes] = useState("")
@@ -285,7 +289,8 @@ export default function ThermalReceiptsPage() {
         profileResult,
         receiptsResult,
         productsResult,
-        servicesResult
+        servicesResult,
+        clientsResult
       ] = await Promise.all([
         // Fetch user profile/company information
         supabase
@@ -314,6 +319,16 @@ export default function ThermalReceiptsPage() {
         // Fetch services
         supabase
           .from("services")
+          .select("id, name, price")
+          .eq("user_id", user.id)
+          .order("name"),
+        
+        // Fetch clients
+        supabase
+          .from("clients")
+          .select("id, name, contact_person, email, phone")
+          .eq("user_id", user.id)
+          .order("name")
           .select("id, name, price")
           .eq("user_id", user.id)
           .order("name")
@@ -356,6 +371,14 @@ export default function ThermalReceiptsPage() {
         setServices([])
       } else {
         setServices(servicesResult.data || [])
+      }
+
+      // Handle clients data
+      if (clientsResult.error) {
+        console.warn("Clients table error:", clientsResult.error)
+        setRegisteredClients([])
+      } else {
+        setRegisteredClients(clientsResult.data || [])
       }
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -665,33 +688,7 @@ export default function ThermalReceiptsPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-blue-600">Facturas Térmicas</h1>
-            <Button 
-              onClick={async () => {
-                const { data: { user } } = await supabase.auth.getUser()
-                console.log("=== DEBUG THERMAL RECEIPTS ===")
-                console.log("Current user:", user?.id)
-                const { data, error } = await supabase
-                  .from('thermal_receipts')
-                  .select('*')
-                  .eq('user_id', user?.id || '')
-                console.log("Thermal receipts in DB:", data)
-                console.log("Error:", error)
-                console.log("Total amount sum:", data?.reduce((sum, r) => sum + (r.total_amount || 0), 0))
-              }}
-              variant="outline"
-              size="sm"
-              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-            >
-              🔍 Debug
-            </Button>
           </div>
-          
-          {/* Debug info - temporary */}
-          {!profile && !loading && (
-            <div className="text-sm text-red-500">
-              (Debug: Profile no disponible - verificar tabla profiles)
-            </div>
-          )}
           
           {profile ? (
             <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -717,13 +714,14 @@ export default function ThermalReceiptsPage() {
               <div className="text-sm text-orange-600">
                 Configure la información de su empresa
               </div>
-              <Button
+              <Button asChild
                 size="sm"
                 variant="outline"
-                onClick={() => window.location.href = '/settings'}
                 className="border-orange-200 text-orange-600 hover:bg-orange-50"
               >
-                Ir a Configuración
+                <Link href="/settings">
+                  Ir a Configuración
+                </Link>
               </Button>
             </div>
           )}
@@ -749,16 +747,68 @@ export default function ThermalReceiptsPage() {
                 <form className="space-y-6">
               {/* Client Information */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="clientName">Cliente</Label>
-                  <Input
-                    id="clientName"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Cliente General"
-                    className="border-blue-200 focus:border-blue-500"
-                  />
+                <div className="space-y-2">
+                  <Label>Tipo de Cliente</Label>
+                  <Select 
+                    value={clientType} 
+                    onValueChange={(value: "registered" | "occasional") => {
+                      setClientType(value)
+                      if (value === "occasional") {
+                        setSelectedClientId("")
+                        setClientName("")
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="occasional">Cliente Ocasional</SelectItem>
+                      <SelectItem value="registered">Cliente Registrado</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                
+                <div>
+                  {clientType === "registered" ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="selectedClient">Seleccionar Cliente</Label>
+                      <Select 
+                        value={selectedClientId} 
+                        onValueChange={(value) => {
+                          setSelectedClientId(value)
+                          const client = registeredClients.find(c => c.id === value)
+                          setClientName(client ? client.name : "")
+                        }}
+                      >
+                        <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                          <SelectValue placeholder="Selecciona un cliente..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {registeredClients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name} {client.contact_person && `(${client.contact_person})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div>
+                      <Label htmlFor="clientName">Nombre del Cliente</Label>
+                      <Input
+                        id="clientName"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Cliente General"
+                        className="border-blue-200 focus:border-blue-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="paymentMethod">Método de Pago</Label>
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -899,10 +949,11 @@ export default function ThermalReceiptsPage() {
                     <Input
                       id="amountReceived"
                       type="number"
-                      value={amountReceived}
+                      value={amountReceived === 0 ? "" : amountReceived}
                       onChange={(e) => setAmountReceived(parseFloat(e.target.value) || 0)}
                       min="0"
                       step="0.01"
+                      placeholder="0.00"
                       className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
@@ -1440,13 +1491,6 @@ export default function ThermalReceiptsPage() {
               <div className="border-2 border-blue-300 rounded-lg p-4 bg-white shadow-lg max-w-sm mx-auto" style={{width: '80mm', maxWidth: '300px'}}>
                 {/* Header */}
                 <div className="text-center border-b border-gray-300 pb-3 mb-3">
-                  {/* Debug info - temporary */}
-                  {!profile && (
-                    <div className="text-xs text-red-500 mb-2">
-                      (Debug: Profile no cargado)
-                    </div>
-                  )}
-                  
                   <div className="mb-2">
                     <div className="w-16 h-16 mx-auto bg-blue-100 rounded-lg flex items-center justify-center">
                       <Building2 className="h-8 w-8 text-blue-600" />

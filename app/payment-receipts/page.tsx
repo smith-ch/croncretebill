@@ -70,6 +70,22 @@ interface PaymentReceipt {
       phone?: string | null
       address?: string | null
     } | null
+    invoice_items?: {
+      id: string
+      quantity: number
+      unit_price: number
+      total: number
+      products?: {
+        id: string
+        name: string
+        description?: string | null
+      } | null
+      services?: {
+        id: string
+        name: string
+        description?: string | null
+      } | null
+    }[]
   }
 }
 
@@ -95,6 +111,22 @@ interface Invoice {
     phone?: string | null
     address?: string | null
   } | null
+  invoice_items?: {
+    id: string
+    quantity: number
+    unit_price: number
+    total: number
+    products?: {
+      id: string
+      name: string
+      description?: string | null
+    } | null
+    services?: {
+      id: string
+      name: string
+      description?: string | null
+    } | null
+  }[]
 }
 
 interface PaymentStats {
@@ -183,7 +215,7 @@ export default function PaymentReceiptsPage() {
           .eq("user_id", user.id)
           .single(),
         
-        // Fetch payment receipts with complete invoice and client info in one query
+        // Fetch payment receipts with basic invoice and client info (no invoice_items to avoid relationship conflicts)
         supabase
           .from("payment_receipts")
           .select(`
@@ -205,7 +237,7 @@ export default function PaymentReceiptsPage() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
         
-        // Fetch paid invoices with client info
+        // Fetch paid invoices with basic client info (no invoice_items to avoid relationship conflicts)
         supabase
           .from("invoices")
           .select(`
@@ -319,6 +351,43 @@ export default function PaymentReceiptsPage() {
     return receiptNumber
   }
 
+  // Helper function to fetch invoice items for PDF generation
+  const fetchInvoiceItems = async (invoiceId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("invoice_items")
+        .select(`
+          id,
+          quantity,
+          unit_price,
+          subtotal,
+          product_id,
+          service_id,
+          products (
+            id,
+            name,
+            description
+          ),
+          services (
+            id,
+            name,
+            description
+          )
+        `)
+        .eq("invoice_id", invoiceId)
+
+      if (error) {
+        console.error("Error fetching invoice items:", error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error("Error fetching invoice items:", error)
+      return []
+    }
+  }
+
   const handleGenerateManualReceipt = async () => {
     try {
       setGenerating(true)
@@ -378,6 +447,12 @@ export default function PaymentReceiptsPage() {
       await fetchData()
 
       // Generate PDF
+      // Fetch invoice items separately if we have a selected invoice
+      let invoiceItems = []
+      if (selectedInvoice) {
+        invoiceItems = await fetchInvoiceItems(selectedInvoice.id)
+      }
+
       const fullReceipt = { 
         ...receiptData, 
         invoice: selectedInvoice ? {
@@ -392,13 +467,15 @@ export default function PaymentReceiptsPage() {
             rnc: selectedInvoice.clients.rnc ?? null,
             phone: selectedInvoice.clients.phone ?? null,
             address: selectedInvoice.clients.address ?? null
-          } : null
+          } : null,
+          invoice_items: invoiceItems
         } : {
           id: '',
           invoice_number: '',
           total_amount: 0,
           client_name: 'Cliente no encontrado',
-          client: null
+          client: null,
+          invoice_items: []
         }
       }
       
@@ -431,10 +508,8 @@ export default function PaymentReceiptsPage() {
         return
       }
       
-      if (!receipt.invoice) {
-        notifyError("No se puede generar el PDF: falta información de la factura")
-        return
-      }
+      // Fetch invoice items separately to avoid relationship conflicts
+      const invoiceItems = await fetchInvoiceItems(receipt.invoice.id)
 
       await generatePaymentReceiptPDF({
         ...receipt,
@@ -453,7 +528,8 @@ export default function PaymentReceiptsPage() {
             rnc: receipt.invoice.clients.rnc ?? null,
             phone: receipt.invoice.clients.phone ?? null,
             address: receipt.invoice.clients.address ?? null
-          } : null
+          } : null,
+          invoice_items: invoiceItems
         }
       }, {
         name: companySettings?.company_name || 'TU EMPRESA',
@@ -939,6 +1015,48 @@ export default function PaymentReceiptsPage() {
                                       </div>
                                     )}
                                   </div>
+
+                                  {/* Items Section - Products and Services */}
+                                  {selectedReceipt.invoice?.invoice_items && selectedReceipt.invoice.invoice_items.length > 0 && (
+                                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                      <h3 className="font-semibold mb-3 text-slate-800 flex items-center gap-2">
+                                        <Receipt className="h-4 w-4" />
+                                        Detalle de la Factura
+                                      </h3>
+                                      <div className="space-y-2">
+                                        {selectedReceipt.invoice.invoice_items.map((item, index) => {
+                                          const itemName = item.products?.name || item.services?.name || 'Item sin nombre'
+                                          const itemDescription = item.products?.description || item.services?.description
+                                          const itemType = item.products ? 'Producto' : item.services ? 'Servicio' : 'Item'
+                                          
+                                          return (
+                                            <div key={index} className="flex justify-between items-start p-3 bg-white rounded border border-slate-200">
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <span className="font-medium text-slate-900">{itemName}</span>
+                                                  <Badge variant="outline" className="text-xs">
+                                                    {itemType}
+                                                  </Badge>
+                                                </div>
+                                                {itemDescription && (
+                                                  <p className="text-xs text-slate-600 mb-2">{itemDescription}</p>
+                                                )}
+                                                <div className="flex gap-4 text-xs text-slate-500">
+                                                  <span>Cantidad: {item.quantity}</span>
+                                                  <span>Precio: {formatCurrency(item.unit_price)}</span>
+                                                </div>
+                                              </div>
+                                              <div className="text-right">
+                                                <span className="font-semibold text-slate-900">
+                                                  {formatCurrency(item.total)}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </DialogContent>

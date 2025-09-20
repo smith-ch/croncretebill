@@ -16,9 +16,10 @@ import { Loader2 } from "lucide-react"
 interface ClientFormProps {
   client?: any
   onSuccess?: () => void
+  inModal?: boolean // Nueva prop para saber si está en modal
 }
 
-export function ClientForm({ client, onSuccess }: ClientFormProps) {
+export function ClientForm({ client, onSuccess, inModal = false }: ClientFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,9 +30,18 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    const rnc = formData.get("rnc") as string
+    
+    // Validar RNC si se proporciona
+    if (rnc && (!/^\d{9}$/.test(rnc))) {
+      setError("El RNC debe contener exactamente 9 dígitos")
+      setLoading(false)
+      return
+    }
+
     const clientData = {
       name: formData.get("name") as string,
-      rnc: formData.get("rnc") as string,
+      rnc: rnc,
       contact_person: formData.get("contact_person") as string,
       email: formData.get("email") as string,
       phone: formData.get("phone") as string,
@@ -42,7 +52,15 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
+
+      // Verificar que el usuario tiene un ID válido
+      if (!user.id || user.id.length === 0) {
+        throw new Error("ID de usuario inválido")
+      }
 
       if (client) {
         // Update existing client
@@ -63,7 +81,26 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
         router.push("/clients")
       }
     } catch (error: any) {
-      setError(error.message)
+      // Mejorar mensajes de error para el usuario
+      let userFriendlyMessage = error.message
+      
+      if (error.message?.includes('check_rnc_valid')) {
+        userFriendlyMessage = "Por favor, ingrese un RNC válido de 9 dígitos"
+      } else if (error.message?.includes('clients_user_id_fkey') || error.message?.includes('foreign key constraint')) {
+        userFriendlyMessage = "Error de permisos. Por favor, cierre sesión y vuelva a iniciar sesión. Si el problema persiste, contacte al administrador."
+      } else if (error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        userFriendlyMessage = "Ya existe un cliente con este RNC o información"
+      } else if (error.message?.includes('not null')) {
+        userFriendlyMessage = "Por favor, complete todos los campos requeridos"
+      } else if (error.message?.includes('permission denied') || error.message?.includes('insufficient_privilege')) {
+        userFriendlyMessage = "No tiene permisos para realizar esta acción. Verifique que su cuenta esté correctamente configurada."
+      } else if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        userFriendlyMessage = "La base de datos no está configurada correctamente. Contacte al administrador."
+      } else if (error.message === "Usuario no autenticado") {
+        userFriendlyMessage = "Su sesión ha expirado. Por favor, inicie sesión nuevamente."
+      }
+      
+      setError(userFriendlyMessage)
     } finally {
       setLoading(false)
     }
@@ -83,7 +120,20 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="rnc">RNC</Label>
-              <Input id="rnc" name="rnc" defaultValue={client?.rnc} placeholder="123456789" />
+              <Input 
+                id="rnc" 
+                name="rnc" 
+                defaultValue={client?.rnc} 
+                placeholder="123456789" 
+                maxLength={9}
+                pattern="[0-9]{9}"
+                title="Ingrese exactamente 9 dígitos"
+                onInput={(e) => {
+                  // Solo permitir números
+                  const target = e.target as HTMLInputElement
+                  target.value = target.value.replace(/[^0-9]/g, '')
+                }}
+              />
             </div>
           </div>
 

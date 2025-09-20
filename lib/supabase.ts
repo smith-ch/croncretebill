@@ -4,55 +4,59 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Client for browser/frontend (uses anon key + RLS)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-})
+// Single client instance for all operations (singleton pattern)
+let _supabaseClient: ReturnType<typeof createClient> | null = null
+let _supabaseAdminClient: ReturnType<typeof createClient> | null = null
 
-// Server-side client (uses service role key, bypasses RLS)
-// If service key is not available, fall back to anon key
-export const supabaseAdmin = createClient(
-  supabaseUrl, 
-  supabaseServiceKey || supabaseAnonKey, 
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
-
-// Warn if we're using anon key for admin operations
-if (!supabaseServiceKey) {
-  console.warn('SUPABASE_SERVICE_ROLE_KEY not found, using anon key for admin operations. This may cause RLS issues.')
-}
-
-// Client-side Supabase client (singleton pattern)
-let supabaseClient: ReturnType<typeof createClient> | null = null
-
-export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+function getSupabaseInstance() {
+  if (!_supabaseClient) {
+    _supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
       },
     })
   }
-  return supabaseClient
+  return _supabaseClient
 }
 
-// Server-side Supabase client
+function getSupabaseAdminInstance() {
+  if (!_supabaseAdminClient && typeof window === 'undefined') {
+    if (supabaseServiceKey) {
+      _supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    } else {
+      console.warn('SUPABASE_SERVICE_ROLE_KEY not found, using anon key for admin operations.')
+      _supabaseAdminClient = getSupabaseInstance()
+    }
+  }
+  return _supabaseAdminClient || getSupabaseInstance()
+}
+
+// Export the singleton instance
+export const supabase = getSupabaseInstance()
+
+// Export admin client (server-side only)
+export const supabaseAdmin = getSupabaseAdminInstance()
+
+// Export the main client as default
+export default supabase
+
+// Legacy exports for compatibility - all return the same singleton
+export function getSupabaseClient() {
+  return supabase
+}
+
 export function createServerClient() {
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  })
+  return supabase
+}
+
+export function createAdminClient() {
+  return getSupabaseAdminInstance()
 }
 
 // Re-export createClient for compatibility

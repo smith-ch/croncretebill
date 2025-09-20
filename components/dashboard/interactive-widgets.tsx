@@ -52,6 +52,13 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
   const [healthStatus, setHealthStatus] = useState<'excellent' | 'good' | 'warning' | 'critical'>('good')
 
   useEffect(() => {
+    // Si no hay datos suficientes, mostrar estado neutral
+    if (totalRevenue === 0 && totalExpenses === 0 && monthlyTarget === 0) {
+      setHealthScore(0)
+      setHealthStatus('warning')
+      return
+    }
+
     // Calculate financial health score (0-100)
     let score = 100
     
@@ -128,8 +135,8 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
           bgColor: 'from-amber-50 to-orange-50',
           textColor: 'text-amber-900',
           icon: AlertTriangle,
-          message: 'Atención requerida',
-          description: 'Hay áreas que necesitan mejoras',
+          message: healthScore === 0 ? 'Sin datos suficientes' : 'Atención requerida',
+          description: healthScore === 0 ? 'Comienza registrando ingresos y gastos para ver tu salud financiera' : 'Hay áreas que necesitan mejoras',
         }
       case 'critical':
         return {
@@ -194,7 +201,7 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-white/50 backdrop-blur-sm rounded-xl">
             <div className={`text-2xl font-bold ${config.textColor}`}>
-              {Math.round((monthlyRevenue / monthlyTarget) * 100)}%
+              {monthlyTarget > 0 ? Math.round((monthlyRevenue / monthlyTarget) * 100) : 0}%
             </div>
             <p className="text-sm text-gray-600">Meta del Mes</p>
           </div>

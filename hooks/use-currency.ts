@@ -20,11 +20,16 @@ export function useCurrency() {
         return
       }
 
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from("company_settings")
         .select("currency_symbol, currency_code")
         .eq("user_id", user.id)
-        .single()
+        .maybeSingle()
+
+      if (error) {
+        console.error("Error fetching currency settings:", error)
+        return
+      }
 
       if (settings) {
         setCurrencySymbol(settings.currency_symbol || "RD$")

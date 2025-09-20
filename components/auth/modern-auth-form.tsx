@@ -92,6 +92,7 @@ export function ModernAuthForm() {
       })
 
       if (error) {
+        console.error('Signup error details:', error)
         throw error
       }
 

@@ -35,6 +35,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useBusinessNotifications } from "@/components/notifications/notification-system"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { RoleSwitcher } from "@/components/auth/role-switcher"
 
 interface DashboardStats {
@@ -121,6 +122,7 @@ export default function DashboardPage() {
     lowCashFlow: false
   })
   const { formatCurrency } = useCurrency()
+  const { permissions } = useUserPermissions()
   const businessNotifications = useBusinessNotifications()
 
   // Check if we're on the client side
@@ -338,7 +340,10 @@ export default function DashboardPage() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
 
-      const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true })
+      const { count: productsCount } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
 
       const { count: projectsCount } = await supabase
         .from("projects")
@@ -756,76 +761,79 @@ export default function DashboardPage() {
 
         <StatsCards {...stats} />
 
-        {/* Enhanced Analytics Section */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <FinancialHealthWidget
-            totalRevenue={stats.totalRevenue}
-            totalExpenses={stats.totalExpenseAmount}
-            monthlyTarget={stats.monthlyTarget}
-            monthlyRevenue={stats.monthlyRevenue}
-            pendingRevenue={stats.pendingRevenue}
-            overdueInvoices={stats.overdueInvoices}
-          />
-          
-          <PerformanceComparisonWidget
-            currentMonthRevenue={stats.monthlyRevenue}
-            previousMonthRevenue={stats.previousMonthRevenue}
-            currentMonthExpenses={stats.monthlyExpenseAmount}
-            previousMonthExpenses={stats.monthlyExpenseAmount}
-            currentMonthInvoices={stats.monthlyInvoices}
-            previousMonthInvoices={stats.monthlyInvoices}
-          />
-          
-          <QuickInsightsWidget insights={[
-            {
-              type: 'success',
-              title: 'Buen rendimiento',
-              message: `Has generado ${formatCurrency(stats.monthlyRevenue)} este mes`
-            },
-            {
-              type: 'info', 
-              title: 'Clientes activos',
-              message: `Tienes ${stats.totalClients} clientes registrados`
-            }
-          ]} />
-        </div>
+        {/* Enhanced Analytics Section - Solo para usuarios con permisos financieros */}
+        {permissions.canViewFinances && (
+          <div className="grid gap-6 lg:grid-cols-3">
+            <FinancialHealthWidget
+              totalRevenue={stats.totalRevenue}
+              totalExpenses={stats.totalExpenseAmount}
+              monthlyTarget={stats.monthlyTarget}
+              monthlyRevenue={stats.monthlyRevenue}
+              pendingRevenue={stats.pendingRevenue}
+              overdueInvoices={stats.overdueInvoices}
+            />
+            
+            <PerformanceComparisonWidget
+              currentMonthRevenue={stats.monthlyRevenue}
+              previousMonthRevenue={stats.previousMonthRevenue}
+              currentMonthExpenses={stats.monthlyExpenseAmount}
+              previousMonthExpenses={stats.monthlyExpenseAmount}
+              currentMonthInvoices={stats.monthlyInvoices}
+              previousMonthInvoices={stats.monthlyInvoices}
+            />
+            
+            <QuickInsightsWidget insights={[
+              {
+                type: 'success',
+                title: 'Buen rendimiento',
+                message: `Has generado ${formatCurrency(stats.monthlyRevenue)} este mes`
+              },
+              {
+                type: 'info', 
+                title: 'Clientes activos',
+                message: `Tienes ${stats.totalClients} clientes registrados`
+              }
+            ]} />
+          </div>
+        )}
 
-        {/* Charts Section */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Revenue Trend Chart */}
-          <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
-            <CardHeader className="relative">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
-                  <TrendingUp className="h-8 w-8 text-white" />
+        {/* Charts Section - Solo para usuarios con permisos financieros */}
+        {permissions.canViewFinances && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Revenue Trend Chart */}
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
+              <CardHeader className="relative">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+                    <TrendingUp className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-bold text-emerald-900 flex items-center gap-2">
+                      Tendencia de Ingresos
+                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    </CardTitle>
+                    <CardDescription className="text-emerald-700 text-base font-medium">
+                      Evolución de ingresos últimos 7 días
+                    </CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-2xl font-bold text-emerald-900 flex items-center gap-2">
-                    Tendencia de Ingresos
-                    <TrendingUp className="h-5 w-5 text-emerald-600" />
-                  </CardTitle>
-                  <CardDescription className="text-emerald-700 text-base font-medium">
-                    Evolución de ingresos últimos 7 días
-                  </CardDescription>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="h-80">
+                  <RevenueChart data={{
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    datasets: [{
+                      label: 'Ingresos',
+                      data: [stats.weeklyRevenue / 7, stats.weeklyRevenue / 6, stats.weeklyRevenue / 5, stats.weeklyRevenue / 4, stats.weeklyRevenue / 3, stats.weeklyRevenue / 2, stats.weeklyRevenue],
+                      borderColor: 'rgb(34, 197, 94)',
+                      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                      fill: true
+                    }]
+                  }} />
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="h-80">
-                <RevenueChart data={{
-                  labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-                  datasets: [{
-                    label: 'Ingresos',
-                    data: [stats.weeklyRevenue / 7, stats.weeklyRevenue / 6, stats.weeklyRevenue / 5, stats.weeklyRevenue / 4, stats.weeklyRevenue / 3, stats.weeklyRevenue / 2, stats.weeklyRevenue],
-                    borderColor: 'rgb(34, 197, 94)',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    fill: true
-                  }]
-                }} />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           {/* Expense Chart */}
           <Card className="shadow-2xl border-0 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 relative overflow-hidden">
@@ -883,50 +891,53 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+        )}
 
-        {/* Comparison Chart */}
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5"></div>
-          <CardHeader className="relative">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
-                <BarChart3 className="h-8 w-8 text-white" />
+        {/* Comparison Chart - Solo para usuarios con permisos financieros */}
+        {permissions.canViewFinances && (
+          <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5"></div>
+            <CardHeader className="relative">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
+                  <BarChart3 className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold text-purple-900 flex items-center gap-2">
+                    Comparación Mensual
+                    <BarChart3 className="h-5 w-5 text-purple-600" />
+                  </CardTitle>
+                  <CardDescription className="text-purple-700 text-base font-medium">
+                    Ingresos vs Gastos del mes actual
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-2xl font-bold text-purple-900 flex items-center gap-2">
-                  Comparación Mensual
-                  <BarChart3 className="h-5 w-5 text-purple-600" />
-                </CardTitle>
-                <CardDescription className="text-purple-700 text-base font-medium">
-                  Ingresos vs Gastos del mes actual
-                </CardDescription>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="h-80">
+                <ComparisonChart data={{
+                  labels: ['Este Mes'],
+                  datasets: [
+                    {
+                      label: 'Ingresos',
+                      data: [stats.monthlyRevenue],
+                      backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                      borderColor: 'rgb(34, 197, 94)',
+                      borderWidth: 2
+                    },
+                    {
+                      label: 'Gastos',
+                      data: [stats.monthlyExpenseAmount],
+                      backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                      borderColor: 'rgb(239, 68, 68)',
+                      borderWidth: 2
+                    }
+                  ]
+                }} />
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="h-80">
-              <ComparisonChart data={{
-                labels: ['Este Mes'],
-                datasets: [
-                  {
-                    label: 'Ingresos',
-                    data: [stats.monthlyRevenue],
-                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                    borderColor: 'rgb(34, 197, 94)',
-                    borderWidth: 2
-                  },
-                  {
-                    label: 'Gastos',
-                    data: [stats.monthlyExpenseAmount],
-                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 2
-                  }
-                ]
-              }} />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1 space-y-6">
@@ -964,53 +975,59 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-gradient-to-br from-purple-50 to-violet-100 border-0 shadow-lg relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-violet-500/5"></div>
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full -translate-y-12 translate-x-12"></div>
-                  <CardHeader className="pb-3 relative">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 bg-gradient-to-r from-purple-500 to-violet-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                        <Receipt className="h-6 w-6 text-white" />
+                {/* Gestionar Gastos - Solo para owners */}
+                {(permissions.isOwner || permissions.wasOriginallyOwner) && (
+                  <Card className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-gradient-to-br from-purple-50 to-violet-100 border-0 shadow-lg relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-violet-500/5"></div>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-300/20 to-violet-400/20 rounded-full -translate-y-12 translate-x-12"></div>
+                    <CardHeader className="pb-3 relative">
+                      <div className="flex items-center gap-4">
+                        <div className="p-4 bg-gradient-to-r from-purple-500 to-violet-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
+                          <Receipt className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-purple-900 text-xl font-bold">Gestionar Gastos</CardTitle>
+                          <CardDescription className="text-purple-700 text-base">Administra y categoriza tus gastos</CardDescription>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-purple-900 text-xl font-bold">Gestionar Gastos</CardTitle>
-                        <CardDescription className="text-purple-700 text-base">Administra y categoriza tus gastos</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 relative">
-                    <Link href="/expenses">
-                      <Button className="w-full bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 shadow-lg hover:shadow-xl transition-all duration-300 text-lg py-6 rounded-xl font-semibold">
-                        <Receipt className="h-5 w-5 mr-2" />
-                        Ver Gastos
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="pt-0 relative">
+                      <Link href="/expenses">
+                        <Button className="w-full bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 shadow-lg hover:shadow-xl transition-all duration-300 text-lg py-6 rounded-xl font-semibold">
+                          <Receipt className="h-5 w-5 mr-2" />
+                          Ver Gastos
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
 
-                <Card className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-gradient-to-br from-emerald-50 to-green-100 border-0 shadow-lg relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5"></div>
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-300/20 to-green-400/20 rounded-full -translate-y-12 translate-x-12"></div>
-                  <CardHeader className="pb-3 relative">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                        <BarChart3 className="h-6 w-6 text-white" />
+                {/* Ver Reportes - Solo para usuarios con permisos financieros */}
+                {permissions.canViewFinances && (
+                  <Card className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-gradient-to-br from-emerald-50 to-green-100 border-0 shadow-lg relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5"></div>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-300/20 to-green-400/20 rounded-full -translate-y-12 translate-x-12"></div>
+                    <CardHeader className="pb-3 relative">
+                      <div className="flex items-center gap-4">
+                        <div className="p-4 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
+                          <BarChart3 className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-emerald-900 text-xl font-bold">Ver Reportes</CardTitle>
+                          <CardDescription className="text-emerald-700 text-base">Analiza tu rendimiento con IA</CardDescription>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-emerald-900 text-xl font-bold">Ver Reportes</CardTitle>
-                        <CardDescription className="text-emerald-700 text-base">Analiza tu rendimiento con IA</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 relative">
-                    <Link href="/monthly-reports">
-                      <Button className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 text-lg py-6 rounded-xl font-semibold">
-                        <TrendingUp className="h-5 w-5 mr-2" />
-                        Ver Reportes
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="pt-0 relative">
+                      <Link href="/monthly-reports">
+                        <Button className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 text-lg py-6 rounded-xl font-semibold">
+                          <TrendingUp className="h-5 w-5 mr-2" />
+                          Ver Reportes
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* New Quick Action - Analytics */}
                 <Card className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-gradient-to-br from-cyan-50 to-blue-100 border-0 shadow-lg relative overflow-hidden">

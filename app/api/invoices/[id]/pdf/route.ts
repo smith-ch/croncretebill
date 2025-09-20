@@ -1,16 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-// Server-side Supabase client with service role key
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('Supabase environment variables not found. API routes may not work properly.')
-}
-
-const supabaseAdmin = supabaseUrl && supabaseServiceKey ? 
-  createClient(supabaseUrl, supabaseServiceKey) : null
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {

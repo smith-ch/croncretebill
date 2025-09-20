@@ -30,11 +30,37 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete } = useUserPermissions()
+  const { canDelete, permissions } = useUserPermissions()
 
   useEffect(() => {
     fetchServices()
   }, [])
+
+  // Check if user has permission to manage inventory (services are part of inventory)
+  if (!permissions.canManageInventory) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los servicios. Esta función requiere permisos de gestión de inventario.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const fetchServices = async () => {
     try {

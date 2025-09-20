@@ -116,15 +116,17 @@ export default function ClientsPage() {
                 Nuevo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <ClientForm
-                client={editingClient}
-                onSuccess={() => {
-                  setShowForm(false)
-                  setEditingClient(null)
-                  fetchClients()
-                }}
-              />
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+              <div className="p-6 [&_.card]:border-0 [&_.card]:shadow-none [&_.card]:bg-transparent">
+                <ClientForm
+                  client={editingClient}
+                  onSuccess={() => {
+                    setShowForm(false)
+                    setEditingClient(null)
+                    fetchClients()
+                  }}
+                />
+              </div>
             </DialogContent>
           </Dialog>
         </motion.div>

@@ -47,12 +47,38 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete } = useUserPermissions()
+  const { canDelete, permissions } = useUserPermissions()
 
   useEffect(() => {
     fetchProjects()
     fetchClients()
   }, [])
+
+  // Check if user has permission to manage clients (projects are linked to clients)
+  if (!permissions.canManageClients) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los proyectos. Esta función requiere permisos de gestión de clientes.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const fetchClients = async () => {
     try {

@@ -25,8 +25,9 @@ import {
   Settings,
   Edit
 } from "lucide-react"
-import Link from "next/link"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { WarehouseTransfer } from "@/components/inventory/warehouse-transfer"
 
 // Types
@@ -41,6 +42,8 @@ interface InventorySummary {
 export default function UnifiedInventoryPage() {
   const [activeTab, setActiveTab] = useState("overview")
   const [loading, setLoading] = useState(true)
+  const [showMovementForm, setShowMovementForm] = useState(false)
+  const [showWarehouseForm, setShowWarehouseForm] = useState(false)
   const [summary, setSummary] = useState<InventorySummary | null>(null)
   const [stockItems, setStockItems] = useState<any[]>([])
   const [movements, setMovements] = useState<any[]>([])
@@ -49,6 +52,7 @@ export default function UnifiedInventoryPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterWarehouse, setFilterWarehouse] = useState<string>("all")
   const { formatCurrency } = useCurrency()
+  const { permissions } = useUserPermissions()
 
   const fetchAllData = useCallback(async () => {
     setLoading(true)
@@ -64,6 +68,33 @@ export default function UnifiedInventoryPage() {
   useEffect(() => {
     fetchAllData()
   }, [fetchAllData])
+
+  // Check if user has permission to manage inventory
+  if (!permissions.canManageInventory) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <Warehouse className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder al inventario. Esta función requiere permisos de gestión de inventario.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const fetchSummary = async () => {
     try {
@@ -206,6 +237,7 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      // Obtener almacenes del usuario actual
       const { data, error } = await supabase
         .from('warehouses')
         .select(`
@@ -215,12 +247,9 @@ export default function UnifiedInventoryPage() {
           address,
           description,
           created_at,
-          product_warehouse_stock!inner (
-            current_stock,
-            product:products!inner (cost_price, user_id)
-          )
+          user_id
         `)
-        .eq('product_warehouse_stock.product.user_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at')
 
       if (error) {
@@ -228,12 +257,24 @@ export default function UnifiedInventoryPage() {
         return
       }
 
-      const processedWarehouses = data?.map((warehouse: any) => ({
-        ...warehouse,
-        product_count: warehouse.product_warehouse_stock?.length || 0,
-        total_stock_value: warehouse.product_warehouse_stock?.reduce((sum: number, stock: any) => 
-          sum + (stock.current_stock * (stock.product?.cost_price || 0)), 0) || 0
-      })) || []
+      // Calcular datos adicionales para cada almacén
+      const processedWarehouses = await Promise.all(data?.map(async (warehouse: any) => {
+        const { data: stockData } = await supabase
+          .from('product_warehouse_stock')
+          .select(`
+            current_stock,
+            product:products!inner (cost_price)
+          `)
+          .eq('warehouse_id', warehouse.id)
+          .eq('product.user_id', user.id)
+
+        return {
+          ...warehouse,
+          product_count: stockData?.length || 0,
+          total_stock_value: stockData?.reduce((sum: number, stock: any) => 
+            sum + (stock.current_stock * (stock.product?.cost_price || 0)), 0) || 0
+        }
+      }) || [])
 
       setWarehouses(processedWarehouses)
     } catch (error) {
@@ -301,11 +342,9 @@ export default function UnifiedInventoryPage() {
           <p className="text-gray-600">Gestión completa de inventario, stock, movimientos y almacenes</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/inventory/movements/new">
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Movimiento
-            </Link>
+          <Button onClick={() => setShowMovementForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Movimiento
           </Button>
           <Button variant="outline" onClick={fetchAllData}>
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -623,12 +662,6 @@ export default function UnifiedInventoryPage() {
                     <Download className="w-4 h-4 mr-2" />
                     Exportar
                   </Button>
-                  <Button asChild>
-                    <Link href="/inventory/movements/new">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nuevo Movimiento
-                    </Link>
-                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -688,7 +721,7 @@ export default function UnifiedInventoryPage() {
                   <Warehouse className="w-5 h-5 mr-2" />
                   Gestión de Almacenes
                 </span>
-                <Button>
+                <Button onClick={() => setShowWarehouseForm(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Nuevo Almacén
                 </Button>
@@ -755,6 +788,71 @@ export default function UnifiedInventoryPage() {
           <WarehouseTransfer onTransferComplete={fetchAllData} />
         </TabsContent>
       </Tabs>
+
+      {/* Modal para Nuevo Movimiento */}
+      <Dialog open={showMovementForm} onOpenChange={setShowMovementForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nuevo Movimiento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Esta funcionalidad estará disponible próximamente. 
+              Por ahora puedes gestionar movimientos desde la sección de transferencias.
+            </p>
+            <Button 
+              onClick={() => {
+                setShowMovementForm(false)
+                setActiveTab("transfers")
+              }}
+              className="w-full"
+            >
+              Ir a Transferencias
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Nuevo Almacén */}
+      <Dialog open={showWarehouseForm} onOpenChange={setShowWarehouseForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nuevo Almacén</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="warehouse-name">Nombre del Almacén</Label>
+              <Input id="warehouse-name" placeholder="Almacén Principal" />
+            </div>
+            <div>
+              <Label htmlFor="warehouse-description">Descripción</Label>
+              <Input id="warehouse-description" placeholder="Descripción del almacén" />
+            </div>
+            <div>
+              <Label htmlFor="warehouse-address">Dirección</Label>
+              <Input id="warehouse-address" placeholder="Dirección física" />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => setShowWarehouseForm(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => {
+                  // Aquí iría la lógica para crear el almacén
+                  setShowWarehouseForm(false)
+                }}
+                className="flex-1"
+              >
+                Crear Almacén
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

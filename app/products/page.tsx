@@ -31,7 +31,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete } = useUserPermissions()
+  const { canDelete, permissions } = useUserPermissions()
 
   useEffect(() => {
     fetchProducts()
@@ -123,20 +123,25 @@ export default function ProductsPage() {
             </Link>
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={!permissions.canManageInventory}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Producto
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
-                <ProductForm
-                  product={editingProduct}
-                  onSuccess={() => {
-                    setShowForm(false)
-                    setEditingProduct(null)
-                    fetchProducts()
-                  }}
-                />
+              <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl overflow-y-auto max-h-[90vh] p-0">
+                <div className="p-6 [&_.card]:border-0 [&_.card]:shadow-none [&_.card]:bg-transparent">
+                  <ProductForm
+                    product={editingProduct}
+                    onSuccess={() => {
+                      setShowForm(false)
+                      setEditingProduct(null)
+                      fetchProducts()
+                    }}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -167,6 +172,7 @@ export default function ProductsPage() {
                 <Button
                   onClick={() => setShowForm(true)}
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                  disabled={!permissions.canManageInventory}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Producto
@@ -194,6 +200,7 @@ export default function ProductsPage() {
                             }}
                             className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
                             aria-label={`Editar producto ${product.name}`}
+                            disabled={!permissions.canManageInventory}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { DollarSign, FileText, Users, Package, FolderOpen, Receipt, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Activity, Calendar } from "lucide-react"
 
 interface StatsCardsProps {
@@ -37,6 +38,7 @@ export function StatsCards({
   monthlyInvoices,
 }: StatsCardsProps) {
   const { formatCurrency } = useCurrency()
+  const { permissions } = useUserPermissions()
 
   const netProfit = totalRevenue - totalExpenseAmount
   const weeklyNetProfit = weeklyRevenue - weeklyExpenseAmount
@@ -50,8 +52,9 @@ export function StatsCards({
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-      {/* Total Revenue - Enhanced */}
-      <Card className="border-0 shadow-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
+      {/* Total Revenue - Enhanced - Only visible with financial permissions */}
+      {permissions.canViewFinances && (
+        <Card className="border-0 shadow-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/10 group-hover:from-blue-500/10 group-hover:to-indigo-500/15 transition-all duration-500"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-300/20 to-indigo-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
@@ -80,8 +83,10 @@ export function StatsCards({
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* Net Profit - Enhanced */}
+      {/* Net Profit - Enhanced - Only visible with financial permissions */}
+      {permissions.canViewFinances && (
       <Card className={`border-0 shadow-2xl bg-gradient-to-br hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group ${
         netProfit >= 0 ? 'from-emerald-50 via-green-50 to-emerald-100' : 'from-red-50 via-pink-50 to-red-100'
       }`}>
@@ -133,8 +138,10 @@ export function StatsCards({
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* Total Expenses - Enhanced */}
+      {/* Total Expenses - Enhanced - Only visible with financial permissions */}
+      {permissions.canViewFinances && (
       <Card className="border-0 shadow-2xl bg-gradient-to-br from-red-50 via-pink-50 to-red-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/10 group-hover:from-red-500/10 group-hover:to-pink-500/15 transition-all duration-500"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-300/20 to-pink-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
@@ -164,6 +171,7 @@ export function StatsCards({
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Total Invoices - Enhanced */}
       <Card className="border-0 shadow-2xl bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
@@ -275,7 +283,8 @@ export function StatsCards({
         </CardContent>
       </Card>
 
-      {/* Monthly Summary - Enhanced */}
+      {/* Monthly Summary - Enhanced - Only visible with financial permissions */}
+      {permissions.canViewFinances && (
       <Card className="border-0 shadow-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/10 group-hover:from-amber-500/10 group-hover:to-orange-500/15 transition-all duration-500"></div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-300/20 to-orange-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
@@ -301,6 +310,7 @@ export function StatsCards({
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }

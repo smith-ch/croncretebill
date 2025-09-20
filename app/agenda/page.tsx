@@ -276,10 +276,21 @@ export default function AgendaPage() {
 
   const editItem = (item: AgendaItem) => {
     setEditingItem(item)
+    
+    // Formatear fecha para input type="date" (YYYY-MM-DD)
+    const formatDate = (dateString: string) => {
+      try {
+        const date = new Date(dateString)
+        return date.toISOString().split('T')[0]
+      } catch {
+        return dateString
+      }
+    }
+    
     setNewItem({
       title: item.title,
       description: item.description || "",
-      due_date: item.due_date,
+      due_date: formatDate(item.due_date),
       type: item.type,
       amount: item.amount || 0,
       priority: item.priority,
@@ -555,6 +566,11 @@ export default function AgendaPage() {
   }
 
   const exportToCSV = () => {
+    if (agendaItems.length === 0) {
+      alert('No hay datos de agenda para exportar')
+      return
+    }
+    
     const headers = ['Título', 'Descripción', 'Fecha', 'Tipo', 'Estado', 'Prioridad', 'Monto']
     const csvData = [
       headers,
@@ -587,6 +603,11 @@ export default function AgendaPage() {
 
   const exportExpensesToCSV = () => {
     if (!permissions.canViewFinances) {
+      return
+    }
+    
+    if (fixedExpenses.length === 0) {
+      alert('No hay gastos fijos para exportar')
       return
     }
     
@@ -1469,7 +1490,7 @@ export default function AgendaPage() {
                   Cancelar
                 </Button>
                 <Button onClick={addNewItem}>
-                  Agregar
+                  {editingItem ? "Guardar" : "Agregar"}
                 </Button>
               </div>
             </div>

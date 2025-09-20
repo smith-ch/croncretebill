@@ -13,6 +13,39 @@ import { Loader2, Building2 } from "lucide-react"
 export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [activeTab, setActiveTab] = useState("signin")
+  const [messageTimeoutId, setMessageTimeoutId] = useState<number | null>(null)
+
+  // Función para manejar el cambio de pestaña y limpiar mensajes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    setMessage(null) // Limpiar mensajes al cambiar de pestaña
+    
+    // Limpiar timeout si existe
+    if (messageTimeoutId) {
+      clearTimeout(messageTimeoutId)
+      setMessageTimeoutId(null)
+    }
+  }
+
+  // Función para mostrar mensaje con auto-ocultado
+  const showMessage = (type: "success" | "error", text: string, autoHide = false) => {
+    // Limpiar timeout anterior si existe
+    if (messageTimeoutId) {
+      clearTimeout(messageTimeoutId)
+    }
+
+    setMessage({ type, text })
+
+    // Auto-ocultar si es necesario
+    if (autoHide) {
+      const timeoutId = setTimeout(() => {
+        setMessage(null)
+        setMessageTimeoutId(null)
+      }, 7000) // 7 segundos para dar tiempo a leer
+      setMessageTimeoutId(timeoutId)
+    }
+  }
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,7 +59,7 @@ export function AuthForm() {
     const companyName = formData.get("companyName") as string
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -41,15 +74,51 @@ export function AuthForm() {
         throw error
       }
 
-      setMessage({
-        type: "success",
-        text: "Cuenta creada exitosamente. Revisa tu email para confirmar tu cuenta.",
-      })
+      // Si el usuario se crea inmediatamente (sin confirmación por email)
+      if (data.user && data.user.email_confirmed_at) {
+        // Verificar que el perfil se haya creado
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Esperar un momento
+        
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", data.user.id)
+          .single()
+
+        // Si no se creó el perfil automáticamente, crearlo manualmente
+        if (!profile || profileError) {
+          await supabase
+            .from("profiles")
+            .insert({
+              id: data.user.id,
+              email: data.user.email,
+              full_name: fullName,
+              company_name: companyName,
+              role: "vendedor"
+            })
+        }
+      }
+
+      showMessage(
+        "success",
+        "¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.",
+        true // Auto-ocultar después de 7 segundos
+      )
+
+      // Limpiar el formulario después del registro exitoso
+      e.currentTarget.reset()
+
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.message || "Error al crear la cuenta",
-      })
+      let errorMessage = error.message || "Error al crear la cuenta"
+      
+      // Mejorar mensajes de error específicos
+      if (error.message?.includes("User already registered")) {
+        errorMessage = "Ya existe una cuenta con este email"
+      } else if (error.message?.includes("Password should be")) {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres"
+      }
+      
+      showMessage("error", errorMessage)
     } finally {
       setLoading(false)
     }
@@ -65,7 +134,7 @@ export function AuthForm() {
     const password = formData.get("password") as string
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -73,11 +142,57 @@ export function AuthForm() {
       if (error) {
         throw error
       }
+
+      // Verificar si el usuario tiene un perfil después del login
+      if (data.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", data.user.id)
+          .single()
+
+        // Si no tiene perfil, intentar crearlo
+        if (!profile || profileError) {
+          const { error: createProfileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: data.user.id,
+              email: data.user.email,
+              full_name: data.user.user_metadata?.full_name || "",
+              company_name: data.user.user_metadata?.company_name || "",
+              role: "vendedor"
+            })
+            .select()
+            .single()
+
+          if (createProfileError) {
+            console.warn("No se pudo crear el perfil automáticamente:", createProfileError)
+            showMessage(
+              "error",
+              "Problema con su cuenta. Por favor contacte al administrador o vuelva a registrarse."
+            )
+            return
+          } else {
+            showMessage(
+              "success", 
+              "Perfil creado automáticamente. Bienvenido!",
+              true
+            )
+          }
+        }
+      }
+
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.message || "Error al iniciar sesión",
-      })
+      let errorMessage = error.message || "Error al iniciar sesión"
+      
+      // Mejorar mensajes de error específicos
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Email o contraseña incorrectos"
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Por favor confirma tu email antes de iniciar sesión"
+      }
+      
+      showMessage("error", errorMessage)
     } finally {
       setLoading(false)
     }
@@ -196,7 +311,7 @@ export function AuthForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs defaultValue="signin" className="w-full" value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2 bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg">
                 <TabsTrigger 
                   value="signin" 

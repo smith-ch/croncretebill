@@ -19,6 +19,7 @@ import {
 } from "recharts"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import {
   TrendingUp,
   FileText,
@@ -268,6 +269,7 @@ export default function MonthlyReportsPage() {
   })
 
   const { formatCurrency } = useCurrency()
+  const { permissions } = useUserPermissions()
 
   const fetchAdditionalMetrics = async () => {
     try {
@@ -571,6 +573,32 @@ export default function MonthlyReportsPage() {
   useEffect(() => {
     fetchMonthlyData()
   }, [fetchMonthlyData])
+
+  // Check if user has permission to view financial reports
+  if (!permissions.canViewFinances) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los reportes mensuales. Esta función requiere permisos financieros.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const handleExportReport = () => {
     const csvContent = [

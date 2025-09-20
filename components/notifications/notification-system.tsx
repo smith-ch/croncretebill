@@ -48,8 +48,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       return
     }
 
-    // Use counter for consistent ID generation
-    const id = `notification-${idCounter}`
+    // Use timestamp + counter for truly unique ID generation
+    const id = `notification-${Date.now()}-${idCounter}`
     setIdCounter(prev => prev + 1)
     
     const newNotification = { ...notification, id }

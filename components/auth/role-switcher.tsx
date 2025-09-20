@@ -16,19 +16,9 @@ export function RoleSwitcher() {
   const isOwner = permissions.isOwner || permissions.wasOriginallyOwner
   const isRealEmployee = permissions.isRealEmployee || false
 
-  console.log('RoleSwitcher Debug:', {
-    isOwner,
-    originalIsOwner: permissions.wasOriginallyOwner,
-    currentIsOwner: permissions.isOwner,
-    isRealEmployee,
-    permissions,
-    isEmployeeMode
-  })
-
   useEffect(() => {
     // Mantener el estado en localStorage
     const savedMode = localStorage.getItem('employee-view-mode')
-    console.log('Saved employee mode:', savedMode)
     if (savedMode === 'true') {
       setIsEmployeeMode(true)
     }
@@ -67,9 +57,24 @@ export function RoleSwitcher() {
     window.location.reload()
   }
 
-  if (!isOwner && !isRealEmployee) {
-    // No mostrar componente si no es owner ni empleado real
+  if (!isOwner && !isRealEmployee && permissions.role !== 'owner' && permissions.role !== 'admin') {
+    // No mostrar componente solo si definitivamente no tiene permisos
+    console.log('RoleSwitcher: Ocultando componente - sin permisos')
     return null
+  }
+
+  // Fallback si hay problemas de carga
+  if (!permissions || Object.keys(permissions).length === 0) {
+    console.log('RoleSwitcher: Mostrando fallback - permisos no cargados')
+    return (
+      <Card className="w-full max-w-md mx-auto opacity-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center">
+            <div className="text-sm text-gray-500">Cargando configuración de rol...</div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

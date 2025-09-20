@@ -25,6 +25,22 @@ export interface PaymentReceiptData {
       phone: string | null
       address: string | null
     } | null
+    invoice_items?: {
+      id: string
+      quantity: number
+      unit_price: number
+      total: number
+      products?: {
+        id: string
+        name: string
+        description?: string | null
+      } | null
+      services?: {
+        id: string
+        name: string
+        description?: string | null
+      } | null
+    }[]
   }
 }
 
@@ -423,7 +439,76 @@ export const generatePaymentReceiptPDF = async (
     const paymentMethodText = getPaymentMethodLabel(receiptData.payment_method || 'cash')
     doc.text(paymentMethodText, 55, currentY)
 
-    currentY += 15
+    currentY += 10
+
+    // ===== DETALLE DE ITEMS DE LA FACTURA =====
+    if (receiptData.invoice.invoice_items && receiptData.invoice.invoice_items.length > 0) {
+      // Caja con fondo gris para los items
+      const itemsHeight = Math.min(receiptData.invoice.invoice_items.length * 12 + 12, 50) // Máximo 50mm
+      doc.setFillColor(248, 250, 252) // slate-50 - Fondo muy claro
+      doc.rect(8, currentY, pageWidth - 16, itemsHeight, 'F')
+      doc.setDrawColor(226, 232, 240) // slate-200 - Borde gris
+      doc.setLineWidth(0.5)
+      doc.rect(8, currentY, pageWidth - 16, itemsHeight)
+
+      currentY += 6
+
+      // Título de la sección de items
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(slate700)
+      doc.text('DETALLE DE LA FACTURA:', 12, currentY)
+
+      currentY += 6
+
+      // Mostrar hasta 3 items para evitar overflow
+      const itemsToShow = receiptData.invoice.invoice_items.slice(0, 3)
+      
+      itemsToShow.forEach((item) => {
+        const itemName = item.products?.name || item.services?.name || 'Item'
+        const itemType = item.products ? 'P' : item.services ? 'S' : 'I'
+        
+        // Truncar nombre si es muy largo
+        const truncatedName = itemName.length > 20 ? itemName.substring(0, 17) + '...' : itemName
+        
+        // Nombre del item con tipo
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(7)
+        doc.setTextColor(slate700)
+        doc.text(`${itemType}: ${truncatedName}`, 12, currentY)
+        
+        // Cantidad y precio
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(6)
+        doc.setTextColor(slate500)
+        doc.text(`${item.quantity}x`, 12, currentY + 3)
+        
+        // Total del item alineado a la derecha
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(7)
+        doc.setTextColor(slate700)
+        const itemTotal = new Intl.NumberFormat('es-DO', {
+          style: 'currency',
+          currency: 'DOP'
+        }).format(item.total)
+        doc.text(itemTotal, pageWidth - 12, currentY, { align: 'right' })
+        
+        currentY += 8
+      })
+
+      // Si hay más items, mostrar indicador
+      if (receiptData.invoice.invoice_items.length > 3) {
+        doc.setFont('helvetica', 'italic')
+        doc.setFontSize(6)
+        doc.setTextColor(slate500)
+        doc.text(`... y ${receiptData.invoice.invoice_items.length - 3} item(s) más`, 12, currentY)
+        currentY += 6
+      }
+
+      currentY += 5
+    }
+
+    currentY += 5
 
     // ===== TOTAL PAGADO CON ESTILO GRIS =====
     doc.setFillColor(226, 232, 240) // slate-200 - Fondo gris claro
