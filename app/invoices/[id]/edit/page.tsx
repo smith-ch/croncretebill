@@ -625,43 +625,6 @@ export default function EditInvoicePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="driver_id" className="text-slate-700 font-medium">
-                    Conductor
-                  </Label>
-                  <Select name="driver_id" defaultValue={invoice.driver_id || ""}>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Seleccionar conductor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {drivers.map((driver) => (
-                        <SelectItem key={driver.id} value={driver.id}>
-                          {driver.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle_id" className="text-slate-700 font-medium">
-                    Vehículo
-                  </Label>
-                  <Select name="vehicle_id" defaultValue={invoice.vehicle_id || ""}>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Seleccionar vehículo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vehicles.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.model} - {vehicle.plate}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
               <div className="border-t border-slate-200 pt-6 space-y-4">
                 <div className="flex items-center space-x-3">
                   <Checkbox
@@ -809,18 +772,7 @@ export default function EditInvoicePage() {
                         </SelectContent>
                       </Select>
 
-                      {process.env.NODE_ENV === "development" && (
-                        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                          Debug:{" "}
-                          {item.type === "product" ? `${products.length} productos` : `${services.length} servicios`}{" "}
-                          disponibles
-                          <br />
-                          Selected: {item.type === "product" ? item.product_id : item.service_id}
-                          <br />
-                          Products: {JSON.stringify(products.map((p) => ({ id: p.id, name: p.name })))}
-                        </div>
-                      )}
-
+                    
                       {((item.type === "product" &&
                         item.product_id &&
                         !products.some((p) => String(p.id) === String(item.product_id))) ||
