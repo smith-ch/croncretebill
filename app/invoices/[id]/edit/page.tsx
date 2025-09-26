@@ -127,7 +127,7 @@ export default function EditInvoicePage() {
   const { permissions } = useUserPermissions()
 
   // Block employee access to editing invoices
-  if (!permissions.canEdit()) {
+  if (!permissions.canEditInvoices) {
     return (
       <div className="container mx-auto py-8">
         <Card>
