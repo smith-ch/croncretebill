@@ -17,7 +17,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingClient, setEditingClient] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
-  const { canDelete } = useUserPermissions()
+  const { permissions, canDelete, canEdit } = useUserPermissions()
 
   useEffect(() => {
     fetchClients()
@@ -176,16 +176,18 @@ export default function ClientsPage() {
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{client.name}</h3>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingClient(client)
-                              setShowForm(true)
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          {canEdit('clients') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingClient(client)
+                                setShowForm(true)
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           {canDelete('clients') && (
                             <Button
                               variant="ghost"

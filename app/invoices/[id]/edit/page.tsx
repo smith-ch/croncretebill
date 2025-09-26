@@ -26,6 +26,76 @@ import {
   DollarSign,
 } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { InvoicePreview } from "@/components/invoices/invoice-preview"
+
+// Type definitions
+interface Product {
+  id: string
+  name: string
+  unit: string
+  unit_price: number | null
+}
+
+interface Service {
+  id: string
+  name: string
+  unit: string
+  price: number | null
+}
+
+interface Client {
+  id: string
+  name: string
+  rnc?: string
+  address?: string
+  phone?: string
+  email?: string
+}
+
+interface Project {
+  id: string
+  name: string
+  client_id: string
+}
+
+interface InvoiceItem {
+  id?: string
+  product_id?: string
+  service_id?: string
+  quantity: number
+  unit_price: number
+  total?: number
+  description?: string
+}
+
+interface Invoice {
+  id: string
+  invoice_number: string
+  client_id: string
+  project_id?: string
+  invoice_date: string
+  due_date: string
+  subtotal?: number
+  discount_type?: "percentage" | "fixed"
+  discount_value?: number
+  tax_amount?: number
+  total?: number
+  status: string
+  notes?: string
+  include_itbis?: boolean
+  ncf?: string
+  invoice_items?: InvoiceItem[]
+}
+
+interface InvoiceItemLocal {
+  product_id: string
+  service_id: string
+  quantity: number
+  unit_price: number
+  type: "product" | "service"
+  original_description: string
+}
 
 export default function EditInvoicePage() {
   const router = useRouter()
@@ -33,22 +103,53 @@ export default function EditInvoicePage() {
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [invoice, setInvoice] = useState<any>(null)
-  const [clients, setClients] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [clients, setClients] = useState<Client[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [drivers, setDrivers] = useState<any[]>([])
   const [vehicles, setVehicles] = useState<any[]>([])
-  const [products, setProducts] = useState<any[]>([])
-  const [services, setServices] = useState<any[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [services, setServices] = useState<Service[]>([])
   const [selectedClient, setSelectedClient] = useState("")
-  const [items, setItems] = useState([
+  const [items, setItems] = useState<InvoiceItemLocal[]>([
     { product_id: "", service_id: "", quantity: 1, unit_price: 0, type: "product", original_description: "" },
   ])
   const [includeItbis, setIncludeItbis] = useState(false)
   const [ncf, setNcf] = useState("")
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
+  const [companySettings, setCompanySettings] = useState<any>(null)
+  const [invoiceDate, setInvoiceDate] = useState("")
+  const [dueDate, setDueDate] = useState("")
+  const [notes, setNotes] = useState("")
+  const [selectedProject, setSelectedProject] = useState("")
   const { formatCurrency } = useCurrency()
+  const { permissions } = useUserPermissions()
+
+  // Block employee access to editing invoices
+  if (!permissions.canEdit()) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold mb-2">Acceso Restringido</h2>
+            <p className="text-muted-foreground">
+              No tienes permisos para editar facturas. Esta función está disponible solo para propietarios.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => router.push("/invoices")}
+              className="mt-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a Facturas
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const fetchInvoiceData = useCallback(async () => {
     try {
@@ -76,8 +177,8 @@ export default function EditInvoicePage() {
         console.error("Error fetching services:", servicesRes.error)
       }
 
-      const fetchedProducts = productsRes.data || []
-      const fetchedServices = servicesRes.data || []
+      const fetchedProducts = (productsRes.data as Product[]) || []
+      const fetchedServices = (servicesRes.data as Service[]) || []
 
       console.log("Fetched products:", fetchedProducts)
       console.log("Fetched services:", fetchedServices)
@@ -100,25 +201,37 @@ export default function EditInvoicePage() {
       if (invoiceError) {
         throw invoiceError
       }
-      setInvoice(invoiceData)
-      setSelectedClient(invoiceData.client_id)
-      setIncludeItbis(invoiceData.include_itbis || false)
-      setNcf(invoiceData.ncf || "")
+      
+      const invoice = invoiceData as Invoice
+      setInvoice(invoice)
+      setSelectedClient(invoice.client_id || "")
+      setIncludeItbis(invoice.include_itbis || false)
+      setNcf(invoice.ncf || "")
 
-      const [clientsRes, projectsRes, driversRes, vehiclesRes] = await Promise.all([
-        supabase.from("clients").select("id, name").eq("user_id", user.id),
+      const [clientsRes, projectsRes, driversRes, vehiclesRes, companyRes] = await Promise.all([
+        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id),
         supabase.from("projects").select("id, name, client_id").eq("user_id", user.id),
         supabase.from("drivers").select("id, name").eq("user_id", user.id),
         supabase.from("vehicles").select("id, model, plate").eq("user_id", user.id),
+        supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
       ])
 
-      setClients(clientsRes.data || [])
-      setProjects(projectsRes.data || [])
+      setClients((clientsRes.data as Client[]) || [])
+      setProjects((projectsRes.data as Project[]) || [])
       setDrivers(driversRes.data || [])
       setVehicles(vehiclesRes.data || [])
+      setCompanySettings(companyRes.data || null)
 
-      if (invoiceData.invoice_items && invoiceData.invoice_items.length > 0) {
-        const loadedItems = invoiceData.invoice_items.map((item: any) => {
+      // Set the additional form values
+      setInvoiceDate(invoice.invoice_date ? invoice.invoice_date.split('T')[0] : "")
+      setDueDate(invoice.due_date ? invoice.due_date.split('T')[0] : "")
+      setNotes(invoice.notes || "")
+      setSelectedProject(invoice.project_id || "")
+      setDiscountType(invoice.discount_type || "percentage")
+      setDiscountValue(invoice.discount_value || 0)
+
+      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
+        const loadedItems = invoice.invoice_items.map((item: InvoiceItem) => {
           const productId = item.product_id ? String(item.product_id) : ""
           const serviceId = item.service_id ? String(item.service_id) : ""
 
@@ -132,7 +245,7 @@ export default function EditInvoicePage() {
             service_id: serviceId,
             quantity: Math.max(item.quantity || 1, 0.01),
             unit_price: Math.max(item.unit_price || 0, 0),
-            type: productId ? "product" : serviceId ? "service" : "product",
+            type: (productId ? "product" : serviceId ? "service" : "product") as "product" | "service",
             original_description: item.description || product?.name || service?.name || "",
           }
         })
@@ -275,8 +388,8 @@ export default function EditInvoicePage() {
 
       console.log("[v0] Updating invoice with data:", invoiceData)
 
-      const { error: invoiceError, data: updatedInvoice } = await supabase
-        .from("invoices")
+      const { error: invoiceError, data: updatedInvoice } = await (supabase
+        .from("invoices") as any)
         .update(invoiceData)
         .eq("id", params.id)
         .eq("user_id", user.id)
@@ -294,8 +407,8 @@ export default function EditInvoicePage() {
       console.log("[v0] Invoice updated successfully:", updatedInvoice)
 
       console.log("[v0] Deleting old invoice items...")
-      const { error: deleteError, count: deletedCount } = await supabase
-        .from("invoice_items")
+      const { error: deleteError, count: deletedCount } = await (supabase
+        .from("invoice_items") as any)
         .delete({ count: "exact" })
         .eq("invoice_id", params.id)
 
@@ -344,8 +457,8 @@ export default function EditInvoicePage() {
 
       console.log("[v0] Final invoice items to insert:", invoiceItems)
 
-      const { error: itemsError, data: insertedItems } = await supabase
-        .from("invoice_items")
+      const { error: itemsError, data: insertedItems } = await (supabase
+        .from("invoice_items") as any)
         .insert(invoiceItems)
         .select()
 
@@ -482,7 +595,7 @@ export default function EditInvoicePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -521,7 +634,9 @@ export default function EditInvoicePage() {
           </div>
         </div>
 
-        <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid gap-8 grid-cols-1 xl:grid-cols-2">
+          <div className="space-y-8">
+            <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
@@ -685,8 +800,9 @@ export default function EditInvoicePage() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               {items.map((item, index) => (
-                <div key={index} className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div key={index} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-4">
+                  {/* Fila 1: Tipo y Producto/Servicio */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-slate-700 font-medium">Tipo</Label>
                       <Select value={item.type} onValueChange={(value) => updateItem(index, "type", value)}>
@@ -785,7 +901,10 @@ export default function EditInvoicePage() {
                         </p>
                       )}
                     </div>
+                  </div>
 
+                  {/* Fila 2: Cantidad, Precio y Total */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-slate-700 font-medium">Cantidad</Label>
                       <Input
@@ -836,40 +955,43 @@ export default function EditInvoicePage() {
               ))}
 
               <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-orange-800 flex items-center gap-2">
                     <Percent className="h-5 w-5" />
                     Descuentos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-3">
-                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
-                      <RadioGroup
-                        value={discountType}
-                        onValueChange={(value: "percentage" | "fixed") => {
-                          setDiscountType(value)
-                          setDiscountValue(0)
-                        }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="percentage" id="percentage" />
-                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
-                            <Percent className="h-3 w-3" />
-                            Porcentaje
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="fixed" id="fixed" />
-                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
-                            <DollarSign className="h-3 w-3" />
-                            Monto Fijo
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+                <CardContent className="space-y-6">
+                  {/* Tipo de descuento */}
+                  <div>
+                    <Label className="text-orange-700 font-medium mb-3 block">Tipo de Descuento</Label>
+                    <RadioGroup
+                      value={discountType}
+                      onValueChange={(value: "percentage" | "fixed") => {
+                        setDiscountType(value)
+                        setDiscountValue(0)
+                      }}
+                      className="flex flex-row gap-8"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="percentage" id="percentage" />
+                        <Label htmlFor="percentage" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Percent className="h-4 w-4" />
+                          Porcentaje
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fixed" id="fixed" />
+                        <Label htmlFor="fixed" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <DollarSign className="h-4 w-4" />
+                          Monto Fijo
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Valores del descuento */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-orange-700 font-medium">
                         {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
@@ -903,9 +1025,11 @@ export default function EditInvoicePage() {
                       />
                     </div>
                   </div>
+
+                  {/* Mensaje informativo */}
                   {discountAmount > 0 && (
-                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
-                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    <div className="text-sm text-orange-700 bg-orange-100 p-3 rounded border border-orange-200">
+                      💰 Se aplicará un descuento de <strong>{formatCurrency(discountAmount)}</strong> al subtotal
                     </div>
                   )}
                 </CardContent>
@@ -960,7 +1084,8 @@ export default function EditInvoicePage() {
               <Textarea
                 id="notes"
                 name="notes"
-                defaultValue={invoice.notes || ""}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 placeholder="Agregar notas, términos y condiciones, o información adicional..."
                 className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
@@ -974,7 +1099,43 @@ export default function EditInvoicePage() {
               <AlertDescription className="text-red-800">{error}</AlertDescription>
             </Alert>
           )}
-        </form>
+            </form>
+          </div>
+
+          {/* Vista previa */}
+          <div className="sticky top-6">
+            <InvoicePreview
+              invoiceNumber={invoice?.invoice_number || ""}
+              invoiceDate={invoiceDate}
+              dueDate={dueDate}
+              selectedClient={selectedClient}
+              selectedProject={selectedProject}
+              clients={clients}
+              projects={projects}
+              products={products}
+              services={services}
+              items={items.map(item => ({
+                id: `item-${item.product_id || item.service_id}`,
+                item_id: item.product_id || item.service_id,
+                item_type: item.type === "product" ? "product" : "service",
+                quantity: item.quantity,
+                unit_price: item.unit_price
+              }))}
+              includeItbis={includeItbis}
+              ncf={ncf}
+              discountType={discountType}
+              discountValue={discountValue}
+              notes={notes}
+              companyInfo={{
+                name: companySettings?.company_name || "Mi Empresa",
+                address: companySettings?.company_address,
+                phone: companySettings?.company_phone,
+                email: companySettings?.company_email,
+                logo: companySettings?.company_logo
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

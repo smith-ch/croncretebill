@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { InvoicePreview } from "@/components/invoices/invoice-preview"
 
 interface InvoiceItem {
   id: string
@@ -46,6 +47,17 @@ export default function NewInvoicePage() {
   const [ncf, setNcf] = useState("")
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
+  const [companySettings, setCompanySettings] = useState<any>(null)
+  const [invoiceDate, setInvoiceDate] = useState(() => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  })
+  const [dueDate, setDueDate] = useState(() => {
+    const today = new Date()
+    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+    return nextMonth.toISOString().split('T')[0]
+  })
+  const [notes, setNotes] = useState("")
 
   useEffect(() => {
     fetchInitialData()
@@ -62,17 +74,19 @@ export default function NewInvoicePage() {
         return
       }
 
-      const [clientsRes, projectsRes, productsRes, servicesRes] = await Promise.all([
-        supabase.from("clients").select("id, name").eq("user_id", user.id).order("name"),
+      const [clientsRes, projectsRes, productsRes, servicesRes, companyRes] = await Promise.all([
+        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id).order("name"),
         supabase.from("projects").select("id, name, client_id").eq("user_id", user.id).order("name"),
         supabase.from("products").select("id, name, unit, unit_price").eq("user_id", user.id).order("name"),
         supabase.from("services").select("id, name, unit, price").eq("user_id", user.id).order("name"),
+        supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
       ])
 
       setClients(clientsRes.data || [])
       setProjects(projectsRes.data || [])
       setProducts(productsRes.data || [])
       setServices(servicesRes.data || [])
+      setCompanySettings(companyRes.data || null)
     } catch (error) {
       console.error("Error fetching data:", error)
       setError("Error al cargar los datos iniciales")
@@ -364,7 +378,7 @@ export default function NewInvoicePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -424,7 +438,9 @@ export default function NewInvoicePage() {
           </Alert>
         )}
 
-        <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid gap-8 grid-cols-1 xl:grid-cols-2">
+          <div className="space-y-8">
+            <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
@@ -450,7 +466,8 @@ export default function NewInvoicePage() {
                     id="invoice_date"
                     name="invoice_date"
                     type="date"
-                    defaultValue={new Date().toISOString().split("T")[0]}
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
                     required
                     className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -466,7 +483,8 @@ export default function NewInvoicePage() {
                     id="due_date"
                     name="due_date"
                     type="date"
-                    defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
                     required
                     className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -622,8 +640,9 @@ export default function NewInvoicePage() {
                     : services.find((s) => s.id === item.item_id)
 
                 return (
-                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-4">
+                    {/* Fila 1: Tipo y Producto/Servicio */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Tipo</Label>
                         <Select
@@ -695,6 +714,10 @@ export default function NewInvoicePage() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+
+                    {/* Fila 2: Cantidad, Precio y Total */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Cantidad *</Label>
                         <Input
@@ -746,40 +769,43 @@ export default function NewInvoicePage() {
               })}
 
               <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-orange-800 flex items-center gap-2">
                     <Percent className="h-5 w-5" />
                     Descuentos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-3">
-                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
-                      <RadioGroup
-                        value={discountType}
-                        onValueChange={(value: "percentage" | "fixed") => {
-                          setDiscountType(value)
-                          setDiscountValue(0)
-                        }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="percentage" id="percentage" />
-                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
-                            <Percent className="h-3 w-3" />
-                            Porcentaje
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="fixed" id="fixed" />
-                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
-                            <DollarSign className="h-3 w-3" />
-                            Monto Fijo
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+                <CardContent className="space-y-6">
+                  {/* Tipo de descuento */}
+                  <div>
+                    <Label className="text-orange-700 font-medium mb-3 block">Tipo de Descuento</Label>
+                    <RadioGroup
+                      value={discountType}
+                      onValueChange={(value: "percentage" | "fixed") => {
+                        setDiscountType(value)
+                        setDiscountValue(0)
+                      }}
+                      className="flex flex-row gap-8"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="percentage" id="percentage" />
+                        <Label htmlFor="percentage" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Percent className="h-4 w-4" />
+                          Porcentaje
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fixed" id="fixed" />
+                        <Label htmlFor="fixed" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <DollarSign className="h-4 w-4" />
+                          Monto Fijo
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Valores del descuento */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-orange-700 font-medium">
                         {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
@@ -813,9 +839,11 @@ export default function NewInvoicePage() {
                       />
                     </div>
                   </div>
+
+                  {/* Mensaje informativo */}
                   {discountAmount > 0 && (
-                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
-                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    <div className="text-sm text-orange-700 bg-orange-100 p-3 rounded border border-orange-200">
+                      💰 Se aplicará un descuento de <strong>{formatCurrency(discountAmount)}</strong> al subtotal
                     </div>
                   )}
                 </CardContent>
@@ -884,6 +912,8 @@ export default function NewInvoicePage() {
               <Textarea
                 id="notes"
                 name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 placeholder="Agregar notas, términos y condiciones, o información adicional..."
                 rows={4}
                 className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
@@ -896,7 +926,37 @@ export default function NewInvoicePage() {
               <AlertDescription className="text-red-800">{error}</AlertDescription>
             </Alert>
           )}
-        </form>
+            </form>
+          </div>
+
+          {/* Vista previa */}
+          <div className="sticky top-6">
+            <InvoicePreview
+              invoiceNumber={invoiceNumber}
+              invoiceDate={invoiceDate}
+              dueDate={dueDate}
+              selectedClient={selectedClient}
+              selectedProject={selectedProject}
+              clients={clients}
+              projects={projects}
+              products={products}
+              services={services}
+              items={items}
+              includeItbis={includeItbis}
+              ncf={ncf}
+              discountType={discountType}
+              discountValue={discountValue}
+              notes={notes}
+              companyInfo={{
+                name: companySettings?.company_name || "Mi Empresa",
+                address: companySettings?.company_address,
+                phone: companySettings?.company_phone,
+                email: companySettings?.company_email,
+                logo: companySettings?.company_logo
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

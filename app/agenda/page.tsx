@@ -81,6 +81,23 @@ export default function AgendaPage() {
   const { formatCurrency } = useCurrency()
   const { permissions, canDelete } = useUserPermissions()
 
+  // Block employee access to agenda completely
+  if (!permissions.canAccessModule('agenda')) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold mb-2">Acceso Restringido</h2>
+            <p className="text-muted-foreground">
+              No tienes permisos para acceder a la agenda. Esta sección está disponible solo para propietarios.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Form states
   const [newItem, setNewItem] = useState({
     title: "",

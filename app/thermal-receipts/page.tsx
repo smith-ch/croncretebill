@@ -274,8 +274,7 @@ export default function ThermalReceiptsPage() {
   const { notifySuccess, notifyError } = useNotificationHelpers()
   const { permissions } = useUserPermissions()
 
-  // Para el modo empleado, no pueden eliminar cosas
-  const canDelete = permissions.isOwner && !permissions.isRealEmployee
+  // Use proper permissions system for delete operations
 
   const fetchData = useCallback(async () => {
     try {
@@ -609,7 +608,7 @@ export default function ThermalReceiptsPage() {
   }
 
   const handleDeleteReceipt = async (receiptId: string) => {
-    if (!canDelete) {
+    if (!permissions.canDelete()) {
       notifyError("No tienes permisos para eliminar recibos")
       return
     }
@@ -1302,7 +1301,7 @@ export default function ThermalReceiptsPage() {
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
-                    {canDelete && (
+                    {permissions.canDelete() && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -1449,7 +1448,7 @@ export default function ThermalReceiptsPage() {
                   <Printer className="h-4 w-4 mr-2" />
                   Reimprimir
                 </Button>
-                {canDelete && (
+                {permissions.canDelete() && (
                   <Button
                     variant="outline"
                     onClick={() => handleDeleteReceipt(selectedReceipt.id)}
