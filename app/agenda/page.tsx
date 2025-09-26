@@ -79,10 +79,30 @@ export default function AgendaPage() {
   const [editingItem, setEditingItem] = useState<AgendaItem | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const { formatCurrency } = useCurrency()
-  const { permissions, canDelete } = useUserPermissions()
+  const { canAccessModule, canDelete, permissions } = useUserPermissions()
 
-  // Block employee access to agenda completely
-  if (!permissions.canAccessModule('agenda')) {
+  // Verificación defensiva para evitar crash si canAccessModule no existe
+  if (typeof canAccessModule !== 'function' || typeof permissions.canAccessModule === 'function') {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold mb-2">Error de permisos</h2>
+            <p className="text-muted-foreground">
+              El sistema detectó un error grave: <code>canAccessModule</code> no está disponible correctamente.<br />
+              <b>Posible causa:</b> Se está usando <code>permissions.canAccessModule</code> en vez de la función del hook.<br />
+              Por favor, recarga la página, limpia el caché, y asegúrate de no usar <code>permissions.canAccessModule</code> en ningún componente.<br />
+              Si el error persiste, contacta soporte técnico.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Block employee access to agenda completamente
+  if (!canAccessModule('agenda')) {
     return (
       <div className="container mx-auto py-8">
         <Card>

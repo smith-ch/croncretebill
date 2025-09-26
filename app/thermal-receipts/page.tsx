@@ -272,7 +272,7 @@ export default function ThermalReceiptsPage() {
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
-  const { permissions } = useUserPermissions()
+  const { permissions, canDelete } = useUserPermissions()
 
   // Use proper permissions system for delete operations
 
@@ -326,9 +326,6 @@ export default function ThermalReceiptsPage() {
         supabase
           .from("clients")
           .select("id, name, contact_person, email, phone")
-          .eq("user_id", user.id)
-          .order("name")
-          .select("id, name, price")
           .eq("user_id", user.id)
           .order("name")
       ])
@@ -608,7 +605,7 @@ export default function ThermalReceiptsPage() {
   }
 
   const handleDeleteReceipt = async (receiptId: string) => {
-    if (!permissions.canDelete()) {
+  if (!canDelete('thermalReceipts')) {
       notifyError("No tienes permisos para eliminar recibos")
       return
     }
@@ -1301,7 +1298,7 @@ export default function ThermalReceiptsPage() {
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
-                    {permissions.canDelete() && (
+                    {canDelete('thermalReceipts') && (
                       <Button
                         size="sm"
                         variant="outline"
