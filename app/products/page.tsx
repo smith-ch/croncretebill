@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ProductForm } from "@/components/forms/product-form"
+import { CategoryFilter } from "@/components/ui/category-filter"
 import { Plus, Search, Package, Edit, Trash2, Calculator } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useCategories } from "@/hooks/use-categories"
 
 interface Product {
   id: string
@@ -28,10 +30,12 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
+  const { categories } = useCategories('product')
 
   useEffect(() => {
     fetchProducts()
@@ -78,11 +82,15 @@ export default function ProductsPage() {
     }
   }
 
-  const filteredProducts = products.filter(
-    (product) =>
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategoryId === null || product.category_id === selectedCategoryId
+    
+    return matchesSearch && matchesCategory
+  })
 
   if (loading) {
     return (
@@ -119,6 +127,15 @@ export default function ProductsPage() {
               >
                 <Calculator className="h-4 w-4 mr-2" />
                 Presupuestos
+              </Button>
+            </Link>
+            <Link href="/products/multiple-prices-demo">
+              <Button
+                variant="outline"
+                className="bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-700 hover:text-purple-800 shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Precios Múltiples
               </Button>
             </Link>
             <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -162,6 +179,13 @@ export default function ProductsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
+            <div className="mb-6">
+              <CategoryFilter
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={setSelectedCategoryId}
+                type="product"
+              />
+            </div>
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">

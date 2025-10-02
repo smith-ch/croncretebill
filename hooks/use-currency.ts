@@ -32,8 +32,8 @@ export function useCurrency() {
       }
 
       if (settings) {
-        setCurrencySymbol(settings.currency_symbol || "RD$")
-        setCurrencyCode(settings.currency_code || "DOP")
+        setCurrencySymbol((settings as any).currency_symbol || "RD$")
+        setCurrencyCode((settings as any).currency_code || "DOP")
       }
     } catch (error) {
       console.error("Error fetching currency settings:", error)

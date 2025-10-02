@@ -250,15 +250,12 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
     currentY += 4
 
     try {
-      const qrData = {
-        receipt_number: receiptData.receipt_number,
-        client_name: receiptData.client_name,
-        total_amount: receiptData.total_amount,
-        verification_code: receiptData.verification_code,
-        created_at: receiptData.created_at,
-        items: receiptData.items,
-        url: `${window?.location?.origin || 'https://miempresa.com'}/verify/${receiptData.verification_code}`
-      }
+      // Use a fallback URL for local development
+      const baseUrl = (window?.location?.origin || 'https://miempresa.com')
+      const finalUrl = baseUrl.includes('localhost') 
+        ? 'https://tu-dominio-futuro.com' // Cambia esto por tu dominio de producción
+        : baseUrl
+      const qrData = `${finalUrl}/system-info`
       
       const qrCodeDataURL = await generateQRCode(qrData)
       

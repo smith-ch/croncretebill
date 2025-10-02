@@ -119,7 +119,7 @@ export default function ProjectsPage() {
 
       if (error) {throw error}
 
-      const projectsWithMetrics = (data || []).map((project) => {
+      const projectsWithMetrics = (data || []).map((project: any) => {
         const totalInvoiced = project.invoices?.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0) || 0
         const totalExpenses = 0 // Will be 0 until expenses are properly linked to projects
         const profit = totalInvoiced - totalExpenses

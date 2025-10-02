@@ -17,7 +17,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingClient, setEditingClient] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
-  const { permissions, canDelete, canEdit } = useUserPermissions()
+  const { canDelete, canEdit } = useUserPermissions()
 
   useEffect(() => {
     fetchClients()

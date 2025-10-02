@@ -126,31 +126,6 @@ export default function EditInvoicePage() {
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
 
-  // Block employee access to editing invoices
-  if (!permissions.canEditInvoices) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">Acceso Restringido</h2>
-            <p className="text-muted-foreground">
-              No tienes permisos para editar facturas. Esta función está disponible solo para propietarios.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => router.push("/invoices")}
-              className="mt-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver a Facturas
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   const fetchInvoiceData = useCallback(async () => {
     try {
       const {
@@ -268,6 +243,31 @@ export default function EditInvoicePage() {
   useEffect(() => {
     fetchInvoiceData()
   }, [fetchInvoiceData])
+
+  // Block employee access to editing invoices
+  if (!permissions.canEditInvoices) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold mb-2">Acceso Restringido</h2>
+            <p className="text-muted-foreground">
+              No tienes permisos para editar facturas. Esta función está disponible solo para propietarios.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => router.push("/invoices")}
+              className="mt-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a Facturas
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

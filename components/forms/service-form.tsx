@@ -1,30 +1,30 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { CategorySelector } from "@/components/ui/category-selector"
 import { Loader2, Info } from "lucide-react"
 
 interface ServiceFormProps {
   service?: any
   onSuccess?: () => void
+  inModal?: boolean
 }
 
-export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
+export function ServiceForm({ service, onSuccess, inModal = false }: ServiceFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isCustomPricing, setIsCustomPricing] = useState(service?.price === null || service?.price === undefined)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(service?.category_id || "")
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -38,7 +38,8 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
       description: formData.get("description") as string,
       price: isCustomPricing ? null : priceValue ? Number.parseFloat(priceValue) : 0,
       unit: formData.get("unit") as string,
-      category: formData.get("category") as string,
+      category: formData.get("category") as string, // Mantener compatibilidad hacia atrás
+      category_id: selectedCategoryId || null,
       duration: formData.get("duration") as string,
       requirements: formData.get("requirements") as string,
       includes: formData.get("includes") as string,
@@ -51,17 +52,28 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (service) {
-        const { error } = await supabase.from("services").update(serviceData).eq("id", service.id)
-        if (error) throw error
+        const { error } = await supabase
+          .from("services")
+          .update(serviceData)
+          .eq("id", service.id)
+        if (error) {
+          throw error
+        }
       } else {
-        const { error } = await supabase.from("services").insert({
-          ...serviceData,
-          user_id: user.id,
-        })
-        if (error) throw error
+        const { error } = await supabase
+          .from("services")
+          .insert({
+            ...serviceData,
+            user_id: user.id,
+          })
+        if (error) {
+          throw error
+        }
       }
 
       if (onSuccess) {
@@ -99,21 +111,14 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Categoría</Label>
-                <Select name="category" defaultValue={service?.category}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Construcción">Construcción</SelectItem>
-                    <SelectItem value="Instalación">Instalación</SelectItem>
-                    <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
-                    <SelectItem value="Consultoría">Consultoría</SelectItem>
-                    <SelectItem value="Diseño">Diseño</SelectItem>
-                    <SelectItem value="Transporte">Transporte</SelectItem>
-                    <SelectItem value="Reparación">Reparación</SelectItem>
-                    <SelectItem value="Otros">Otros</SelectItem>
-                  </SelectContent>
-                </Select>
+                <CategorySelector
+                  value={selectedCategoryId}
+                  onValueChange={setSelectedCategoryId}
+                  type="service"
+                  placeholder="Seleccionar categoría"
+                />
+                {/* Hidden input for backward compatibility */}
+                <input type="hidden" name="category" value={selectedCategoryId} />
               </div>
             </div>
 
@@ -170,22 +175,13 @@ export function ServiceForm({ service, onSuccess }: ServiceFormProps) {
                 {isCustomPricing && <p className="text-xs text-gray-600">El precio se definirá al crear la factura</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Unidad de Cobro</Label>
-                <Select name="unit" defaultValue={service?.unit || "servicio"}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar unidad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="servicio">Por Servicio</SelectItem>
-                    <SelectItem value="hora">Por Hora</SelectItem>
-                    <SelectItem value="día">Por Día</SelectItem>
-                    <SelectItem value="semana">Por Semana</SelectItem>
-                    <SelectItem value="mes">Por Mes</SelectItem>
-                    <SelectItem value="m²">Por Metro Cuadrado</SelectItem>
-                    <SelectItem value="m³">Por Metro Cúbico</SelectItem>
-                    <SelectItem value="proyecto">Por Proyecto</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="unit">Unidad</Label>
+                <Input
+                  id="unit"
+                  name="unit"
+                  defaultValue={service?.unit || "servicio"}
+                  placeholder="servicio"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="duration">Duración Estimada</Label>

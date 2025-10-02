@@ -322,7 +322,7 @@ export default function MonthlyReportsPage() {
         .order("created_at", { ascending: true })
 
       console.log("Todas las facturas encontradas:", invoices?.length || 0)
-      console.log("Estados de facturas:", invoices?.map(inv => inv.status))
+      console.log("Estados de facturas:", invoices?.map((inv: any) => inv.status))
       console.log("Gastos encontrados:", expenses?.length || 0)
       
       if (invoicesError) {
@@ -333,7 +333,7 @@ export default function MonthlyReportsPage() {
       }
 
       // Filtrar facturas válidas
-      const validInvoices = invoices?.filter(invoice => {
+      const validInvoices = invoices?.filter((invoice: any) => {
         const hasValidTotal = invoice.total && invoice.total > 0
         const isValidStatus = !invoice.status || 
                              invoice.status === 'paid' || 
@@ -355,7 +355,7 @@ export default function MonthlyReportsPage() {
       const monthlyDataMap = new Map()
       
       // Procesar facturas válidas
-      validInvoices.forEach(invoice => {
+      validInvoices.forEach((invoice: any) => {
         const date = new Date(invoice.created_at)
         const month = date.getMonth() + 1
         const year = date.getFullYear()
@@ -378,7 +378,7 @@ export default function MonthlyReportsPage() {
       })
 
       // Procesar gastos
-      expenses?.forEach(expense => {
+      expenses?.forEach((expense: any) => {
         const date = new Date(expense.created_at)
         const month = date.getMonth() + 1
         const year = date.getFullYear()

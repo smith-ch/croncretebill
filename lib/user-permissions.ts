@@ -46,7 +46,7 @@ export async function ensureUserProfile(userId?: string) {
         full_name: user.user_metadata?.full_name || "",
         company_name: user.user_metadata?.company_name || "",
         role: "vendedor"
-      })
+      } as any)
       .select()
       .single()
 

@@ -39,6 +39,7 @@ import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { generateThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
+import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 
 interface Product {
   id: string
@@ -223,6 +224,7 @@ interface ThermalReceiptItem {
   line_total: number
   product_id?: string
   service_id?: string
+  selected_price_id?: string | null // Para tracking del precio seleccionado
 }
 
 interface ThermalReceipt {
@@ -272,7 +274,7 @@ export default function ThermalReceiptsPage() {
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
-  const { permissions, canDelete } = useUserPermissions()
+  const { canDelete } = useUserPermissions()
 
   // Use proper permissions system for delete operations
 
@@ -422,10 +424,22 @@ export default function ThermalReceiptsPage() {
         item_name: item.name,
         unit_price: item.price || 0,
         [type === 'product' ? "product_id" : "service_id"]: id,
+        selected_price_id: null, // Reset price selection
         line_total: updatedItems[index].quantity * (item.price || 0)
       }
       setItems(updatedItems)
     }
+  }
+
+  const handlePriceSelect = (index: number, priceId: string, priceValue: number) => {
+    const updatedItems = [...items]
+    updatedItems[index] = {
+      ...updatedItems[index],
+      selected_price_id: priceId,
+      unit_price: priceValue,
+      line_total: updatedItems[index].quantity * priceValue
+    }
+    setItems(updatedItems)
   }
 
   const calculateTotals = () => {
@@ -494,12 +508,11 @@ export default function ThermalReceiptsPage() {
       }
 
       const verification_code = generateVerificationCode()
-      const qr_data = {
-        receipt_number: `TR-${Date.now()}`,
-        total: total_amount,
-        verification: verification_code,
-        url: `${window.location.origin}/verify/${verification_code}`
-      }
+      // Use a fallback URL for local development
+      const baseUrl = window.location.origin.includes('localhost') 
+        ? 'https://tu-dominio-futuro.com' // Cambia esto por tu dominio de producción
+        : window.location.origin
+      const qr_url = `${baseUrl}/system-info`
 
       // Save thermal receipt
       const { data: receiptData, error: receiptError } = await supabase
@@ -513,9 +526,9 @@ export default function ThermalReceiptsPage() {
           payment_method: paymentMethod,
           amount_received: amountReceived,
           change_amount,
-          qr_code: JSON.stringify(qr_data),
+          qr_code: qr_url,
           verification_code,
-          digital_receipt_url: qr_data.url,
+          digital_receipt_url: qr_url,
           notes
         })
         .select()
@@ -890,15 +903,25 @@ export default function ThermalReceiptsPage() {
                         />
                       </div>
                       <div>
-                        <Input
-                          type="number"
-                          placeholder="Precio unitario"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
-                          min="0"
-                          step="0.01"
-                          className="border-blue-200"
-                        />
+                        {item.product_id ? (
+                          <ProductPriceDropdown
+                            productId={item.product_id}
+                            selectedPriceId={item.selected_price_id}
+                            quantity={item.quantity}
+                            onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(index, priceId, priceValue)}
+                            className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <Input
+                            type="number"
+                            placeholder="Precio unitario"
+                            value={item.unit_price}
+                            onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="border-blue-200"
+                          />
+                        )}
                       </div>
                       <div>
                         <Input
@@ -1445,7 +1468,7 @@ export default function ThermalReceiptsPage() {
                   <Printer className="h-4 w-4 mr-2" />
                   Reimprimir
                 </Button>
-                {permissions.canDelete() && (
+                {canDelete('thermalReceipts') && (
                   <Button
                     variant="outline"
                     onClick={() => handleDeleteReceipt(selectedReceipt.id)}

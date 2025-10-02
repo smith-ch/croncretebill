@@ -31,7 +31,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const { formatCurrency } = useCurrency()
-  const { canDelete } = useUserPermissions()
+  const { canDelete, canEdit } = useUserPermissions()
 
   useEffect(() => {
     fetchInvoices()
@@ -412,16 +412,18 @@ export default function InvoicesPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                          className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                        >
-                          <Link href={`/invoices/${invoice.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
+                        {canEdit('invoices') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                          >
+                            <Link href={`/invoices/${invoice.id}/edit`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

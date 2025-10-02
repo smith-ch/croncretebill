@@ -46,6 +46,7 @@ export function useUserPermissions() {
     role: 'owner',
     isOwner: true,
     wasOriginallyOwner: true,
+    isRealEmployee: false,
     // Permisos de edición - por defecto para owner
     canEditInvoices: true,
     canEditClients: true,
@@ -106,7 +107,7 @@ export function useUserPermissions() {
         // Guardar que es owner originalmente
         localStorage.setItem('was-originally-owner', 'true')
         
-        let defaultPermissions = {
+        let defaultPermissions: UserPermissions = {
           canCreateInvoices: true,
           canViewFinances: true,
           canManageInventory: true,
@@ -115,6 +116,7 @@ export function useUserPermissions() {
           role: 'owner',
           isOwner: true,
           wasOriginallyOwner: true,
+          isRealEmployee: isRealEmployee,
           // Permisos de edición para owner por defecto
           canEditInvoices: true,
           canEditClients: true,
@@ -139,18 +141,19 @@ export function useUserPermissions() {
 
         console.log('Using default owner permissions due to error')
 
-        // Si está en modo empleado, aplicar restricciones ESTRICTAS
-        if (isEmployeeMode) {
+        // Si está en modo empleado O es empleado real, aplicar restricciones ESTRICTAS
+        if (isEmployeeMode || isRealEmployee) {
           defaultPermissions = {
-            canCreateInvoices: true,
-            canViewFinances: false,
-            canManageInventory: false,
-            canManageClients: true,
-            maxInvoiceAmount: 50000,
+            canCreateInvoices: true, // Los empleados SÍ pueden crear facturas
+            canViewFinances: true, // Los empleados SÍ pueden ver finanzas básicas
+            canManageInventory: true, // Los empleados SÍ pueden crear productos/servicios
+            canManageClients: true, // Los empleados SÍ pueden crear clientes
+            maxInvoiceAmount: 25000, // Límite más bajo para empleados
             role: 'employee',
             isOwner: false,
-            wasOriginallyOwner: true,
-            // Los empleados NO pueden editar ABSOLUTAMENTE NADA
+            wasOriginallyOwner: !isRealEmployee, // Solo true si es propietario en modo prueba
+            isRealEmployee: isRealEmployee,
+            // EMPLEADOS NO PUEDEN EDITAR ABSOLUTAMENTE NADA
             canEditInvoices: false,
             canEditClients: false,
             canEditProducts: false,
@@ -160,7 +163,7 @@ export function useUserPermissions() {
             canEditThermalReceipts: false,
             canEditAgendaEvents: false,
             canEditExpenses: false,
-            // Los empleados NO pueden eliminar ABSOLUTAMENTE NADA
+            // EMPLEADOS NO PUEDEN ELIMINAR ABSOLUTAMENTE NADA
             canDeleteInvoices: false,
             canDeleteClients: false,
             canDeleteProducts: false,
@@ -222,20 +225,20 @@ export function useUserPermissions() {
         // VERIFICAR si está en modo empleado (role-switcher)
         const isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
         
-        // FORZAR: Si está en modo empleado O no es owner confirmado, aplicar restricciones
-        if (isEmployeeMode || !originalIsOwner) {
+        // FORZAR: Si está en modo empleado O es empleado real O no es owner confirmado, aplicar restricciones ESTRICTAS
+        if (isEmployeeMode || isRealEmployee || !originalIsOwner) {
           finalPermissions = {
             ...finalPermissions,
-            canCreateInvoices: true,  // Empleados pueden facturar
-            canViewFinances: false,   // NO pueden ver finanzas
-            canManageInventory: false, // NO pueden manejar inventario
-            canManageClients: true,   // SÍ pueden manejar clientes
-            maxInvoiceAmount: 50000,
+            canCreateInvoices: true,  // Solo pueden crear facturas básicas
+            canViewFinances: false,   // NO pueden ver reportes financieros ni agenda
+            canManageInventory: false, // NO pueden gestionar inventario
+            canManageClients: false,   // NO pueden editar clientes (solo ver)
+            maxInvoiceAmount: 15000,   // Límite muy bajo para empleados
             role: 'employee',
-            isOwner: false,           // IMPORTANTE: Temporalmente false en modo empleado
-            wasOriginallyOwner: originalIsOwner, // Mantener el estado original
-            isRealEmployee: !originalIsOwner,    // Solo true si es empleado real
-            // Los empleados NO pueden editar NADA - PERMISOS TOTALMENTE ELIMINADOS
+            isOwner: false,           // IMPORTANTE: false para empleados
+            wasOriginallyOwner: originalIsOwner && !isRealEmployee, // Solo para propietarios en modo prueba
+            isRealEmployee: isRealEmployee,
+            // EMPLEADOS NO PUEDEN EDITAR ABSOLUTAMENTE NADA
             canEditInvoices: false,
             canEditClients: false,
             canEditProducts: false,
@@ -245,7 +248,7 @@ export function useUserPermissions() {
             canEditThermalReceipts: false,
             canEditAgendaEvents: false,
             canEditExpenses: false,
-            // Los empleados NO pueden eliminar NADA - PERMISOS TOTALMENTE ELIMINADOS
+            // EMPLEADOS NO PUEDEN ELIMINAR ABSOLUTAMENTE NADA
             canDeleteInvoices: false,
             canDeleteClients: false,
             canDeleteProducts: false,
@@ -479,19 +482,19 @@ export function useUserPermissions() {
         return permissions.canManageClients // Solo gestión básica, NO editar/eliminar
       
       case 'products':
-        return true // Solo VER productos, NO editar/eliminar
+        return true // EMPLEADOS SÍ pueden acceder a productos (crear, ver, no editar ni eliminar)
       
       case 'budgets':
-        return true // Solo VER presupuestos, NO editar/eliminar
+        return true // Los empleados pueden crear presupuestos
       
       case 'services':
-        return true // Solo VER servicios, NO editar/eliminar
+        return true // EMPLEADOS SÍ pueden acceder a servicios (crear, ver, no editar ni eliminar)
       
       case 'thermal-receipts':
       case 'payment-receipts':
       case 'recibos':
       case 'comprobantes':
-        return false // EMPLEADOS NO pueden acceder a comprobantes - COMPLETAMENTE BLOQUEADO
+        return true // EMPLEADOS SÍ pueden acceder a comprobantes (crear, descargar, no editar ni eliminar)
       
       case 'agenda':
         return false // EMPLEADOS NO pueden acceder a agenda - COMPLETAMENTE BLOQUEADO
@@ -499,9 +502,14 @@ export function useUserPermissions() {
       case 'faq':
         return true // FAQ siempre accesible
       
-      // MÓDULOS COMPLETAMENTE BLOQUEADOS PARA EMPLEADOS
+      // MÓDULOS CON ACCESO LIMITADO PARA EMPLEADOS
       case 'inventory':
+      case 'productos':
+      case 'servicios':
+        return true // Los empleados pueden crear pero no editar/eliminar
+      
       case 'projects':
+      case 'proyectos':
       case 'expenses':
       case 'gastos':
       case 'reports':
@@ -510,6 +518,10 @@ export function useUserPermissions() {
       case 'reportes':
       case 'settings':
       case 'configuracion':
+      case 'vehicles':
+      case 'vehiculos':
+      case 'drivers':
+      case 'conductores':
         return false // TOTALMENTE BLOQUEADOS para empleados
       
       default:

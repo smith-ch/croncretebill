@@ -2,31 +2,21 @@
 
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { 
   TrendingUp, 
-  TrendingDown, 
-  Zap, 
-  Target, 
-  Calendar, 
-  Clock, 
   AlertTriangle,
   CheckCircle,
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
-  PieChart,
   DollarSign,
   Activity,
   Sparkles,
   Eye,
-  Heart,
   Star,
   ThumbsUp,
-  Award,
-  Crown,
   Trophy
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'

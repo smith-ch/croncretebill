@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
+import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 
 interface InvoiceItem {
   id: string
@@ -23,12 +24,13 @@ interface InvoiceItem {
   item_type: "product" | "service"
   quantity: number
   unit_price: number
+  selected_price_id?: string | null // Para tracking del precio seleccionado
 }
 
 export default function NewInvoicePage() {
   const router = useRouter()
   const { formatCurrency } = useCurrency()
-  const { permissions, validateInvoiceAmount, canAccessModule } = useUserPermissions()
+  const { permissions, validateInvoiceAmount } = useUserPermissions()
   
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
@@ -330,6 +332,7 @@ export default function NewInvoicePage() {
   const handleItemChange = (itemId: string, selectedItemId: string, itemType: "product" | "service") => {
     updateItem(itemId, "item_id", selectedItemId)
     updateItem(itemId, "item_type", itemType)
+    updateItem(itemId, "selected_price_id", null) // Reset price selection
 
     const selectedItem =
       itemType === "product"
@@ -342,6 +345,11 @@ export default function NewInvoicePage() {
         updateItem(itemId, "unit_price", Number(price))
       }
     }
+  }
+
+  const handlePriceSelect = (itemId: string, priceId: string, priceValue: number) => {
+    updateItem(itemId, "selected_price_id", priceId)
+    updateItem(itemId, "unit_price", priceValue)
   }
 
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient && selectedClient !== "no-client")
@@ -732,15 +740,25 @@ export default function NewInvoicePage() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Precio Unitario *</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
-                          required
-                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                        />
+                        {item.item_type === "product" && item.item_id ? (
+                          <ProductPriceDropdown
+                            productId={item.item_id}
+                            selectedPriceId={item.selected_price_id}
+                            quantity={item.quantity}
+                            onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(item.id, priceId, priceValue)}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.unit_price}
+                            onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
+                            required
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Total</Label>

@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
+import { CategoryFilter } from "@/components/ui/category-filter"
 import { Plus, Search, Wrench, Edit, Trash2, DollarSign } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useCategories } from "@/hooks/use-categories"
 
 interface Service {
   id: string
@@ -27,17 +29,19 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete, permissions } = useUserPermissions()
+  const { canDelete, canAccessModule } = useUserPermissions()
+  const { categories } = useCategories('service')
 
   useEffect(() => {
     fetchServices()
   }, [])
 
-  // Check if user has permission to manage inventory (services are part of inventory)
-  if (!permissions.canManageInventory) {
+  // Check if user has permission to access services
+  if (!canAccessModule('services')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
         <div className="max-w-7xl mx-auto">
@@ -105,11 +109,15 @@ export default function ServicesPage() {
     }
   }
 
-  const filteredServices = services.filter(
-    (service) =>
+  const filteredServices = services.filter((service) => {
+    const matchesSearch = 
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      service.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategoryId === null || service.category_id === selectedCategoryId
+    
+    return matchesSearch && matchesCategory
+  })
 
   if (loading) {
     return (
@@ -170,6 +178,13 @@ export default function ServicesPage() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
+          <div className="mb-6">
+            <CategoryFilter
+              selectedCategoryId={selectedCategoryId}
+              onCategoryChange={setSelectedCategoryId}
+              type="service"
+            />
+          </div>
           {filteredServices.length === 0 ? (
             <div className="text-center py-12">
               <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />

@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -34,7 +32,7 @@ export default function VehiclesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { return }
 
       const { data, error } = await supabase
         .from("vehicles")
@@ -42,7 +40,7 @@ export default function VehiclesPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) { throw error }
       setVehicles(data || [])
     } catch (error) {
       console.error("Error fetching vehicles:", error)
@@ -68,17 +66,19 @@ export default function VehiclesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) { throw new Error("Usuario no autenticado") }
 
       if (editingVehicle) {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("vehicles").update(vehicleData).eq("id", editingVehicle.id)
-        if (error) throw error
+        if (error) { throw error }
       } else {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("vehicles").insert({
           ...vehicleData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) { throw error }
       }
 
       setShowForm(false)
@@ -97,11 +97,11 @@ export default function VehiclesPage() {
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este vehículo?")) return
+    if (!confirm("¿Estás seguro de que quieres eliminar este vehículo?")) { return }
 
     try {
       const { error } = await supabase.from("vehicles").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchVehicles()
     } catch (error) {
       console.error("Error deleting vehicle:", error)

@@ -52,7 +52,7 @@ export default function UnifiedInventoryPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterWarehouse, setFilterWarehouse] = useState<string>("all")
   const { formatCurrency } = useCurrency()
-  const { permissions } = useUserPermissions()
+  const { permissions, canEdit, canDelete } = useUserPermissions()
 
   const fetchAllData = useCallback(async () => {
     setLoading(true)
@@ -117,16 +117,16 @@ export default function UnifiedInventoryPage() {
       }
 
       const totalProducts = products?.length || 0
-      const totalValue = products?.reduce((sum, p) => sum + ((p.current_stock || 0) * (p.unit_price || 0)), 0) || 0
-      const lowStockCount = products?.filter(p => (p.current_stock || 0) <= 5).length || 0
-      const outOfStockCount = products?.filter(p => (p.current_stock || 0) === 0).length || 0
+      const totalValue = products?.reduce((sum, p: any) => sum + ((p.current_stock || 0) * (p.unit_price || 0)), 0) || 0
+      const lowStockCount = products?.filter((p: any) => (p.current_stock || 0) <= 5).length || 0
+      const outOfStockCount = products?.filter((p: any) => (p.current_stock || 0) === 0).length || 0
 
       setSummary({
         total_products: totalProducts,
         total_stock_value: totalValue,
         low_stock_items: lowStockCount,
         out_of_stock_items: outOfStockCount,
-        total_items_in_stock: products?.reduce((sum, p) => sum + (p.current_stock || 0), 0) || 0
+        total_items_in_stock: products?.reduce((sum, p: any) => sum + (p.current_stock || 0), 0) || 0
       })
     } catch (error) {
       console.error('Error fetching summary:', error)
@@ -635,9 +635,11 @@ export default function UnifiedInventoryPage() {
                         <td className="p-2 text-right">{formatCurrency(item.stock_value)}</td>
                         <td className="p-2 text-center">{getStatusBadge(item.stock_status)}</td>
                         <td className="p-2 text-center">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          {canEdit('products') && (
+                            <Button variant="ghost" size="sm">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}

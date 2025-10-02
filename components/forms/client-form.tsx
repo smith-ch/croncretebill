@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -19,7 +17,7 @@ interface ClientFormProps {
   inModal?: boolean // Nueva prop para saber si está en modal
 }
 
-export function ClientForm({ client, onSuccess, inModal = false }: ClientFormProps) {
+export function ClientForm({ client, onSuccess }: ClientFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,15 +62,17 @@ export function ClientForm({ client, onSuccess, inModal = false }: ClientFormPro
 
       if (client) {
         // Update existing client
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("clients").update(clientData).eq("id", client.id)
-        if (error) throw error
+        if (error) { throw error }
       } else {
         // Create new client
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("clients").insert({
           ...clientData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) { throw error }
       }
 
       if (onSuccess) {

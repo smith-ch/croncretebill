@@ -35,13 +35,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { data: companySettings } = await supabaseAdmin
       .from("company_settings")
       .select("*")
-      .eq("user_id", invoice.user_id)
+      .eq("user_id", (invoice as any).user_id)
       .single()
 
-    const currencySymbol = companySettings?.currency_symbol || "RD$"
+    const currencySymbol = (companySettings as any)?.currency_symbol || "RD$"
 
     // Get user profile for company info
-    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", invoice.user_id).single()
+    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", (invoice as any).user_id).single()
 
     // Generate HTML for PDF
     const html = generateInvoiceHTML(
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html",
-        "Content-Disposition": `inline; filename="factura-${invoice.invoice_number}.html"`,
+        "Content-Disposition": `inline; filename="factura-${(invoice as any).invoice_number}.html"`,
       },
     })
   } catch (error) {

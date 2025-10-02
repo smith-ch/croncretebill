@@ -221,12 +221,11 @@ export default function ThermalReceiptsPage() {
       }
 
       const verification_code = generateVerificationCode()
-      const qr_data = {
-        receipt_number: `TR-${Date.now()}`,
-        total: total_amount,
-        verification: verification_code,
-        url: `${window.location.origin}/verify/${verification_code}`
-      }
+      // Use a fallback URL for local development
+      const baseUrl = window.location.origin.includes('localhost') 
+        ? 'https://tu-dominio-futuro.com' // Cambia esto por tu dominio de producción
+        : window.location.origin
+      const qr_url = `${baseUrl}/system-info`
 
       // Save thermal receipt
       const { data: receiptData, error: receiptError } = await supabase
@@ -240,9 +239,9 @@ export default function ThermalReceiptsPage() {
           payment_method: paymentMethod,
           amount_received: amountReceived,
           change_amount,
-          qr_code: JSON.stringify(qr_data),
+          qr_code: qr_url,
           verification_code,
-          digital_receipt_url: qr_data.url,
+          digital_receipt_url: qr_url,
           notes
         })
         .select()
