@@ -155,6 +155,7 @@ export default function DGIIReportsPage() {
   const { permissions } = useUserPermissions()
   
   const [selectedMonth, setSelectedMonth] = useState(formatDateToYearMonth(new Date()))
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [loading, setLoading] = useState(false)
   const [dgiiData, setDgiiData] = useState<DGIIData | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
@@ -309,6 +310,133 @@ export default function DGIIReportsPage() {
   useEffect(() => {
     fetchDGIIData()
   }, [fetchDGIIData])
+
+  // Función para obtener datos anuales completos
+  const fetchAnnualDGIIData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return
+      }
+
+      // Calcular fechas del año completo
+      const startDate = `${selectedYear}-01-01`
+      const endDate = `${selectedYear}-12-31`
+
+      console.log(`Buscando datos anuales del ${startDate} al ${endDate}`)
+
+      // Obtener datos de gastos del año completo
+      const { data: expenses, error: expensesError } = await supabase
+        .from("expenses")
+        .select(`
+          *,
+          expense_categories(name, color),
+          clients(id, name, rnc, id_number, email, phone, tipo_id, is_provider)
+        `)
+        .eq("user_id", user.id)
+        .gte("expense_date", startDate)
+        .lte("expense_date", endDate)
+        .order("expense_date", { ascending: true })
+
+      // Obtener datos de ventas del año completo
+      const { data: invoices, error: invoicesError } = await supabase
+        .from("invoices")
+        .select(`
+          id,
+          invoice_number,
+          created_at,
+          total,
+          subtotal,
+          tax_amount,
+          ncf,
+          user_id,
+          payment_method,
+          monto_bienes,
+          monto_servicios,
+          monto_exento,
+          tipo_comprobante,
+          indicador_anulacion,
+          clients!inner(
+            id,
+            name,
+            email,
+            phone,
+            rnc,
+            id_number,
+            tipo_id
+          )
+        `)
+        .eq("user_id", user.id)
+        .gte("created_at", startDate)
+        .lte("created_at", endDate)
+        .order("created_at", { ascending: true })
+
+      console.log(`Encontrados: ${expenses?.length || 0} gastos anuales, ${invoices?.length || 0} facturas anuales`)
+
+      if (expensesError) {
+        console.error("Error en gastos anuales:", expensesError)
+        throw new Error("Error al obtener gastos anuales: " + expensesError.message)
+      }
+      if (invoicesError) {
+        console.error("Error en facturas anuales:", invoicesError)
+        throw new Error("Error al obtener facturas anuales: " + invoicesError.message)
+      }
+
+      // Calcular totales anuales
+      const totalCompras = expenses?.reduce((sum, exp) => {
+        const amount = parseFloat(exp.amount) || 0
+        return sum + amount
+      }, 0) || 0
+
+      const totalVentas = invoices?.reduce((sum, inv) => {
+        const total = parseFloat(inv.total) || 0
+        return sum + total
+      }, 0) || 0
+
+      const itbisCompras = expenses?.reduce((sum, exp) => {
+        const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount) : (parseFloat(exp.amount) || 0) * 0.18
+        return sum + itbis
+      }, 0) || 0
+
+      const itbisVentas = invoices?.reduce((sum, inv) => {
+        const itbis = parseFloat(inv.tax_amount) || 0
+        return sum + itbis
+      }, 0) || 0
+
+      console.log("Totales anuales calculados:", { totalCompras, totalVentas, itbisCompras, itbisVentas })
+
+      setDgiiData({
+        compras: expenses || [],
+        ventas: invoices || [],
+        totalCompras,
+        totalVentas,
+        itbisCompras,
+        itbisVentas
+      })
+
+    } catch (error) {
+      console.error("Error fetching annual DGII data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedYear])
+
+  // Effect para cargar datos anuales cuando se selecciona la pestaña anual
+  useEffect(() => {
+    if (activeTab === "annual") {
+      fetchAnnualDGIIData()
+    } else {
+      fetchDGIIData()
+    }
+  }, [activeTab, selectedYear, fetchAnnualDGIIData, fetchDGIIData])
+
+  // Effect adicional para refrescar datos cuando cambia el año en pestaña anual
+  useEffect(() => {
+    if (activeTab === "annual") {
+      fetchAnnualDGIIData()
+    }
+  }, [selectedYear, activeTab, fetchAnnualDGIIData])
 
   // Check if user has permission to view financial reports
   if (!permissions.canViewFinances) {
@@ -809,6 +937,147 @@ export default function DGIIReportsPage() {
     URL.revokeObjectURL(url)
   }
 
+  // Función para descargar reporte anual
+  const downloadAnnualReport = (type: '606' | '607' | 'consolidado') => {
+    if (!dgiiData) {
+      alert("No hay datos disponibles para el año seleccionado")
+      return
+    }
+
+    const yearData = {
+      compras: (dgiiData.compras || []).filter(expense => 
+        new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear
+      ),
+      ventas: (dgiiData.ventas || []).filter(invoice => 
+        new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear
+      )
+    }
+
+    if (type === '606') {
+      // Generar Excel para 606 anual
+      const ws = XLSX.utils.json_to_sheet(
+        yearData.compras.map(expense => ({
+          'Fecha': new Date(expense.created_at || expense.fecha || expense.date).toLocaleDateString('es-DO'),
+          'Proveedor': expense.provider_name || expense.proveedor || 'N/A',
+          'RNC': expense.provider_rnc || expense.rnc || 'N/A',
+          'NCF': expense.ncf || 'N/A',
+          'Descripción': expense.description || expense.descripcion || 'N/A',
+          'Monto': expense.amount || expense.monto || 0,
+          'ITBIS': expense.tax_amount || expense.itbis || 0,
+          'Tipo Gasto': TIPOS_GASTO_DGII[expense.tipo_gasto as keyof typeof TIPOS_GASTO_DGII] || 'Compras y Gastos que forman parte del Costo de Venta'
+        }))
+      )
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, `606_${selectedYear}`)
+      XLSX.writeFile(wb, `Reporte_606_Anual_${selectedYear}.xlsx`)
+    } else if (type === '607') {
+      // Generar Excel para 607 anual
+      const ws = XLSX.utils.json_to_sheet(
+        yearData.ventas.map(invoice => ({
+          'Fecha': new Date(invoice.created_at || invoice.fecha || invoice.date).toLocaleDateString('es-DO'),
+          'Cliente': invoice.client_name || invoice.cliente || 'N/A',
+          'RNC': invoice.client_rnc || invoice.rnc || 'N/A',
+          'NCF': invoice.ncf || 'N/A',
+          'Total': invoice.total || invoice.monto || 0,
+          'ITBIS': invoice.tax_amount || invoice.itbis || 0,
+          'Tipo Comprobante': TIPOS_COMPROBANTE_FISCAL[invoice.tipo_comprobante as keyof typeof TIPOS_COMPROBANTE_FISCAL] || 'Consumo',
+          'Forma Pago': FORMAS_PAGO_DGII[invoice.payment_method as keyof typeof FORMAS_PAGO_DGII] || 'Crédito'
+        }))
+      )
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, `607_${selectedYear}`)
+      XLSX.writeFile(wb, `Reporte_607_Anual_${selectedYear}.xlsx`)
+    } else if (type === 'consolidado') {
+      // Generar reporte consolidado anual mejorado
+      const totalVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.total || invoice.monto || 0), 0)
+      const totalCompras = yearData.compras.reduce((sum, expense) => sum + (expense.amount || expense.monto || 0), 0)
+      const itbisVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.tax_amount || invoice.itbis || 0), 0)
+      const itbisCompras = yearData.compras.reduce((sum, expense) => sum + (expense.tax_amount || expense.itbis || 0), 0)
+      const utilidadBruta = totalVentas - totalCompras
+      const balanceItbis = itbisVentas - itbisCompras
+      
+      // Hoja de resumen principal
+      const resumenData = [
+        { 'Concepto': 'RESUMEN ANUAL DGII - AÑO ' + selectedYear, 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': '=== INGRESOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': 'Total Ingresos Brutos (607)', 'Valor (RD$)': totalVentas, 'Porcentaje': '100.00%' },
+        { 'Concepto': 'ITBIS Cobrado', 'Valor (RD$)': itbisVentas, 'Porcentaje': ((itbisVentas / totalVentas) * 100).toFixed(2) + '%' },
+        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': '=== GASTOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': 'Total Gastos Deducibles (606)', 'Valor (RD$)': -totalCompras, 'Porcentaje': ((totalCompras / totalVentas) * 100).toFixed(2) + '%' },
+        { 'Concepto': 'ITBIS Pagado', 'Valor (RD$)': -itbisCompras, 'Porcentaje': ((itbisCompras / totalVentas) * 100).toFixed(2) + '%' },
+        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': '=== RESULTADOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': 'Utilidad Bruta', 'Valor (RD$)': utilidadBruta, 'Porcentaje': ((utilidadBruta / totalVentas) * 100).toFixed(2) + '%' },
+        { 'Concepto': 'Balance ITBIS', 'Valor (RD$)': balanceItbis, 'Porcentaje': balanceItbis >= 0 ? 'A Pagar' : 'A Favor' },
+        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': '=== ESTADÍSTICAS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
+        { 'Concepto': 'Total Facturas Emitidas', 'Valor (RD$)': yearData.ventas.length, 'Porcentaje': '' },
+        { 'Concepto': 'Total Gastos Registrados', 'Valor (RD$)': yearData.compras.length, 'Porcentaje': '' },
+        { 'Concepto': 'Promedio Mensual Ingresos', 'Valor (RD$)': (totalVentas / 12).toFixed(2), 'Porcentaje': '' },
+        { 'Concepto': 'Promedio Mensual Gastos', 'Valor (RD$)': (totalCompras / 12).toFixed(2), 'Porcentaje': '' }
+      ]
+
+      // Crear libro de trabajo
+      const wb = XLSX.utils.book_new()
+      
+      // Hoja 1: Resumen
+      const wsResumen = XLSX.utils.json_to_sheet(resumenData)
+      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Anual')
+
+      // Hoja 2: Desglose por meses de ingresos
+      const ingresosPorMes = []
+      for (let mes = 1; mes <= 12; mes++) {
+        const mesStr = mes.toString().padStart(2, '0')
+        const ventasMes = yearData.ventas.filter(v => {
+          const fechaVenta = new Date(v.created_at || v.fecha || v.date)
+          return fechaVenta.getMonth() + 1 === mes
+        })
+        const totalMes = ventasMes.reduce((sum, v) => sum + (v.total || v.monto || 0), 0)
+        const itbisMes = ventasMes.reduce((sum, v) => sum + (v.tax_amount || v.itbis || 0), 0)
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+        
+        ingresosPorMes.push({
+          'Mes': meses[mes - 1],
+          'Cantidad Facturas': ventasMes.length,
+          'Total Ingresos': totalMes,
+          'ITBIS Cobrado': itbisMes,
+          'Promedio por Factura': ventasMes.length > 0 ? (totalMes / ventasMes.length).toFixed(2) : 0
+        })
+      }
+      const wsIngresos = XLSX.utils.json_to_sheet(ingresosPorMes)
+      XLSX.utils.book_append_sheet(wb, wsIngresos, 'Ingresos Mensuales')
+
+      // Hoja 3: Desglose por meses de gastos
+      const gastosPorMes = []
+      for (let mes = 1; mes <= 12; mes++) {
+        const gastosMes = yearData.compras.filter(g => {
+          const fechaGasto = new Date(g.created_at || g.fecha || g.expense_date || g.date)
+          return fechaGasto.getMonth() + 1 === mes
+        })
+        const totalMes = gastosMes.reduce((sum, g) => sum + (g.amount || g.monto || 0), 0)
+        const itbisMes = gastosMes.reduce((sum, g) => sum + (g.tax_amount || g.itbis_amount || g.itbis || 0), 0)
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+        
+        gastosPorMes.push({
+          'Mes': meses[mes - 1],
+          'Cantidad Gastos': gastosMes.length,
+          'Total Gastos': totalMes,
+          'ITBIS Pagado': itbisMes,
+          'Promedio por Gasto': gastosMes.length > 0 ? (totalMes / gastosMes.length).toFixed(2) : 0
+        })
+      }
+      const wsGastos = XLSX.utils.json_to_sheet(gastosPorMes)
+      XLSX.utils.book_append_sheet(wb, wsGastos, 'Gastos Mensuales')
+
+      // Guardar archivo
+      XLSX.writeFile(wb, `Reporte_Consolidado_Anual_${selectedYear}.xlsx`)
+    }
+  }
+
   // Función para guardar gasto manual en la base de datos
   const saveManualExpense = async () => {
     setSavingExpense(true)
@@ -1149,10 +1418,11 @@ export default function DGIIReportsPage() {
 
       {/* Pestañas de reportes */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="606">Reporte 606</TabsTrigger>
           <TabsTrigger value="607">Reporte 607</TabsTrigger>
+          <TabsTrigger value="annual">Resumen Anual</TabsTrigger>
           <TabsTrigger value="manual-606">➕ Gasto 606</TabsTrigger>
           <TabsTrigger value="manual-607">➕ Factura 607</TabsTrigger>
           <TabsTrigger value="info">Info</TabsTrigger>
@@ -1362,6 +1632,254 @@ export default function DGIIReportsPage() {
                   No hay facturas para el período seleccionado
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="annual" className="space-y-6">
+          <div className="mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Resumen Anual DGII</h2>
+                <p className="text-muted-foreground">Consolidado de Reportes 606 y 607 por año fiscal</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="year-select">Año:</Label>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Año" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() - i
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Resumen Anual 606 - Compras */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Resumen Anual de Compras (606)
+                </CardTitle>
+                <CardDescription>
+                  Consolidado del año {selectedYear}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {loading ? (
+                    <div className="text-center py-4">Cargando datos anuales...</div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <div className="text-sm text-blue-600 font-medium">Total Compras</div>
+                          <div className="text-lg font-bold text-blue-900">
+                            {(dgiiData?.compras || []).reduce((sum, expense) => {
+                              const expenseYear = new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString()
+                              return expenseYear === selectedYear ? sum + (expense.amount || expense.monto || 0) : sum
+                            }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                          </div>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <div className="text-sm text-green-600 font-medium">ITBIS Pagado</div>
+                          <div className="text-lg font-bold text-green-900">
+                            {(dgiiData?.compras || []).reduce((sum, expense) => {
+                              const expenseYear = new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString()
+                              return expenseYear === selectedYear ? sum + (expense.tax_amount || expense.itbis || 0) : sum
+                            }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Por Tipo de Gasto</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {Object.entries(
+                            (dgiiData?.compras || [])
+                              .filter(expense => new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear)
+                              .reduce((acc, expense) => {
+                                const tipo = expense.tipo_gasto || determinarTipoGasto(expense.description || expense.descripcion || '')
+                                if (!acc[tipo]) {
+                                  acc[tipo] = 0
+                                }
+                                acc[tipo] += expense.amount || expense.monto || 0
+                                return acc
+                              }, {} as Record<string, number>)
+                          ).map(([tipo, monto]) => (
+                            <div key={tipo} className="flex justify-between text-sm">
+                              <span>{TIPOS_GASTO_DGII[tipo as keyof typeof TIPOS_GASTO_DGII] || tipo}</span>
+                              <span className="font-medium">{monto.toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumen Anual 607 - Ventas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Resumen Anual de Ventas (607)
+                </CardTitle>
+                <CardDescription>
+                  Consolidado del año {selectedYear}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {loading ? (
+                    <div className="text-center py-4">Cargando datos anuales...</div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <div className="text-sm text-purple-600 font-medium">Total Ventas</div>
+                          <div className="text-lg font-bold text-purple-900">
+                            {(dgiiData?.ventas || []).reduce((sum, invoice) => {
+                              const invoiceYear = new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString()
+                              return invoiceYear === selectedYear ? sum + (invoice.total || invoice.monto || 0) : sum
+                            }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                          </div>
+                        </div>
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <div className="text-sm text-orange-600 font-medium">ITBIS Cobrado</div>
+                          <div className="text-lg font-bold text-orange-900">
+                            {(dgiiData?.ventas || []).reduce((sum, invoice) => {
+                              const invoiceYear = new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString()
+                              return invoiceYear === selectedYear ? sum + (invoice.tax_amount || invoice.itbis || 0) : sum
+                            }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Por Tipo de Comprobante</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {Object.entries(
+                            (dgiiData?.ventas || [])
+                              .filter(invoice => new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear)
+                              .reduce((acc, invoice) => {
+                                const tipo = invoice.tipo_comprobante || 'B02'
+                                if (!acc[tipo]) {
+                                  acc[tipo] = 0
+                                }
+                                acc[tipo] += invoice.total || invoice.monto || 0
+                                return acc
+                              }, {} as Record<string, number>)
+                          ).map(([tipo, monto]) => (
+                            <div key={tipo} className="flex justify-between text-sm">
+                              <span>{TIPOS_COMPROBANTE_FISCAL[tipo as keyof typeof TIPOS_COMPROBANTE_FISCAL] || tipo}</span>
+                              <span className="font-medium">{monto.toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumen Consolidado */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Resumen Consolidado Anual
+              </CardTitle>
+              <CardDescription>
+                Balance general del año fiscal {selectedYear}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-slate-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-slate-600 font-medium">Ingresos Brutos</div>
+                  <div className="text-xl font-bold text-slate-900">
+                    {(dgiiData?.ventas || [])
+                      .filter(invoice => new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, invoice) => sum + (invoice.total || invoice.monto || 0), 0)
+                      .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-slate-600 font-medium">Gastos Deducibles</div>
+                  <div className="text-xl font-bold text-slate-900">
+                    {(dgiiData?.compras || [])
+                      .filter(expense => new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, expense) => sum + (expense.amount || expense.monto || 0), 0)
+                      .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                  </div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-green-600 font-medium">Balance ITBIS</div>
+                  <div className="text-xl font-bold text-green-900">
+                    {((dgiiData?.ventas || [])
+                      .filter(invoice => new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, invoice) => sum + (invoice.tax_amount || invoice.itbis || 0), 0) -
+                    (dgiiData?.compras || [])
+                      .filter(expense => new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, expense) => sum + (expense.tax_amount || expense.itbis || 0), 0))
+                      .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-blue-600 font-medium">Utilidad Bruta</div>
+                  <div className="text-xl font-bold text-blue-900">
+                    {((dgiiData?.ventas || [])
+                      .filter(invoice => new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, invoice) => sum + (invoice.total || invoice.monto || 0), 0) -
+                    (dgiiData?.compras || [])
+                      .filter(expense => new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear)
+                      .reduce((sum, expense) => sum + (expense.amount || expense.monto || 0), 0))
+                      .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-2">
+                <Button 
+                  onClick={() => downloadAnnualReport('606')}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar 606 Anual
+                </Button>
+                <Button 
+                  onClick={() => downloadAnnualReport('607')}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar 607 Anual
+                </Button>
+                <Button 
+                  onClick={() => downloadAnnualReport('consolidado')}
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar Consolidado
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
