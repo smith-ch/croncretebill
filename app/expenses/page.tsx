@@ -1,17 +1,13 @@
 "use client"
 
-import { CardDescription } from "@/components/ui/card"
-
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -51,6 +47,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 interface Expense {
   id: string
@@ -87,20 +84,48 @@ export default function ExpensesPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([])
-  const [showBulkActions, setShowBulkActions] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete, permissions } = useUserPermissions()
 
   useEffect(() => {
     fetchExpenses()
     fetchCategories()
   }, [])
 
+  // Check if user has permission to view finances/expenses
+  if (!permissions.canViewFinances) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a la gestión de gastos. Esta función requiere permisos financieros.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   const fetchExpenses = async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("expenses")
@@ -108,7 +133,9 @@ export default function ExpensesPage() {
         .eq("user_id", user.id)
         .order("expense_date", { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setExpenses(data || [])
     } catch (error) {
       console.error("Error fetching expenses:", error)
@@ -122,11 +149,15 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase.from("expense_categories").select("*").eq("user_id", user.id).order("name")
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setCategories(data || [])
     } catch (error) {
       console.error("Error fetching categories:", error)
@@ -152,17 +183,25 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (editingExpense) {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expenses").update(expenseData).eq("id", editingExpense.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       } else {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expenses").insert({
           ...expenseData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       }
 
       setShowExpenseForm(false)
@@ -191,17 +230,25 @@ export default function ExpensesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (editingCategory) {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expense_categories").update(categoryData).eq("id", editingCategory.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       } else {
+        // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expense_categories").insert({
           ...categoryData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) {
+          throw error
+        }
       }
 
       setShowCategoryForm(false)
@@ -215,7 +262,9 @@ export default function ExpensesPage() {
   }
 
   const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) return
+    if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) {
+      return
+    }
 
     try {
       // Check if category is being used by any expenses
@@ -225,7 +274,9 @@ export default function ExpensesPage() {
         .eq("category", categoryName)
         .limit(1)
 
-      if (checkError) throw checkError
+      if (checkError) {
+        throw checkError
+      }
 
       if (expensesUsingCategory && expensesUsingCategory.length > 0) {
         alert("No se puede eliminar esta categoría porque está siendo utilizada por uno o más gastos.")
@@ -233,7 +284,9 @@ export default function ExpensesPage() {
       }
 
       const { error } = await supabase.from("expense_categories").delete().eq("id", categoryId)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       fetchCategories()
     } catch (error) {
@@ -243,11 +296,20 @@ export default function ExpensesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) return
+    if (!canDelete('expenses')) {
+      alert("No tienes permisos para eliminar gastos")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("expenses").delete().eq("id", id)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchExpenses()
       setSelectedExpenses(selectedExpenses.filter((expenseId) => expenseId !== id))
     } catch (error) {
@@ -256,16 +318,26 @@ export default function ExpensesPage() {
   }
 
   const handleBulkDelete = async () => {
-    if (selectedExpenses.length === 0) return
-    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) return
+    if (!canDelete('expenses')) {
+      alert("No tienes permisos para eliminar gastos")
+      return
+    }
+    
+    if (selectedExpenses.length === 0) {
+      return
+    }
+    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("expenses").delete().in("id", selectedExpenses)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       fetchExpenses()
       setSelectedExpenses([])
-      setShowBulkActions(false)
     } catch (error) {
       console.error("Error deleting expenses:", error)
     }
@@ -525,7 +597,7 @@ export default function ExpensesPage() {
               </Select>
             </div>
 
-            {selectedExpenses.length > 0 && (
+            {selectedExpenses.length > 0 && canDelete('expenses') && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -651,14 +723,16 @@ export default function ExpensesPage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(expense.id)}
-                        className="hover:bg-red-100 hover:text-red-700 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canDelete('expenses') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(expense.id)}
+                          className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </motion.div>
                 ))}

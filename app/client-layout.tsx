@@ -1,17 +1,18 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Inter } from "next/font/google"
 import { supabase } from "@/lib/supabase"
-import { AuthForm } from "@/components/auth/auth-form"
+import { ModernAuthForm } from "@/components/auth/modern-auth-form"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { NotificationProvider } from "@/components/notifications/notification-provider"
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { useAutoLogout } from "@/hooks/use-auto-logout"
+import { SessionIndicator } from "@/components/auth/session-indicator"
+import { RouteProtection } from "@/components/auth/route-protection"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,6 +23,11 @@ export default function ClientLayout({
 }) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Configurar auto-logout cuando hay un usuario logueado
+  useAutoLogout({
+    timeoutMinutes: 30 // Cerrar sesión después de 30 minutos de inactividad
+  })
 
   useEffect(() => {
     // Get initial session
@@ -59,7 +65,7 @@ export default function ClientLayout({
         <body className={inter.className}>
           <ThemeProvider attribute="class" defaultTheme="light">
             <NotificationProvider>
-              <AuthForm />
+              <ModernAuthForm />
               <Toaster />
               <SonnerToaster />
             </NotificationProvider>
@@ -79,10 +85,14 @@ export default function ClientLayout({
               <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
                 <div className="p-6">
                   <NotificationCenter className="mb-6" />
-                  {children}
+                  <RouteProtection>
+                    {children}
+                  </RouteProtection>
                 </div>
               </main>
             </div>
+            {/* Indicador de sesión flotante */}
+            <SessionIndicator timeoutMinutes={30} />
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

@@ -2,10 +2,22 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 // Server-side Supabase client with service role key
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('Supabase environment variables not found. API routes may not work properly.')
+}
+
+const supabaseAdmin = supabaseUrl && supabaseServiceKey ? 
+  createClient(supabaseUrl, supabaseServiceKey) : null
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Database connection not configured" }, { status: 500 })
+    }
+
     const deliveryNoteId = params.id
 
     // Get delivery note with related data
@@ -29,18 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Conduce no encontrado" }, { status: 404 })
     }
 
-    // Get company settings
-    const { data: companySettings } = await supabaseAdmin
-      .from("company_settings")
-      .select("*")
-      .eq("user_id", deliveryNote.user_id)
-      .single()
-
-    // Get user profile for company info
-    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", deliveryNote.user_id).single()
-
     // Generate HTML for PDF
-    const html = generateDeliveryNoteHTML(deliveryNote, profile, companySettings)
+    const html = generateDeliveryNoteHTML(deliveryNote)
 
     // Return HTML response that can be converted to PDF by the client
     return new NextResponse(html, {
@@ -55,13 +57,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-function generateDeliveryNoteHTML(deliveryNote: any, profile: any, companySettings: any) {
+function generateDeliveryNoteHTML(deliveryNote: any) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES")
   }
 
   const formatTime = (timeString: string) => {
-    if (!timeString) return ""
+    if (!timeString) {
+      return ""
+    }
     return timeString.slice(0, 5) // Format HH:MM
   }
 

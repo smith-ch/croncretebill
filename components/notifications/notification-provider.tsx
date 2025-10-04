@@ -1,10 +1,8 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useCallback } from "react"
+import React, { createContext, useContext, useState, useCallback } from "react"
 import { toast } from "@/hooks/use-toast"
 import { toast as sonnerToast } from "sonner"
-import { CheckCircle, XCircle, AlertCircle, Info, Bell } from "lucide-react"
 
 export type NotificationType = "success" | "error" | "warning" | "info"
 export type NotificationStyle = "toast" | "sonner" | "banner"
@@ -29,6 +27,7 @@ interface BannerNotification {
   dismissed: boolean
 }
 
+/* eslint-disable */
 interface NotificationContextType {
   // Toast notifications
   showSuccess: (message: string, options?: NotificationOptions) => void
@@ -45,31 +44,16 @@ interface NotificationContextType {
   // Utility functions
   showNotification: (type: NotificationType, message: string, options?: NotificationOptions) => void
 }
+/* eslint-enable */
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [banners, setBanners] = useState<BannerNotification[]>([])
 
-  const getIcon = (type: NotificationType) => {
-    switch (type) {
-      case "success":
-        return CheckCircle
-      case "error":
-        return XCircle
-      case "warning":
-        return AlertCircle
-      case "info":
-        return Info
-      default:
-        return Bell
-    }
-  }
-
   const showToastNotification = useCallback(
     (type: NotificationType, message: string, options: NotificationOptions = {}) => {
       const { title, description, duration = 5000, action, style = "toast" } = options
-      const Icon = getIcon(type)
 
       if (style === "sonner") {
         switch (type) {
@@ -125,32 +109,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       } else {
         // Use custom toast system
         toast({
-          title: (
-            <div className="flex items-center gap-2">
-              <Icon
-                className={`h-4 w-4 ${
-                  type === "success"
-                    ? "text-green-600"
-                    : type === "error"
-                      ? "text-red-600"
-                      : type === "warning"
-                        ? "text-amber-600"
-                        : "text-blue-600"
-                }`}
-              />
-              {title || message}
-            </div>
-          ),
+          title: title || message,
           description: description || (title ? message : undefined),
           variant: type === "error" ? "destructive" : "default",
           duration,
-          action: action
-            ? {
-                altText: action.label,
-                onClick: action.onClick,
-                children: action.label,
-              }
-            : undefined,
         })
       }
     },

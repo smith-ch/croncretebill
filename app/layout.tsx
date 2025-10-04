@@ -4,6 +4,9 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { ThemeProvider } from "@/contexts/theme-context"
+import { LanguageProvider } from "@/contexts/language-context"
+import { NotificationProvider } from "@/components/notifications/notification-system"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,16 +25,22 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={inter.className}>
+    <html lang="es">
       <head>
         <meta name="theme-color" content="#3b82f6" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="antialiased">
-        <ErrorBoundary>
-          <ClientLayout>{children}</ClientLayout>
-        </ErrorBoundary>
+      <body className={inter.className}>
+        <ThemeProvider>
+          <LanguageProvider>
+            <NotificationProvider>
+              <ErrorBoundary>
+                <ClientLayout>{children}</ClientLayout>
+              </ErrorBoundary>
+            </NotificationProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

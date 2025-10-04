@@ -1,10 +1,9 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { InvoicePreview } from "@/components/invoices/invoice-preview"
+import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 
 interface InvoiceItem {
   id: string
@@ -23,11 +24,14 @@ interface InvoiceItem {
   item_type: "product" | "service"
   quantity: number
   unit_price: number
+  selected_price_id?: string | null // Para tracking del precio seleccionado
 }
 
 export default function NewInvoicePage() {
   const router = useRouter()
   const { formatCurrency } = useCurrency()
+  const { permissions, validateInvoiceAmount } = useUserPermissions()
+  
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,7 +40,7 @@ export default function NewInvoicePage() {
   const [projects, setProjects] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
-  const [selectedClient, setSelectedClient] = useState("")
+  const [selectedClient, setSelectedClient] = useState("no-client")
   const [selectedProject, setSelectedProject] = useState("")
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: "item-1", item_id: "", item_type: "product", quantity: 1, unit_price: 0 },
@@ -45,6 +49,17 @@ export default function NewInvoicePage() {
   const [ncf, setNcf] = useState("")
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
+  const [companySettings, setCompanySettings] = useState<any>(null)
+  const [invoiceDate, setInvoiceDate] = useState(() => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  })
+  const [dueDate, setDueDate] = useState(() => {
+    const today = new Date()
+    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+    return nextMonth.toISOString().split('T')[0]
+  })
+  const [notes, setNotes] = useState("")
 
   useEffect(() => {
     fetchInitialData()
@@ -61,17 +76,19 @@ export default function NewInvoicePage() {
         return
       }
 
-      const [clientsRes, projectsRes, productsRes, servicesRes] = await Promise.all([
-        supabase.from("clients").select("id, name").eq("user_id", user.id).order("name"),
+      const [clientsRes, projectsRes, productsRes, servicesRes, companyRes] = await Promise.all([
+        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id).order("name"),
         supabase.from("projects").select("id, name, client_id").eq("user_id", user.id).order("name"),
         supabase.from("products").select("id, name, unit, unit_price").eq("user_id", user.id).order("name"),
         supabase.from("services").select("id, name, unit, price").eq("user_id", user.id).order("name"),
+        supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
       ])
 
       setClients(clientsRes.data || [])
       setProjects(projectsRes.data || [])
       setProducts(productsRes.data || [])
       setServices(servicesRes.data || [])
+      setCompanySettings(companyRes.data || null)
     } catch (error) {
       console.error("Error fetching data:", error)
       setError("Error al cargar los datos iniciales")
@@ -83,7 +100,9 @@ export default function NewInvoicePage() {
   const generateInvoiceNumber = async () => {
     try {
       const { data, error } = await supabase.rpc("get_next_invoice_number")
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setInvoiceNumber(data)
     } catch (error) {
       console.error("Error generating invoice number:", error)
@@ -102,20 +121,47 @@ export default function NewInvoicePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       // Validate required fields
-      const clientId = selectedClient
+      const clientId = selectedClient === "no-client" ? null : selectedClient // Hacer cliente opcional
       const invoiceDate = formData.get("invoice_date") as string
       const dueDate = formData.get("due_date") as string
 
-      if (!clientId) throw new Error("Cliente es requerido")
-      if (!invoiceDate) throw new Error("Fecha de factura es requerida")
-      if (!dueDate) throw new Error("Fecha de vencimiento es requerida")
+      console.log('DEBUG - Form validation:', {
+        clientId,
+        selectedClient,
+        invoiceDate,
+        dueDate,
+        items: items.length,
+        includeItbis,
+        ncf
+      })
+
+      // Cliente ya no es requerido - comentar validación
+      // if (!clientId) {
+      //   throw new Error("Cliente es requerido")
+      // }
+      if (!invoiceDate) {
+        throw new Error("Fecha de factura es requerida")
+      }
+      if (!dueDate) {
+        throw new Error("Fecha de vencimiento es requerida")
+      }
 
       // Validate NCF if ITBIS is included
       if (includeItbis && !ncf.trim()) {
         throw new Error("NCF es requerido cuando se incluye ITBIS")
+      }
+
+      // Validate NCF format if provided
+      if (includeItbis && ncf.trim()) {
+        const ncfPattern = /^[BE][0-9]{10}$/
+        if (!ncfPattern.test(ncf.trim())) {
+          throw new Error("NCF debe tener 11 caracteres: letra (B o E) seguida de 10 dígitos")
+        }
       }
 
       // Check if we have any items with products/services selected
@@ -124,8 +170,15 @@ export default function NewInvoicePage() {
         return isValid
       })
 
+      console.log('DEBUG - Items validation:', {
+        totalItems: items.length,
+        validItems: validItems.length,
+        firstItem: items[0],
+        allItems: items
+      })
+
       if (validItems.length === 0) {
-        throw new Error("Debe seleccionar al menos un producto o servicio válido")
+        throw new Error("Debe seleccionar al menos un producto o servicio válido para crear la factura")
       }
 
       // Process valid items
@@ -135,6 +188,37 @@ export default function NewInvoicePage() {
         quantity: Math.max(item.quantity || 1, 0.01),
         unit_price: Math.max(item.unit_price || 0, 0),
       }))
+
+      // Validate stock for products before creating invoice
+      const productItems = processedItems
+        .filter(item => item.item_type === "product")
+        .map(item => ({
+          product_id: item.item_id,
+          quantity: item.quantity
+        }))
+
+      if (productItems.length > 0) {
+        const stockValidationResponse = await fetch("/api/invoices/validate-stock", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ items: productItems }),
+        })
+
+        const stockValidation = await stockValidationResponse.json()
+
+        if (!stockValidation.valid) {
+          const stockErrors = stockValidation.stock_validation
+            .filter((item: any) => !item.is_available)
+            .map((item: any) => 
+              `${item.product_name}: Solicitado ${item.requested_quantity}, Disponible ${item.available_stock}`
+            )
+            .join('\n')
+          
+          throw new Error(`Stock insuficiente:\n${stockErrors}`)
+        }
+      }
 
       const subtotal = processedItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
 
@@ -157,34 +241,13 @@ export default function NewInvoicePage() {
       const itbis_amount = includeItbis ? discountedSubtotal * 0.18 : 0
       const total = discountedSubtotal + itbis_amount
 
-      const invoiceData = {
-        user_id: user.id,
-        invoice_number: invoiceNumber,
-        client_id: clientId,
-        project_id: selectedProject && selectedProject !== "none" ? selectedProject : null,
-        invoice_date: invoiceDate,
-        issue_date: invoiceDate,
-        due_date: dueDate,
-        subtotal: discountedSubtotal, // Store the discounted subtotal
-        tax_rate: includeItbis ? 18 : 0,
-        tax_amount: itbis_amount,
-        total,
-        status: formData.get("status") as string,
-        notes: (formData.get("notes") as string) || null,
-        include_itbis: includeItbis,
-        ncf: includeItbis ? ncf.trim() : null,
+      // Validar límite de monto si aplica
+      if (!validateInvoiceAmount(total)) {
+        throw new Error(`El monto total ${formatCurrency(total)} excede tu límite autorizado de ${formatCurrency(permissions.maxInvoiceAmount || 0)}`)
       }
 
-      const { data: invoice, error: invoiceError } = await supabase
-        .from("invoices")
-        .insert(invoiceData)
-        .select()
-        .single()
-
-      if (invoiceError) throw invoiceError
-
-      // Insert invoice items
-      const invoiceItems = processedItems.map((item) => {
+      // Prepare items for API
+      const apiItems = processedItems.map((item) => {
         const selectedItem =
           item.item_type === "product"
             ? products.find((p) => p.id === item.item_id)
@@ -192,7 +255,6 @@ export default function NewInvoicePage() {
 
         const itemItbisAmount = includeItbis ? item.quantity * item.unit_price * 0.18 : 0
         return {
-          invoice_id: invoice.id,
           product_id: item.item_type === "product" ? item.item_id : null,
           service_id: item.item_type === "service" ? item.item_id : null,
           description: selectedItem?.name || "Elemento",
@@ -205,9 +267,39 @@ export default function NewInvoicePage() {
         }
       })
 
-      const { error: itemsError } = await supabase.from("invoice_items").insert(invoiceItems)
-      if (itemsError) throw itemsError
+      // Create invoice using API
+      const response = await fetch("/api/invoices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          invoice_number: invoiceNumber,
+          client_id: clientId,
+          project_id: selectedProject && selectedProject !== "none" ? selectedProject : null,
+          invoice_date: invoiceDate,
+          issue_date: invoiceDate,
+          due_date: dueDate,
+          subtotal: discountedSubtotal,
+          tax_rate: includeItbis ? 18 : 0,
+          tax_amount: itbis_amount,
+          total,
+          status: formData.get("status") as string,
+          notes: (formData.get("notes") as string) || null,
+          include_itbis: includeItbis,
+          ncf: includeItbis ? ncf.trim() : null,
+          items: apiItems
+        }),
+      })
 
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error al crear la factura")
+      }
+
+      await response.json()
+      
       router.push("/invoices")
     } catch (error: any) {
       setError(error.message || "Error al crear la factura")
@@ -240,6 +332,7 @@ export default function NewInvoicePage() {
   const handleItemChange = (itemId: string, selectedItemId: string, itemType: "product" | "service") => {
     updateItem(itemId, "item_id", selectedItemId)
     updateItem(itemId, "item_type", itemType)
+    updateItem(itemId, "selected_price_id", null) // Reset price selection
 
     const selectedItem =
       itemType === "product"
@@ -254,7 +347,12 @@ export default function NewInvoicePage() {
     }
   }
 
-  const filteredProjects = projects.filter((p) => p.client_id === selectedClient)
+  const handlePriceSelect = (itemId: string, priceId: string, priceValue: number) => {
+    updateItem(itemId, "selected_price_id", priceId)
+    updateItem(itemId, "unit_price", priceValue)
+  }
+
+  const filteredProjects = projects.filter((p) => p.client_id === selectedClient && selectedClient !== "no-client")
 
   const validItemsForDisplay = items.filter(
     (item) => item.item_id && item.item_id.trim() !== "" && item.item_id !== "no-items",
@@ -288,7 +386,7 @@ export default function NewInvoicePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -311,7 +409,7 @@ export default function NewInvoicePage() {
             <Button
               form="invoice-form"
               type="submit"
-              disabled={loading || (products.length === 0 && services.length === 0) || clients.length === 0}
+              disabled={loading || (products.length === 0 && services.length === 0) || !validateInvoiceAmount(total)}
               className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -337,18 +435,20 @@ export default function NewInvoicePage() {
         )}
 
         {clients.length === 0 && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertDescription className="text-amber-800">
-              No tienes clientes registrados.{" "}
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">
+              💡 <strong>Tip:</strong> Puedes crear facturas sin cliente específico para agilizar el proceso.{" "}
               <a href="/clients" className="underline font-medium">
-                Crea algunos clientes
+                Crear clientes
               </a>{" "}
-              antes de crear facturas.
+              te ayudará a llevar mejor seguimiento de tus ventas.
             </AlertDescription>
           </Alert>
         )}
 
-        <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid gap-8 grid-cols-1 xl:grid-cols-2">
+          <div className="space-y-8">
+            <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
@@ -374,7 +474,8 @@ export default function NewInvoicePage() {
                     id="invoice_date"
                     name="invoice_date"
                     type="date"
-                    defaultValue={new Date().toISOString().split("T")[0]}
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
                     required
                     className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -390,7 +491,8 @@ export default function NewInvoicePage() {
                     id="due_date"
                     name="due_date"
                     type="date"
-                    defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
                     required
                     className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -416,13 +518,14 @@ export default function NewInvoicePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="client_id" className="text-slate-700 font-medium">
-                    Cliente *
+                    Cliente <span className="text-slate-400">(Opcional)</span>
                   </Label>
-                  <Select value={selectedClient} onValueChange={setSelectedClient} required>
+                  <Select value={selectedClient} onValueChange={setSelectedClient}>
                     <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Seleccionar cliente" />
+                      <SelectValue placeholder="Seleccionar cliente (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="no-client">Sin cliente específico</SelectItem>
                       {clients.length > 0 ? (
                         clients.map((client) => (
                           <SelectItem key={client.id} value={client.id}>
@@ -436,12 +539,15 @@ export default function NewInvoicePage() {
                       )}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-slate-500">
+                    Déjalo vacío para facturas rápidas sin cliente específico
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="project_id" className="text-slate-700 font-medium">
                     Proyecto
                   </Label>
-                  <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedClient}>
+                  <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedClient || selectedClient === "no-client"}>
                     <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar proyecto" />
                     </SelectTrigger>
@@ -453,7 +559,7 @@ export default function NewInvoicePage() {
                               {project.name}
                             </SelectItem>
                           ))
-                        : selectedClient && (
+                        : selectedClient && selectedClient !== "no-client" && (
                             <SelectItem value="no-projects" disabled>
                               No hay proyectos para este cliente
                             </SelectItem>
@@ -490,12 +596,24 @@ export default function NewInvoicePage() {
                       <Input
                         id="ncf"
                         value={ncf}
-                        onChange={(e) => setNcf(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase()
+                          // Limitar a 11 caracteres
+                          if (value.length <= 11) {
+                            setNcf(value)
+                          }
+                        }}
                         placeholder="Ej: B0100000001"
                         required={includeItbis}
+                        maxLength={11}
+                        pattern="^[BE][0-9]{10}$"
+                        title="El NCF debe tener 11 caracteres: letra (B o E) seguida de 10 dígitos"
                         className="border-amber-300 focus:border-amber-500 focus:ring-amber-500 bg-white"
                       />
-                      <p className="text-xs text-amber-700">El NCF es obligatorio cuando se incluye ITBIS</p>
+                      <p className="text-xs text-amber-700">
+                        El NCF debe tener exactamente 11 caracteres (ej: B0100000001)
+                        {includeItbis && " - Es obligatorio cuando se incluye ITBIS"}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -530,8 +648,9 @@ export default function NewInvoicePage() {
                     : services.find((s) => s.id === item.item_id)
 
                 return (
-                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-4">
+                    {/* Fila 1: Tipo y Producto/Servicio */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Tipo</Label>
                         <Select
@@ -603,6 +722,10 @@ export default function NewInvoicePage() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+
+                    {/* Fila 2: Cantidad, Precio y Total */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Cantidad *</Label>
                         <Input
@@ -617,15 +740,25 @@ export default function NewInvoicePage() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Precio Unitario *</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
-                          required
-                          className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                        />
+                        {item.item_type === "product" && item.item_id ? (
+                          <ProductPriceDropdown
+                            productId={item.item_id}
+                            selectedPriceId={item.selected_price_id}
+                            quantity={item.quantity}
+                            onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(item.id, priceId, priceValue)}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.unit_price}
+                            onChange={(e) => updateItem(item.id, "unit_price", Number.parseFloat(e.target.value) || 0)}
+                            required
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-700 font-medium">Total</Label>
@@ -654,40 +787,43 @@ export default function NewInvoicePage() {
               })}
 
               <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-4">
                   <CardTitle className="text-orange-800 flex items-center gap-2">
                     <Percent className="h-5 w-5" />
                     Descuentos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-3">
-                      <Label className="text-orange-700 font-medium">Tipo de Descuento</Label>
-                      <RadioGroup
-                        value={discountType}
-                        onValueChange={(value: "percentage" | "fixed") => {
-                          setDiscountType(value)
-                          setDiscountValue(0)
-                        }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="percentage" id="percentage" />
-                          <Label htmlFor="percentage" className="flex items-center gap-1 text-sm">
-                            <Percent className="h-3 w-3" />
-                            Porcentaje
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="fixed" id="fixed" />
-                          <Label htmlFor="fixed" className="flex items-center gap-1 text-sm">
-                            <DollarSign className="h-3 w-3" />
-                            Monto Fijo
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+                <CardContent className="space-y-6">
+                  {/* Tipo de descuento */}
+                  <div>
+                    <Label className="text-orange-700 font-medium mb-3 block">Tipo de Descuento</Label>
+                    <RadioGroup
+                      value={discountType}
+                      onValueChange={(value: "percentage" | "fixed") => {
+                        setDiscountType(value)
+                        setDiscountValue(0)
+                      }}
+                      className="flex flex-row gap-8"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="percentage" id="percentage" />
+                        <Label htmlFor="percentage" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Percent className="h-4 w-4" />
+                          Porcentaje
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fixed" id="fixed" />
+                        <Label htmlFor="fixed" className="flex items-center gap-2 text-sm cursor-pointer">
+                          <DollarSign className="h-4 w-4" />
+                          Monto Fijo
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Valores del descuento */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-orange-700 font-medium">
                         {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
@@ -700,8 +836,12 @@ export default function NewInvoicePage() {
                         value={discountValue}
                         onChange={(e) => {
                           const value = Number.parseFloat(e.target.value) || 0
-                          if (discountType === "percentage" && value > 100) return
-                          if (discountType === "fixed" && value > subtotal) return
+                          if (discountType === "percentage" && value > 100) {
+                            return
+                          }
+                          if (discountType === "fixed" && value > subtotal) {
+                            return
+                          }
                           setDiscountValue(value)
                         }}
                         placeholder="0.00"
@@ -717,9 +857,11 @@ export default function NewInvoicePage() {
                       />
                     </div>
                   </div>
+
+                  {/* Mensaje informativo */}
                   {discountAmount > 0 && (
-                    <div className="text-sm text-orange-700 bg-orange-100 p-2 rounded border border-orange-200">
-                      Se aplicará un descuento de {formatCurrency(discountAmount)} al subtotal
+                    <div className="text-sm text-orange-700 bg-orange-100 p-3 rounded border border-orange-200">
+                      💰 Se aplicará un descuento de <strong>{formatCurrency(discountAmount)}</strong> al subtotal
                     </div>
                   )}
                 </CardContent>
@@ -756,9 +898,23 @@ export default function NewInvoicePage() {
                       <div className="border-t border-slate-300 pt-3">
                         <div className="flex justify-between text-lg font-bold text-slate-900">
                           <span>Total:</span>
-                          <span>{formatCurrency(total)}</span>
+                          <span className={!validateInvoiceAmount(total) ? 'text-red-600' : ''}>{formatCurrency(total)}</span>
                         </div>
                       </div>
+                      
+                      {/* Alerta de límite de facturación */}
+                      {permissions.maxInvoiceAmount !== null && (
+                        <div className={`text-xs p-2 rounded ${
+                          validateInvoiceAmount(total) 
+                            ? 'text-blue-700 bg-blue-50 border border-blue-200' 
+                            : 'text-red-700 bg-red-50 border border-red-200'
+                        }`}>
+                          {validateInvoiceAmount(total) 
+                            ? `Límite disponible: ${formatCurrency(permissions.maxInvoiceAmount - total)}`
+                            : `⚠️ Excede límite autorizado de ${formatCurrency(permissions.maxInvoiceAmount)}`
+                          }
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -774,6 +930,8 @@ export default function NewInvoicePage() {
               <Textarea
                 id="notes"
                 name="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 placeholder="Agregar notas, términos y condiciones, o información adicional..."
                 rows={4}
                 className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
@@ -786,7 +944,37 @@ export default function NewInvoicePage() {
               <AlertDescription className="text-red-800">{error}</AlertDescription>
             </Alert>
           )}
-        </form>
+            </form>
+          </div>
+
+          {/* Vista previa */}
+          <div className="sticky top-6">
+            <InvoicePreview
+              invoiceNumber={invoiceNumber}
+              invoiceDate={invoiceDate}
+              dueDate={dueDate}
+              selectedClient={selectedClient}
+              selectedProject={selectedProject}
+              clients={clients}
+              projects={projects}
+              products={products}
+              services={services}
+              items={items}
+              includeItbis={includeItbis}
+              ncf={ncf}
+              discountType={discountType}
+              discountValue={discountValue}
+              notes={notes}
+              companyInfo={{
+                name: companySettings?.company_name || "Mi Empresa",
+                address: companySettings?.company_address,
+                phone: companySettings?.company_phone,
+                email: companySettings?.company_email,
+                logo: companySettings?.company_logo
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

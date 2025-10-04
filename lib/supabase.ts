@@ -1,38 +1,63 @@
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-})
+// Single client instance for all operations (singleton pattern)
+let _supabaseClient: ReturnType<typeof createClient<Database>> | null = null
+let _supabaseAdminClient: ReturnType<typeof createClient<Database>> | null = null
 
-// Client-side Supabase client (singleton pattern)
-let supabaseClient: ReturnType<typeof createClient> | null = null
-
-export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+function getSupabaseInstance() {
+  if (!_supabaseClient) {
+    _supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
       },
     })
   }
-  return supabaseClient
+  return _supabaseClient
 }
 
-// Server-side Supabase client
+function getSupabaseAdminInstance() {
+  if (!_supabaseAdminClient && typeof window === 'undefined') {
+    if (supabaseServiceKey) {
+      _supabaseAdminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    } else {
+      console.warn('SUPABASE_SERVICE_ROLE_KEY not found, using anon key for admin operations.')
+      _supabaseAdminClient = getSupabaseInstance()
+    }
+  }
+  return _supabaseAdminClient || getSupabaseInstance()
+}
+
+// Export the singleton instance
+export const supabase = getSupabaseInstance()
+
+// Export admin client (server-side only)
+export const supabaseAdmin = getSupabaseAdminInstance()
+
+// Export the main client as default
+export default supabase
+
+// Legacy exports for compatibility - all return the same singleton
+export function getSupabaseClient() {
+  return supabase
+}
+
 export function createServerClient() {
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  })
+  return supabase
+}
+
+export function createAdminClient() {
+  return getSupabaseAdminInstance()
 }
 
 // Re-export createClient for compatibility

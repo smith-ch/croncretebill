@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/forms/client-form"
 import { Plus, Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -16,6 +17,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingClient, setEditingClient] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
+  const { canDelete, canEdit } = useUserPermissions()
 
   useEffect(() => {
     fetchClients()
@@ -26,7 +28,9 @@ export default function ClientsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("clients")
@@ -34,7 +38,7 @@ export default function ClientsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) { throw error }
       setClients(data || [])
     } catch (error) {
       console.error("Error fetching clients:", error)
@@ -44,11 +48,18 @@ export default function ClientsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) return
+    if (!canDelete('clients')) {
+      alert("No tienes permisos para eliminar clientes")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("clients").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchClients()
     } catch (error) {
       console.error("Error deleting client:", error)
@@ -78,66 +89,84 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clientes</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gestiona tu cartera de clientes</p>
-        </div>
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Cliente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <ClientForm
-              client={editingClient}
-              onSuccess={() => {
-                setShowForm(false)
-                setEditingClient(null)
-                fetchClients()
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </motion.div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Buscar clientes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+        >
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
+                <Users className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  Clientes
+                </h1>
+                <p className="text-lg text-gray-600 font-medium">Gestiona tu cartera de clientes</p>
+              </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredClients.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay clientes</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Comienza agregando tu primer cliente</p>
-              <Button onClick={() => setShowForm(true)}>
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white border-0">
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo Cliente
               </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+              <div className="p-6 [&_.card]:border-0 [&_.card]:shadow-none [&_.card]:bg-transparent">
+                <ClientForm
+                  client={editingClient}
+                  onSuccess={() => {
+                    setShowForm(false)
+                    setEditingClient(null)
+                    fetchClients()
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </motion.div>
+
+        <Card variant="elevated" className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-white to-purple-50 border-b border-purple-100">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar clientes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-purple-200 focus:border-purple-400 focus:ring-purple-400"
+                  variant="modern"
+                />
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredClients.map((client, index) => (
-                <motion.div
-                  key={client.id}
+          </CardHeader>
+          <CardContent className="p-6">
+            {filteredClients.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="mb-6 mx-auto w-24 h-24 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="h-12 w-12 text-purple-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">No hay clientes registrados</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">Comienza a construir tu cartera de clientes agregando tu primer cliente</p>
+                <Button 
+                  onClick={() => setShowForm(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Primer Cliente
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredClients.map((client, index) => (
+                  <motion.div
+                    key={client.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -147,24 +176,28 @@ export default function ClientsPage() {
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{client.name}</h3>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingClient(client)
-                              setShowForm(true)
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(client.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canEdit('clients') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingClient(client)
+                                setShowForm(true)
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDelete('clients') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(client.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2 text-sm">
@@ -200,6 +233,7 @@ export default function ClientsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress"
 import { ProjectForm } from "@/components/forms/project-form"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import {
   Plus,
   Search,
@@ -46,22 +47,51 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete, permissions } = useUserPermissions()
 
   useEffect(() => {
     fetchProjects()
     fetchClients()
   }, [])
 
+  // Check if user has permission to manage clients (projects are linked to clients)
+  if (!permissions.canManageClients) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los proyectos. Esta función requiere permisos de gestión de clientes.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   const fetchClients = async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase.from("clients").select("id, name").eq("user_id", user.id).order("name")
 
-      if (error) throw error
+      if (error) { throw error }
       setClients(data || [])
     } catch (error) {
       console.error("Error fetching clients:", error)
@@ -73,7 +103,9 @@ export default function ProjectsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("projects")
@@ -85,9 +117,9 @@ export default function ProjectsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {throw error}
 
-      const projectsWithMetrics = (data || []).map((project) => {
+      const projectsWithMetrics = (data || []).map((project: any) => {
         const totalInvoiced = project.invoices?.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0) || 0
         const totalExpenses = 0 // Will be 0 until expenses are properly linked to projects
         const profit = totalInvoiced - totalExpenses
@@ -124,11 +156,18 @@ export default function ProjectsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) return
+    if (!canDelete('projects')) {
+      alert("No tienes permisos para eliminar proyectos")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("projects").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchProjects()
     } catch (error) {
       console.error("Error deleting project:", error)
@@ -196,11 +235,12 @@ export default function ProjectsPage() {
         case "this_month":
           matchesDate = projectDate.getMonth() === now.getMonth() && projectDate.getFullYear() === now.getFullYear()
           break
-        case "last_month":
+        case "last_month": {
           const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1)
           matchesDate =
             projectDate.getMonth() === lastMonth.getMonth() && projectDate.getFullYear() === lastMonth.getFullYear()
           break
+        }
         case "this_year":
           matchesDate = projectDate.getFullYear() === now.getFullYear()
           break
@@ -212,7 +252,7 @@ export default function ProjectsPage() {
 
   const activeProjects = projects.filter((p) => p.status === "activo").length
   const completedThisMonth = projects.filter((p) => {
-    if (p.status !== "completado") return false
+    if (p.status !== "completado") {return false}
     const completedDate = new Date(p.end_date || p.updated_at)
     const now = new Date()
     return completedDate.getMonth() === now.getMonth() && completedDate.getFullYear() === now.getFullYear()
@@ -474,14 +514,16 @@ export default function ProjectsPage() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(project.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDelete('projects') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(project.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
 
@@ -572,14 +614,16 @@ export default function ProjectsPage() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(project.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDelete('projects') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(project.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>

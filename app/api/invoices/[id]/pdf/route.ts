@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-// Server-side Supabase client with service role key
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Database connection not configured" }, { status: 500 })
+    }
+
     const invoiceId = params.id
 
     // Get invoice with related data including services
@@ -34,16 +35,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { data: companySettings } = await supabaseAdmin
       .from("company_settings")
       .select("*")
-      .eq("user_id", invoice.user_id)
+      .eq("user_id", (invoice as any).user_id)
       .single()
 
-    const currencySymbol = companySettings?.currency_symbol || "RD$"
-    const currencyCode = companySettings?.currency_code || "DOP"
-    const primaryColor = companySettings?.primary_color || "#2563eb"
-    const secondaryColor = companySettings?.secondary_color || "#1e40af"
+    const currencySymbol = (companySettings as any)?.currency_symbol || "RD$"
 
     // Get user profile for company info
-    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", invoice.user_id).single()
+    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", (invoice as any).user_id).single()
 
     // Generate HTML for PDF
     const html = generateInvoiceHTML(
@@ -51,16 +49,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       profile,
       companySettings,
       currencySymbol,
-      currencyCode,
-      primaryColor,
-      secondaryColor,
     )
 
     // Return HTML response that can be converted to PDF by the client
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html",
-        "Content-Disposition": `inline; filename="factura-${invoice.invoice_number}.html"`,
+        "Content-Disposition": `inline; filename="factura-${(invoice as any).invoice_number}.html"`,
       },
     })
   } catch (error) {
@@ -74,9 +69,6 @@ function generateInvoiceHTML(
   profile: any,
   companySettings: any,
   currencySymbol: string,
-  currencyCode: string,
-  primaryColor: string,
-  secondaryColor: string,
 ) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES")

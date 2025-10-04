@@ -19,7 +19,7 @@ function isRedirectError(error: Error): boolean {
   return (
     error.message === "NEXT_REDIRECT" ||
     error.message.includes("NEXT_REDIRECT") ||
-    error.digest?.includes("NEXT_REDIRECT") ||
+    (error as any).digest?.includes("NEXT_REDIRECT") ||
     (error as any).digest === "NEXT_REDIRECT"
   )
 }

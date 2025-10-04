@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -30,6 +31,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const { formatCurrency } = useCurrency()
+  const { canDelete, canEdit } = useUserPermissions()
 
   useEffect(() => {
     fetchInvoices()
@@ -40,7 +42,9 @@ export default function InvoicesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("invoices")
@@ -53,7 +57,9 @@ export default function InvoicesPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setInvoices(data || [])
     } catch (error) {
       console.error("Error fetching invoices:", error)
@@ -111,7 +117,9 @@ export default function InvoicesPage() {
   }
 
   const handleMarkAsPaid = async (id: string) => {
-    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) return
+    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) {
+      return
+    }
 
     try {
       const { error } = await supabase
@@ -121,7 +129,9 @@ export default function InvoicesPage() {
         })
         .eq("id", id)
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchInvoices() // Refresh the list
     } catch (error) {
       console.error("Error marking invoice as paid:", error)
@@ -130,11 +140,20 @@ export default function InvoicesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) return
+    if (!canDelete('invoices')) {
+      alert("No tienes permisos para eliminar facturas")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("invoices").delete().eq("id", id)
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       fetchInvoices()
     } catch (error) {
       console.error("Error deleting invoice:", error)
@@ -393,16 +412,18 @@ export default function InvoicesPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                          className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                        >
-                          <Link href={`/invoices/${invoice.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
+                        {canEdit('invoices') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                          >
+                            <Link href={`/invoices/${invoice.id}/edit`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -422,14 +443,16 @@ export default function InvoicesPage() {
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="hover:bg-red-100 hover:text-red-700 transition-colors"
-                          onClick={() => handleDelete(invoice.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canDelete('invoices') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                            onClick={() => handleDelete(invoice.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

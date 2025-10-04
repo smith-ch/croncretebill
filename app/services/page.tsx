@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
+import { CategoryFilter } from "@/components/ui/category-filter"
 import { Plus, Search, Wrench, Edit, Trash2, DollarSign } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useCategories } from "@/hooks/use-categories"
 
 interface Service {
   id: string
@@ -26,20 +29,51 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete, canAccessModule } = useUserPermissions()
+  const { categories } = useCategories('service')
 
   useEffect(() => {
     fetchServices()
   }, [])
+
+  // Check if user has permission to access services
+  if (!canAccessModule('services')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <p className="text-red-600">
+                  No tienes permisos para acceder a los servicios. Esta función requiere permisos de gestión de inventario.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.history.back()} 
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Volver
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const fetchServices = async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("services")
@@ -47,7 +81,7 @@ export default function ServicesPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {throw error}
       setServices(data || [])
     } catch (error) {
       console.error("Error fetching services:", error)
@@ -57,22 +91,33 @@ export default function ServicesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) return
+    if (!canDelete('services')) {
+      alert("No tienes permisos para eliminar servicios")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("services").delete().eq("id", id)
-      if (error) throw error
+      if (error) {throw error}
       fetchServices()
     } catch (error) {
       console.error("Error deleting service:", error)
     }
   }
 
-  const filteredServices = services.filter(
-    (service) =>
+  const filteredServices = services.filter((service) => {
+    const matchesSearch = 
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      service.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategoryId === null || service.category_id === selectedCategoryId
+    
+    return matchesSearch && matchesCategory
+  })
 
   if (loading) {
     return (
@@ -133,6 +178,13 @@ export default function ServicesPage() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
+          <div className="mb-6">
+            <CategoryFilter
+              selectedCategoryId={selectedCategoryId}
+              onCategoryChange={setSelectedCategoryId}
+              type="service"
+            />
+          </div>
           {filteredServices.length === 0 ? (
             <div className="text-center py-12">
               <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -169,15 +221,17 @@ export default function ServicesPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(service.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          aria-label={`Eliminar servicio ${service.name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canDelete('services') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(service.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            aria-label={`Eliminar servicio ${service.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                     {service.description && (

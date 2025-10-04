@@ -8,9 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ProductForm } from "@/components/forms/product-form"
+import { CategoryFilter } from "@/components/ui/category-filter"
 import { Plus, Search, Package, Edit, Trash2, Calculator } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useCategories } from "@/hooks/use-categories"
 
 interface Product {
   id: string
@@ -27,9 +30,12 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
+  const { canDelete, permissions } = useUserPermissions()
+  const { categories } = useCategories('product')
 
   useEffect(() => {
     fetchProducts()
@@ -40,7 +46,7 @@ export default function ProductsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { return }
 
       const { data, error } = await supabase
         .from("products")
@@ -48,7 +54,7 @@ export default function ProductsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) { throw error }
       setProducts(data || [])
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -58,22 +64,33 @@ export default function ProductsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return
+    if (!canDelete('products')) {
+      alert("No tienes permisos para eliminar productos")
+      return
+    }
+    
+    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
+      return
+    }
 
     try {
       const { error } = await supabase.from("products").delete().eq("id", id)
-      if (error) throw error
+      if (error) { throw error }
       fetchProducts()
     } catch (error) {
       console.error("Error deleting product:", error)
     }
   }
 
-  const filteredProducts = products.filter(
-    (product) =>
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategoryId === null || product.category_id === selectedCategoryId
+    
+    return matchesSearch && matchesCategory
+  })
 
   if (loading) {
     return (
@@ -112,22 +129,36 @@ export default function ProductsPage() {
                 Presupuestos
               </Button>
             </Link>
+            <Link href="/products/multiple-prices-demo">
+              <Button
+                variant="outline"
+                className="bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-700 hover:text-purple-800 shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Precios Múltiples
+              </Button>
+            </Link>
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={!permissions.canManageInventory}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Producto
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
-                <ProductForm
-                  product={editingProduct}
-                  onSuccess={() => {
-                    setShowForm(false)
-                    setEditingProduct(null)
-                    fetchProducts()
-                  }}
-                />
+              <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl overflow-y-auto max-h-[90vh] p-0">
+                <div className="p-6 [&_.card]:border-0 [&_.card]:shadow-none [&_.card]:bg-transparent">
+                  <ProductForm
+                    product={editingProduct}
+                    onSuccess={() => {
+                      setShowForm(false)
+                      setEditingProduct(null)
+                      fetchProducts()
+                    }}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -148,6 +179,13 @@ export default function ProductsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
+            <div className="mb-6">
+              <CategoryFilter
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={setSelectedCategoryId}
+                type="product"
+              />
+            </div>
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
@@ -158,6 +196,7 @@ export default function ProductsPage() {
                 <Button
                   onClick={() => setShowForm(true)}
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                  disabled={!permissions.canManageInventory}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Producto
@@ -185,18 +224,21 @@ export default function ProductsPage() {
                             }}
                             className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
                             aria-label={`Editar producto ${product.name}`}
+                            disabled={!permissions.canManageInventory}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(product.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                            aria-label={`Eliminar producto ${product.name}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDelete('products') && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(product.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                              aria-label={`Eliminar producto ${product.name}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {product.description && <p className="text-sm text-slate-600 mb-4">{product.description}</p>}

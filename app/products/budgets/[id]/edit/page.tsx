@@ -642,7 +642,11 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="include_itbis" checked={includeItbis} onCheckedChange={setIncludeItbis} />
+                  <Checkbox
+                    id="include_itbis"
+                    checked={includeItbis}
+                    onCheckedChange={(checked) => setIncludeItbis(checked === true)}
+                  />
                   <Label htmlFor="include_itbis">Incluir ITBIS (18%)</Label>
                 </div>
 
