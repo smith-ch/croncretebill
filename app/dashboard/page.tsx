@@ -231,12 +231,28 @@ export default function DashboardPage() {
 
   const updateMonthlyTarget = async () => {
     try {
+      // Validar que el valor sea válido
+      if (!newTarget || newTarget <= 0) {
+        alert("Por favor ingresa una meta válida mayor a 0")
+        return
+      }
+
+      // Guardar en localStorage
       localStorage.setItem("monthly_target", newTarget.toString())
+      
+      // Actualizar el estado
       setStats((prev) => ({ ...prev, monthlyTarget: newTarget }))
+      
+      // Cerrar el modal
       setShowTargetSettings(false)
+      
+      // Mostrar mensaje de éxito
+      alert(`Meta mensual actualizada exitosamente: ${formatCurrency(newTarget)}`)
+      
+      console.log("Meta mensual actualizada exitosamente:", newTarget)
     } catch (error) {
       console.error("Error updating monthly target:", error)
-      alert("Error al actualizar la meta mensual")
+      alert("Error al actualizar la meta mensual: " + (error instanceof Error ? error.message : 'Error desconocido'))
     }
   }
 
@@ -831,8 +847,12 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowTargetSettings(!showTargetSettings)}
+                  onClick={() => {
+                    console.log("Botón de configuración clickeado, showTargetSettings actual:", showTargetSettings)
+                    setShowTargetSettings(!showTargetSettings)
+                  }}
                   className="text-amber-700 hover:bg-amber-100/80 rounded-xl p-2 transition-all duration-200"
+                  title="Configurar meta mensual"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
@@ -1046,23 +1066,45 @@ export default function DashboardPage() {
         
         {/* Configuración de Meta */}
         {showTargetSettings && (
-          <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm mb-4">
-            <CardContent className="p-4">
+          <Card className="border-2 border-blue-200 shadow-xl bg-white mb-4 animate-in slide-in-from-top-2 duration-300">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-blue-800 flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configurar Meta Mensual
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-2">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <Label htmlFor="monthly-target" className="text-gray-700 font-semibold">
-                    Nueva Meta Mensual
+                    Nueva Meta Mensual ({formatCurrency(newTarget)})
                   </Label>
                   <Input
                     id="monthly-target"
                     type="number"
+                    min="1"
+                    step="1000"
                     value={newTarget}
-                    onChange={(e) => setNewTarget(Number(e.target.value))}
+                    onChange={(e) => {
+                      const value = Number(e.target.value)
+                      if (!isNaN(value) && value >= 0) {
+                        setNewTarget(value)
+                      }
+                    }}
+                    placeholder="Ingresa tu meta mensual"
                     className="mt-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={updateMonthlyTarget} className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      console.log("Botón Guardar clickeado, newTarget:", newTarget)
+                      updateMonthlyTarget()
+                    }} 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={!newTarget || newTarget <= 0}
+                  >
                     Guardar
                   </Button>
                   <Button
