@@ -175,7 +175,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
 
       // 1. Reducir stock en almacén de origen
       const newSourceStock = selectedProductData.current_stock - transferQuantity
-      const { error: updateSourceError } = await supabase
+      const { error: updateSourceError } = await (supabase as any)
         .from('product_warehouse_stock')
         .update({
           current_stock: newSourceStock,
@@ -201,20 +201,21 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
 
       if (existingTargetStock) {
         // 3a. Actualizar stock existente en destino
-        const { error: updateTargetError } = await supabase
+        const targetStock = existingTargetStock as any
+        const { error: updateTargetError } = await (supabase as any)
           .from('product_warehouse_stock')
           .update({
-            current_stock: existingTargetStock.current_stock + transferQuantity,
+            current_stock: targetStock.current_stock + transferQuantity,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingTargetStock.id)
+          .eq('id', targetStock.id)
 
         if (updateTargetError) {
           throw updateTargetError
         }
       } else {
         // 3b. Crear nuevo registro en destino
-        const { error: createTargetError } = await supabase
+        const { error: createTargetError } = await (supabase as any)
           .from('product_warehouse_stock')
           .insert({
             product_id: selectedProductData.product.id,
@@ -233,7 +234,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
       const sourceWarehouseName = warehouses.find(w => w.id === sourceWarehouse)?.name || 'Desconocido'
       const targetWarehouseName = warehouses.find(w => w.id === targetWarehouse)?.name || 'Desconocido'
 
-      await supabase
+      await (supabase as any)
         .from('stock_movements')
         .insert({
           product_id: selectedProductData.product.id,
@@ -246,7 +247,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
         })
 
       // 5. Registrar movimiento de entrada (destino)
-      await supabase
+      await (supabase as any)
         .from('stock_movements')
         .insert({
           product_id: selectedProductData.product.id,

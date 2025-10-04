@@ -17,8 +17,6 @@ import {
   Clock, 
   Bell,
   Shield,
-  Download,
-  Upload,
   Save,
   CheckCircle,
   AlertCircle,
@@ -42,8 +40,6 @@ interface SystemSettingsData {
   email_notifications: boolean
   sound_notifications: boolean
   desktop_notifications: boolean
-  auto_backup: boolean
-  backup_frequency: 'daily' | 'weekly' | 'monthly'
   session_timeout: number
   two_factor_enabled: boolean
   login_alerts: boolean
@@ -95,8 +91,6 @@ export function SystemSettings() {
     email_notifications: true,
     sound_notifications: true,
     desktop_notifications: true,
-    auto_backup: true,
-    backup_frequency: 'weekly',
     session_timeout: 30,
     two_factor_enabled: false,
     login_alerts: true,
@@ -148,8 +142,6 @@ export function SystemSettings() {
             email_notifications: settings.email_notifications,
             sound_notifications: settings.sound_notifications,
             desktop_notifications: settings.desktop_notifications,
-            auto_backup: settings.auto_backup,
-            backup_frequency: settings.backup_frequency,
             session_timeout: settings.session_timeout,
             two_factor_enabled: settings.two_factor_enabled,
             login_alerts: settings.login_alerts,
@@ -193,8 +185,6 @@ export function SystemSettings() {
           email_notifications: systemSettings.email_notifications ?? true,
           sound_notifications: systemSettings.sound_notifications ?? true,
           desktop_notifications: systemSettings.desktop_notifications ?? true,
-          auto_backup: systemSettings.auto_backup ?? true,
-          backup_frequency: systemSettings.backup_frequency ?? 'weekly',
           session_timeout: systemSettings.session_timeout ?? 30,
           two_factor_enabled: systemSettings.two_factor_enabled ?? false,
           login_alerts: systemSettings.login_alerts ?? true,
@@ -452,109 +442,58 @@ export function SystemSettings() {
         </CardContent>
       </Card>
 
-      {/* Security and Backup */}
-      <div className="grid gap-8 lg:grid-cols-2">
-        <Card variant="elevated" className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-red-600" />
-              Seguridad
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-slate-700">Autenticación de Dos Factores</Label>
-                <p className="text-sm text-slate-500">Agregar una capa extra de seguridad</p>
-              </div>
-              <Switch
-                checked={settings.two_factor_enabled}
-                onCheckedChange={(checked: boolean) => updateSetting('two_factor_enabled', checked)}
-              />
+      {/* Security Settings */}
+      <Card variant="elevated" className="border-0 shadow-xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-red-600" />
+            Configuraciones de Seguridad
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-slate-700">Autenticación de Dos Factores</Label>
+              <p className="text-sm text-slate-500">Agregar una capa extra de seguridad (próximamente)</p>
             </div>
+            <Switch
+              checked={settings.two_factor_enabled}
+              onCheckedChange={(checked: boolean) => updateSetting('two_factor_enabled', checked)}
+              disabled
+            />
+          </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-slate-700">Alertas de Inicio de Sesión</Label>
-                <p className="text-sm text-slate-500">Notificar cuando se inicie sesión</p>
-              </div>
-              <Switch
-                checked={settings.login_alerts}
-                onCheckedChange={(checked: boolean) => updateSetting('login_alerts', checked)}
-              />
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-slate-700">Alertas de Inicio de Sesión</Label>
+              <p className="text-sm text-slate-500">Notificar cuando se inicie sesión</p>
             </div>
+            <Switch
+              checked={settings.login_alerts}
+              onCheckedChange={(checked: boolean) => updateSetting('login_alerts', checked)}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label className="text-slate-700">Tiempo de Sesión (minutos)</Label>
-              <Select 
-                value={settings.session_timeout.toString()} 
-                onValueChange={(value) => updateSetting('session_timeout', parseInt(value))}
-              >
-                <SelectTrigger className="bg-white border-slate-300">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutos</SelectItem>
-                  <SelectItem value="30">30 minutos</SelectItem>
-                  <SelectItem value="60">1 hora</SelectItem>
-                  <SelectItem value="120">2 horas</SelectItem>
-                  <SelectItem value="480">8 horas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card variant="elevated" className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5 text-indigo-600" />
-              Respaldo de Datos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-slate-700">Respaldo Automático</Label>
-                <p className="text-sm text-slate-500">Crear respaldos automáticamente</p>
-              </div>
-              <Switch
-                checked={settings.auto_backup}
-                onCheckedChange={(checked: boolean) => updateSetting('auto_backup', checked)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-slate-700">Frecuencia de Respaldo</Label>
-              <Select 
-                value={settings.backup_frequency} 
-                onValueChange={(value) => updateSetting('backup_frequency', value as 'daily' | 'weekly' | 'monthly')}
-                disabled={!settings.auto_backup}
-              >
-                <SelectTrigger className="bg-white border-slate-300">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Diario</SelectItem>
-                  <SelectItem value="weekly">Semanal</SelectItem>
-                  <SelectItem value="monthly">Mensual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="pt-4 space-y-3">
-              <Button variant="outline" className="w-full bg-white hover:bg-slate-50">
-                <Download className="h-4 w-4 mr-2" />
-                Descargar Respaldo
-              </Button>
-              <Button variant="outline" className="w-full bg-white hover:bg-slate-50">
-                <Upload className="h-4 w-4 mr-2" />
-                Restaurar Respaldo
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700">Tiempo de Sesión (minutos)</Label>
+            <Select 
+              value={settings.session_timeout.toString()} 
+              onValueChange={(value) => updateSetting('session_timeout', parseInt(value))}
+            >
+              <SelectTrigger className="bg-white border-slate-300">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 minutos</SelectItem>
+                <SelectItem value="30">30 minutos</SelectItem>
+                <SelectItem value="60">1 hora</SelectItem>
+                <SelectItem value="120">2 horas</SelectItem>
+                <SelectItem value="480">8 horas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Alerts */}
       {error && (

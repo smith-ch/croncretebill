@@ -40,6 +40,32 @@ export function useCurrency() {
     }
   }
 
+  const formatNumber = (number: number, decimals: number = 0) => {
+    // Validar que number sea un número válido
+    if (typeof number !== 'number' || isNaN(number) || !isFinite(number)) {
+      return '0'
+    }
+
+    try {
+      // Usar formato estadounidense (comas para miles, punto para decimales)
+      return number.toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+      
+    } catch (error) {
+      console.warn("Error formatting number:", error)
+      
+      // Fallback: formateo manual con comas para miles y punto para decimales
+      const fixed = number.toFixed(decimals)
+      const parts = fixed.split('.')
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      const decimalPart = decimals > 0 ? '.' + parts[1] : ''
+      
+      return integerPart + decimalPart
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     // Validar que amount sea un número válido
     if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
@@ -47,28 +73,23 @@ export function useCurrency() {
     }
 
     try {
-      // Intentar con locales comunes, comenzando con es-ES que es más compatible
-      const locales = ['es-ES', 'es', 'en-US', 'en']
-      
-      for (const locale of locales) {
-        try {
-          return `${currencySymbol}${amount.toLocaleString(locale, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`
-        } catch (localeError) {
-          continue
-        }
-      }
-      
-      // Fallback final: formateo manual confiable
-      const formattedAmount = amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      // Usar formato estadounidense (comas para miles, punto para decimales)
+      const formattedAmount = amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
       return `${currencySymbol}${formattedAmount}`
       
     } catch (error) {
       console.warn("Error formatting currency:", error)
-      // Último recurso: formato simple
-      return `${currencySymbol}${amount.toFixed(2)}`
+      
+      // Fallback: formateo manual con comas para miles y punto para decimales
+      const fixed = amount.toFixed(2)
+      const parts = fixed.split('.')
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      const decimalPart = '.' + parts[1]
+      
+      return `${currencySymbol}${integerPart}${decimalPart}`
     }
   }
 
@@ -76,5 +97,6 @@ export function useCurrency() {
     currencySymbol,
     currencyCode,
     formatCurrency,
+    formatNumber,
   }
 }

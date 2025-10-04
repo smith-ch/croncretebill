@@ -17,6 +17,15 @@ import {
   Calculator,
   Settings,
   TrendingUp,
+  Mail,
+  MessageCircle,
+  BookOpen,
+  Lightbulb,
+  Shield,
+  Zap,
+  Star,
+  Clock,
+  CheckCircle,
 } from "lucide-react"
 
 const systemFAQs = [
@@ -251,6 +260,62 @@ const systemFAQs = [
     answer:
       "Sí, el sistema mantiene tu preferencia de rol:\n\n💾 **Persistencia de Datos:**\n- El rol seleccionado se guarda en localStorage\n- Se mantiene al cerrar y abrir el navegador\n- Persiste entre diferentes pestañas\n- Se sincroniza con tus preferencias de usuario\n\n🔄 **Comportamiento del Sistema:**\n\n1. **Primera Vez:**\n   - Detección automática basada en email\n   - Asigna rol inicial según configuración\n\n2. **Sesiones Posteriores:**\n   - Carga el último rol seleccionado\n   - Verifica que aún tengas permisos\n   - Restaura automáticamente tu preferencia\n\n3. **Cambios Manuales:**\n   - Se guardan inmediatamente\n   - Prevalecen sobre la detección automática\n   - Requieren nueva verificación si cambia la configuración\n\n⚠️ **Nota:** Si tu email se remueve de la lista de empleados, volverás automáticamente a modo propietario.",
   },
+  {
+    id: "34",
+    category: "Soporte Técnico",
+    question: "¿Cómo obtener soporte técnico directo?",
+    answer:
+      "Para obtener asistencia técnica personalizada:\n\n📧 **Contacto Directo con el Desarrollador:**\n**Email:** smithrodriguez345@gmail.com\n\n👨‍💻 **Smith Rodríguez - Desarrollador Principal**\n- Creador y desarrollador completo del sistema\n- Soporte técnico especializado\n- Personalizaciones y mejoras\n- Resolución de problemas complejos\n- Implementación de nuevas funcionalidades\n\n⚡ **Qué incluir en tu consulta:**\n- Descripción detallada del problema\n- Capturas de pantalla si es necesario\n- Pasos que realizaste antes del error\n- Navegador y dispositivo que usas\n- Tu rol en el sistema (propietario/empleado)\n\n🕐 **Tiempo de respuesta:**\n- Consultas urgentes: 24-48 horas\n- Consultas generales: 2-3 días hábiles\n- Implementaciones: según complejidad",
+  },
+  {
+    id: "35",
+    category: "Soporte Técnico",
+    question: "¿Qué tipos de soporte están disponibles?",
+    answer:
+      "El sistema ofrece múltiples niveles de soporte:\n\n🆘 **Soporte de Emergencia:**\n- Problemas críticos que impiden trabajar\n- Pérdida de acceso al sistema\n- Errores que afectan facturación\n- Respuesta prioritaria\n\n🔧 **Soporte Técnico Regular:**\n- Dudas sobre funcionalidades\n- Problemas de configuración\n- Errores menores o inconsistencias\n- Optimización del rendimiento\n\n💡 **Consultoría y Mejoras:**\n- Personalización de funcionalidades\n- Nuevas características específicas\n- Integración con otros sistemas\n- Capacitación avanzada\n\n📚 **Recursos Disponibles:**\n- Esta sección de Preguntas Frecuentes\n- Documentación en línea\n- Videos tutoriales (próximamente)\n- Soporte vía email con el desarrollador\n\n📞 **Canales de Contacto:**\n- Email principal: smithrodriguez345@gmail.com\n- Respuesta garantizada en 48 horas\n- Soporte en español\n- Horario: Lunes a Viernes, 9AM-6PM (GMT-4)",
+  },
+  {
+    id: "36",
+    category: "Actualizaciones del Sistema",
+    question: "¿Cómo se actualizan las funcionalidades del sistema?",
+    answer:
+      "El sistema se actualiza continuamente para mejorar tu experiencia:\n\n🚀 **Tipos de Actualizaciones:**\n\n**Automáticas:**\n- Correcciones de errores menores\n- Mejoras de rendimiento\n- Actualizaciones de seguridad\n- Se aplican automáticamente sin interrupción\n\n**Programadas:**\n- Nuevas funcionalidades importantes\n- Cambios en la interfaz\n- Mejoras en reportes y análisis\n- Se notifican con anticipación\n\n📅 **Cronograma Típico:**\n- Actualizaciones menores: semanalmente\n- Funcionalidades nuevas: mensualmente\n- Mejoras mayores: trimestralmente\n\n🔔 **Notificaciones:**\n- Cambios importantes se comunican por email\n- Notas de actualización en el dashboard\n- Documentación actualizada automáticamente\n\n💬 **Solicitar Funcionalidades:**\n- Envía sugerencias a smithrodriguez345@gmail.com\n- Las ideas más solicitadas se priorizan\n- Feedback constante para mejorar el sistema",
+  },
+  {
+    id: "37",
+    category: "Actualizaciones del Sistema",
+    question: "¿Qué novedades recientes se han implementado?",
+    answer:
+      "Últimas mejoras implementadas en el sistema:\n\n✨ **Dashboard Renovado (Octubre 2024):**\n- Diseño premium con gradientes y animaciones\n- Métricas avanzadas con indicadores de tendencia\n- Meta inteligente con progreso visual\n- Alertas dinámicas y analytics mejorados\n- Actualización automática cada 5 minutos\n\n🤖 **Reportes con IA (Septiembre 2024):**\n- 12+ KPIs calculados automáticamente\n- Predicciones de ingresos inteligentes\n- Análisis de tendencias automatizado\n- Recomendaciones basadas en datos\n- Desglose mensual detallado\n\n👥 **Sistema de Roles Avanzado (Agosto 2024):**\n- Detección automática de empleados\n- Cambio dinámico entre roles\n- Seguridad mejorada con verificación\n- Interfaz adaptativa según permisos\n\n📅 **Agenda de Negocio (Julio 2024):**\n- Calendario centralizado de eventos\n- Recordatorios automáticos de facturas\n- Gestión de gastos fijos recurrentes\n- Alertas de fin de mes\n\n💳 **Cuentas por Pagar (Junio 2024):**\n- Seguimiento de proveedores\n- Alertas de vencimientos\n- Historial de pagos\n- Integración con agenda",
+  },
+  {
+    id: "38",
+    category: "Seguridad y Privacidad",
+    question: "¿Qué medidas de seguridad protegen mi información?",
+    answer:
+      "Tu información está protegida con múltiples capas de seguridad:\n\n🔒 **Seguridad de Datos:**\n- Encriptación end-to-end de toda la información\n- Conexiones HTTPS/SSL certificadas\n- Base de datos en la nube con respaldo automático\n- Acceso restringido solo a usuarios autorizados\n\n🛡️ **Control de Acceso:**\n- Autenticación segura por email\n- Sistema de roles con permisos específicos\n- Verificación de contraseña para cambios sensibles\n- Detección automática de usuarios no autorizados\n\n💾 **Respaldos y Recuperación:**\n- Backup automático diario de todos los datos\n- Historial de cambios para recuperación\n- Redundancia en múltiples servidores\n- Recuperación rápida en caso de problemas\n\n🔍 **Auditoría y Monitoreo:**\n- Registro de todas las acciones importantes\n- Monitoreo de actividad sospechosa\n- Alertas automáticas de seguridad\n- Cumplimiento con estándares de privacidad\n\n📱 **Seguridad Multi-dispositivo:**\n- Sincronización segura entre dispositivos\n- Sesiones individuales por dispositivo\n- Logout automático por inactividad\n- Verificación adicional en dispositivos nuevos",
+  },
+  {
+    id: "39",
+    category: "Seguridad y Privacidad",
+    question: "¿Mis datos están seguros en la nube?",
+    answer:
+      "Sí, utilizamos la infraestructura más segura disponible:\n\n☁️ **Infraestructura de Clase Mundial:**\n- Supabase: Backend-as-a-Service de grado empresarial\n- Servidores distribuidos globalmente\n- Certificaciones SOC 2 Type II y ISO 27001\n- Uptime garantizado del 99.9%\n\n🔐 **Protección de Datos:**\n- Cifrado AES-256 en reposo\n- Cifrado TLS 1.3 en tránsito\n- Acceso con autenticación de dos factores\n- Políticas estrictas de acceso a datos\n\n🌍 **Cumplimiento Internacional:**\n- Cumple con GDPR (Europa)\n- Estándares CCPA (California)\n- Políticas de privacidad transparentes\n- Derecho a portabilidad de datos\n\n🚨 **Monitoreo 24/7:**\n- Detección automática de amenazas\n- Respuesta inmediata a incidentes\n- Actualizaciones de seguridad automáticas\n- Notificación proactiva de cualquier issue\n\n📋 **Tu Control:**\n- Puedes exportar tus datos en cualquier momento\n- Control granular sobre quién accede a qué\n- Eliminación completa de datos si lo solicitas\n- Transparencia total sobre el uso de información",
+  },
+  {
+    id: "40",
+    category: "Mejores Prácticas",
+    question: "¿Cuáles son las mejores prácticas para usar el sistema?",
+    answer:
+      "Sigue estas recomendaciones para aprovechar al máximo el sistema:\n\n📊 **Organización de Datos:**\n- Mantén información de clientes actualizada\n- Usa categorías consistentes para productos/servicios\n- Registra gastos regularmente (semanalmente)\n- Configura gastos fijos desde el inicio\n\n💰 **Gestión Financiera:**\n- Establece metas mensuales realistas\n- Revisa el dashboard diariamente\n- Marca facturas como pagadas inmediatamente\n- Usa los reportes de IA para tomar decisiones\n\n📅 **Flujo de Trabajo Eficiente:**\n- Revisa la agenda cada lunes\n- Procesa facturas el mismo día que se crean\n- Actualiza precios de productos trimestralmente\n- Haz seguimiento a cuentas por cobrar semanalmente\n\n🔧 **Mantenimiento Regular:**\n- Limpia clientes duplicados mensualmente\n- Archiva facturas muy antiguas anualmente\n- Revisa y ajusta categorías de gastos\n- Valida la precisión de reportes mensualmente\n\n👥 **Gestión de Equipo:**\n- Capacita empleados en funciones específicas\n- Revisa permisos de acceso regularmente\n- Documenta procesos internos\n- Usa roles apropiados para cada usuario",
+  },
+  {
+    id: "41",
+    category: "Mejores Prácticas",
+    question: "¿Cómo optimizar el rendimiento del sistema?",
+    answer:
+      "Para obtener la mejor experiencia y rendimiento:\n\n🚀 **Rendimiento del Navegador:**\n- Usa navegadores modernos (Chrome, Firefox, Safari actualizados)\n- Mantén máximo 5-10 pestañas abiertas\n- Limpia caché del navegador mensualmente\n- Cierra sesión si no usarás el sistema por horas\n\n💾 **Gestión de Datos:**\n- No acumules más de 1000 facturas sin archivar\n- Elimina registros de prueba regularmente\n- Usa filtros en listas largas\n- Exporta y archiva datos históricos anuales\n\n📱 **Uso Eficiente:**\n- Guarda cambios frecuentemente\n- No hagas múltiples operaciones simultáneas\n- Usa la función de búsqueda en lugar de scroll largo\n- Actualiza la página si parece lenta\n\n🔔 **Configuración Óptima:**\n- Desactiva notificaciones innecesarias\n- Ajusta la frecuencia de actualización automática\n- Usa vista compacta en pantallas pequeñas\n- Configura alertas solo para eventos importantes\n\n🛠️ **Solución de Problemas:**\n- Refresca la página si algo no responde\n- Verifica tu conexión a internet\n- Reporta problemas persistentes inmediatamente\n- Mantén contacto actualizado para notificaciones",
+  },
 ]
 
 export default function FAQPage() {
@@ -286,6 +351,14 @@ export default function FAQPage() {
         return <Settings className="h-5 w-5" />
       case "Empleados y Roles":
         return <Users className="h-5 w-5" />
+      case "Soporte Técnico":
+        return <MessageCircle className="h-5 w-5" />
+      case "Actualizaciones del Sistema":
+        return <Zap className="h-5 w-5" />
+      case "Seguridad y Privacidad":
+        return <Shield className="h-5 w-5" />
+      case "Mejores Prácticas":
+        return <Lightbulb className="h-5 w-5" />
       default:
         return <HelpCircle className="h-5 w-5" />
     }
@@ -307,6 +380,14 @@ export default function FAQPage() {
         return "from-red-500 to-red-600"
       case "Empleados y Roles":
         return "from-indigo-500 to-indigo-600"
+      case "Soporte Técnico":
+        return "from-cyan-500 to-cyan-600"
+      case "Actualizaciones del Sistema":
+        return "from-orange-500 to-orange-600"
+      case "Seguridad y Privacidad":
+        return "from-rose-500 to-rose-600"
+      case "Mejores Prácticas":
+        return "from-violet-500 to-violet-600"
       default:
         return "from-slate-500 to-slate-600"
     }
@@ -315,39 +396,220 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg">
-              <HelpCircle className="h-8 w-8 text-white" />
+        {/* Header mejorado */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+              <HelpCircle className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
-            Preguntas Frecuentes
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+            Centro de Ayuda
           </h1>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-            Encuentra respuestas a las preguntas más comunes sobre cómo usar el sistema de facturación
+          <p className="text-slate-600 text-xl max-w-3xl mx-auto leading-relaxed">
+            Encuentra respuestas a las preguntas más comunes y obtén soporte técnico especializado para aprovechar al máximo tu sistema de facturación
           </p>
         </motion.div>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+        {/* Sección de contacto destacada */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/50 to-purple-600/50 opacity-50"></div>
+            <CardContent className="relative p-8">
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 bg-white/20 rounded-xl">
+                      <Mail className="h-6 w-6" />
+                    </div>
+                    <h2 className="text-2xl font-bold">¿Necesitas Soporte Personalizado?</h2>
+                  </div>
+                  <p className="text-blue-100 text-lg leading-relaxed">
+                    Contacta directamente con el desarrollador del sistema para asistencia técnica especializada, 
+                    personalización de funcionalidades o resolución de problemas complejos.
+                  </p>
+                  <div className="flex flex-wrap gap-4 mt-6">
+                    <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="font-semibold">smithrodriguez345@gmail.com</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2">
+                      <Clock className="h-4 w-4" />
+                      <span>Respuesta en 24-48h</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="lg:w-64 space-y-3">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-emerald-500 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-semibold">Smith Rodríguez</span>
+                    </div>
+                    <p className="text-blue-100 text-sm">Desarrollador Principal & Creador del Sistema</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <Zap className="h-5 w-5 mx-auto mb-1" />
+                      <span>Soporte Técnico</span>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <Star className="h-5 w-5 mx-auto mb-1" />
+                      <span>Personalizaciones</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Búsqueda mejorada */}
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              Buscar Preguntas
+              Buscar en el Centro de Ayuda
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="relative max-w-md mx-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <div className="relative max-w-lg mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
               <Input
-                placeholder="Buscar preguntas..."
+                placeholder="Buscar preguntas, categorías o palabras clave..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-12 py-3 text-lg border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
               />
             </div>
+            {searchTerm && (
+              <div className="mt-4 text-center">
+                <p className="text-slate-600">
+                  {filteredFaqs.length} resultado{filteredFaqs.length !== 1 ? 's' : ''} encontrado{filteredFaqs.length !== 1 ? 's' : ''} para &ldquo;<span className="font-semibold text-blue-600">{searchTerm}</span>&rdquo;
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Estadísticas del Centro de Ayuda */}
+        {!searchTerm && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="p-3 bg-blue-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-2xl font-bold text-blue-700">{systemFAQs.length}</p>
+                  <p className="text-blue-600 font-medium">Preguntas Frecuentes</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="p-3 bg-emerald-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <HelpCircle className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-700">{categories.length}</p>
+                  <p className="text-emerald-600 font-medium">Categorías de Ayuda</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="p-3 bg-amber-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-2xl font-bold text-amber-700">24-48h</p>
+                  <p className="text-amber-600 font-medium">Tiempo de Respuesta</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="p-3 bg-purple-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <Star className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-2xl font-bold text-purple-700">24/7</p>
+                  <p className="text-purple-600 font-medium">Disponibilidad</p>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Acceso rápido a temas populares */}
+        {!searchTerm && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 to-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-slate-800">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  Temas Más Consultados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("crear factura")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <span className="font-semibold text-blue-800">Crear Facturas</span>
+                    </div>
+                    <p className="text-blue-600 text-sm">Proceso completo de facturación</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("dashboard")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                      <span className="font-semibold text-emerald-800">Dashboard</span>
+                    </div>
+                    <p className="text-emerald-600 text-sm">Métricas e indicadores</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("roles empleado")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Users className="h-5 w-5 text-purple-600" />
+                      <span className="font-semibold text-purple-800">Roles y Permisos</span>
+                    </div>
+                    <p className="text-purple-600 text-sm">Gestión de empleados</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("reportes IA")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Star className="h-5 w-5 text-amber-600" />
+                      <span className="font-semibold text-amber-800">Reportes con IA</span>
+                    </div>
+                    <p className="text-amber-600 text-sm">Análisis inteligente</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl border border-rose-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("seguridad")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Shield className="h-5 w-5 text-rose-600" />
+                      <span className="font-semibold text-rose-800">Seguridad</span>
+                    </div>
+                    <p className="text-rose-600 text-sm">Protección de datos</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl border border-cyan-200 hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => setSearchTerm("soporte técnico")}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <MessageCircle className="h-5 w-5 text-cyan-600" />
+                      <span className="font-semibold text-cyan-800">Soporte Técnico</span>
+                    </div>
+                    <p className="text-cyan-600 text-sm">Asistencia especializada</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {filteredFaqs.length === 0 ? (
           <Card className="border-0 shadow-lg">
@@ -356,7 +618,7 @@ export default function FAQPage() {
                 <HelpCircle className="h-10 w-10 text-slate-400" />
               </div>
               <h3 className="text-lg font-medium text-slate-900 mb-2">No se encontraron preguntas</h3>
-              <p className="text-slate-600">Intenta con otros términos de búsqueda</p>
+              <p className="text-slate-600">Intenta con otros términos de búsqueda o usa los accesos rápidos de arriba</p>
             </CardContent>
           </Card>
         ) : (

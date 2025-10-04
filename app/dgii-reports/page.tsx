@@ -988,48 +988,104 @@ export default function DGIIReportsPage() {
       XLSX.utils.book_append_sheet(wb, ws, `607_${selectedYear}`)
       XLSX.writeFile(wb, `Reporte_607_Anual_${selectedYear}.xlsx`)
     } else if (type === 'consolidado') {
-      // Generar reporte consolidado anual mejorado
+      // Generar reporte consolidado según Formulario IR-2 DGII
       const totalVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.total || invoice.monto || 0), 0)
       const totalCompras = yearData.compras.reduce((sum, expense) => sum + (expense.amount || expense.monto || 0), 0)
       const itbisVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.tax_amount || invoice.itbis || 0), 0)
       const itbisCompras = yearData.compras.reduce((sum, expense) => sum + (expense.tax_amount || expense.itbis || 0), 0)
-      const utilidadBruta = totalVentas - totalCompras
-      const balanceItbis = itbisVentas - itbisCompras
       
-      // Hoja de resumen principal
-      const resumenData = [
-        { 'Concepto': 'RESUMEN ANUAL DGII - AÑO ' + selectedYear, 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': '=== INGRESOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': 'Total Ingresos Brutos (607)', 'Valor (RD$)': totalVentas, 'Porcentaje': '100.00%' },
-        { 'Concepto': 'ITBIS Cobrado', 'Valor (RD$)': itbisVentas, 'Porcentaje': ((itbisVentas / totalVentas) * 100).toFixed(2) + '%' },
-        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': '=== GASTOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': 'Total Gastos Deducibles (606)', 'Valor (RD$)': -totalCompras, 'Porcentaje': ((totalCompras / totalVentas) * 100).toFixed(2) + '%' },
-        { 'Concepto': 'ITBIS Pagado', 'Valor (RD$)': -itbisCompras, 'Porcentaje': ((itbisCompras / totalVentas) * 100).toFixed(2) + '%' },
-        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': '=== RESULTADOS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': 'Utilidad Bruta', 'Valor (RD$)': utilidadBruta, 'Porcentaje': ((utilidadBruta / totalVentas) * 100).toFixed(2) + '%' },
-        { 'Concepto': 'Balance ITBIS', 'Valor (RD$)': balanceItbis, 'Porcentaje': balanceItbis >= 0 ? 'A Pagar' : 'A Favor' },
-        { 'Concepto': '', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': '=== ESTADÍSTICAS ===', 'Valor (RD$)': '', 'Porcentaje': '' },
-        { 'Concepto': 'Total Facturas Emitidas', 'Valor (RD$)': yearData.ventas.length, 'Porcentaje': '' },
-        { 'Concepto': 'Total Gastos Registrados', 'Valor (RD$)': yearData.compras.length, 'Porcentaje': '' },
-        { 'Concepto': 'Promedio Mensual Ingresos', 'Valor (RD$)': (totalVentas / 12).toFixed(2), 'Porcentaje': '' },
-        { 'Concepto': 'Promedio Mensual Gastos', 'Valor (RD$)': (totalCompras / 12).toFixed(2), 'Porcentaje': '' }
+      // Cálculos según IR-2
+      const ventasLocales = totalVentas // Todas las ventas son locales por defecto
+      const exportaciones = 0 // No manejamos exportaciones actualmente
+      const otrosIngresosGravados = 0 // Campo para completar manualmente
+      const ingresosExentos = 0 // Campo para completar manualmente
+      const totalIngresos = ventasLocales + exportaciones + otrosIngresosGravados
+      
+      // Desglose de gastos por categorías DGII
+      const gastosPersonal = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('01')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const gastosServicios = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('02')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const arrendamientos = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('03')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const gastosActivosFijos = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('04')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const gastosRepresentacion = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('05')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const gastosFinancieros = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('07')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const costoVentas = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('09')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const seguros = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('11')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
+      const otrosGastos = totalCompras - (gastosPersonal + gastosServicios + arrendamientos + gastosActivosFijos + gastosRepresentacion + gastosFinancieros + costoVentas + seguros)
+      
+      const depreciaciones = 0 // Campo para completar manualmente
+      const totalGastosDeducibles = totalCompras + depreciaciones
+      
+      // Determinación de Renta Neta
+      const rentaBruta = totalIngresos - totalGastosDeducibles
+      const ajustesFiscales = 0 // Campo para completar manualmente
+      const perdidasArrastrables = 0 // Campo para completar manualmente
+      const rentaNetaImponible = Math.max(0, rentaBruta + ajustesFiscales - perdidasArrastrables)
+      
+      // Cálculo del ISR
+      const isr27Porciento = rentaNetaImponible * 0.27
+      const retenciones = 0 // Campo para completar manualmente
+      const anticipos = 0 // Campo para completar manualmente
+      const creditoFiscal = 0 // Campo para completar manualmente
+      const saldoPagar = Math.max(0, isr27Porciento - retenciones - anticipos - creditoFiscal)
+      const saldoFavor = Math.max(0, retenciones + anticipos + creditoFiscal - isr27Porciento)
+      
+      // Hoja IR-2 Oficial
+      const ir2Data = [
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'AÑO FISCAL ' + selectedYear, 'Valor (RD$)': '', 'Observaciones': 'Completar datos faltantes manualmente' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '1. DATOS GENERALES DE LA EMPRESA', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'RNC:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Ingrese su RNC' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Nombre/Razón Social:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Ingrese razón social' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Fecha de Cierre Fiscal:', 'Valor (RD$)': '31/12/' + selectedYear, 'Observaciones': 'Año calendario' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Actividad Económica Principal:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Código actividad DGII' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2. INGRESOS DEL EJERCICIO', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.1 Ventas Locales', 'Valor (RD$)': ventasLocales, 'Observaciones': 'Del reporte 607' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.2 Ventas de Exportación', 'Valor (RD$)': exportaciones, 'Observaciones': 'Completar si aplica' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.3 Otros Ingresos Gravados', 'Valor (RD$)': otrosIngresosGravados, 'Observaciones': 'Completar si aplica' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.4 Ingresos Exentos', 'Valor (RD$)': ingresosExentos, 'Observaciones': 'Completar si aplica' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'TOTAL INGRESOS GRAVADOS', 'Valor (RD$)': totalIngresos, 'Observaciones': 'Suma 2.1 + 2.2 + 2.3' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3. COSTOS Y GASTOS DEDUCIBLES', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.1 Costo de Ventas', 'Valor (RD$)': costoVentas, 'Observaciones': 'Tipo 09 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.2 Gastos de Personal', 'Valor (RD$)': gastosPersonal, 'Observaciones': 'Tipo 01 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.3 Servicios Profesionales', 'Valor (RD$)': gastosServicios, 'Observaciones': 'Tipo 02 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.4 Arrendamientos', 'Valor (RD$)': arrendamientos, 'Observaciones': 'Tipo 03 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.5 Gastos de Activos Fijos', 'Valor (RD$)': gastosActivosFijos, 'Observaciones': 'Tipo 04 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.6 Gastos de Representación', 'Valor (RD$)': gastosRepresentacion, 'Observaciones': 'Tipo 05 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.7 Gastos Financieros', 'Valor (RD$)': gastosFinancieros, 'Observaciones': 'Tipo 07 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.8 Seguros', 'Valor (RD$)': seguros, 'Observaciones': 'Tipo 11 del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.9 Depreciaciones y Amortizaciones', 'Valor (RD$)': depreciaciones, 'Observaciones': 'Completar manualmente' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.10 Otros Gastos Deducibles', 'Valor (RD$)': otrosGastos, 'Observaciones': 'Otros tipos del 606' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'TOTAL GASTOS DEDUCIBLES', 'Valor (RD$)': totalGastosDeducibles, 'Observaciones': 'Suma de todos los gastos' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4. DETERMINACION RENTA NETA IMPONIBLE', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.1 Renta Bruta (Ingresos - Gastos)', 'Valor (RD$)': rentaBruta, 'Observaciones': 'Base para ISR' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.2 Ajustes Fiscales', 'Valor (RD$)': ajustesFiscales, 'Observaciones': 'Completar si aplica' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.3 Pérdidas Arrastrables', 'Valor (RD$)': perdidasArrastrables, 'Observaciones': 'De años anteriores' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'RENTA NETA IMPONIBLE', 'Valor (RD$)': rentaNetaImponible, 'Observaciones': 'Base para ISR 27%' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5. CALCULO DEL IMPUESTO', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.1 ISR 27% s/Renta Neta', 'Valor (RD$)': isr27Porciento, 'Observaciones': 'Impuesto calculado' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.2 Retenciones Aplicadas', 'Valor (RD$)': retenciones, 'Observaciones': 'Completar manualmente' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.3 Anticipos Pagados', 'Valor (RD$)': anticipos, 'Observaciones': 'Pagos previos realizados' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.4 Crédito Fiscal Disponible', 'Valor (RD$)': creditoFiscal, 'Observaciones': 'De períodos anteriores' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '6. RESULTADO FINAL', 'Valor (RD$)': '', 'Observaciones': '' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'SALDO A PAGAR', 'Valor (RD$)': saldoPagar, 'Observaciones': saldoPagar > 0 ? 'Pagar antes del 31/03' : 'No aplica' },
+        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'SALDO A FAVOR', 'Valor (RD$)': saldoFavor, 'Observaciones': saldoFavor > 0 ? 'Solicitar devolución' : 'No aplica' }
       ]
 
       // Crear libro de trabajo
       const wb = XLSX.utils.book_new()
       
-      // Hoja 1: Resumen
-      const wsResumen = XLSX.utils.json_to_sheet(resumenData)
-      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Anual')
+      // Hoja 1: Formulario IR-2 Oficial
+      const wsIR2 = XLSX.utils.json_to_sheet(ir2Data)
+      XLSX.utils.book_append_sheet(wb, wsIR2, 'Formulario IR-2')
 
       // Hoja 2: Desglose por meses de ingresos
       const ingresosPorMes = []
       for (let mes = 1; mes <= 12; mes++) {
-        const mesStr = mes.toString().padStart(2, '0')
         const ventasMes = yearData.ventas.filter(v => {
           const fechaVenta = new Date(v.created_at || v.fecha || v.date)
           return fechaVenta.getMonth() + 1 === mes
@@ -1073,8 +1129,24 @@ export default function DGIIReportsPage() {
       const wsGastos = XLSX.utils.json_to_sheet(gastosPorMes)
       XLSX.utils.book_append_sheet(wb, wsGastos, 'Gastos Mensuales')
 
+      // Hoja 4: Desglose ITBIS para referencia
+      const balanceItbis = itbisVentas - itbisCompras
+      
+      const itbisData = [
+        { 'Concepto ITBIS': 'CONTROL DE ITBIS - AÑO ' + selectedYear, 'Valor (RD$)': '', 'Status': '' },
+        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
+        { 'Concepto ITBIS': 'ITBIS COBRADO (607)', 'Valor (RD$)': itbisVentas, 'Status': 'Crédito' },
+        { 'Concepto ITBIS': 'ITBIS PAGADO (606)', 'Valor (RD$)': itbisCompras, 'Status': 'Débito' },
+        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
+        { 'Concepto ITBIS': 'BALANCE ITBIS', 'Valor (RD$)': balanceItbis, 'Status': balanceItbis >= 0 ? 'A Pagar' : 'A Favor' },
+        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
+        { 'Concepto ITBIS': 'NOTA:', 'Valor (RD$)': 'Este balance debe declararse', 'Status': 'en formulario IT-1' }
+      ]
+      const wsItbis = XLSX.utils.json_to_sheet(itbisData)
+      XLSX.utils.book_append_sheet(wb, wsItbis, 'Control ITBIS')
+
       // Guardar archivo
-      XLSX.writeFile(wb, `Reporte_Consolidado_Anual_${selectedYear}.xlsx`)
+      XLSX.writeFile(wb, `Formulario_IR2_${selectedYear}.xlsx`)
     }
   }
 

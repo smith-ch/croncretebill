@@ -12,18 +12,13 @@ import { LoadingSpinner } from "@/components/ui/loading"
 import { 
   Shield, 
   Key, 
-  Smartphone, 
-  Lock, 
+  Smartphone,
+  Lock,
   AlertTriangle, 
   Eye, 
   EyeOff, 
   Save, 
-  CheckCircle,
-  Globe,
-  Monitor,
-  MapPin,
-  Calendar,
-  Unlock
+  CheckCircle
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -41,41 +36,7 @@ interface SecuritySettings {
   account_lockout_duration: number
 }
 
-interface LoginSession {
-  id: string
-  device: string
-  location: string
-  ip_address: string
-  last_active: string
-  current: boolean
-}
 
-const MOCK_SESSIONS: LoginSession[] = [
-  {
-    id: '1',
-    device: 'Windows - Chrome',
-    location: 'Santo Domingo, República Dominicana',
-    ip_address: '192.168.1.100',
-    last_active: 'Ahora',
-    current: true
-  },
-  {
-    id: '2',
-    device: 'iPhone - Safari',
-    location: 'Santo Domingo, República Dominicana',
-    ip_address: '192.168.1.101',
-    last_active: 'Hace 2 horas',
-    current: false
-  },
-  {
-    id: '3',
-    device: 'Android - Chrome',
-    location: 'Santiago, República Dominicana',
-    ip_address: '10.0.0.50',
-    last_active: 'Ayer',
-    current: false
-  }
-]
 
 export function SecuritySettingsComponent() {
   const [loading, setLoading] = React.useState(false)
@@ -213,23 +174,7 @@ export function SecuritySettingsComponent() {
     fetchSecuritySettings()
   }, [])
 
-  const terminateSession = async (sessionId: string) => {
-    try {
-      // En un entorno real, aquí terminarías la sesión específica
-      // Por ahora, solo refrescamos las sesiones activas
-      console.log('Terminando sesión:', sessionId)
-      setSuccess("Sesión terminada exitosamente")
-    } catch (error) {
-      setError("Error al terminar la sesión")
-    }
-  }
 
-  const getDeviceIcon = (device: string) => {
-    if (device.includes('iPhone') || device.includes('Android')) {
-      return <Smartphone className="h-4 w-4" />
-    }
-    return <Monitor className="h-4 w-4" />
-  }
 
   return (
     <div className="space-y-8">
@@ -498,61 +443,7 @@ export function SecuritySettingsComponent() {
         </Card>
       </div>
 
-      {/* Active Sessions */}
-      <Card variant="glass" className="border-0 shadow-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-green-600" />
-            Sesiones Activas
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {MOCK_SESSIONS.map((session) => (
-            <div
-              key={session.id}
-              className="flex items-center justify-between p-4 bg-white rounded-lg border border-slate-200 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-slate-100 rounded-lg">
-                  {getDeviceIcon(session.device)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-slate-900">{session.device}</h4>
-                    {session.current && (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                        Actual
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {session.location}
-                    </span>
-                    <span>{session.ip_address}</span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {session.last_active}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              {!session.current && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => terminateSession(session.id)}
-                  className="text-red-600 hover:bg-red-50 border-red-200"
-                >
-                  <Unlock className="h-4 w-4 mr-1" />
-                  Terminar
-                </Button>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+
 
       {/* Alerts */}
       {error && (
