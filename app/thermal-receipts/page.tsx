@@ -41,7 +41,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Sparkles,
-  ArrowUp
+  ArrowUp,
+  Percent,
+  X
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
@@ -85,6 +87,8 @@ interface LivePreviewProps {
   items: ThermalReceiptItem[]
   notes: string
   profile: Profile | null
+  generalDiscountPercentage: number
+  generalDiscountAmount: number
 }
 
 const LivePreview: React.FC<LivePreviewProps> = React.memo(({ 
@@ -93,20 +97,33 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
   amountReceived, 
   items, 
   notes, 
-  profile 
+  profile,
+  generalDiscountPercentage,
+  generalDiscountAmount
 }) => {
   const { formatCurrency } = useCurrency()
 
   const calculateTotals = useCallback(() => {
+    // Calcular subtotal base
     const subtotal = items.reduce((sum, item) => sum + item.line_total, 0)
-    const tax_amount = subtotal * 0.18
-    const total_amount = subtotal + tax_amount
+    
+    // Aplicar descuento general
+    let discountTotal = 0
+    if (generalDiscountPercentage > 0) {
+      discountTotal = subtotal * (generalDiscountPercentage / 100)
+    } else if (generalDiscountAmount > 0) {
+      discountTotal = generalDiscountAmount
+    }
+    
+    const subtotalAfterDiscount = subtotal - discountTotal
+    const tax_amount = subtotalAfterDiscount * 0.18
+    const total_amount = subtotalAfterDiscount + tax_amount
     const change_amount = Math.max(0, amountReceived - total_amount)
     
-    return { subtotal, tax_amount, total_amount, change_amount }
-  }, [items, amountReceived])
+    return { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount }
+  }, [items, amountReceived, generalDiscountPercentage, generalDiscountAmount])
 
-  const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
+  const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
   
   const receiptNumber = useMemo(() => {
     const currentDate = new Date()
@@ -172,6 +189,12 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
           <span>SUBTOTAL:</span>
           <span>{formatCurrency(subtotal)}</span>
         </div>
+        {discountTotal > 0 && (
+          <div className="flex justify-between text-red-600">
+            <span>DESCUENTO:</span>
+            <span>-{formatCurrency(discountTotal)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span>ITBIS (18%):</span>
           <span>{formatCurrency(tax_amount)}</span>
@@ -235,6 +258,8 @@ interface ThermalReceiptItem {
   product_id?: string
   service_id?: string
   selected_price_id?: string | null // Para tracking del precio seleccionado
+  discount_percentage?: number // Descuento en porcentaje
+  discount_amount?: number // Descuento en cantidad fija
 }
 
 interface ThermalReceipt {
@@ -254,6 +279,8 @@ interface ThermalReceipt {
   status: string
   created_at: string
   items: ThermalReceiptItem[]
+  discount_percentage?: number // Descuento general en porcentaje
+  discount_amount?: number // Descuento general en cantidad fija
 }
 
 export default function ThermalReceiptsPage() {
@@ -281,6 +308,11 @@ export default function ThermalReceiptsPage() {
   const [items, setItems] = useState<ThermalReceiptItem[]>([
     { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }
   ])
+  
+  // Discount states
+  const [generalDiscountType, setGeneralDiscountType] = useState<"percentage" | "amount">("percentage")
+  const [generalDiscountPercentage, setGeneralDiscountPercentage] = useState(0)
+  const [generalDiscountAmount, setGeneralDiscountAmount] = useState(0)
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
@@ -453,13 +485,24 @@ export default function ThermalReceiptsPage() {
   }
 
   const calculateTotals = () => {
+    // Calcular subtotal base
     const subtotal = items.reduce((sum, item) => sum + item.line_total, 0)
-    const tax_amount = subtotal * 0.18 // 18% tax
-    const total_amount = subtotal + tax_amount
+    
+    // Aplicar descuento general
+    let discountTotal = 0
+    if (generalDiscountType === "percentage" && generalDiscountPercentage > 0) {
+      discountTotal = subtotal * (generalDiscountPercentage / 100)
+    } else if (generalDiscountType === "amount" && generalDiscountAmount > 0) {
+      discountTotal = generalDiscountAmount
+    }
+    
+    const subtotalAfterDiscount = Math.max(0, subtotal - discountTotal)
+    const tax_amount = subtotalAfterDiscount * 0.18 // 18% tax
+    const total_amount = subtotalAfterDiscount + tax_amount
     const receivedAmount = isNaN(amountReceived) ? 0 : amountReceived
     const change_amount = Math.max(0, receivedAmount - total_amount)
     
-    return { subtotal, tax_amount, total_amount, change_amount }
+    return { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount }
   }
 
   const generateVerificationCode = () => {
@@ -467,7 +510,7 @@ export default function ThermalReceiptsPage() {
   }
 
   const generatePreview = () => {
-    const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
+    const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
     
     if (total_amount <= 0) {
       notifyError("Debe agregar al menos un producto con precio válido")
@@ -493,7 +536,10 @@ export default function ThermalReceiptsPage() {
       notes,
       items: items.filter(item => item.item_name.trim() !== "" && item.line_total > 0),
       created_at: new Date().toISOString(),
-      status: 'preview'
+      status: 'preview',
+      discount_percentage: generalDiscountType === "percentage" ? generalDiscountPercentage : null,
+      discount_amount: generalDiscountType === "amount" ? generalDiscountAmount : null,
+      discountTotal
     }
 
     setPreviewData(previewReceipt)
@@ -510,7 +556,7 @@ export default function ThermalReceiptsPage() {
         return
       }
 
-      const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
+      const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
       
       if (total_amount <= 0) {
         notifyError("Debe agregar al menos un producto con precio válido")
@@ -539,7 +585,9 @@ export default function ThermalReceiptsPage() {
           qr_code: qr_url,
           verification_code,
           digital_receipt_url: qr_url,
-          notes
+          notes,
+          discount_percentage: generalDiscountType === "percentage" ? generalDiscountPercentage : null,
+          discount_amount: generalDiscountType === "amount" ? generalDiscountAmount : null
         } as any)
         .select()
         .single()
@@ -580,6 +628,8 @@ export default function ThermalReceiptsPage() {
       setAmountReceived(0)
       setNotes("")
       setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
+      setGeneralDiscountPercentage(0)
+      setGeneralDiscountAmount(0)
 
       notifySuccess("Recibo térmico creado exitosamente")
       await fetchData()
@@ -698,7 +748,7 @@ export default function ThermalReceiptsPage() {
   }
 
   // Calculate totals for the form
-  const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
+  const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6">
@@ -1076,6 +1126,84 @@ export default function ThermalReceiptsPage() {
                 </div>
               </div>
 
+              {/* Descuentos */}
+              <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <div>
+                  <Label className="text-green-700 font-semibold flex items-center">
+                    <Percent className="h-4 w-4 mr-2" />
+                    Descuentos
+                  </Label>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="discountType" className="text-sm">Tipo de Descuento</Label>
+                    <Select value={generalDiscountType} onValueChange={(value) => setGeneralDiscountType(value as "percentage" | "amount")}>
+                      <SelectTrigger className="border-green-200 focus:border-green-500">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percentage">Porcentaje (%)</SelectItem>
+                        <SelectItem value="amount">Cantidad Fija</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {generalDiscountType === "percentage" ? (
+                    <div>
+                      <Label htmlFor="discountPercentage" className="text-sm">Descuento (%)</Label>
+                      <Input
+                        id="discountPercentage"
+                        type="number"
+                        value={generalDiscountPercentage === 0 ? "" : generalDiscountPercentage}
+                        onChange={(e) => setGeneralDiscountPercentage(parseFloat(e.target.value) || 0)}
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="0.0"
+                        className="border-green-200 focus:border-green-500"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <Label htmlFor="discountAmount" className="text-sm">Descuento ({formatCurrency(0).replace('0.00', '')})</Label>
+                      <Input
+                        id="discountAmount"
+                        type="number"
+                        value={generalDiscountAmount === 0 ? "" : generalDiscountAmount}
+                        onChange={(e) => setGeneralDiscountAmount(parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="border-green-200 focus:border-green-500"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setGeneralDiscountPercentage(0)
+                        setGeneralDiscountAmount(0)
+                      }}
+                      className="border-green-200 text-green-600 hover:bg-green-50 w-full"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Limpiar
+                    </Button>
+                  </div>
+                </div>
+                
+                {(generalDiscountPercentage > 0 || generalDiscountAmount > 0) && (
+                  <div className="text-sm text-green-700 bg-green-100 p-2 rounded">
+                    <strong>Descuento aplicado: {formatCurrency(calculateTotals().discountTotal)}</strong>
+                  </div>
+                )}
+              </div>
+
               {/* Totals */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="space-y-2">
@@ -1083,6 +1211,12 @@ export default function ThermalReceiptsPage() {
                     <span>Subtotal:</span>
                     <span className="font-semibold">{formatCurrency(subtotal)}</span>
                   </div>
+                  {calculateTotals().discountTotal > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Descuento:</span>
+                      <span className="font-semibold">-{formatCurrency(calculateTotals().discountTotal)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>ITBIS (18%):</span>
                     <span className="font-semibold">{formatCurrency(tax_amount)}</span>
@@ -1139,6 +1273,8 @@ export default function ThermalReceiptsPage() {
                     setAmountReceived(0)
                     setNotes("")
                     setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
+                    setGeneralDiscountPercentage(0)
+                    setGeneralDiscountAmount(0)
                   }}
                   className="border-blue-200 text-blue-600 hover:bg-blue-50"
                 >
@@ -1179,6 +1315,8 @@ export default function ThermalReceiptsPage() {
               items={items}
               notes={notes}
               profile={profile}
+              generalDiscountPercentage={generalDiscountPercentage}
+              generalDiscountAmount={generalDiscountAmount}
             />
           </div>
         </div>
@@ -1188,20 +1326,7 @@ export default function ThermalReceiptsPage() {
           </div>
         </div>
 
-      {/* Database Status Alert */}
-      {receipts.length === 0 && !loading && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2 text-yellow-700">
-              <div className="text-sm">
-                <strong>⚠️ Base de datos no configurada:</strong> 
-                Las tablas de facturas térmicas no existen. 
-                <strong>Por favor aplica el archivo <code>fix-database-schema.sql</code> en Supabase.</strong>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Dashboard Principal - Estadísticas */}
       <div className="space-y-6">
@@ -1840,6 +1965,12 @@ export default function ThermalReceiptsPage() {
                     <span>Subtotal:</span>
                     <span>{formatCurrency(previewData.subtotal)}</span>
                   </div>
+                  {previewData.discountTotal > 0 && (
+                    <div className="flex justify-between text-xs text-red-600">
+                      <span>Descuento:</span>
+                      <span>-{formatCurrency(previewData.discountTotal)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs">
                     <span>ITBIS (18%):</span>
                     <span>{formatCurrency(previewData.tax_amount)}</span>
