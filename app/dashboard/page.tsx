@@ -60,6 +60,7 @@ interface ThermalReceipt {
   id: string
   receipt_number: string
   total_amount: number
+  status: string
   created_at: string
 }
 
@@ -80,6 +81,7 @@ interface DashboardStats {
   monthlyInvoices: number
   monthlyRevenue: number
   monthlyPendingRevenue: number
+  monthlyPendingInvoices: number
   monthlyExpenses: number
   monthlyExpenseAmount: number
   previousMonthRevenue: number
@@ -125,6 +127,7 @@ export default function DashboardPage() {
     monthlyInvoices: 0,
     monthlyRevenue: 0,
     monthlyPendingRevenue: 0,
+    monthlyPendingInvoices: 0,
     monthlyExpenses: 0,
     monthlyExpenseAmount: 0,
     previousMonthRevenue: 0,
@@ -277,6 +280,8 @@ export default function DashboardPage() {
           .from("invoices")
           .select("total, status")
           .eq("user_id", user.id)
+          .neq("status", "cancelada")
+          .neq("status", "borrador")
           .gte("created_at", startOfMonth.toISOString())
           .lte("created_at", endOfMonth.toISOString()) as unknown as { data: { total: number; status: string }[] | null },
         supabase
@@ -360,6 +365,8 @@ export default function DashboardPage() {
           clients!inner(name)
         `)
         .eq("user_id", user.id)
+        .neq("status", "cancelada")
+        .neq("status", "borrador")
         .order("created_at", { ascending: false }) as unknown as { data: Invoice[] | null }
 
       const { data: expenses } = await supabase
@@ -381,9 +388,11 @@ export default function DashboardPage() {
           id,
           receipt_number,
           total_amount,
+          status,
           created_at
         `)
         .eq("user_id", user.id)
+        .eq("status", "active")
         .order("created_at", { ascending: false }) as unknown as { data: ThermalReceipt[] | null, error: any }
 
       const { count: clientsCount } = await supabase
@@ -403,7 +412,9 @@ export default function DashboardPage() {
 
       const totalInvoices = invoices?.length || 0
       const paidInvoices = invoices?.filter((inv) => inv.status === "pagada") || []
-      const unpaidInvoices = invoices?.filter((inv) => inv.status !== "pagada" && inv.status !== "cancelada") || []
+      const unpaidInvoices = invoices?.filter((inv) => inv.status === "enviada") || []
+
+      // Los logs de debug muestran que hay 4 facturas "enviada" pero de meses anteriores
 
       const invoiceRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       // Si hay error en thermal receipts, usar 0 como fallback
@@ -414,10 +425,10 @@ export default function DashboardPage() {
       const totalExpenses = expenses?.length || 0
       const totalExpenseAmount = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
-      const pendingInvoices = invoices?.filter((inv) => inv.status === "pendiente").length || 0
+      const pendingInvoices = invoices?.filter((inv) => inv.status === "enviada").length || 0
       const overdueInvoices =
         invoices?.filter((inv) => {
-          if (inv.status !== "pendiente" || !inv.due_date) {
+          if (inv.status !== "enviada" || !inv.due_date) {
             return false
           }
           return new Date(inv.due_date) < now
@@ -454,7 +465,7 @@ export default function DashboardPage() {
       }) || []
       
       const monthlyUnpaidInvoices = invoices?.filter((inv) => {
-        if (inv.status === "pagada" || inv.status === "cancelada") {
+        if (inv.status !== "enviada") {
           return false
         }
         const invDate = new Date(inv.issue_date || inv.created_at)
@@ -470,6 +481,9 @@ export default function DashboardPage() {
       const monthlyThermalRevenue = monthlyThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
       const monthlyRevenue = monthlyInvoiceRevenue + monthlyThermalRevenue
       const monthlyPendingRevenue = monthlyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      
+      // Calcular facturas pendientes específicamente del mes actual para mostrar en la tarjeta
+      const monthlyPendingInvoices = monthlyUnpaidInvoices.length // Ya están filtradas por status "enviada"
 
       const monthlyExpenses = expenses?.filter((exp) => {
         const expDate = new Date(exp.created_at)
@@ -584,6 +598,7 @@ export default function DashboardPage() {
         monthlyInvoices,
         monthlyRevenue,
         monthlyPendingRevenue,
+        monthlyPendingInvoices,
         monthlyExpenses,
         monthlyExpenseAmount,
         previousMonthRevenue,
@@ -816,31 +831,29 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Layout principal con información empresarial */}
-        <div className="grid gap-4 xl:grid-cols-4 mb-4">
-          {/* Meta Mensual Mejorada - 2 columnas */}
-          <Card className="xl:col-span-2 border-0 shadow-xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 via-orange-400/10 to-red-400/10"></div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-300/20 to-orange-300/20 rounded-full -translate-y-16 translate-x-16"></div>
-            <CardHeader className="relative pb-2">
+        {/* Layout principal - Simplificado */}
+        <div className="grid gap-3 xl:grid-cols-4 mb-4">
+          {/* Meta Mensual - Simplificada */}
+          <Card className="xl:col-span-2 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl shadow-lg">
-                    <Target className="h-6 w-6 text-white" />
+                  <div className="p-2 bg-blue-500 rounded-lg">
+                    <Target className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-bold text-amber-900 flex items-center gap-2">
+                    <CardTitle className="text-lg font-bold text-blue-900 flex items-center gap-2">
                       Meta Mensual
                       <Badge className={`${
                         monthlyProgress >= 100 ? 'bg-emerald-500' :
-                        monthlyProgress >= 75 ? 'bg-amber-500' :
-                        monthlyProgress >= 50 ? 'bg-orange-500' : 'bg-red-500'
-                      } text-white px-3 py-1`}>
+                        monthlyProgress >= 75 ? 'bg-blue-500' :
+                        monthlyProgress >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                      } text-white px-2 py-0.5 text-sm`}>
                         {monthlyProgress.toFixed(1)}%
                       </Badge>
                     </CardTitle>
-                    <p className="text-sm text-amber-700 font-medium">
-                      Progreso del mes de {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    <p className="text-sm text-blue-600">
+                      {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -851,46 +864,35 @@ export default function DashboardPage() {
                     console.log("Botón de configuración clickeado, showTargetSettings actual:", showTargetSettings)
                     setShowTargetSettings(!showTargetSettings)
                   }}
-                  className="text-amber-700 hover:bg-amber-100/80 rounded-xl p-2 transition-all duration-200"
+                  className="text-blue-700 hover:bg-blue-100 rounded-lg p-2"
                   title="Configurar meta mensual"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="relative pt-2">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-amber-200/50">
-                    <div className="text-sm text-amber-700 font-medium">Alcanzado</div>
-                    <div className="text-xl font-bold text-amber-900">{formatCurrency(stats.monthlyRevenue)}</div>
+            <CardContent className="pt-2">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <div className="text-sm text-blue-600">Alcanzado</div>
+                    <div className="text-xl font-bold text-blue-800">{formatCurrency(stats.monthlyRevenue)}</div>
                   </div>
-                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-amber-200/50">
-                    <div className="text-sm text-amber-700 font-medium">Meta Total</div>
-                    <div className="text-xl font-bold text-amber-900">{formatCurrency(stats.monthlyTarget)}</div>
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <div className="text-sm text-blue-600">Meta</div>
+                    <div className="text-xl font-bold text-blue-800">{formatCurrency(stats.monthlyTarget)}</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-amber-700 font-medium">Progreso</span>
-                    <span className="text-amber-800 font-bold">
-                      {monthlyProgress >= 100 ? 'Meta Superada! 🎉' : 
+                  <div className="flex justify-between text-sm">
+                    <span className="text-blue-600">Progreso</span>
+                    <span className="text-blue-800 font-semibold">
+                      {monthlyProgress >= 100 ? '¡Meta Superada! 🎉' : 
                        `Falta: ${formatCurrency(Math.max(0, stats.monthlyTarget - stats.monthlyRevenue))}`}
                     </span>
                   </div>
-                  <div className="relative">
-                    <Progress 
-                      value={Math.min(monthlyProgress, 100)} 
-                      className="h-3 bg-amber-200/50 rounded-full"
-                    />
-                    {monthlyProgress > 100 && (
-                      <div className="absolute top-0 left-0 h-3 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
-                           style={{ width: '100%' }}>
-                        <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-full animate-pulse"></div>
-                      </div>
-                    )}
-                  </div>
+                  <Progress value={Math.min(monthlyProgress, 100)} className="h-2" />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -921,47 +923,35 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Métricas Financieras Expandidas */}
-        <div className="grid gap-4 lg:grid-cols-3 mb-4">
-          {/* Ingresos Pendientes Mejorados */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full -translate-y-12 translate-x-12"></div>
-            <CardHeader className="relative pb-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl shadow-lg">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <CardTitle className="text-lg font-bold text-blue-900">Ingresos Pendientes</CardTitle>
-              </div>
+        {/* Métricas Clave - Simplificadas */}
+        <div className="grid gap-3 lg:grid-cols-3 mb-4">
+          {/* Facturas Pendientes */}
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-bold text-amber-800 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Pendientes
+              </CardTitle>
             </CardHeader>
-            <CardContent className="relative pt-0">
-              <div className="space-y-4">
-                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
-                  <div className="text-3xl font-bold text-blue-800 mb-1">
-                    {formatCurrency(stats.monthlyPendingRevenue)}
+            <CardContent>
+              <div className="space-y-3">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-800">
+                    {formatCurrency(stats.pendingRevenue)}
                   </div>
-                  <div className="text-sm text-blue-600 font-medium">Por cobrar este mes</div>
+                  <div className="text-sm text-amber-600">Total por cobrar</div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-blue-700">{formatNumber(stats.pendingInvoices)}</div>
-                    <div className="text-xs text-blue-600">Facturas</div>
+                <div className="grid grid-cols-2 gap-2 text-center text-sm">
+                  <div>
+                    <div className="font-bold text-amber-700">{formatNumber(stats.pendingInvoices)}</div>
+                    <div className="text-amber-600">Facturas</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-blue-700">{stats.overdueInvoices}</div>
-                    <div className="text-xs text-blue-600">Vencidas</div>
+                  <div>
+                    <div className="font-bold text-red-700">{stats.overdueInvoices}</div>
+                    <div className="text-red-600">Vencidas</div>
                   </div>
                 </div>
-
-                {stats.pendingInvoices > 0 && (
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="text-xs text-blue-600 mb-1">Promedio por factura</div>
-                    <div className="text-lg font-bold text-blue-800">
-                      {formatCurrency(stats.monthlyPendingRevenue / stats.pendingInvoices)}
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -1128,15 +1118,15 @@ export default function DashboardPage() {
           /* Vista Resumen - Lo más importante de un vistazo */
           <>
             {/* Estadísticas Principales */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-1 w-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
-                <h2 className="text-2xl font-bold text-gray-800">Estadísticas Clave</h2>
-              </div>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Resumen General
+              </h2>
               {loadingStates.basicStats ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-32 bg-gray-200 rounded-xl animate-pulse"></div>
+                    <div key={i} className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
                   ))}
                 </div>
               ) : (
