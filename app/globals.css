@@ -727,3 +727,580 @@
     @apply hover:shadow-none hover:bg-blue-100;
   }
 }
+
+/* ================================
+   PWA RESPONSIVE DESIGN SYSTEM
+   Optimizado para TODAS las resoluciones
+   ================================ */
+
+/* 📱 TELÉFONOS MÓVILES (Portrait) - 320px a 430px */
+@media (min-width: 320px) and (max-width: 479px) {
+  /* iPhone 4 y dispositivos muy antiguos */
+  .container-responsive {
+    @apply px-2 mx-2;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-1 gap-2;
+  }
+  
+  .card-responsive {
+    @apply p-3 text-xs;
+  }
+  
+  .text-responsive {
+    @apply text-xs leading-tight;
+  }
+  
+  .heading-responsive {
+    @apply text-lg font-semibold;
+  }
+  
+  .button-responsive {
+    @apply px-2 py-1.5 text-xs min-h-[36px];
+  }
+  
+  /* Navegación compacta para móviles muy pequeños */
+  .mobile-nav-compact {
+    @apply fixed bottom-0 left-0 right-0 h-14 bg-white dark:bg-gray-900 border-t z-50;
+  }
+  
+  .mobile-nav-compact .nav-item {
+    @apply flex-1 flex flex-col items-center justify-center py-1 text-xs;
+  }
+}
+
+/* 📱 MÓVILES ESTÁNDAR - 360px a 414px */
+@media (min-width: 360px) and (max-width: 414px) {
+  /* Galaxy S5, iPhone 6/7/8, iPhone X/11 Pro/12 Mini */
+  .container-responsive {
+    @apply px-3 mx-1;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-1 gap-3;
+  }
+  
+  .card-responsive {
+    @apply p-4 text-sm;
+  }
+  
+  .text-responsive {
+    @apply text-sm leading-relaxed;
+  }
+  
+  .heading-responsive {
+    @apply text-xl font-semibold;
+  }
+  
+  .button-responsive {
+    @apply px-3 py-2 text-sm min-h-[40px];
+  }
+  
+  /* Stack elements vertically on small screens */
+  .mobile-stack {
+    @apply flex-col space-y-3;
+  }
+  
+  /* Hide secondary elements on very small screens */
+  .mobile-hide {
+    @apply hidden;
+  }
+}
+
+/* 📱 MÓVILES GRANDES - 390px a 430px */
+@media (min-width: 390px) and (max-width: 480px) {
+  /* iPhone 12/13/14/15, Pixel 7/8 Pro, iPhone 14 Pro Max */
+  .container-responsive {
+    @apply px-4;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-1 sm:grid-cols-2 gap-4;
+  }
+  
+  .card-responsive {
+    @apply p-4 text-sm;
+  }
+  
+  .text-responsive {
+    @apply text-sm;
+  }
+  
+  .heading-responsive {
+    @apply text-xl;
+  }
+  
+  .button-responsive {
+    @apply px-4 py-2.5 text-sm min-h-[44px];
+  }
+  
+  /* Allow some 2-column layouts on larger phones */
+  .mobile-2col {
+    @apply grid-cols-2 gap-2;
+  }
+}
+
+/* 📱 MÓVILES XL Y ANTIGUOS ANDROID - 480px a 599px */
+@media (min-width: 480px) and (max-width: 599px) {
+  /* LG, Huawei, Xiaomi, Android antiguos */
+  .container-responsive {
+    @apply px-4;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-2 gap-4;
+  }
+  
+  .card-responsive {
+    @apply p-5;
+  }
+  
+  .text-responsive {
+    @apply text-sm;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl;
+  }
+  
+  .button-responsive {
+    @apply px-4 py-2.5 text-base min-h-[44px];
+  }
+  
+  /* More breathing room for larger phones */
+  .mobile-spacious {
+    @apply space-y-4;
+  }
+}
+
+/* 📲 TABLETAS PEQUEÑAS - 600px a 767px */
+@media (min-width: 600px) and (max-width: 767px) {
+  /* Kindle Fire, Nexus 7, tabletas Android pequeñas */
+  .container-responsive {
+    @apply px-6 max-w-none;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-2 sm:grid-cols-3 gap-4;
+  }
+  
+  .card-responsive {
+    @apply p-5;
+  }
+  
+  .text-responsive {
+    @apply text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl;
+  }
+  
+  .button-responsive {
+    @apply px-5 py-3 text-base;
+  }
+  
+  /* Tablet-specific layouts */
+  .tablet-2col {
+    @apply grid-cols-2;
+  }
+  
+  .tablet-3col {
+    @apply grid-cols-3;
+  }
+}
+
+/* 📲 TABLETAS ESTÁNDAR - 768px a 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* iPad Mini, iPad estándar, Samsung Galaxy Tab */
+  .container-responsive {
+    @apply px-6 max-w-6xl;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5;
+  }
+  
+  .card-responsive {
+    @apply p-6;
+  }
+  
+  .text-responsive {
+    @apply text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-3xl;
+  }
+  
+  .button-responsive {
+    @apply px-6 py-3 text-base;
+  }
+  
+  /* Sidebar layouts for tablets */
+  .tablet-sidebar {
+    @apply flex-row;
+  }
+  
+  .tablet-sidebar .sidebar {
+    @apply w-64 flex-shrink-0;
+  }
+  
+  .tablet-sidebar .main {
+    @apply flex-1 ml-6;
+  }
+}
+
+/* 📲 TABLETAS GRANDES - 1024px a 1279px */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* iPad Pro, Surface, tabletas grandes */
+  .container-responsive {
+    @apply px-8 max-w-6xl;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6;
+  }
+  
+  .card-responsive {
+    @apply p-6;
+  }
+  
+  .text-responsive {
+    @apply text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-3xl;
+  }
+  
+  .button-responsive {
+    @apply px-6 py-3 text-base;
+  }
+  
+  /* Full sidebar layouts */
+  .desktop-layout {
+    @apply flex-row;
+  }
+  
+  .desktop-layout .sidebar {
+    @apply w-72 flex-shrink-0;
+  }
+  
+  .desktop-layout .main {
+    @apply flex-1 ml-8;
+  }
+}
+
+/* 💻 LAPTOPS PEQUEÑAS - 1280px a 1439px */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  /* HD, MacBook antiguos, notebooks económicos */
+  .container-responsive {
+    @apply px-8 max-w-7xl;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6;
+  }
+  
+  .card-responsive {
+    @apply p-7;
+  }
+  
+  .text-responsive {
+    @apply text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-4xl;
+  }
+  
+  .button-responsive {
+    @apply px-7 py-3.5 text-base;
+  }
+}
+
+/* 💻 LAPTOPS MEDIANAS - 1440px a 1679px */
+@media (min-width: 1440px) and (max-width: 1679px) {
+  /* MacBook Air, laptops gama media */
+  .container-responsive {
+    @apply px-8 max-w-7xl;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6;
+  }
+  
+  .card-responsive {
+    @apply p-8;
+  }
+  
+  .text-responsive {
+    @apply text-lg;
+  }
+  
+  .heading-responsive {
+    @apply text-4xl;
+  }
+  
+  .button-responsive {
+    @apply px-8 py-4 text-base;
+  }
+}
+
+/* 💻 LAPTOPS GRANDES - 1680px a 1919px */
+@media (min-width: 1680px) and (max-width: 1919px) {
+  /* Laptops y monitores wide antiguos */
+  .container-responsive {
+    @apply px-10 max-w-8xl mx-auto;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7 gap-7;
+  }
+  
+  .card-responsive {
+    @apply p-8;
+  }
+  
+  .text-responsive {
+    @apply text-lg;
+  }
+  
+  .heading-responsive {
+    @apply text-5xl;
+  }
+  
+  .button-responsive {
+    @apply px-8 py-4 text-lg;
+  }
+}
+
+  /* 🖥️ MONITORES FULL HD - 1920px a 2559px */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  /* Full HD, monitores estándar */
+  .container-responsive {
+    @apply px-12 max-w-12xl mx-auto;
+  }  .grid-responsive {
+    @apply grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-8;
+  }
+  
+  .card-responsive {
+    @apply p-10;
+  }
+  
+  .text-responsive {
+    @apply text-lg;
+  }
+  
+  .heading-responsive {
+    @apply text-5xl;
+  }
+  
+  .button-responsive {
+    @apply px-10 py-5 text-lg;
+  }
+  
+  /* Wide screen layouts */
+  .wide-layout {
+    @apply grid-cols-12 gap-8;
+  }
+  
+  .wide-layout .content {
+    @apply col-span-8;
+  }
+  
+  .wide-layout .sidebar {
+    @apply col-span-4;
+  }
+}
+
+/* 🖥️ MONITORES QHD Y ULTRAWIDE - 2560px a 3839px */
+@media (min-width: 2560px) and (max-width: 3839px) {
+  /* QHD, ultrawide, monitores gaming y profesionales */
+  .container-responsive {
+    @apply px-16 max-w-screen-2xl mx-auto;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-10;
+  }
+  
+  .card-responsive {
+    @apply p-12;
+  }
+  
+  .text-responsive {
+    @apply text-xl;
+  }
+  
+  .heading-responsive {
+    @apply text-6xl;
+  }
+  
+  .button-responsive {
+    @apply px-12 py-6 text-xl;
+  }
+  
+  /* Ultra-wide specific layouts */
+  .ultrawide-layout {
+    @apply grid-cols-12 gap-10;
+  }
+  
+  .ultrawide-layout .main {
+    @apply col-span-9;
+  }
+  
+  .ultrawide-layout .sidebar {
+    @apply col-span-3;
+  }
+}
+
+/* 🖥️ MONITORES 4K Y SUPERIORES - 3840px+ */
+@media (min-width: 3840px) {
+  /* 4K, 5K, 6K, 8K - monitores premium */
+  .container-responsive {
+    @apply px-20 max-w-screen-2xl mx-auto;
+  }
+  
+  .grid-responsive {
+    @apply grid-cols-8 xl:grid-cols-10 2xl:grid-cols-12 gap-12;
+  }
+  
+  .card-responsive {
+    @apply p-16;
+  }
+  
+  .text-responsive {
+    @apply text-2xl;
+  }
+  
+  .heading-responsive {
+    @apply text-7xl;
+  }
+  
+  .button-responsive {
+    @apply px-16 py-8 text-2xl;
+  }
+  
+  /* 4K+ layouts with massive content areas */
+  .ultra-layout {
+    @apply grid-cols-12 gap-16;
+  }
+  
+  .ultra-layout .content {
+    @apply col-span-8;
+  }
+  
+  .ultra-layout .sidebar-left {
+    @apply col-span-2;
+  }
+  
+  .ultra-layout .sidebar-right {
+    @apply col-span-2;
+  }
+}
+
+/* ================================
+   ORIENTACIÓN Y DENSIDAD ESPECIAL
+   ================================ */
+
+/* Landscape mode adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    @apply py-2;
+  }
+  
+  .landscape-compact .header {
+    @apply h-12;
+  }
+  
+  .landscape-compact .nav {
+    @apply flex-row justify-center space-x-8 space-y-0;
+  }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-text {
+    @apply font-medium;
+  }
+  
+  .high-dpi-borders {
+    border-width: 0.5px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .touch-friendly {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .button-responsive {
+    @apply min-h-[44px] px-6 py-3;
+  }
+  
+  .interactive-element {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* ================================
+   UTILIDADES RESPONSIVAS ESPECÍFICAS
+   ================================ */
+
+/* Clases para mostrar/ocultar según resolución */
+.mobile-only { @apply block sm:hidden; }
+.tablet-only { @apply hidden sm:block lg:hidden; }
+.desktop-only { @apply hidden lg:block; }
+.mobile-tablet-only { @apply block lg:hidden; }
+.tablet-desktop-only { @apply hidden sm:block; }
+
+/* Espaciado adaptativo */
+.spacing-responsive {
+  @apply p-2 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12;
+}
+
+.margin-responsive {
+  @apply m-2 sm:m-4 md:m-6 lg:m-8 xl:m-10 2xl:m-12;
+}
+
+/* Tipografía completamente adaptativa */
+.text-adaptive {
+  @apply text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl;
+}
+
+.heading-adaptive {
+  @apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl;
+}
+
+/* Grid completamente adaptativo */
+.grid-adaptive {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6;
+}
+
+/* Contenedor PWA optimizado */
+.pwa-container {
+  @apply w-full min-h-screen bg-background;
+  /* Safe area para dispositivos con notch */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Navegación PWA */
+.pwa-nav {
+  @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t z-50;
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Header PWA con safe area */
+.pwa-header {
+  @apply fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b z-40;
+  height: calc(64px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+}

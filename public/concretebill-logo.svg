@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#gradient1)" stroke="url(#stroke1)" stroke-width="4"/>
+  
+  <!-- Central Letter C -->
+  <g transform="translate(180, 140)">
+    <!-- Outer C -->
+    <path d="M75 0C33.6 0 0 33.6 0 75v82c0 41.4 33.6 75 75 75h15v-40H75c-19.3 0-35-15.7-35-35V75c0-19.3 15.7-35 35-35h75v-40H75z" fill="url(#gradient2)"/>
+    <!-- Inner C -->
+    <path d="M75 35C52.9 35 35 52.9 35 75v82c0 22.1 17.9 40 40 40h25v-25H75c-8.3 0-15-6.7-15-15V75c0-8.3 6.7-15 15-15h50v-25H75z" fill="#ffffff" opacity="0.9"/>
+  </g>
+  
+  <!-- Arrow Growth -->
+  <g transform="translate(320, 180)">
+    <path d="M0 60L60 0L60 30L120 30L120 90L60 90L60 60Z" fill="url(#gradient3)"/>
+    <circle cx="25" cy="45" r="8" fill="#ffffff" opacity="0.8"/>
+  </g>
+  
+  <!-- Currency Symbols -->
+  <g transform="translate(80, 120)" fill="url(#gradient4)" font-family="Arial, sans-serif" font-weight="bold" font-size="24">
+    <text x="0" y="0">$</text>
+    <text x="0" y="120">¥</text>
+  </g>
+  
+  <g transform="translate(380, 140)" fill="url(#gradient4)" font-family="Arial, sans-serif" font-weight="bold" font-size="24">
+    <text x="0" y="0">€</text>
+    <text x="0" y="100">₹</text>
+  </g>
+  
+  <!-- Bottom Chart/Calculator Icon -->
+  <g transform="translate(190, 320)">
+    <rect x="0" y="0" width="132" height="80" rx="8" fill="url(#gradient5)" opacity="0.8"/>
+    <rect x="10" y="10" width="20" height="20" rx="2" fill="#ffffff" opacity="0.9"/>
+    <rect x="35" y="10" width="20" height="20" rx="2" fill="#ffffff" opacity="0.7"/>
+    <rect x="60" y="10" width="20" height="20" rx="2" fill="#ffffff" opacity="0.9"/>
+    <rect x="85" y="10" width="20" height="20" rx="2" fill="#ffffff" opacity="0.6"/>
+    <rect x="110" y="10" width="12" height="60" rx="2" fill="#ffffff" opacity="0.8"/>
+    
+    <!-- Small bars representing data -->
+    <rect x="15" y="50" width="8" height="15" fill="url(#gradient3)"/>
+    <rect x="28" y="45" width="8" height="20" fill="url(#gradient3)"/>
+    <rect x="41" y="40" width="8" height="25" fill="url(#gradient3)"/>
+    <rect x="54" y="35" width="8" height="30" fill="url(#gradient3)"/>
+  </g>
+  
+  <!-- Brand Text (Optional - can be removed for icon-only versions) -->
+  <text x="256" y="450" font-family="Arial, sans-serif" font-weight="bold" font-size="32" text-anchor="middle" fill="url(#gradient6)">CONCRETEBILL</text>
+  <text x="256" y="480" font-family="Arial, sans-serif" font-style="italic" font-size="16" text-anchor="middle" fill="url(#gradient6)" opacity="0.8">Contabilidad &amp; Facturación</text>
+  
+  <!-- Gradients -->
+  <defs>
+    <!-- Main background gradient -->
+    <radialGradient id="gradient1" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Stroke gradient -->
+    <linearGradient id="stroke1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- C letter gradient -->
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Arrow gradient -->
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Currency symbols gradient -->
+    <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Calculator gradient -->
+    <linearGradient id="gradient5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Text gradient -->
+    <linearGradient id="gradient6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

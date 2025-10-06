@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build && node scripts/verify-pwa.js",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "verify-pwa": "node scripts/verify-pwa.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -38,6 +39,7 @@
     "lucide-react": "^0.454.0",
     "moment": "^2.30.1",
     "next": "14.2.16",
+    "next-pwa": "^5.6.0",
     "next-themes": "^0.2.1",
     "qrcode": "^1.5.4",
     "react": "^18",
