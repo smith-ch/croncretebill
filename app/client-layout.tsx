@@ -13,6 +13,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { useAutoLogout } from "@/hooks/use-auto-logout"
 import { SessionIndicator } from "@/components/auth/session-indicator"
 import { RouteProtection } from "@/components/auth/route-protection"
+import { PWAUpdateNotification } from "@/components/pwa/pwa-update-notification"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -51,8 +52,8 @@ export default function ClientLayout({
     return (
       <html lang="es">
         <body className={inter.className}>
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <div className="pwa-container min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 sm:h-24 sm:w-24 lg:h-32 lg:w-32 border-b-2 border-blue-600"></div>
           </div>
         </body>
       </html>
@@ -65,7 +66,9 @@ export default function ClientLayout({
         <body className={inter.className}>
           <ThemeProvider attribute="class" defaultTheme="light">
             <NotificationProvider>
-              <ModernAuthForm />
+              <div className="pwa-container">
+                <ModernAuthForm />
+              </div>
               <Toaster />
               <SonnerToaster />
             </NotificationProvider>
@@ -80,11 +83,11 @@ export default function ClientLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
           <NotificationProvider>
-            <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="pwa-container flex h-screen bg-gray-50 dark:bg-gray-900">
               <Sidebar />
               <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
-                <div className="p-6">
-                  <NotificationCenter className="mb-6" />
+                <div className="container-responsive spacing-responsive">
+                  <NotificationCenter className="mb-4 sm:mb-6" />
                   <RouteProtection>
                     {children}
                   </RouteProtection>
@@ -93,6 +96,8 @@ export default function ClientLayout({
             </div>
             {/* Indicador de sesión flotante */}
             <SessionIndicator timeoutMinutes={30} />
+            {/* Notificación de actualización PWA */}
+            <PWAUpdateNotification />
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

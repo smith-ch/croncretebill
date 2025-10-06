@@ -18,6 +18,36 @@ const config: Config = {
         "2xl": "1400px",
       },
     },
+    screens: {
+      'xs': '320px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+      '4xl': '2560px',
+      '5xl': '3840px',
+      // Mobile específicos
+      'mobile-sm': '360px',
+      'mobile-md': '375px',
+      'mobile-lg': '414px',
+      'mobile-xl': '430px',
+      // Tablet específicos
+      'tablet-sm': '600px',
+      'tablet-md': '768px',
+      'tablet-lg': '1024px',
+      // Desktop específicos
+      'desktop-sm': '1280px',
+      'desktop-md': '1440px',
+      'desktop-lg': '1680px',
+      'desktop-xl': '1920px',
+      // Ultra-wide y 4K+
+      'ultrawide': '2560px',
+      '4k': '3840px',
+      '5k': '5120px',
+      '8k': '7680px',
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -80,6 +110,30 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      maxWidth: {
+        '8xl': '88rem',   /* 1408px */
+        '9xl': '96rem',   /* 1536px */
+        '10xl': '104rem', /* 1664px */
+        '11xl': '112rem', /* 1792px */
+        '12xl': '120rem', /* 1920px */
+      },
+      gridTemplateColumns: {
+        '13': 'repeat(13, minmax(0, 1fr))',
+        '14': 'repeat(14, minmax(0, 1fr))',
+        '15': 'repeat(15, minmax(0, 1fr))',
+        '16': 'repeat(16, minmax(0, 1fr))',
+        '17': 'repeat(17, minmax(0, 1fr))',
+        '18': 'repeat(18, minmax(0, 1fr))',
+        '19': 'repeat(19, minmax(0, 1fr))',
+        '20': 'repeat(20, minmax(0, 1fr))',
+      },
+      spacing: {
+        '18': '4.5rem',   /* 72px */
+        '88': '22rem',    /* 352px */
+        '104': '26rem',   /* 416px */
+        '112': '28rem',   /* 448px */
+        '128': '32rem',   /* 512px */
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
