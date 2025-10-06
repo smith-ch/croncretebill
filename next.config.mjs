@@ -28,12 +28,13 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 export default withPWA({
   dest: 'public',
-  disable: !isProduction,
+  disable: false, // Enable in all environments for testing
   register: true,
   skipWaiting: true,
   buildExcludes: [/middleware-manifest\.json$/],
-  // Force cache busting for updates
-  mode: 'production',
+  scope: '/',
+  sw: 'sw.js',
+  publicExcludes: ['!robots.txt', '!sitemap.xml', '!manifest.json'],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
