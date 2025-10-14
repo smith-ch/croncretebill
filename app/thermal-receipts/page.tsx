@@ -52,18 +52,21 @@ import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { generateThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
+import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
 
 interface Product {
   id: string
   name: string
   price: number
   stock_quantity: number
+  product_code?: string
 }
 
 interface Service {
   id: string
   name: string
   price: number
+  service_code?: string
 }
 
 interface Profile {
@@ -296,6 +299,7 @@ export default function ThermalReceiptsPage() {
   const [paymentFilter, setPaymentFilter] = useState("all")
   const [showPreview, setShowPreview] = useState(false)
   const [previewData, setPreviewData] = useState<any>(null)
+  const [itemSearchTerms, setItemSearchTerms] = useState<{[key: number]: string}>({})
   
   // Form state
   const [clientName, setClientName] = useState("")
@@ -355,14 +359,14 @@ export default function ThermalReceiptsPage() {
         // Fetch products
         supabase
           .from("products")
-          .select("id, name, price, stock_quantity")
+          .select("id, name, price, stock_quantity, product_code")
           .eq("user_id", user.id)
           .order("name"),
         
         // Fetch services
         supabase
           .from("services")
-          .select("id, name, price")
+          .select("id, name, price, service_code")
           .eq("user_id", user.id)
           .order("name"),
         
@@ -482,6 +486,31 @@ export default function ThermalReceiptsPage() {
       line_total: updatedItems[index].quantity * priceValue
     }
     setItems(updatedItems)
+  }
+
+  // Funciones de filtrado para búsqueda
+  const getFilteredProducts = (index: number) => {
+    const searchTerm = itemSearchTerms[index]?.toLowerCase() || ""
+    if (!searchTerm) {
+      return products
+    }
+    
+    return products.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.product_code?.toLowerCase().includes(searchTerm)
+    )
+  }
+
+  const getFilteredServices = (index: number) => {
+    const searchTerm = itemSearchTerms[index]?.toLowerCase() || ""
+    if (!searchTerm) {
+      return services
+    }
+    
+    return services.filter(service => 
+      service.name.toLowerCase().includes(searchTerm) ||
+      service.service_code?.toLowerCase().includes(searchTerm)
+    )
   }
 
   const calculateTotals = () => {
@@ -751,7 +780,7 @@ export default function ThermalReceiptsPage() {
   const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-3 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Principal Mejorado */}
         <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 backdrop-blur-sm rounded-3xl border border-white/20 shadow-2xl p-8 relative overflow-hidden">
@@ -773,12 +802,12 @@ export default function ThermalReceiptsPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <h1 className="text-5xl font-black bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 bg-clip-text text-transparent leading-tight">
+                    <h1 className="text-3xl lg:text-5xl font-black bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 bg-clip-text text-transparent leading-tight">
                       Recibos Térmicos
                     </h1>
-                    <div className="flex items-center space-x-4">
-                      <p className="text-gray-600 text-lg font-medium">Sistema profesional de facturación</p>
-                      <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
+                    <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
+                      <p className="text-gray-600 text-base lg:text-lg font-medium">Sistema profesional de facturación</p>
+                      <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full self-start lg:self-auto">
                         <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                         <span className="text-blue-700 text-sm font-semibold">80mm</span>
                       </div>
@@ -930,9 +959,9 @@ export default function ThermalReceiptsPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-3 gap-6 h-[75vh]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[75vh]">
               {/* Columna izquierda - Formulario */}
-              <div className="col-span-2 overflow-y-auto pr-4">
+              <div className="col-span-1 lg:col-span-2 overflow-y-auto pr-0 lg:pr-4">
                 <form className="space-y-6">
               {/* Client Information */}
               <div className="grid grid-cols-2 gap-4">
@@ -1025,8 +1054,8 @@ export default function ThermalReceiptsPage() {
 
                 <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
-                      <div className="col-span-2">
+                    <div key={index} className="grid grid-cols-1 lg:grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                      <div className="col-span-1 lg:col-span-2">
                         <Input
                           placeholder="Nombre del producto/servicio"
                           value={item.item_name}
@@ -1043,27 +1072,38 @@ export default function ThermalReceiptsPage() {
                             <SelectValue placeholder="Seleccionar producto/servicio" />
                           </SelectTrigger>
                           <SelectContent>
-                            {products.length === 0 && services.length === 0 && (
+                            <div className="p-2 border-b sticky top-0 bg-white z-10">
+                              <Input
+                                placeholder="Buscar producto/servicio por código o nombre..."
+                                value={itemSearchTerms[index] || ""}
+                                onChange={(e) => {
+                                  setItemSearchTerms(prev => ({...prev, [index]: e.target.value}))
+                                }}
+                                className="h-8 text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            {getFilteredProducts(index).length === 0 && getFilteredServices(index).length === 0 && (
                               <SelectItem disabled value="no-items">
-                                No hay productos/servicios. Ve a Productos o Servicios para agregar.
+                                No hay productos/servicios disponibles
                               </SelectItem>
                             )}
-                            {products.length > 0 && (
+                            {getFilteredProducts(index).length > 0 && (
                               <>
                                 <SelectItem disabled value="products-header">Productos</SelectItem>
-                                {products.map(product => (
+                                {getFilteredProducts(index).map(product => (
                                   <SelectItem key={product.id} value={`product|${product.id}`}>
-                                    {product.name} - {formatCurrency(product.price)}
+                                    {product.product_code ? `[${product.product_code}] ` : ''}{product.name} - {formatCurrency(product.price)}
                                   </SelectItem>
                                 ))}
                               </>
                             )}
-                            {services.length > 0 && (
+                            {getFilteredServices(index).length > 0 && (
                               <>
                                 <SelectItem disabled value="services-header">Servicios</SelectItem>
-                                {services.map(service => (
+                                {getFilteredServices(index).map(service => (
                                   <SelectItem key={service.id} value={`service|${service.id}`}>
-                                    {service.name} - {formatCurrency(service.price)}
+                                    {service.service_code ? `[${service.service_code}] ` : ''}{service.name} - {formatCurrency(service.price)}
                                   </SelectItem>
                                 ))}
                               </>
@@ -1086,6 +1126,14 @@ export default function ThermalReceiptsPage() {
                         {item.product_id ? (
                           <ProductPriceDropdown
                             productId={item.product_id}
+                            selectedPriceId={item.selected_price_id}
+                            quantity={item.quantity}
+                            onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(index, priceId, priceValue)}
+                            className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : item.service_id ? (
+                          <ServicePriceDropdown
+                            serviceId={item.service_id}
                             selectedPriceId={item.selected_price_id}
                             quantity={item.quantity}
                             onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(index, priceId, priceValue)}
@@ -1135,7 +1183,7 @@ export default function ThermalReceiptsPage() {
                   </Label>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="discountType" className="text-sm">Tipo de Descuento</Label>
                     <Select value={generalDiscountType} onValueChange={(value) => setGeneralDiscountType(value as "percentage" | "amount")}>
@@ -1303,7 +1351,7 @@ export default function ThermalReceiptsPage() {
           </div>
 
           {/* Columna derecha - Vista Previa */}
-          <div className="col-span-1 overflow-y-auto border-l border-gray-200 pl-4">
+          <div className="col-span-1 overflow-y-auto border-l-0 lg:border-l border-gray-200 pl-0 lg:pl-4 mt-4 lg:mt-0">
             <div className="sticky top-0 bg-white pb-4 border-b border-gray-200 mb-4">
               <h3 className="font-semibold text-gray-800 text-center">Vista Previa</h3>
               <p className="text-xs text-gray-500 text-center">Actualización en tiempo real</p>
@@ -1344,7 +1392,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Todo listo para empezar!</h2>
+                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">¡Todo listo para empezar!</h2>
                   <p className="text-gray-600 text-lg max-w-2xl mx-auto">
                     Tu empresa <span className="font-semibold text-blue-600">{profile.company_name}</span> está 
                     configurada correctamente. Crea tu primer recibo térmico para comenzar.
@@ -1369,11 +1417,11 @@ export default function ThermalReceiptsPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  <BarChart3 className="mr-3 h-6 w-6 text-blue-600" />
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-800 flex items-center">
+                  <BarChart3 className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6 text-blue-600" />
                   Panel de Control
                 </h2>
-                <p className="text-gray-600 mt-1">Resumen de tu actividad de facturación</p>
+                <p className="text-gray-600 mt-1 text-sm lg:text-base">Resumen de tu actividad de facturación</p>
               </div>
               <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -1391,7 +1439,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-blue-800 mb-1">{receipts.length}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-blue-800 mb-1">{receipts.length}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-blue-600 font-medium">📊 {todayReceipts.length} hoy</p>
                     {todayReceipts.length > 0 && (
@@ -1412,7 +1460,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-green-800 mb-1">{formatCurrency(todayAmount)}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-green-800 mb-1">{formatCurrency(todayAmount)}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-green-600 font-medium">💰 {todayReceipts.length} recibos</p>
                     {todayAmount > 0 && (
@@ -1433,7 +1481,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-purple-800 mb-1">{formatCurrency(weeklyAmount)}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-purple-800 mb-1">{formatCurrency(weeklyAmount)}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-purple-600 font-medium">📅 {weeklyReceipts.length} recibos</p>
                     <div className="flex items-center space-x-1">
@@ -1452,7 +1500,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-indigo-800 mb-1">{formatCurrency(monthlyAmount)}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-indigo-800 mb-1">{formatCurrency(monthlyAmount)}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-indigo-600 font-medium">📈 {monthlyReceipts.length} recibos</p>
                     <div className="flex items-center space-x-1">
@@ -1471,7 +1519,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-orange-800 mb-1">{receipts.filter(r => r.payment_method === 'cash').length}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-orange-800 mb-1">{receipts.filter(r => r.payment_method === 'cash').length}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-orange-600 font-medium">💵 {formatCurrency(receipts.filter(r => r.payment_method === 'cash').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <Banknote className="h-3 w-3 text-orange-500" />
@@ -1488,7 +1536,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-3xl font-bold text-cyan-800 mb-1">{receipts.filter(r => r.payment_method === 'card').length}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-cyan-800 mb-1">{receipts.filter(r => r.payment_method === 'card').length}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-cyan-600 font-medium">💳 {formatCurrency(receipts.filter(r => r.payment_method === 'card').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <div className="flex items-center space-x-1">

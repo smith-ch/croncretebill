@@ -437,17 +437,17 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 lg:space-y-8">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
+          <div className="space-y-1 lg:space-y-2">
+            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Gestión de Gastos
             </h1>
-            <p className="text-slate-600">Controla y administra todos tus gastos empresariales</p>
+            <p className="text-sm lg:text-base text-slate-600">Controla y administra todos tus gastos empresariales</p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 lg:gap-3 w-full sm:w-auto">
             <Button
               variant="outline"
               onClick={() => setShowCategoryManager(true)}

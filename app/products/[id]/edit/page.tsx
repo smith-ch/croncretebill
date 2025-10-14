@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
 interface Product {
   id: string
@@ -35,6 +36,7 @@ export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
   const productId = params.id as string
+  const { canEdit } = useUserPermissions()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
@@ -222,6 +224,25 @@ export default function EditProductPage() {
         <Button asChild className="mt-4">
           <Link href="/products">
             <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver a Productos
+          </Link>
+        </Button>
+      </div>
+    )
+  }
+
+  // Verificar permisos de edición
+  if (!canEdit('products')) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertDescription className="text-red-700">
+            No tienes permisos para editar productos.
+          </AlertDescription>
+        </Alert>
+        <Button variant="outline" asChild>
+          <Link href="/products">
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Productos
           </Link>
         </Button>

@@ -85,7 +85,7 @@ export default function UnifiedInventoryPage() {
 
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, unit, current_stock')
+        .select('id, name, unit, current_stock, product_code')
         .eq('user_id', user.id)
         .order('name')
 
@@ -803,6 +803,7 @@ export default function UnifiedInventoryPage() {
             category,
             barcode,
             is_trackable,
+            product_code,
             user_id
           ),
           warehouse:warehouses!inner (
@@ -854,7 +855,7 @@ export default function UnifiedInventoryPage() {
           quantity_change,
           movement_date,
           notes,
-          product:products!inner (name, unit, user_id),
+          product:products!inner (name, unit, product_code, user_id),
           warehouse:warehouses!inner (name, user_id),
           user:profiles (email)
         `)
@@ -933,6 +934,7 @@ export default function UnifiedInventoryPage() {
   const filteredStockItems = stockItems.filter(item => {
     const matchesSearch = item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.product?.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.product?.product_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.warehouse?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === 'all' || item.stock_status === filterStatus
     const matchesWarehouse = filterWarehouse === 'all' || item.warehouse?.id === filterWarehouse
@@ -949,14 +951,14 @@ export default function UnifiedInventoryPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="container mx-auto p-3 lg:p-6 space-y-4 lg:space-y-6">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Inventario Unificado</h1>
-          <p className="text-gray-600">Gestión completa de inventario, stock, movimientos y almacenes</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Inventario Unificado</h1>
+          <p className="text-sm lg:text-base text-gray-600">Gestión completa de inventario, stock, movimientos y almacenes</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button onClick={() => setShowMovementForm(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Movimiento
@@ -968,8 +970,8 @@ export default function UnifiedInventoryPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Summary Cards - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
@@ -1044,12 +1046,12 @@ export default function UnifiedInventoryPage() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="stock">Stock</TabsTrigger>
-          <TabsTrigger value="movements">Movimientos</TabsTrigger>
-          <TabsTrigger value="warehouses">Almacenes</TabsTrigger>
-          <TabsTrigger value="transfers">Transferencias</TabsTrigger>
+        <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground overflow-x-auto min-w-full w-max lg:w-full lg:grid lg:grid-cols-5">
+          <TabsTrigger value="overview" className="whitespace-nowrap">Resumen</TabsTrigger>
+          <TabsTrigger value="stock" className="whitespace-nowrap">Stock</TabsTrigger>
+          <TabsTrigger value="movements" className="whitespace-nowrap">Movimientos</TabsTrigger>
+          <TabsTrigger value="warehouses" className="whitespace-nowrap">Almacenes</TabsTrigger>
+          <TabsTrigger value="transfers" className="whitespace-nowrap">Transferencias</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -1155,7 +1157,7 @@ export default function UnifiedInventoryPage() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="search"
-                      placeholder="Nombre, categoría..."
+                      placeholder="Nombre, código, categoría..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -1239,7 +1241,14 @@ export default function UnifiedInventoryPage() {
                       <tr key={item.id} className="border-b hover:bg-gray-50">
                         <td className="p-2">
                           <div>
-                            <p className="font-medium">{item.product?.name}</p>
+                            <p className="font-medium">
+                              {item.product?.product_code && (
+                                <span className="text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mr-2 text-xs">
+                                  {item.product.product_code}
+                                </span>
+                              )}
+                              {item.product?.name}
+                            </p>
                             <p className="text-sm text-gray-600">{item.product?.category}</p>
                           </div>
                         </td>
@@ -1352,7 +1361,14 @@ export default function UnifiedInventoryPage() {
                             minute: '2-digit'
                           })}
                         </td>
-                        <td className="p-2">{movement.product?.name}</td>
+                        <td className="p-2">
+                          {movement.product?.product_code && (
+                            <span className="text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mr-2 text-xs">
+                              {movement.product.product_code}
+                            </span>
+                          )}
+                          {movement.product?.name}
+                        </td>
                         <td className="p-2">{movement.warehouse?.name}</td>
                         <td className="p-2 text-center">
                           <Badge className={getMovementTypeColor(movement.movement_type)}>
@@ -1479,7 +1495,7 @@ export default function UnifiedInventoryPage() {
                 <SelectContent>
                   {products.map((product: any) => (
                     <SelectItem key={product.id} value={product.id}>
-                      {product.name} (Stock total: {product.current_stock || 0} {product.unit})
+                      {product.product_code ? `[${product.product_code}] ` : ''}{product.name} (Stock total: {product.current_stock || 0} {product.unit})
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -36,6 +36,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
     const serviceData = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
+      service_code: formData.get("service_code") as string,
       price: isCustomPricing ? null : priceValue ? Number.parseFloat(priceValue) : 0,
       unit: formData.get("unit") as string,
       category: formData.get("category") as string, // Mantener compatibilidad hacia atrás
@@ -109,6 +110,21 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="service_code">Código del Servicio</Label>
+                <Input 
+                  id="service_code" 
+                  name="service_code" 
+                  defaultValue={service?.service_code} 
+                  placeholder="Se generará automáticamente si se deja vacío" 
+                />
+                <p className="text-xs text-gray-500">
+                  Si no especifica un código, se generará automáticamente (ej: SERV0001)
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">Categoría</Label>
                 <CategorySelector

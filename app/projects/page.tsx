@@ -276,21 +276,21 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 lg:p-6 space-y-4 lg:space-y-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+        className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6"
       >
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+          <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
             Gestión de Proyectos
           </h1>
-          <p className="text-slate-600 mt-2">Administra todos tus proyectos con seguimiento completo</p>
+          <p className="text-sm lg:text-base text-slate-600 mt-1 lg:mt-2">Administra todos tus proyectos con seguimiento completo</p>
         </div>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Proyecto
             </Button>
@@ -564,7 +564,7 @@ export default function ProjectsPage() {
                             <Progress value={project.progress} className="h-2" />
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200">
                             <div className="text-center">
                               <p className="text-xs text-slate-500">Facturado</p>
                               <p className="font-bold text-green-600">{formatCurrency(project.totalInvoiced || 0)}</p>

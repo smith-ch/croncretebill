@@ -81,6 +81,22 @@ function generateInvoiceHTML(
     })}`
   }
 
+  const getPaymentMethodLabel = (paymentMethod: string) => {
+    const paymentMethods: { [key: string]: string } = {
+      'efectivo': 'Efectivo',
+      'credito': 'Crédito',
+      'tarjeta': 'Tarjeta',
+      'cheque': 'Cheque',
+      'transferencia': 'Transferencia',
+      'cash': 'Efectivo',
+      'credit': 'Crédito',
+      'card': 'Tarjeta',
+      'check': 'Cheque',
+      'transfer': 'Transferencia'
+    }
+    return paymentMethods[paymentMethod] || 'Crédito'
+  }
+
   const isItbisInvoice = invoice.include_itbis
   const invoiceTitle = isItbisInvoice ? "Factura de impuestos" : "FACTURA"
 
@@ -433,6 +449,10 @@ function generateInvoiceHTML(
                     <div class="detail-section" style="margin-top: 10px;">
                         <h4>CONDICIONES:</h4>
                         <p>Pago en 30 días</p>
+                    </div>
+                    <div class="detail-section" style="margin-top: 10px;">
+                        <h4>FORMA DE PAGO:</h4>
+                        <p>${getPaymentMethodLabel(invoice.payment_method)}</p>
                     </div>
                     <div class="detail-section" style="margin-top: 10px;">
                         <h4>FECHA DE VENCIMIENTO:</h4>

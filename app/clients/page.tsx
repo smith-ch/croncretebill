@@ -89,29 +89,29 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-3 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 lg:space-y-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+          className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6"
         >
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl shadow-lg">
-                <Users className="h-8 w-8 text-white" />
+          <div className="space-y-2 lg:space-y-3">
+            <div className="flex items-center gap-2 lg:gap-3">
+              <div className="p-2 lg:p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl lg:rounded-2xl shadow-lg">
+                <Users className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
                   Clientes
                 </h1>
-                <p className="text-lg text-gray-600 font-medium">Gestiona tu cartera de clientes</p>
+                <p className="text-sm lg:text-lg text-gray-600 font-medium">Gestiona tu cartera de clientes</p>
               </div>
             </div>
           </div>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white border-0">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white border-0">
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo Cliente
               </Button>

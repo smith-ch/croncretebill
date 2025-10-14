@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CategorySelector } from "@/components/ui/category-selector"
-import { ProductPricesManager } from "@/components/products/product-prices-manager"
+
 import { Loader2 } from "lucide-react"
 
 interface ProductFormProps {
@@ -34,6 +34,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
     const productData = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
+      product_code: formData.get("product_code") as string,
       unit_price: Number.parseFloat(formData.get("unit_price") as string),
       cost_price: Number.parseFloat(formData.get("cost_price") as string) || Number.parseFloat(formData.get("unit_price") as string),
       unit: formData.get("unit") as string,
@@ -190,6 +191,21 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="product_code">Código del Producto</Label>
+            <Input 
+              id="product_code" 
+              name="product_code" 
+              defaultValue={product?.product_code} 
+              placeholder="Se generará automáticamente si se deja vacío" 
+            />
+            <p className="text-xs text-gray-500">
+              Si no especifica un código, se generará automáticamente (ej: PROD0001)
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
             <CategorySelector
               value={selectedCategoryId}
@@ -302,24 +318,6 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
           </div>
         </div>
       </div>
-
-      {/* Multiple Prices Section - Only show when editing an existing product */}
-      {product?.id && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Precios Múltiples</h3>
-          <ProductPricesManager
-            productId={product.id}
-            productName={product.name}
-            onPriceChange={(price) => {
-              // Update the default price in the form
-              const priceInput = document.getElementById('unit_price') as HTMLInputElement
-              if (priceInput) {
-                priceInput.value = price.toString()
-              }
-            }}
-          />
-        </div>
-      )}
 
       <div className="flex justify-end gap-2 pt-4">
         <Button

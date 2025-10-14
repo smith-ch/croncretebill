@@ -19,6 +19,7 @@ interface Product {
   id: string
   name: string
   description?: string
+  product_code?: string
   unit_price: number
   unit: string
   mix_type?: string
@@ -34,7 +35,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete, permissions } = useUserPermissions()
+  const { canDelete, canEdit, permissions } = useUserPermissions()
   const { categories } = useCategories('product')
 
   useEffect(() => {
@@ -85,7 +86,8 @@ export default function ProductsPage() {
   const filteredProducts = products.filter((product) => {
     const matchesSearch = 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.product_code?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesCategory = selectedCategoryId === null || product.category_id === selectedCategoryId
     
@@ -110,29 +112,29 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Catálogo de Productos
             </h1>
-            <p className="text-slate-600">Gestiona tu catálogo de productos y presupuestos</p>
+            <p className="text-sm lg:text-base text-slate-600">Gestiona tu catálogo de productos y presupuestos</p>
           </div>
-          <div className="flex gap-3">
-            <Link href="/products/budgets">
+          <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 w-full sm:w-auto">
+            <Link href="/products/budgets" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-300 text-emerald-700 hover:text-emerald-800 shadow-md hover:shadow-lg transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-300 text-emerald-700 hover:text-emerald-800 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Calculator className="h-4 w-4 mr-2" />
                 Presupuestos
               </Button>
             </Link>
-            <Link href="/products/multiple-prices-demo">
+            <Link href="/products/multiple-prices-demo" className="w-full sm:w-auto">
               <Button
-                variant="outline"
-                className="bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-700 hover:text-purple-800 shadow-md hover:shadow-lg transition-all duration-300"
+                variant="outline" 
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-700 hover:text-purple-800 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Package className="h-4 w-4 mr-2" />
                 Precios Múltiples
@@ -141,7 +143,7 @@ export default function ProductsPage() {
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
                 <Button 
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   disabled={!permissions.canManageInventory}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -170,7 +172,7 @@ export default function ProductsPage() {
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
                 <Input
-                  placeholder="Buscar productos..."
+                  placeholder="Buscar por nombre, código o descripción..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30"
@@ -211,9 +213,16 @@ export default function ProductsPage() {
                   >
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
-                        <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
-                          {product.name}
-                        </h3>
+                        <div>
+                          <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
+                            {product.name}
+                          </h3>
+                          {product.product_code && (
+                            <p className="text-sm text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mt-1 inline-block">
+                              {product.product_code}
+                            </p>
+                          )}
+                        </div>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -224,7 +233,7 @@ export default function ProductsPage() {
                             }}
                             className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
                             aria-label={`Editar producto ${product.name}`}
-                            disabled={!permissions.canManageInventory}
+                            disabled={!canEdit('products')}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

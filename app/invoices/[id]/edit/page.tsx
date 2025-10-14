@@ -85,6 +85,7 @@ interface Invoice {
   notes?: string
   include_itbis?: boolean
   ncf?: string
+  payment_method?: string
   invoice_items?: InvoiceItem[]
 }
 
@@ -123,6 +124,7 @@ export default function EditInvoicePage() {
   const [dueDate, setDueDate] = useState("")
   const [notes, setNotes] = useState("")
   const [selectedProject, setSelectedProject] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("credito")
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
 
@@ -204,6 +206,7 @@ export default function EditInvoicePage() {
       setSelectedProject(invoice.project_id || "")
       setDiscountType(invoice.discount_type || "percentage")
       setDiscountValue(invoice.discount_value || 0)
+      setPaymentMethod(invoice.payment_method || "credito")
 
       if (invoice.invoice_items && invoice.invoice_items.length > 0) {
         const loadedItems = invoice.invoice_items.map((item: InvoiceItem) => {
@@ -384,6 +387,7 @@ export default function EditInvoicePage() {
         notes: (formData.get("notes") as string) || null,
         include_itbis: includeItbis,
         ncf: includeItbis ? ncf.trim() : null,
+        payment_method: paymentMethod,
       }
 
       console.log("[v0] Updating invoice with data:", invoiceData)
@@ -579,6 +583,23 @@ export default function EditInvoicePage() {
     )
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pagada":
+        return "bg-green-500 text-white"
+      case "enviada":
+        return "bg-red-500 text-white"
+      case "cancelada":
+        return "bg-yellow-500 text-black"
+      case "vencida":
+        return "bg-orange-500 text-white"
+      case "pendiente":
+        return "bg-blue-500 text-white"
+      default:
+        return "bg-gray-500 text-white"
+    }
+  }
+
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient)
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
   let discountAmount = 0
@@ -735,6 +756,26 @@ export default function EditInvoicePage() {
                           {project.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="payment_method" className="text-slate-700 font-medium">
+                    Forma de Pago
+                  </Label>
+                  <Select name="payment_method" value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue placeholder="Seleccionar forma de pago" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="efectivo">Efectivo</SelectItem>
+                      <SelectItem value="credito">Crédito</SelectItem>
+                      <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                      <SelectItem value="transferencia">Transferencia</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

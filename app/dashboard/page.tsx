@@ -352,6 +352,14 @@ export default function DashboardPage() {
       const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
       const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
+      // Consulta específica para facturas pendientes
+      const { data: pendingInvoicesData } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, total, due_date")
+        .eq("user_id", user.id)
+        .eq("status", "enviada")
+
+      // Consulta para todas las facturas (para otras estadísticas)
       const { data: invoices } = await supabase
         .from("invoices")
         .select(`
@@ -365,8 +373,6 @@ export default function DashboardPage() {
           clients!inner(name)
         `)
         .eq("user_id", user.id)
-        .neq("status", "cancelada")
-        .neq("status", "borrador")
         .order("created_at", { ascending: false }) as unknown as { data: Invoice[] | null }
 
       const { data: expenses } = await supabase
@@ -411,8 +417,14 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
 
       const totalInvoices = invoices?.length || 0
-      const paidInvoices = invoices?.filter((inv) => inv.status === "pagada") || []
-      const unpaidInvoices = invoices?.filter((inv) => inv.status === "enviada") || []
+      // Usar la consulta directa de facturas pendientes
+      const facturasPendientesSimple = pendingInvoicesData || []
+      console.log("🔥 FACTURAS PENDIENTES DIRECTAS:", facturasPendientesSimple)
+      
+      // Filtrar facturas válidas (excluir canceladas y borradores) para otras estadísticas
+      const validInvoices = invoices?.filter((inv) => inv.status !== "cancelada" && inv.status !== "borrador") || []
+      const paidInvoices = validInvoices.filter((inv) => inv.status === "pagada") || []
+      const unpaidInvoices = validInvoices.filter((inv) => inv.status === "enviada") || []
 
       // Los logs de debug muestran que hay 4 facturas "enviada" pero de meses anteriores
 
@@ -420,21 +432,33 @@ export default function DashboardPage() {
       // Si hay error en thermal receipts, usar 0 como fallback
       const thermalReceiptRevenue = thermalError ? 0 : (thermalReceipts?.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0) || 0)
       const totalRevenue = invoiceRevenue + thermalReceiptRevenue
-      const pendingRevenue = unpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
 
       const totalExpenses = expenses?.length || 0
       const totalExpenseAmount = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
-      const pendingInvoices = invoices?.filter((inv) => inv.status === "enviada").length || 0
+      // Cálculo SUPER SIMPLE usando la consulta directa
+      const pendingInvoices = facturasPendientesSimple.length
+      const pendingRevenue = facturasPendientesSimple.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      
+      console.log("� RESULTADO FINAL SIMPLE:")
+      console.log("- Cantidad facturas pendientes:", pendingInvoices)
+      console.log("- Revenue pendiente:", pendingRevenue)
+      console.log("- Lista facturas:", facturasPendientesSimple.map(inv => ({
+        numero: inv.invoice_number,
+        total: inv.total
+      })))
+      
       const overdueInvoices =
-        invoices?.filter((inv) => {
-          if (inv.status !== "enviada" || !inv.due_date) {
+        facturasPendientesSimple.filter((inv) => {
+          if (!inv.due_date) {
             return false
           }
           return new Date(inv.due_date) < now
         }).length || 0
 
-      const weeklyInvoices = invoices?.filter((inv) => new Date(inv.created_at) >= weekAgo).length || 0
+
+
+      const weeklyInvoices = validInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo).length || 0
       const weeklyPaidInvoices = paidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
       const weeklyUnpaidInvoices = unpaidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
       const weeklyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => new Date(receipt.created_at) >= weekAgo) || [])
@@ -483,7 +507,7 @@ export default function DashboardPage() {
       const monthlyPendingRevenue = monthlyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       
       // Calcular facturas pendientes específicamente del mes actual para mostrar en la tarjeta
-      const monthlyPendingInvoices = monthlyUnpaidInvoices.length // Ya están filtradas por status "enviada"
+      const monthlyPendingInvoices = monthlyUnpaidInvoices.length // Facturas no pagadas del mes
 
       const monthlyExpenses = expenses?.filter((exp) => {
         const expDate = new Date(exp.created_at)
@@ -579,6 +603,9 @@ export default function DashboardPage() {
       const previousMonthInvoiceRevenue = previousMonthPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       const previousMonthThermalRevenue = previousMonthThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
       const previousMonthRevenue = previousMonthInvoiceRevenue + previousMonthThermalRevenue
+
+      // ✅ VALORES FINALES CONFIRMADOS:
+      console.log("✅ ENVIANDO A setStats:", { pendingInvoices, pendingRevenue, overdueInvoices })
 
       setStats((prev) => ({
         ...prev,
@@ -676,20 +703,20 @@ export default function DashboardPage() {
   const monthlyProgress = Math.min((stats.monthlyRevenue / stats.monthlyTarget) * 100, 100)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 lg:p-4">
-      <div className="max-w-[1600px] mx-auto space-y-4">
-        {/* Header Section - Optimizado para aprovechar espacio */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-4 mb-4">
-          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-                <BarChart3 className="h-7 w-7 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-3 lg:p-4">
+      <div className="max-w-[1600px] mx-auto space-y-4 lg:space-y-6">
+        {/* Header Section - Mobile Optimized */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-lg border border-gray-200/50 p-3 lg:p-4 mb-4">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 lg:gap-4">
+            <div className="flex items-center gap-3 lg:gap-4">
+              <div className="p-2 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl lg:rounded-2xl shadow-lg">
+                <BarChart3 className="h-5 w-5 lg:h-7 lg:w-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <p className="text-sm text-gray-600 font-medium">Panel de control empresarial</p>
+                <p className="text-xs lg:text-sm text-gray-600 font-medium">Panel de control empresarial</p>
               </div>
             </div>
             
@@ -832,7 +859,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Layout principal - Simplificado */}
-        <div className="grid gap-3 xl:grid-cols-4 mb-4">
+        <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4 mb-4">
           {/* Meta Mensual - Simplificada */}
           <Card className="xl:col-span-2 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
             <CardHeader className="pb-3">
@@ -873,7 +900,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-2">
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-white/60 rounded-lg p-3">
                     <div className="text-sm text-blue-600">Alcanzado</div>
                     <div className="text-xl font-bold text-blue-800">{formatCurrency(stats.monthlyRevenue)}</div>
@@ -895,7 +922,7 @@ export default function DashboardPage() {
                   <Progress value={Math.min(monthlyProgress, 100)} className="h-2" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
                   <div className="bg-white/50 rounded-lg p-2">
                     <div className="text-xs text-amber-600">Facturas</div>
                     <div className="text-sm font-bold text-amber-900">{formatNumber(stats.monthlyInvoices)}</div>
@@ -942,7 +969,7 @@ export default function DashboardPage() {
                   <div className="text-sm text-amber-600">Total por cobrar</div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2 text-center text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-center text-sm">
                   <div>
                     <div className="font-bold text-amber-700">{formatNumber(stats.pendingInvoices)}</div>
                     <div className="text-amber-600">Facturas</div>
@@ -976,7 +1003,7 @@ export default function DashboardPage() {
                   <div className="text-sm text-red-600 font-medium">Total gastado</div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-white/50 rounded-lg p-3 text-center">
                     <div className="text-2xl font-bold text-red-700">{formatNumber(stats.monthlyExpenses)}</div>
                     <div className="text-xs text-red-600">Registros</div>
@@ -1025,7 +1052,7 @@ export default function DashboardPage() {
                   <div className="text-sm text-emerald-600 font-medium">Ingresos semanales</div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-white/50 rounded-lg p-3 text-center">
                     <div className="text-2xl font-bold text-emerald-700">{formatNumber(stats.weeklyInvoices)}</div>
                     <div className="text-xs text-emerald-600">Facturas</div>

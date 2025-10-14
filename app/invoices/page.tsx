@@ -104,13 +104,13 @@ export default function InvoicesPage() {
       case "pendiente":
         return "bg-blue-100 text-blue-800 border-blue-200"
       case "enviada":
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-red-500 text-white border-red-600"
       case "pagada":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-green-500 text-white border-green-600"
       case "vencida":
         return "bg-red-100 text-red-800 border-red-200"
       case "cancelada":
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-yellow-500 text-white border-yellow-600"
       default:
         return "bg-slate-100 text-slate-800 border-slate-200"
     }
@@ -186,7 +186,7 @@ export default function InvoicesPage() {
   const totalInvoices = filteredInvoices.length
   const totalAmount = filteredInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
   const paidInvoices = filteredInvoices.filter((inv) => inv.status === "pagada").length
-  const pendingInvoices = filteredInvoices.filter((inv) => inv.status === "pendiente").length
+  const pendingInvoices = filteredInvoices.filter((inv) => inv.status === "enviada").length
 
   if (loading) {
     return (
@@ -206,18 +206,18 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Gestión de Facturas
             </h1>
-            <p className="text-slate-600">Administra y controla todas tus facturas</p>
+            <p className="text-sm lg:text-base text-slate-600">Administra y controla todas tus facturas</p>
           </div>
           <Button
             asChild
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Link href="/invoices/new">
               <Plus className="h-4 w-4 mr-2" />
@@ -226,15 +226,15 @@ export default function InvoicesPage() {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Total Facturas</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalInvoices}</p>
+            <CardContent className="p-3 lg:p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
+                <div className="text-center lg:text-left">
+                  <p className="text-xs lg:text-sm font-medium text-blue-700">Total Facturas</p>
+                  <p className="text-lg lg:text-2xl font-bold text-blue-900">{totalInvoices}</p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                <div className="hidden lg:block p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
               </div>

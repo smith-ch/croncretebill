@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Crown, User, EyeOff } from 'lucide-react'
 import { useUserPermissions } from '@/hooks/use-user-permissions-simple'
-import { PasswordVerification } from './password-verification'
+import { RolePasswordVerification } from './role-password-verification'
 
 export function RoleSwitcher() {
   const [isEmployeeMode, setIsEmployeeMode] = useState(false)
@@ -100,7 +100,7 @@ export function RoleSwitcher() {
       {!isRealEmployee && (
         <>
           {isEmployeeMode ? (
-            <PasswordVerification onVerified={backToOwnerMode}>
+            <RolePasswordVerification onVerified={backToOwnerMode} action="switch_to_owner">
               <Button 
                 variant="outline" 
                 size="sm"
@@ -108,7 +108,7 @@ export function RoleSwitcher() {
               >
                 <Crown className="h-3 w-3" />
               </Button>
-            </PasswordVerification>
+            </RolePasswordVerification>
           ) : (
             <Button 
               variant="outline" 
@@ -124,7 +124,7 @@ export function RoleSwitcher() {
       
       {/* Reset de emergencia compacto - solo para propietario */}
       {!isRealEmployee && !isEmployeeMode && (
-        <PasswordVerification onVerified={handleEmergencyResetVerified}>
+        <RolePasswordVerification onVerified={handleEmergencyResetVerified} action="emergency_reset">
           <Button
             variant="destructive"
             size="sm"
@@ -132,7 +132,7 @@ export function RoleSwitcher() {
           >
             ⚡
           </Button>
-        </PasswordVerification>
+        </RolePasswordVerification>
       )}
     </div>
   )

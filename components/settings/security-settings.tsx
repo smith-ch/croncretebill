@@ -21,6 +21,7 @@ import {
   CheckCircle
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { RoleSecuritySettings } from "./role-security-settings"
 
 interface SecuritySettings {
   current_password: string
@@ -459,6 +460,9 @@ export function SecuritySettingsComponent() {
           <AlertDescription className="text-green-800">{success}</AlertDescription>
         </Alert>
       )}
+
+      {/* Role Security Settings */}
+      <RoleSecuritySettings />
 
       {/* Save Button */}
       <div className="flex justify-end">

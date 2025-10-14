@@ -8,10 +8,95 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Download, Receipt, FileText, TrendingUp, Users, AlertTriangle, Plus, Eye } from "lucide-react"
+import { Calendar, Download, Receipt, FileText, TrendingUp, AlertTriangle, Users, Plus, Eye } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import * as XLSX from 'xlsx'
+
+// Types
+interface Expense {
+  id: string
+  amount: number
+  expense_date: string
+  description: string
+  itbis_amount?: number
+  ncf?: string
+  provider_name?: string
+  provider_rnc?: string
+  clients?: {
+    id: string
+    name: string
+    rnc: string
+    id_number: string
+    email: string
+    phone: string
+    tipo_id: string
+    is_provider: boolean
+  }
+  expense_categories?: {
+    name: string
+    color: string
+  }
+  user_id: string
+  created_at: string
+  // Additional fields for compatibility with existing data
+  fecha?: string
+  date?: string
+  monto?: number
+  tax_amount?: number
+  itbis?: number
+  tipo_gasto?: string
+  descripcion?: string
+}
+
+interface Invoice {
+  id: string
+  invoice_number: string
+  created_at: string
+  total: number
+  subtotal: number
+  tax_amount: number
+  ncf?: string
+  user_id: string
+  payment_method: string
+  monto_bienes?: number
+  monto_servicios?: number
+  monto_exento?: number
+  tipo_comprobante?: string
+  indicador_anulacion?: boolean
+  due_date?: string
+  invoice_date?: string
+  issue_date?: string
+  status?: string
+  include_itbis?: boolean
+  notes?: string
+  client_id?: string
+  client_rnc?: string
+  client_name?: string
+  clients?: {
+    id: string
+    name: string
+    email: string
+    phone: string
+    rnc: string
+    id_number: string
+    tipo_id: string
+    address?: string
+  }
+}
+
+interface CompanySetting {
+  company_name: string
+}
+
+interface PaymentMethodStat {
+  count: number
+  total: number
+  name: string
+  invoices: Invoice[]
+  monthlyTotals?: number[]
+}
+
 
 // Catálogos oficiales DGII
 const TIPOS_GASTO_DGII = {
@@ -142,9 +227,128 @@ const formatMonthYear = (yearMonth: string): string => {
   return `${months[parseInt(month) - 1]} ${year}`
 }
 
+// Funciones para generar Excel exactos según las imágenes
+const generarExcel607Compras = async (mes: number, anio: number) => {
+  try {
+    const fechaInicio = new Date(anio, mes - 1, 1)
+    const fechaFin = new Date(anio, mes, 0)
+
+    // Obtener datos de compras (expenses)
+    const { data: compras, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .gte('expense_date', fechaInicio.toISOString())
+      .lte('expense_date', fechaFin.toISOString())
+
+    if (error) { throw error }
+
+    // Crear workbook
+    const wb = XLSX.utils.book_new()
+    
+    // Datos para el Excel según formato 607
+    const datosExcel = compras?.map((compra: any, index: number) => ({
+      'No. Línea': index + 1,
+      'Tipo Identificación': '2', // Por defecto cédula
+      'RNC/Cédula': compra.supplier_rnc || compra.rnc || '',
+      'Tipo Bienes y Servicios': determinarTipoGasto(compra.description || compra.supplier || ''),
+      'NCF': compra.ncf || compra.receipt_number || '',
+      'NCF Modificado': '',
+      'Fecha Comprobante': compra.expense_date ? new Date(compra.expense_date).toLocaleDateString('es-DO') : '',
+      'Fecha Pago': compra.expense_date ? new Date(compra.expense_date).toLocaleDateString('es-DO') : '',
+      'Monto Facturado': parseFloat(compra.amount) || 0,
+      'ITBIS Facturado': compra.itbis_amount ? parseFloat(compra.itbis_amount) : (parseFloat(compra.amount) * 0.18) || 0,
+      'ITBIS Retenido por Terceros': 0,
+      'ITBIS Percibido en Compras': 0,
+      'Tipo de Retención ISR': 0,
+      'Monto Retención Renta': 0,
+      'ISR Percibido en Compras': 0,
+      'Impuesto Selectivo al Consumo': 0,
+      'Otros Impuestos/Tasas': 0,
+      'Monto Propina Legal': 0,
+      'Forma de Pago': '01' // Efectivo por defecto
+    })) || []
+
+    // Crear hoja de cálculo
+    const ws = XLSX.utils.json_to_sheet(datosExcel)
+    
+    // Agregar la hoja al workbook
+    XLSX.utils.book_append_sheet(wb, ws, '607 Compras')
+    
+    // Generar archivo
+    const nombreArchivo = `607_Compras_${String(mes).padStart(2, '0')}_${anio}.xlsx`
+    XLSX.writeFile(wb, nombreArchivo)
+    
+    console.log(`Generado: ${nombreArchivo}`)
+    
+  } catch (error: any) {
+    console.error('Error generando Excel 607:', error)
+    alert('Error al generar el Excel 607: ' + error.message)
+  }
+}
+
+const generarExcel608Ventas = async (mes: number, anio: number) => {
+  try {
+    const fechaInicio = new Date(anio, mes - 1, 1)
+    const fechaFin = new Date(anio, mes, 0)
+
+    // Obtener datos de ventas (invoices)
+    const { data: ventas, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .gte('created_at', fechaInicio.toISOString())
+      .lte('created_at', fechaFin.toISOString())
+
+    if (error) { throw error }
+
+    // Crear workbook
+    const wb = XLSX.utils.book_new()
+    
+    // Datos para el Excel según formato 608
+    const datosExcel = ventas?.map((venta: any, index: number) => ({
+      'No. Línea': index + 1,
+      'Tipo Identificación': '2', // Por defecto cédula
+      'RNC/Cédula': venta.client_rnc || '',
+      'NCF': venta.ncf || venta.invoice_number || '',
+      'NCF Modificado': '',
+      'Fecha Comprobante': venta.created_at ? new Date(venta.created_at).toLocaleDateString('es-DO') : '',
+      'Fecha Vencimiento': venta.due_date ? new Date(venta.due_date).toLocaleDateString('es-DO') : '', 
+      'Monto Facturado': parseFloat(venta.total) || 0,
+      'ITBIS Facturado': parseFloat(venta.tax_amount) || 0,
+      'ITBIS Retenido': 0,
+      'ITBIS Percibido': 0,
+      'Retención Renta por Terceros': 0,
+      'ISR Percibido': 0,
+      'Impuesto Selectivo al Consumo': 0,
+      'Otros Impuestos/Tasas': 0,
+      'Monto Propina Legal': 0,
+      'Efectivo': venta.payment_method === 'efectivo' ? parseFloat(venta.total) || 0 : 0,
+      'Cheque': venta.payment_method === 'cheque' ? parseFloat(venta.total) || 0 : 0,
+      'Tarjeta': venta.payment_method === 'tarjeta' ? parseFloat(venta.total) || 0 : 0,
+      'Transferencia': venta.payment_method === 'transferencia' ? parseFloat(venta.total) || 0 : 0,
+      'Otras Formas': 0
+    })) || []
+
+    // Crear hoja de cálculo
+    const ws = XLSX.utils.json_to_sheet(datosExcel)
+    
+    // Agregar la hoja al workbook
+    XLSX.utils.book_append_sheet(wb, ws, '608 Ventas')
+    
+    // Generar archivo
+    const nombreArchivo = `608_Ventas_${String(mes).padStart(2, '0')}_${anio}.xlsx`
+    XLSX.writeFile(wb, nombreArchivo)
+    
+    console.log(`Generado: ${nombreArchivo}`)
+    
+  } catch (error: any) {
+    console.error('Error generando Excel 608:', error)
+    alert('Error al generar el Excel 608: ' + error.message)
+  }
+}
+
 interface DGIIData {
-  compras: any[]
-  ventas: any[]
+  compras: Expense[]
+  ventas: Invoice[]
   totalCompras: number
   totalVentas: number
   itbisCompras: number
@@ -267,25 +471,25 @@ export default function DGIIReportsPage() {
       }
 
       // Calcular totales con mejor precisión
-      const totalCompras = expenses?.reduce((sum, exp) => {
-        const amount = parseFloat(exp.amount) || 0
+      const totalCompras = expenses?.reduce((sum, exp: Expense) => {
+        const amount = parseFloat(exp.amount.toString()) || 0
         return sum + amount
       }, 0) || 0
 
-      const totalVentas = invoices?.reduce((sum, inv) => {
-        const total = parseFloat(inv.total) || 0
+      const totalVentas = invoices?.reduce((sum, inv: Invoice) => {
+        const total = parseFloat(inv.total.toString()) || 0
         return sum + total
       }, 0) || 0
 
       // Calcular ITBIS más preciso
-      const itbisCompras = expenses?.reduce((sum, exp) => {
+      const itbisCompras = expenses?.reduce((sum, exp: Expense) => {
         // Si tiene ITBIS explícito, usarlo; sino calcular 18%
-        const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount) : (parseFloat(exp.amount) || 0) * 0.18
+        const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount.toString()) : (parseFloat(exp.amount.toString()) || 0) * 0.18
         return sum + itbis
       }, 0) || 0
 
-      const itbisVentas = invoices?.reduce((sum, inv) => {
-        const itbis = parseFloat(inv.tax_amount) || 0
+      const itbisVentas = invoices?.reduce((sum, inv: Invoice) => {
+        const itbis = parseFloat(inv.tax_amount.toString()) || 0
         return sum + itbis
       }, 0) || 0
 
@@ -384,23 +588,23 @@ export default function DGIIReportsPage() {
       }
 
       // Calcular totales anuales
-      const totalCompras = expenses?.reduce((sum, exp) => {
-        const amount = parseFloat(exp.amount) || 0
+      const totalCompras = expenses?.reduce((sum, exp: Expense) => {
+        const amount = parseFloat(exp.amount.toString()) || 0
         return sum + amount
       }, 0) || 0
 
-      const totalVentas = invoices?.reduce((sum, inv) => {
-        const total = parseFloat(inv.total) || 0
+      const totalVentas = invoices?.reduce((sum, inv: Invoice) => {
+        const total = parseFloat(inv.total.toString()) || 0
         return sum + total
       }, 0) || 0
 
-      const itbisCompras = expenses?.reduce((sum, exp) => {
-        const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount) : (parseFloat(exp.amount) || 0) * 0.18
+      const itbisCompras = expenses?.reduce((sum, exp: Expense) => {
+        const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount.toString()) : (parseFloat(exp.amount.toString()) || 0) * 0.18
         return sum + itbis
       }, 0) || 0
 
-      const itbisVentas = invoices?.reduce((sum, inv) => {
-        const itbis = parseFloat(inv.tax_amount) || 0
+      const itbisVentas = invoices?.reduce((sum, inv: Invoice) => {
+        const itbis = parseFloat(inv.tax_amount.toString()) || 0
         return sum + itbis
       }, 0) || 0
 
@@ -441,7 +645,7 @@ export default function DGIIReportsPage() {
   // Check if user has permission to view financial reports
   if (!permissions.canViewFinances) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
         <div className="max-w-7xl mx-auto">
           <Card className="border-2 border-red-200 bg-red-50">
             <CardContent className="p-8 text-center">
@@ -478,7 +682,7 @@ export default function DGIIReportsPage() {
         .eq("user_id", user.id)
         .single()
 
-      return company?.company_name || "MI EMPRESA, SRL"
+      return (company as any)?.company_name || "MI EMPRESA, SRL"
     } catch (error) {
       console.log("Usando nombre por defecto")
       return "MI EMPRESA, SRL"
@@ -542,9 +746,9 @@ export default function DGIIReportsPage() {
       const dia = fechaExpense.getDate()
       
       // Montos - usar los campos reales de la BD
-      const montoTotal = parseFloat(expense.amount) || 0
+      const montoTotal = parseFloat(expense.amount.toString()) || 0
       const itbisFac = expense.itbis_amount ? 
-                      parseFloat(expense.itbis_amount) : 
+                      parseFloat(expense.itbis_amount.toString()) : 
                       (montoTotal * 0.18) // Calcular si no está guardado
 
       excelData.push([
@@ -638,26 +842,31 @@ export default function DGIIReportsPage() {
       const total = parseFloat(invoice.total || 0)
       const itbis = parseFloat(invoice.tax_amount || 0)
       
+      // CORREGIDO: El total YA incluye el ITBIS, no se debe sumar dos veces
+      const subtotal = total - itbis  // Subtotal sin ITBIS
+      
+      console.log(`Factura ${invoice.invoice_number}: Total=${total}, ITBIS=${itbis}, Subtotal=${subtotal}`)
+      
       // Determinar forma de pago
       const paymentMethod = invoice.payment_method || "credito"
       let efectivo = 0, chkTransf = 0, tarjetaCr = 0, credito = 0
       
-      // Calcular el monto total con ITBIS para la forma de pago
-      const montoConItbis = total + itbis
+      // CORREGIDO: Usar el total que YA incluye el ITBIS (no sumar de nuevo)
+      const montoFactura = total  // El total ya incluye todo
       
       switch (paymentMethod.toLowerCase()) {
         case 'efectivo':
-          efectivo = montoConItbis
+          efectivo = montoFactura
           break
         case 'transferencia':
         case 'cheque':
-          chkTransf = montoConItbis
+          chkTransf = montoFactura
           break
         case 'tarjeta':
-          tarjetaCr = montoConItbis
+          tarjetaCr = montoFactura
           break
         default:
-          credito = montoConItbis
+          credito = montoFactura
       }
 
       excelData.push([
@@ -668,7 +877,7 @@ export default function DGIIReportsPage() {
         "01", // Tipo ingresos
         fecha, 
         "", // Fecha retención
-        total.toFixed(2), // Total
+        subtotal.toFixed(2), // CORREGIDO: Total sin ITBIS (subtotal)
         itbis.toFixed(2), // ITBIS
         0, 0, 0, 0, 0, 0, 0, // Ret, perc, ISR, selectivo, otros, propina
         efectivo.toFixed(2), 
@@ -683,12 +892,693 @@ export default function DGIIReportsPage() {
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.aoa_to_sheet(excelData)
     
+    // Log de resumen para verificar cálculos Excel 607
+    const facturasValidas = dgiiData.ventas.filter((invoice: any) => {
+      const rncCliente = invoice.clients?.rnc || ""
+      const ncf = invoice.ncf || ""
+      return ncf && ncf.trim() !== "" && rncCliente && rncCliente.trim() !== ""
+    })
+    
+    const excelTotalSubtotal = facturasValidas.reduce((sum: number, invoice: any) => {
+      const montoTotal = parseFloat(invoice.total || 0)
+      const montoItbis = parseFloat(invoice.tax_amount || 0)
+      return sum + (montoTotal - montoItbis)
+    }, 0)
+    
+    const excelTotalItbis = facturasValidas.reduce((sum: number, invoice: any) => {
+      return sum + parseFloat(invoice.tax_amount || 0)
+    }, 0)
+    
+    const excelTotalFacturacion = facturasValidas.reduce((sum: number, invoice: any) => {
+      return sum + parseFloat(invoice.total || 0)
+    }, 0)
+
+    console.log('=== RESUMEN REPORTE 607 EXCEL ===')
+    console.log(`Facturas válidas: ${facturasValidas.length}`)
+    console.log(`Total Subtotal (sin ITBIS): RD$${excelTotalSubtotal.toFixed(2)}`)
+    console.log(`Total ITBIS: RD$${excelTotalItbis.toFixed(2)}`)
+    console.log(`Total Facturación completa: RD$${excelTotalFacturacion.toFixed(2)}`)
+    console.log(`Verificación Excel: ${excelTotalSubtotal.toFixed(2)} + ${excelTotalItbis.toFixed(2)} = ${(excelTotalSubtotal + excelTotalItbis).toFixed(2)}`)
+    
     XLSX.utils.book_append_sheet(wb, ws, "Reporte 607")
     
     // Descargar archivo con nombre según el mes
     const [year, month] = selectedMonth.split('-')
     XLSX.writeFile(wb, `607_${year}${month}_ventas.xlsx`)
   }
+
+  const generatePaymentMethodsReport = async () => {
+    try {
+      // Obtener todas las facturas del usuario
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return
+      }
+
+      const { data: invoices, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error fetching invoices:', error)
+        return
+      }
+
+      // Agrupar por método de pago
+      const paymentMethodStats: Record<string, PaymentMethodStat> = {}
+      
+      // Inicializar con todos los métodos de pago DGII
+      Object.entries(FORMAS_PAGO_DGII).forEach(([code, name]) => {
+        paymentMethodStats[code] = {
+          name,
+          count: 0,
+          total: 0,
+          invoices: []
+        }
+      })
+
+      // Mapear métodos de pago del sistema a códigos DGII
+      const paymentMethodMapping = {
+        'efectivo': '01',
+        'cheque': '02', 
+        'tarjeta': '03',
+        'transferencia': '04',
+        'credito': '05',
+        'cash': '01',
+        'card': '03',
+        'transfer': '04',
+        'credit': '05'
+      }
+
+      // Procesar facturas
+      invoices?.forEach((invoice: Invoice) => {
+        const paymentMethod = invoice.payment_method || 'credito'
+        const dgiiCode = paymentMethodMapping[paymentMethod as keyof typeof paymentMethodMapping] || '05' // Default a crédito
+        
+        paymentMethodStats[dgiiCode].count++
+        paymentMethodStats[dgiiCode].total += parseFloat(invoice.total.toString() || '0')
+        paymentMethodStats[dgiiCode].invoices.push(invoice)
+      })
+
+      // Crear datos para Excel
+      const excelData = []
+      
+      // Título
+      excelData.push(['REPORTE DE MÉTODOS DE PAGO - DGII'])
+      excelData.push([`Período: ${selectedMonth || 'Todos los registros'}`])
+      excelData.push([`Generado: ${new Date().toLocaleDateString()}`])
+      excelData.push([]) // Fila vacía
+
+      // Encabezados
+      excelData.push([
+        'Código DGII',
+        'Método de Pago', 
+        'Cantidad Facturas',
+        'Monto Total',
+        'Porcentaje %'
+      ])
+
+      // Calcular total general
+      const totalGeneral = Object.values(paymentMethodStats).reduce((sum: number, stat: PaymentMethodStat) => sum + stat.total, 0)
+
+      // Datos por método de pago
+      Object.entries(paymentMethodStats).forEach(([code, stats]: [string, PaymentMethodStat]) => {
+        const percentage = totalGeneral > 0 ? ((stats.total / totalGeneral) * 100).toFixed(2) : '0'
+        
+        excelData.push([
+          code,
+          stats.name,
+          stats.count,
+          stats.total.toFixed(2),
+          `${percentage}%`
+        ])
+      })
+
+      // Fila de totales
+      excelData.push([]) // Fila vacía
+      excelData.push([
+        'TOTAL',
+        '',
+        Object.values(paymentMethodStats).reduce((sum: number, stat: PaymentMethodStat) => sum + stat.count, 0),
+        totalGeneral.toFixed(2),
+        '100.00%'
+      ])
+
+      // Crear workbook
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(excelData)
+      
+      // Aplicar estilos básicos
+      ws['!cols'] = [
+        { width: 12 }, // Código
+        { width: 30 }, // Método
+        { width: 15 }, // Cantidad
+        { width: 15 }, // Monto
+        { width: 12 }  // Porcentaje
+      ]
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Métodos de Pago')
+      
+      // Descargar archivo
+      const [year, month] = (selectedMonth || '2025-01').split('-')
+      XLSX.writeFile(wb, `metodos_pago_${year}${month}.xlsx`)
+
+    } catch (error) {
+      console.error('Error generating payment methods report:', error)
+      alert('Error al generar el reporte de métodos de pago')
+    }
+  }
+
+  const generateAnnualPaymentMethodsReport = async () => {
+    if (!selectedYear) {
+      alert('Por favor selecciona un año')
+      return
+    }
+
+    try {
+      // Obtener todas las facturas del año seleccionado
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return
+      }
+
+      const startDate = `${selectedYear}-01-01`
+      const endDate = `${selectedYear}-12-31`
+      
+      console.log(`Generando reporte anual de métodos de pago del ${startDate} al ${endDate}`)
+
+      const { data: invoices, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('created_at', startDate + ' 00:00:00')
+        .lte('created_at', endDate + ' 23:59:59')
+
+      if (error) {
+        console.error('Error fetching annual invoices for payment methods:', error)
+        return
+      }
+
+      if (!invoices || invoices.length === 0) {
+        alert(`No se encontraron facturas para el año ${selectedYear}`)
+        return
+      }
+
+      console.log(`Procesando ${invoices.length} facturas anuales para métodos de pago`)
+
+      // Agrupar por método de pago
+      const paymentMethodStats: Record<string, PaymentMethodStat & { monthlyTotals: number[] }> = {}
+      
+      // Inicializar con todos los métodos de pago DGII
+      Object.entries(FORMAS_PAGO_DGII).forEach(([code, name]) => {
+        paymentMethodStats[code] = {
+          name,
+          count: 0,
+          total: 0,
+          invoices: [],
+          monthlyTotals: Array(12).fill(0) // Para desglose mensual
+        }
+      })
+
+      // Mapear métodos de pago del sistema a códigos DGII
+      const paymentMethodMapping = {
+        'efectivo': '01',
+        'cheque': '02', 
+        'tarjeta': '03',
+        'transferencia': '04',
+        'credito': '05',
+        'cash': '01',
+        'card': '03',
+        'transfer': '04',
+        'credit': '05'
+      }
+
+      // Procesar facturas
+      invoices?.forEach((invoice: Invoice) => {
+        const paymentMethod = invoice.payment_method || 'credito'
+        const dgiiCode = paymentMethodMapping[paymentMethod as keyof typeof paymentMethodMapping] || '05' // Default a crédito
+        const total = parseFloat(invoice.total.toString() || '0')
+        const mes = new Date(invoice.created_at).getMonth() // 0-11
+        
+        paymentMethodStats[dgiiCode].count++
+        paymentMethodStats[dgiiCode].total += total
+        paymentMethodStats[dgiiCode].invoices.push(invoice)
+        paymentMethodStats[dgiiCode].monthlyTotals[mes] += total
+      })
+
+      // Crear datos para Excel
+      const excelData = []
+      
+      // Título
+      excelData.push([`REPORTE ANUAL DE MÉTODOS DE PAGO - ${selectedYear} - DGII`])
+      excelData.push([`Período: Enero a Diciembre ${selectedYear}`])
+      excelData.push([`Generado: ${new Date().toLocaleDateString()}`])
+      excelData.push([]) // Fila vacía
+
+      // Encabezados principales
+      excelData.push([
+        'Código DGII',
+        'Método de Pago', 
+        'Cantidad Facturas',
+        'Monto Total Anual',
+        'Porcentaje %',
+        'Promedio por Factura'
+      ])
+
+      // Calcular total general
+      const totalGeneral = Object.values(paymentMethodStats).reduce((sum: number, stat: any) => sum + stat.total, 0)
+      const totalFacturas = Object.values(paymentMethodStats).reduce((sum: number, stat: any) => sum + stat.count, 0)
+
+      // Datos por método de pago
+      Object.entries(paymentMethodStats).forEach(([code, stats]: [string, any]) => {
+        const percentage = totalGeneral > 0 ? ((stats.total / totalGeneral) * 100).toFixed(2) : 0
+        const promedio = stats.count > 0 ? (stats.total / stats.count).toFixed(2) : 0
+        
+        excelData.push([
+          code,
+          stats.name,
+          stats.count,
+          stats.total.toFixed(2),
+          `${percentage}%`,
+          promedio
+        ])
+      })
+
+      // Fila de totales
+      excelData.push([]) // Fila vacía
+      excelData.push([
+        'TOTAL',
+        '',
+        totalFacturas,
+        totalGeneral.toFixed(2),
+        '100.00%',
+        totalFacturas > 0 ? (totalGeneral / totalFacturas).toFixed(2) : 0
+      ])
+
+      // Agregar desglose mensual
+      excelData.push([]) // Fila vacía
+      excelData.push(['DESGLOSE MENSUAL POR MÉTODO DE PAGO'])
+      excelData.push([]) // Fila vacía
+
+      // Encabezados mensuales
+      const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      excelData.push(['Método de Pago', ...meses, 'Total Anual'])
+
+      // Datos mensuales por método
+      Object.entries(paymentMethodStats).forEach(([, stats]) => {
+        if (stats.count > 0) { // Solo mostrar métodos con actividad
+          excelData.push([
+            stats.name,
+            ...stats.monthlyTotals.map((monto: number) => monto.toFixed(2)),
+            stats.total.toFixed(2)
+          ])
+        }
+      })
+
+      // Crear workbook
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(excelData)
+      
+      // Aplicar estilos y anchos
+      ws['!cols'] = [
+        { width: 12 }, // Código
+        { width: 35 }, // Método
+        { width: 15 }, // Cantidad
+        { width: 18 }, // Monto
+        { width: 12 }, // Porcentaje
+        { width: 15 }  // Promedio
+      ]
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Métodos de Pago Anual')
+      
+      // Descargar archivo
+      XLSX.writeFile(wb, `metodos_pago_anual_${selectedYear}.xlsx`)
+
+      console.log(`Reporte anual de métodos de pago generado: ${totalFacturas} facturas, RD$${totalGeneral.toFixed(2)}`)
+
+    } catch (error) {
+      console.error('Error generating annual payment methods report:', error)
+      alert('Error al generar el reporte anual de métodos de pago')
+    }
+  }
+
+  const generateAnnualFiscalInvoicesReport = async () => {
+    if (!selectedYear) {
+      alert('Por favor selecciona un año')
+      return
+    }
+
+    try {
+      // Obtener todas las facturas fiscales del año seleccionado
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return
+      }
+
+      const startDate = `${selectedYear}-01-01`
+      const endDate = `${selectedYear}-12-31`
+      
+      console.log(`Generando reporte fiscal anual del ${startDate} al ${endDate}`)
+
+      const { data: fiscalInvoices, error } = await supabase
+        .from('invoices')
+        .select(`
+          *,
+          clients (name, rnc, address, phone, email)
+        `)
+        .eq('user_id', user.id)
+        .eq('include_itbis', true)
+        .not('ncf', 'is', null)
+        .neq('ncf', '')
+        .gte('created_at', startDate + ' 00:00:00')
+        .lte('created_at', endDate + ' 23:59:59')
+        .order('invoice_date', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching annual fiscal invoices:', error)
+        return
+      }
+
+      if (!fiscalInvoices || fiscalInvoices.length === 0) {
+        alert(`No se encontraron facturas fiscales para el año ${selectedYear}`)
+        return
+      }
+
+      console.log(`Procesando ${fiscalInvoices.length} facturas fiscales anuales`)
+
+      // Estructura EXACTA según imagen oficial DGII (códigos 1-9)
+      const codigosOficiales = {
+        '1': { descripcion: 'FACTURA CON VALOR FISCAL', ncfTypes: [] as string[] },
+        '2': { descripcion: 'FACTURA CON VALOR FISCAL PARA CONSUMIDOR FINAL', ncfTypes: ['B01'] as string[] },
+        '3': { descripcion: 'FACTURA GUBERNAMENTAL', ncfTypes: ['B14'] as string[] },
+        '4': { descripcion: 'REGISTRO UNICO DE INGRESOS', ncfTypes: ['B12'] as string[] },
+        '5': { descripcion: 'EMPRESAS CON REGÍMENES ESPECIALES', ncfTypes: ['B13', 'B15'] as string[] },
+        '6': { descripcion: 'REGISTRO PROVEEDORES INFORMALES', ncfTypes: ['B11'] as string[] },
+        '7': { descripcion: 'NOTA DE DEBITO', ncfTypes: ['B03'] as string[] },
+        '8': { descripcion: 'NOTA DE CREDITO', ncfTypes: ['B04'] as string[] },
+        '9': { descripcion: 'REGISTRO DE GASTOS MENORES', ncfTypes: [] as string[] }
+      }
+
+      // Inicializar todos los códigos oficiales con valores cero
+      const gruposPorCodigo: any = {}
+      Object.keys(codigosOficiales).forEach(codigo => {
+        gruposPorCodigo[codigo] = {
+          codigo: parseInt(codigo),
+          descripcion: codigosOficiales[codigo as keyof typeof codigosOficiales].descripcion,
+          count: 0,
+          totalValue: 0,
+          facturas: []
+        }
+      })
+      
+      // Procesar cada factura y asignarla al código correcto
+      fiscalInvoices.forEach((invoice: any) => {
+        const ncf = invoice.ncf || ''
+        const total = parseFloat(invoice.total || 0)
+        
+        if (ncf && ncf.length >= 11) {
+          const ncfType = ncf.substring(0, 3).toUpperCase()
+          
+          // Buscar a qué código oficial pertenece este tipo de NCF
+          let codigoAsignado = null
+          Object.keys(codigosOficiales).forEach(codigo => {
+            const config = codigosOficiales[codigo as keyof typeof codigosOficiales]
+            if (config.ncfTypes.includes(ncfType)) {
+              codigoAsignado = codigo
+            }
+          })
+          
+          if (codigoAsignado) {
+            gruposPorCodigo[codigoAsignado].count += 1
+            gruposPorCodigo[codigoAsignado].totalValue += total
+            gruposPorCodigo[codigoAsignado].facturas.push(invoice)
+          }
+        }
+      })
+
+      // Calcular totales generales
+      const totalFacturas = Object.values(gruposPorCodigo).reduce((sum: number, grupo: any) => sum + grupo.count, 0)
+      const totalValor = Object.values(gruposPorCodigo).reduce((sum: number, grupo: any) => sum + grupo.totalValue, 0)
+
+      // Crear estructura Excel
+      const excelData = []
+      
+      // Encabezado del reporte anual
+      excelData.push([`Reporte Anual de Ventas por Tipo de NCF - ${selectedYear}`])
+      excelData.push([`Desde: 01/01/${selectedYear} Hasta: 31/12/${selectedYear}`])
+      excelData.push([])
+      excelData.push(['Código', 'Descripción', 'Cantidad', 'Valor'])
+
+      // Agregar todos los códigos oficiales (1-9)
+      Object.keys(gruposPorCodigo)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .forEach(codigo => {
+          const grupo = gruposPorCodigo[codigo]
+          excelData.push([
+            grupo.codigo,
+            grupo.descripcion,
+            grupo.count,
+            grupo.totalValue.toFixed(2)
+          ])
+        })
+
+      // Agregar fila de totales
+      excelData.push([
+        '',
+        'TOTAL',
+        totalFacturas,
+        totalValor.toFixed(2)
+      ])
+
+      // Crear workbook
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(excelData)
+      
+      // Configurar anchos de columna
+      ws['!cols'] = [
+        { width: 8 },   // Código
+        { width: 50 },  // Descripción
+        { width: 12 },  // Cantidad
+        { width: 15 }   // Valor
+      ]
+      
+      XLSX.utils.book_append_sheet(wb, ws, 'Facturas Fiscales Anual')
+      XLSX.writeFile(wb, `Reporte_Ventas_NCF_Anual_${selectedYear}.xlsx`)
+
+      console.log(`Reporte anual generado: ${totalFacturas} facturas, RD$${totalValor.toFixed(2)}`)
+
+    } catch (error) {
+      console.error('Error generating annual fiscal invoices report:', error)
+      alert('Error al generar el reporte anual de facturas fiscales')
+    }
+  }
+
+  const generateFiscalInvoicesReport = async () => {
+    try {
+      // Obtener todas las facturas fiscales (con NCF) del usuario
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return
+      }
+
+      // Filtrar facturas por mes si está seleccionado
+      let query = supabase
+        .from('invoices')
+        .select(`
+          *,
+          clients (name, rnc, address, phone, email)
+        `)
+        .eq('user_id', user.id)
+        .eq('include_itbis', true)  // Solo facturas con ITBIS (fiscales)
+        .not('ncf', 'is', null)     // Que tengan NCF
+        .neq('ncf', '')             // NCF no vacío
+
+      // Filtrar por mes si está seleccionado
+      if (selectedMonth) {
+        const [year, month] = selectedMonth.split('-')
+        const startDate = `${year}-${month}-01`
+        // Calcular el último día del mes correctamente
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
+        const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`
+        console.log(`Filtrando facturas del ${startDate} al ${endDate}`)
+        query = query.gte('created_at', startDate + ' 00:00:00').lte('created_at', endDate + ' 23:59:59')
+      }
+
+      const { data: fiscalInvoices, error } = await query.order('invoice_date', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching fiscal invoices:', error)
+        return
+      }
+
+      if (!fiscalInvoices || fiscalInvoices.length === 0) {
+        alert('No se encontraron facturas fiscales para el período seleccionado')
+        return
+      }
+
+      console.log(`Procesando ${fiscalInvoices.length} facturas fiscales:`)
+      
+      // Mostrar TODOS los NCF únicos encontrados en bruto
+      const todosLosNCF = fiscalInvoices.map((inv: any) => inv.ncf).filter((ncf: any) => ncf)
+      const ncfUnicos = [...new Set(todosLosNCF)]
+      console.log(`NCF únicos encontrados en la consulta (${ncfUnicos.length}):`, ncfUnicos)
+      
+      // Análisis rápido de tipos
+      const tiposEncontrados = ncfUnicos.map((ncf: string) => ncf.substring(0, 3)).filter((tipo: string, index: number, arr: string[]) => arr.indexOf(tipo) === index)
+      console.log(`Tipos de NCF únicos detectados:`, tiposEncontrados)
+      
+      fiscalInvoices.forEach((invoice: any, index) => {
+        console.log(`Factura ${index + 1}: NCF=${invoice.ncf}, Total=${invoice.total}, Fecha=${invoice.created_at}`)
+      })
+
+      // Estructura EXACTA según imagen oficial DGII (códigos 1-9)
+      const codigosOficiales = {
+        '1': { descripcion: 'FACTURA CON VALOR FISCAL', ncfTypes: [] as string[] }, // Sin NCF específico
+        '2': { descripcion: 'FACTURA CON VALOR FISCAL PARA CONSUMIDOR FINAL', ncfTypes: ['B01'] as string[] },
+        '3': { descripcion: 'FACTURA GUBERNAMENTAL', ncfTypes: ['B14'] as string[] },
+        '4': { descripcion: 'REGISTRO UNICO DE INGRESOS', ncfTypes: ['B12'] as string[] },
+        '5': { descripcion: 'EMPRESAS CON REGÍMENES ESPECIALES', ncfTypes: ['B13', 'B15'] as string[] },
+        '6': { descripcion: 'REGISTRO PROVEEDORES INFORMALES', ncfTypes: ['B11'] as string[] },
+        '7': { descripcion: 'NOTA DE DEBITO', ncfTypes: ['B03'] as string[] },
+        '8': { descripcion: 'NOTA DE CREDITO', ncfTypes: ['B04'] as string[] },
+        '9': { descripcion: 'REGISTRO DE GASTOS MENORES', ncfTypes: [] as string[] } // Sin NCF específico
+      }
+
+      console.log('=== ANÁLISIS DETALLADO DE NCF SEGÚN CÓDIGOS OFICIALES ===')
+      console.log(`Total de facturas encontradas: ${fiscalInvoices.length}`)
+      
+      // Inicializar todos los códigos oficiales con valores cero
+      const gruposPorCodigo: any = {}
+      Object.keys(codigosOficiales).forEach(codigo => {
+        gruposPorCodigo[codigo] = {
+          codigo: parseInt(codigo),
+          descripcion: codigosOficiales[codigo as keyof typeof codigosOficiales].descripcion,
+          count: 0,
+          totalValue: 0,
+          facturas: []
+        }
+      })
+      
+      // Procesar cada factura y asignarla al código correcto
+      fiscalInvoices.forEach((invoice: any, invoiceIndex) => {
+        const ncf = invoice.ncf || ''
+        const total = parseFloat(invoice.total || 0)
+        
+        console.log(`Procesando factura ${invoiceIndex + 1}: NCF="${ncf}", Total=${total}`)
+        
+        if (ncf && ncf.length >= 11) {
+          const ncfType = ncf.substring(0, 3).toUpperCase() // B01, B02, etc.
+          console.log(`Tipo NCF detectado: ${ncfType}`)
+          
+          // Buscar a qué código oficial pertenece este tipo de NCF
+          let codigoAsignado = null
+          Object.keys(codigosOficiales).forEach(codigo => {
+            const config = codigosOficiales[codigo as keyof typeof codigosOficiales]
+            if (config.ncfTypes.includes(ncfType)) {
+              codigoAsignado = codigo
+            }
+          })
+          
+          if (codigoAsignado) {
+            gruposPorCodigo[codigoAsignado].count += 1
+            gruposPorCodigo[codigoAsignado].totalValue += total
+            gruposPorCodigo[codigoAsignado].facturas.push(invoice)
+            console.log(`✓ Asignado al código ${codigoAsignado}: ${gruposPorCodigo[codigoAsignado].descripcion}`)
+          } else {
+            console.log(`⚠️  NCF tipo ${ncfType} no mapeado a ningún código oficial`)
+          }
+        } else {
+          console.log(`❌ NCF inválido: "${ncf}"`)
+        }
+      })
+
+      console.log('=== RESUMEN POR CÓDIGO OFICIAL ===')
+      Object.keys(gruposPorCodigo).forEach(codigo => {
+        const grupo = gruposPorCodigo[codigo]
+        console.log(`Código ${codigo}: ${grupo.descripcion}`)
+        console.log(`  Facturas: ${grupo.count}, Total: RD$${grupo.totalValue.toFixed(2)}`)
+      })
+      
+      // Calcular totales generales
+      const totalFacturas = Object.values(gruposPorCodigo).reduce((sum: number, grupo: any) => sum + grupo.count, 0)
+      const totalValor = Object.values(gruposPorCodigo).reduce((sum: number, grupo: any) => sum + grupo.totalValue, 0)
+      console.log(`=== TOTALES GENERALES ===`)
+      console.log(`Total facturas: ${totalFacturas}, Total valor: RD$${totalValor.toFixed(2)}`)
+
+      // Crear estructura EXACTAMENTE como el documento DGII
+      const excelData = []
+      
+      // Encabezado del reporte
+      const [year, month] = (selectedMonth || new Date().toISOString().slice(0, 7)).split('-')
+      
+      // Fila 1: Título EXACTO como la imagen
+      excelData.push(['Reporte de Ventas por Tipo de NCF'])
+      
+      // Fila 2: Fecha desde - hasta con último día correcto del mes
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
+      excelData.push([`Desde: 01/${month}/${year} Hasta: ${lastDay.toString().padStart(2, '0')}/${month}/${year}`])
+      
+      // Fila 3: Vacía
+      excelData.push([])
+      
+      // Fila 4: Encabezados EXACTOS según imagen oficial DGII
+      excelData.push(['Código', 'Descripción', 'Cantidad', 'Valor'])
+
+      // Procesar TODOS los códigos oficiales (1-9) según estructura DGII
+      Object.keys(gruposPorCodigo)
+        .sort((a, b) => parseInt(a) - parseInt(b)) // Ordenar por código numérico
+        .forEach(codigo => {
+          const grupo = gruposPorCodigo[codigo]
+          
+          // Una fila por cada código oficial DGII
+          const rowData = [
+            grupo.codigo,                               // Código oficial (1, 2, 3... 9)
+            grupo.descripcion,                          // Descripción oficial
+            grupo.count,                                // CANTIDAD de facturas
+            grupo.totalValue.toFixed(2)                 // VALOR TOTAL
+          ]
+          
+          console.log(`Agregando fila código ${codigo}:`, rowData)
+          excelData.push(rowData)
+        })
+
+      // Agregar fila de TOTALES al final
+      excelData.push([
+        '', // Columna vacía para código
+        'TOTAL', // Descripción = TOTAL
+        totalFacturas, // Total cantidad de facturas
+        totalValor.toFixed(2) // Total valor
+      ])
+
+      console.log('Datos completos para Excel:', excelData)
+
+      // Crear workbook exactamente como la imagen
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(excelData)
+      
+      // Configurar anchos de columna para estructura oficial DGII
+      ws['!cols'] = [
+        { width: 8 },   // Código
+        { width: 50 },  // Descripción (más ancho para texto completo)
+        { width: 12 },  // Cantidad
+        { width: 15 }   // Valor
+      ]
+      
+      // Agregar hoja con nombre específico
+      XLSX.utils.book_append_sheet(wb, ws, 'Facturas Fiscales')
+      
+      // Descargar con formato oficial DGII
+      const monthForFile = selectedMonth ? selectedMonth.replace('-', '') : new Date().toISOString().slice(0, 7).replace('-', '')
+      XLSX.writeFile(wb, `Reporte_Ventas_NCF_${monthForFile}.xlsx`)
+
+    } catch (error) {
+      console.error('Error generating fiscal invoices report:', error)
+      alert('Error al generar el reporte de facturas fiscales')
+    }
+  }
+
+
 
   const generateReport606 = () => {
     if (!dgiiData?.compras.length) {
@@ -734,14 +1624,14 @@ export default function DGIIReportsPage() {
       const dia = fechaExpense.getDate()
       
       // Montos según especificación DGII
-      const montoTotal = parseFloat(expense.amount) || 0
+      const montoTotal = parseFloat(expense.amount.toString()) || 0
       const montoServicios = montoTotal.toFixed(2) // La mayoría son servicios
       const montoBienes = "0.00" // Bienes físicos
       const totalMonto = montoTotal.toFixed(2)
       
       // ITBIS según reporte oficial - usar campo específico si existe
       const itbisFac = expense.itbis_amount ? 
-        parseFloat(expense.itbis_amount).toFixed(2) : 
+        parseFloat(expense.itbis_amount.toString()).toFixed(2) : 
         (montoTotal * 0.18).toFixed(2)
       const itbisRet = "0"
       const itbisProp = "0"
@@ -854,8 +1744,14 @@ export default function DGIIReportsPage() {
       const fechaRet = "" // Fecha de retención si aplica
       
       // Montos según especificación DGII - usar campos específicos si existen
-      const total = parseFloat(invoice.total || 0).toFixed(2)
-      const itbis = parseFloat(invoice.tax_amount || 0).toFixed(2)
+      const montoTotal = parseFloat(invoice.total || 0)
+      const montoItbis = parseFloat(invoice.tax_amount || 0)
+      
+      // CORREGIDO: El total YA incluye el ITBIS, calcular subtotal
+      const subtotal = montoTotal - montoItbis  // Total sin ITBIS
+      
+      const total = subtotal.toFixed(2)  // CORREGIDO: Total sin ITBIS para DGII 607
+      const itbis = montoItbis.toFixed(2)
       const itbisRet = "0"
       const itbisPerc = "0"
       const retencIsr = "0"
@@ -864,10 +1760,9 @@ export default function DGIIReportsPage() {
       const otrosImp = "0"
       const propina = "0"
       
+      console.log(`Factura 607 TXT ${invoice.invoice_number}: MontoCompleto=${montoTotal}, Subtotal=${subtotal}, ITBIS=${montoItbis}`)
+      
       // Formas de pago desglosadas según método de pago
-      const montoTotal = parseFloat(invoice.total || 0)
-      const montoItbis = parseFloat(invoice.tax_amount || 0)
-      const montoConItbis = montoTotal + montoItbis
       const paymentMethod = invoice.payment_method || "credito"
       
       let efectivo = "0"
@@ -878,22 +1773,22 @@ export default function DGIIReportsPage() {
       const permuta = "0"
       const otrosPagos = "0"
       
-      // Distribuir según método de pago (usando total + ITBIS)
+      // CORREGIDO: Usar el total completo (que YA incluye ITBIS) para las formas de pago
       switch (paymentMethod.toLowerCase()) {
         case "efectivo":
-          efectivo = montoConItbis.toFixed(2)
+          efectivo = montoTotal.toFixed(2)
           break
         case "transferencia":
         case "cheque":
-          chkTransf = montoConItbis.toFixed(2)
+          chkTransf = montoTotal.toFixed(2)
           break
         case "tarjeta":
         case "tarjeta_credito":
         case "tarjeta_debito":
-          tarjetaCr = montoConItbis.toFixed(2)
+          tarjetaCr = montoTotal.toFixed(2)
           break
         default: // credito u otros
-          credito = montoConItbis.toFixed(2)
+          credito = montoTotal.toFixed(2)
       }
 
       const line = [
@@ -925,6 +1820,34 @@ export default function DGIIReportsPage() {
       txtContent += line + "\n"
     })
 
+    // Log de resumen para verificar cálculos
+    const facturasProcesadas = dgiiData.ventas.filter((invoice: any) => {
+      const rncCliente = invoice.clients?.rnc || ""
+      const ncf = invoice.ncf || ""
+      return ncf && ncf.trim() !== "" && rncCliente && rncCliente.trim() !== ""
+    })
+    
+    const totalSubtotal = facturasProcesadas.reduce((sum: number, invoice: any) => {
+      const montoTotal = parseFloat(invoice.total || 0)
+      const montoItbis = parseFloat(invoice.tax_amount || 0)
+      return sum + (montoTotal - montoItbis)
+    }, 0)
+    
+    const totalItbis = facturasProcesadas.reduce((sum: number, invoice: any) => {
+      return sum + parseFloat(invoice.tax_amount || 0)
+    }, 0)
+    
+    const totalFacturacion = facturasProcesadas.reduce((sum: number, invoice: any) => {
+      return sum + parseFloat(invoice.total || 0)
+    }, 0)
+
+    console.log('=== RESUMEN REPORTE 607 TXT ===')
+    console.log(`Facturas procesadas: ${facturasProcesadas.length}`)
+    console.log(`Total Subtotal (sin ITBIS): RD$${totalSubtotal.toFixed(2)}`)
+    console.log(`Total ITBIS: RD$${totalItbis.toFixed(2)}`)
+    console.log(`Total Facturación completa: RD$${totalFacturacion.toFixed(2)}`)
+    console.log(`Verificación: ${totalSubtotal.toFixed(2)} + ${totalItbis.toFixed(2)} = ${(totalSubtotal + totalItbis).toFixed(2)} (debe ser igual a ${totalFacturacion.toFixed(2)})`)
+
     // Descargar archivo TXT
     const blob = new Blob([txtContent], { type: "text/plain;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -938,215 +1861,19 @@ export default function DGIIReportsPage() {
   }
 
   // Función para descargar reporte anual
-  const downloadAnnualReport = (type: '606' | '607' | 'consolidado') => {
+  const downloadAnnualReport = (type: '606' | '607' | 'consolidado' | 'fiscal-ncf' | 'payment-methods') => {
     if (!dgiiData) {
       alert("No hay datos disponibles para el año seleccionado")
       return
     }
 
-    const yearData = {
-      compras: (dgiiData.compras || []).filter(expense => 
-        new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear
-      ),
-      ventas: (dgiiData.ventas || []).filter(invoice => 
-        new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear
-      )
-    }
-
-    if (type === '606') {
-      // Generar Excel para 606 anual
-      const ws = XLSX.utils.json_to_sheet(
-        yearData.compras.map(expense => ({
-          'Fecha': new Date(expense.created_at || expense.fecha || expense.date).toLocaleDateString('es-DO'),
-          'Proveedor': expense.provider_name || expense.proveedor || 'N/A',
-          'RNC': expense.provider_rnc || expense.rnc || 'N/A',
-          'NCF': expense.ncf || 'N/A',
-          'Descripción': expense.description || expense.descripcion || 'N/A',
-          'Monto': expense.amount || expense.monto || 0,
-          'ITBIS': expense.tax_amount || expense.itbis || 0,
-          'Tipo Gasto': TIPOS_GASTO_DGII[expense.tipo_gasto as keyof typeof TIPOS_GASTO_DGII] || 'Compras y Gastos que forman parte del Costo de Venta'
-        }))
-      )
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, `606_${selectedYear}`)
-      XLSX.writeFile(wb, `Reporte_606_Anual_${selectedYear}.xlsx`)
-    } else if (type === '607') {
-      // Generar Excel para 607 anual
-      const ws = XLSX.utils.json_to_sheet(
-        yearData.ventas.map(invoice => ({
-          'Fecha': new Date(invoice.created_at || invoice.fecha || invoice.date).toLocaleDateString('es-DO'),
-          'Cliente': invoice.client_name || invoice.cliente || 'N/A',
-          'RNC': invoice.client_rnc || invoice.rnc || 'N/A',
-          'NCF': invoice.ncf || 'N/A',
-          'Total': invoice.total || invoice.monto || 0,
-          'ITBIS': invoice.tax_amount || invoice.itbis || 0,
-          'Tipo Comprobante': TIPOS_COMPROBANTE_FISCAL[invoice.tipo_comprobante as keyof typeof TIPOS_COMPROBANTE_FISCAL] || 'Consumo',
-          'Forma Pago': FORMAS_PAGO_DGII[invoice.payment_method as keyof typeof FORMAS_PAGO_DGII] || 'Crédito'
-        }))
-      )
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, `607_${selectedYear}`)
-      XLSX.writeFile(wb, `Reporte_607_Anual_${selectedYear}.xlsx`)
-    } else if (type === 'consolidado') {
-      // Generar reporte consolidado según Formulario IR-2 DGII
-      const totalVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.total || invoice.monto || 0), 0)
-      const totalCompras = yearData.compras.reduce((sum, expense) => sum + (expense.amount || expense.monto || 0), 0)
-      const itbisVentas = yearData.ventas.reduce((sum, invoice) => sum + (invoice.tax_amount || invoice.itbis || 0), 0)
-      const itbisCompras = yearData.compras.reduce((sum, expense) => sum + (expense.tax_amount || expense.itbis || 0), 0)
-      
-      // Cálculos según IR-2
-      const ventasLocales = totalVentas // Todas las ventas son locales por defecto
-      const exportaciones = 0 // No manejamos exportaciones actualmente
-      const otrosIngresosGravados = 0 // Campo para completar manualmente
-      const ingresosExentos = 0 // Campo para completar manualmente
-      const totalIngresos = ventasLocales + exportaciones + otrosIngresosGravados
-      
-      // Desglose de gastos por categorías DGII
-      const gastosPersonal = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('01')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const gastosServicios = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('02')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const arrendamientos = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('03')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const gastosActivosFijos = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('04')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const gastosRepresentacion = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('05')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const gastosFinancieros = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('07')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const costoVentas = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('09')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const seguros = yearData.compras.filter(g => (g.tipo_gasto || determinarTipoGasto(g.description || '')).startsWith('11')).reduce((s, g) => s + (g.amount || g.monto || 0), 0)
-      const otrosGastos = totalCompras - (gastosPersonal + gastosServicios + arrendamientos + gastosActivosFijos + gastosRepresentacion + gastosFinancieros + costoVentas + seguros)
-      
-      const depreciaciones = 0 // Campo para completar manualmente
-      const totalGastosDeducibles = totalCompras + depreciaciones
-      
-      // Determinación de Renta Neta
-      const rentaBruta = totalIngresos - totalGastosDeducibles
-      const ajustesFiscales = 0 // Campo para completar manualmente
-      const perdidasArrastrables = 0 // Campo para completar manualmente
-      const rentaNetaImponible = Math.max(0, rentaBruta + ajustesFiscales - perdidasArrastrables)
-      
-      // Cálculo del ISR
-      const isr27Porciento = rentaNetaImponible * 0.27
-      const retenciones = 0 // Campo para completar manualmente
-      const anticipos = 0 // Campo para completar manualmente
-      const creditoFiscal = 0 // Campo para completar manualmente
-      const saldoPagar = Math.max(0, isr27Porciento - retenciones - anticipos - creditoFiscal)
-      const saldoFavor = Math.max(0, retenciones + anticipos + creditoFiscal - isr27Porciento)
-      
-      // Hoja IR-2 Oficial
-      const ir2Data = [
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'AÑO FISCAL ' + selectedYear, 'Valor (RD$)': '', 'Observaciones': 'Completar datos faltantes manualmente' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '1. DATOS GENERALES DE LA EMPRESA', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'RNC:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Ingrese su RNC' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Nombre/Razón Social:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Ingrese razón social' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Fecha de Cierre Fiscal:', 'Valor (RD$)': '31/12/' + selectedYear, 'Observaciones': 'Año calendario' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'Actividad Económica Principal:', 'Valor (RD$)': '[COMPLETAR]', 'Observaciones': 'Código actividad DGII' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2. INGRESOS DEL EJERCICIO', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.1 Ventas Locales', 'Valor (RD$)': ventasLocales, 'Observaciones': 'Del reporte 607' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.2 Ventas de Exportación', 'Valor (RD$)': exportaciones, 'Observaciones': 'Completar si aplica' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.3 Otros Ingresos Gravados', 'Valor (RD$)': otrosIngresosGravados, 'Observaciones': 'Completar si aplica' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '2.4 Ingresos Exentos', 'Valor (RD$)': ingresosExentos, 'Observaciones': 'Completar si aplica' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'TOTAL INGRESOS GRAVADOS', 'Valor (RD$)': totalIngresos, 'Observaciones': 'Suma 2.1 + 2.2 + 2.3' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3. COSTOS Y GASTOS DEDUCIBLES', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.1 Costo de Ventas', 'Valor (RD$)': costoVentas, 'Observaciones': 'Tipo 09 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.2 Gastos de Personal', 'Valor (RD$)': gastosPersonal, 'Observaciones': 'Tipo 01 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.3 Servicios Profesionales', 'Valor (RD$)': gastosServicios, 'Observaciones': 'Tipo 02 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.4 Arrendamientos', 'Valor (RD$)': arrendamientos, 'Observaciones': 'Tipo 03 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.5 Gastos de Activos Fijos', 'Valor (RD$)': gastosActivosFijos, 'Observaciones': 'Tipo 04 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.6 Gastos de Representación', 'Valor (RD$)': gastosRepresentacion, 'Observaciones': 'Tipo 05 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.7 Gastos Financieros', 'Valor (RD$)': gastosFinancieros, 'Observaciones': 'Tipo 07 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.8 Seguros', 'Valor (RD$)': seguros, 'Observaciones': 'Tipo 11 del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.9 Depreciaciones y Amortizaciones', 'Valor (RD$)': depreciaciones, 'Observaciones': 'Completar manualmente' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '3.10 Otros Gastos Deducibles', 'Valor (RD$)': otrosGastos, 'Observaciones': 'Otros tipos del 606' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'TOTAL GASTOS DEDUCIBLES', 'Valor (RD$)': totalGastosDeducibles, 'Observaciones': 'Suma de todos los gastos' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4. DETERMINACION RENTA NETA IMPONIBLE', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.1 Renta Bruta (Ingresos - Gastos)', 'Valor (RD$)': rentaBruta, 'Observaciones': 'Base para ISR' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.2 Ajustes Fiscales', 'Valor (RD$)': ajustesFiscales, 'Observaciones': 'Completar si aplica' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '4.3 Pérdidas Arrastrables', 'Valor (RD$)': perdidasArrastrables, 'Observaciones': 'De años anteriores' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'RENTA NETA IMPONIBLE', 'Valor (RD$)': rentaNetaImponible, 'Observaciones': 'Base para ISR 27%' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5. CALCULO DEL IMPUESTO', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.1 ISR 27% s/Renta Neta', 'Valor (RD$)': isr27Porciento, 'Observaciones': 'Impuesto calculado' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.2 Retenciones Aplicadas', 'Valor (RD$)': retenciones, 'Observaciones': 'Completar manualmente' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.3 Anticipos Pagados', 'Valor (RD$)': anticipos, 'Observaciones': 'Pagos previos realizados' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '5.4 Crédito Fiscal Disponible', 'Valor (RD$)': creditoFiscal, 'Observaciones': 'De períodos anteriores' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': '6. RESULTADO FINAL', 'Valor (RD$)': '', 'Observaciones': '' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'SALDO A PAGAR', 'Valor (RD$)': saldoPagar, 'Observaciones': saldoPagar > 0 ? 'Pagar antes del 31/03' : 'No aplica' },
-        { 'FORMULARIO IR-2 - DECLARACION JURADA ANUAL': 'SALDO A FAVOR', 'Valor (RD$)': saldoFavor, 'Observaciones': saldoFavor > 0 ? 'Solicitar devolución' : 'No aplica' }
-      ]
-
-      // Crear libro de trabajo
-      const wb = XLSX.utils.book_new()
-      
-      // Hoja 1: Formulario IR-2 Oficial
-      const wsIR2 = XLSX.utils.json_to_sheet(ir2Data)
-      XLSX.utils.book_append_sheet(wb, wsIR2, 'Formulario IR-2')
-
-      // Hoja 2: Desglose por meses de ingresos
-      const ingresosPorMes = []
-      for (let mes = 1; mes <= 12; mes++) {
-        const ventasMes = yearData.ventas.filter(v => {
-          const fechaVenta = new Date(v.created_at || v.fecha || v.date)
-          return fechaVenta.getMonth() + 1 === mes
-        })
-        const totalMes = ventasMes.reduce((sum, v) => sum + (v.total || v.monto || 0), 0)
-        const itbisMes = ventasMes.reduce((sum, v) => sum + (v.tax_amount || v.itbis || 0), 0)
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-        
-        ingresosPorMes.push({
-          'Mes': meses[mes - 1],
-          'Cantidad Facturas': ventasMes.length,
-          'Total Ingresos': totalMes,
-          'ITBIS Cobrado': itbisMes,
-          'Promedio por Factura': ventasMes.length > 0 ? (totalMes / ventasMes.length).toFixed(2) : 0
-        })
-      }
-      const wsIngresos = XLSX.utils.json_to_sheet(ingresosPorMes)
-      XLSX.utils.book_append_sheet(wb, wsIngresos, 'Ingresos Mensuales')
-
-      // Hoja 3: Desglose por meses de gastos
-      const gastosPorMes = []
-      for (let mes = 1; mes <= 12; mes++) {
-        const gastosMes = yearData.compras.filter(g => {
-          const fechaGasto = new Date(g.created_at || g.fecha || g.expense_date || g.date)
-          return fechaGasto.getMonth() + 1 === mes
-        })
-        const totalMes = gastosMes.reduce((sum, g) => sum + (g.amount || g.monto || 0), 0)
-        const itbisMes = gastosMes.reduce((sum, g) => sum + (g.tax_amount || g.itbis_amount || g.itbis || 0), 0)
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-        
-        gastosPorMes.push({
-          'Mes': meses[mes - 1],
-          'Cantidad Gastos': gastosMes.length,
-          'Total Gastos': totalMes,
-          'ITBIS Pagado': itbisMes,
-          'Promedio por Gasto': gastosMes.length > 0 ? (totalMes / gastosMes.length).toFixed(2) : 0
-        })
-      }
-      const wsGastos = XLSX.utils.json_to_sheet(gastosPorMes)
-      XLSX.utils.book_append_sheet(wb, wsGastos, 'Gastos Mensuales')
-
-      // Hoja 4: Desglose ITBIS para referencia
-      const balanceItbis = itbisVentas - itbisCompras
-      
-      const itbisData = [
-        { 'Concepto ITBIS': 'CONTROL DE ITBIS - AÑO ' + selectedYear, 'Valor (RD$)': '', 'Status': '' },
-        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
-        { 'Concepto ITBIS': 'ITBIS COBRADO (607)', 'Valor (RD$)': itbisVentas, 'Status': 'Crédito' },
-        { 'Concepto ITBIS': 'ITBIS PAGADO (606)', 'Valor (RD$)': itbisCompras, 'Status': 'Débito' },
-        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
-        { 'Concepto ITBIS': 'BALANCE ITBIS', 'Valor (RD$)': balanceItbis, 'Status': balanceItbis >= 0 ? 'A Pagar' : 'A Favor' },
-        { 'Concepto ITBIS': '', 'Valor (RD$)': '', 'Status': '' },
-        { 'Concepto ITBIS': 'NOTA:', 'Valor (RD$)': 'Este balance debe declararse', 'Status': 'en formulario IT-1' }
-      ]
-      const wsItbis = XLSX.utils.json_to_sheet(itbisData)
-      XLSX.utils.book_append_sheet(wb, wsItbis, 'Control ITBIS')
-
-      // Guardar archivo
-      XLSX.writeFile(wb, `Formulario_IR2_${selectedYear}.xlsx`)
+    // Dispatch to existing functions for specific reports
+    if (type === 'fiscal-ncf') {
+      generateAnnualFiscalInvoicesReport()
+    } else if (type === 'payment-methods') {
+      generateAnnualPaymentMethodsReport()
+    } else {
+      alert(`Función de reporte anual ${type} estará disponible próximamente`)
     }
   }
 
@@ -1177,16 +1904,16 @@ export default function DGIIReportsPage() {
         user_id: user.id,
         description: manualExpense.description,
         amount: amount,
-        category: "Gastos Generales", // Categoría por defecto
         expense_date: manualExpense.expense_date,
-        receipt_number: manualExpense.ncf || null,
-        notes: `RNC: ${manualExpense.provider_rnc || 'N/A'}, Proveedor: ${manualExpense.provider_name || 'N/A'}`
+        ncf: manualExpense.ncf || null,
+        provider_name: manualExpense.provider_name || null,
+        provider_rnc: manualExpense.provider_rnc || null,
+        itbis_amount: manualExpense.itbis_amount ? parseFloat(manualExpense.itbis_amount) : null
       }
 
-      // @ts-ignore - Supabase type issue
       const { error } = await supabase
         .from('expenses')
-        .insert(expenseData)
+        .insert(expenseData as any)
 
       if (error) {
         console.error('Error al guardar gasto:', error)
@@ -1275,10 +2002,9 @@ export default function DGIIReportsPage() {
         .single()
 
       if (existingClient) {
-        clientId = existingClient.id
+        clientId = (existingClient as any)?.id
       } else {
         // Crear nuevo cliente usando la estructura correcta
-        // @ts-ignore - Supabase type issue
         const { data: newClient, error: clientError } = await supabase
           .from('clients')
           .insert({
@@ -1288,7 +2014,7 @@ export default function DGIIReportsPage() {
             email: '',
             phone: '',
             address: ''
-          })
+          } as any)
           .select('id')
           .single()
 
@@ -1298,7 +2024,7 @@ export default function DGIIReportsPage() {
           return
         }
         
-        clientId = newClient.id
+        clientId = (newClient as any)?.id
       }
 
       // Crear la factura usando la estructura correcta del sistema
@@ -1323,7 +2049,7 @@ export default function DGIIReportsPage() {
       // @ts-ignore - Supabase type issue
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert(invoiceData)
+        .insert(invoiceData as any)
         .select('id')
         .single()
 
@@ -1338,7 +2064,7 @@ export default function DGIIReportsPage() {
       const { error: itemError } = await supabase
         .from('invoice_items')
         .insert({
-          invoice_id: invoice.id,
+          invoice_id: (invoice as any)?.id,
           description: 'Servicio/Producto Manual',
           quantity: 1,
           unit_price: subtotal,
@@ -1346,12 +2072,12 @@ export default function DGIIReportsPage() {
           unit: 'unidad',
           itbis_rate: taxAmount > 0 ? 18 : 0,
           itbis_amount: taxAmount
-        })
+        } as any)
 
       if (itemError) {
         console.error('Error al crear item de factura:', itemError)
         // Eliminar la factura si no se pueden crear los items
-        await supabase.from('invoices').delete().eq('id', invoice.id)
+        await supabase.from('invoices').delete().eq('id', (invoice as any)?.id)
         alert(`Error al crear los items de la factura: ${itemError.message}`)
         return
       }
@@ -1384,7 +2110,7 @@ export default function DGIIReportsPage() {
     <div className="container mx-auto py-8 space-y-8 max-w-7xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Reportes DGII
           </h1>
           <p className="text-muted-foreground">
@@ -1490,10 +2216,12 @@ export default function DGIIReportsPage() {
 
       {/* Pestañas de reportes */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="606">Reporte 606</TabsTrigger>
           <TabsTrigger value="607">Reporte 607</TabsTrigger>
+          <TabsTrigger value="payment-methods">Métodos Pago</TabsTrigger>
+          <TabsTrigger value="fiscal-invoices">Facturas Fiscales</TabsTrigger>
           <TabsTrigger value="annual">Resumen Anual</TabsTrigger>
           <TabsTrigger value="manual-606">➕ Gasto 606</TabsTrigger>
           <TabsTrigger value="manual-607">➕ Factura 607</TabsTrigger>
@@ -1592,6 +2320,50 @@ export default function DGIIReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Reportes IR-2 Simplificados */}
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                📊 Reportes IR-2 para DGII
+              </CardTitle>
+              <CardDescription>
+                Generar archivos Excel 607 (Compras) y 608 (Ventas) según formato oficial
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={() => {
+                    const mes = new Date().getMonth() + 1
+                    const anio = new Date().getFullYear()
+                    generarExcel607Compras(mes, anio)
+                  }}
+                  className="flex-1"
+                  size="lg"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar Excel 607 (Compras)
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const mes = new Date().getMonth() + 1
+                    const anio = new Date().getFullYear()
+                    generarExcel608Ventas(mes, anio)
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar Excel 608 (Ventas)
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600 mt-3">
+                Los archivos se generarán con los datos del mes actual y se descargarán automáticamente.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="606" className="space-y-6">
@@ -1927,7 +2699,7 @@ export default function DGIIReportsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex gap-2">
+              <div className="mt-6 flex flex-wrap gap-2">
                 <Button 
                   onClick={() => downloadAnnualReport('606')}
                   className="flex items-center gap-2"
@@ -1944,6 +2716,22 @@ export default function DGIIReportsPage() {
                   Descargar 607 Anual
                 </Button>
                 <Button 
+                  onClick={() => downloadAnnualReport('fiscal-ncf')}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Facturas Fiscales Anual
+                </Button>
+                <Button 
+                  onClick={() => downloadAnnualReport('payment-methods')}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Receipt className="h-4 w-4" />
+                  Métodos de Pago Anual
+                </Button>
+                <Button 
                   onClick={() => downloadAnnualReport('consolidado')}
                   variant="secondary"
                   className="flex items-center gap-2"
@@ -1955,7 +2743,71 @@ export default function DGIIReportsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
+        <TabsContent value="payment-methods" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Reporte de Métodos de Pago DGII
+              </CardTitle>
+              <CardDescription>
+                Análisis de facturas agrupadas por método de pago según catálogo DGII
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={generatePaymentMethodsReport}
+                className="w-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Generar Reporte Excel - Métodos de Pago
+              </Button>
+              <div className="text-sm text-gray-600">
+                <p>Este reporte genera un Excel con:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Cantidad de facturas por método de pago</li>
+                  <li>Monto total por método de pago</li>
+                  <li>Porcentaje de participación</li>
+                  <li>Clasificación según códigos DGII</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="fiscal-invoices" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Reporte de Facturas Fiscales (Con NCF)
+              </CardTitle>
+              <CardDescription>
+                Reporte mensual de todas las facturas con valor fiscal que requieren NCF
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={generateFiscalInvoicesReport}
+                className="w-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Generar Reporte Excel - Facturas Fiscales
+              </Button>
+              <div className="text-sm text-gray-600">
+                <p>Este reporte genera un Excel con:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Todas las facturas con NCF del período seleccionado</li>
+                  <li>Información completa del cliente y factura</li>
+                  <li>Desglose de valores según estructura DGII</li>
+                  <li>Validación automática de NCF y datos fiscales</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="info" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>

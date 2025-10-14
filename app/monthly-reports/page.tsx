@@ -577,7 +577,7 @@ export default function MonthlyReportsPage() {
   // Check if user has permission to view financial reports
   if (!permissions.canViewFinances) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
         <div className="max-w-7xl mx-auto">
           <Card className="border-2 border-red-200 bg-red-50">
             <CardContent className="p-8 text-center">
@@ -1215,7 +1215,7 @@ export default function MonthlyReportsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-900">
+                    <div className="text-2xl lg:text-3xl font-bold text-blue-900">
                       {formatCurrency(aiInsights.predictions.nextMonthRevenue)}
                     </div>
                     <div className="text-sm text-blue-700">Próximo Mes</div>
