@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       notes,
       include_itbis,
       ncf,
+      payment_method,
       items
     } = body
 
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
         include_itbis,
         ncf: include_itbis ? ncf : null,
+        payment_method: payment_method || "credito",
       })
       .select()
       .single()

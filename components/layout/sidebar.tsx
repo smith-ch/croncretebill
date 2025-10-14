@@ -31,6 +31,7 @@ import {
   Calendar,
   ClipboardList,
   Warehouse,
+  Info,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -146,6 +147,12 @@ const navigation = [
     ],
   },
   {
+    name: "Sistema - Info",
+    href: "/system-info",
+    icon: Info,
+    module: "system",
+  },
+  {
     name: "Configuración",
     href: "/settings",
     icon: Settings,
@@ -206,7 +213,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "flex h-full flex-col bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 transition-all duration-500 ease-in-out shadow-xl backdrop-blur-sm",
+        "hidden lg:flex h-full flex-col bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 transition-all duration-500 ease-in-out shadow-xl backdrop-blur-sm",
         isCollapsed ? "w-16" : "w-64",
       )}
     >

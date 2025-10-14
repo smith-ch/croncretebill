@@ -14,6 +14,7 @@ import { useAutoLogout } from "@/hooks/use-auto-logout"
 import { SessionIndicator } from "@/components/auth/session-indicator"
 import { RouteProtection } from "@/components/auth/route-protection"
 import { PWAUpdateNotification } from "@/components/pwa/pwa-update-notification"
+import { MobileNav } from "@/components/layout/mobile-nav"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -84,8 +85,15 @@ export default function ClientLayout({
         <ThemeProvider attribute="class" defaultTheme="light">
           <NotificationProvider>
             <div className="pwa-container flex h-screen bg-gray-50 dark:bg-gray-900">
-              <Sidebar />
-              <main className="flex-1 overflow-auto lg:ml-0 pt-16 lg:pt-0">
+              {/* Desktop Sidebar - Hidden on mobile */}
+              <div className="hidden lg:block">
+                <Sidebar />
+              </div>
+              {/* Mobile Navigation - Hidden on desktop */}
+              <div className="lg:hidden">
+                <MobileNav />
+              </div>
+              <main className="flex-1 overflow-auto pt-16 lg:pt-0">
                 <div className="container-responsive spacing-responsive">
                   <NotificationCenter className="mb-4 sm:mb-6" />
                   <RouteProtection>

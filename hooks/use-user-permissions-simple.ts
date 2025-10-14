@@ -145,8 +145,8 @@ export function useUserPermissions() {
         if (isEmployeeMode || isRealEmployee) {
           defaultPermissions = {
             canCreateInvoices: true, // Los empleados SÍ pueden crear facturas
-            canViewFinances: true, // Los empleados SÍ pueden ver finanzas básicas
-            canManageInventory: true, // Los empleados SÍ pueden crear productos/servicios
+            canViewFinances: false, // Los empleados NO pueden ver finanzas
+            canManageInventory: true, // Los empleados SÍ pueden crear productos/servicios (solo crear)
             canManageClients: true, // Los empleados SÍ pueden crear clientes
             maxInvoiceAmount: 25000, // Límite más bajo para empleados
             role: 'employee',
@@ -231,8 +231,8 @@ export function useUserPermissions() {
             ...finalPermissions,
             canCreateInvoices: true,  // Solo pueden crear facturas básicas
             canViewFinances: false,   // NO pueden ver reportes financieros ni agenda
-            canManageInventory: false, // NO pueden gestionar inventario
-            canManageClients: false,   // NO pueden editar clientes (solo ver)
+            canManageInventory: true, // SÍ pueden crear productos/servicios (solo crear, no editar/eliminar)
+            canManageClients: true,   // SÍ pueden gestionar clientes
             maxInvoiceAmount: 15000,   // Límite muy bajo para empleados
             role: 'employee',
             isOwner: false,           // IMPORTANTE: false para empleados
@@ -341,8 +341,8 @@ export function useUserPermissions() {
           ownerPermissions = {
             canCreateInvoices: true,
             canViewFinances: false,
-            canManageInventory: false,
-            canManageClients: true,
+            canManageInventory: false, // NO pueden crear/gestionar productos ni servicios
+            canManageClients: true,    // SÍ pueden gestionar clientes
             maxInvoiceAmount: 50000,
             role: 'employee',
             isOwner: false,
@@ -421,6 +421,11 @@ export function useUserPermissions() {
     if (isEmployeeMode) {
       return false
     }
+
+    // EMPLEADOS NO PUEDEN ELIMINAR PRODUCTOS NI SERVICIOS NUNCA
+    if (!permissions.isOwner && (entity === 'products' || entity === 'services')) {
+      return false
+    }
     
     const permissionMap = {
       invoices: permissions.canDeleteInvoices,
@@ -441,6 +446,11 @@ export function useUserPermissions() {
     // Si está en modo empleado, NO puede editar NADA
     const isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
     if (isEmployeeMode) {
+      return false
+    }
+
+    // EMPLEADOS NO PUEDEN EDITAR PRODUCTOS NI SERVICIOS NUNCA
+    if (!permissions.isOwner && (entity === 'products' || entity === 'services')) {
       return false
     }
     
@@ -482,13 +492,13 @@ export function useUserPermissions() {
         return permissions.canManageClients // Solo gestión básica, NO editar/eliminar
       
       case 'products':
-        return true // EMPLEADOS SÍ pueden acceder a productos (crear, ver, no editar ni eliminar)
+        return true // EMPLEADOS SÍ pueden crear productos (solo crear, no editar/eliminar)
       
       case 'budgets':
         return true // Los empleados pueden crear presupuestos
       
       case 'services':
-        return true // EMPLEADOS SÍ pueden acceder a servicios (crear, ver, no editar ni eliminar)
+        return true // EMPLEADOS SÍ pueden crear servicios (solo crear, no editar/eliminar)
       
       case 'thermal-receipts':
       case 'payment-receipts':
@@ -506,7 +516,7 @@ export function useUserPermissions() {
       case 'inventory':
       case 'productos':
       case 'servicios':
-        return true // Los empleados pueden crear pero no editar/eliminar
+        return true // EMPLEADOS SÍ pueden crear productos y servicios (solo crear, no editar/eliminar)
       
       case 'projects':
       case 'proyectos':

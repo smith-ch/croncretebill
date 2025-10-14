@@ -17,6 +17,7 @@ import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, Arrow
 import { useCurrency } from "@/hooks/use-currency"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
+import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
 
 interface InvoiceItem {
   id: string
@@ -50,6 +51,8 @@ export default function NewInvoicePage() {
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage")
   const [discountValue, setDiscountValue] = useState(0)
   const [companySettings, setCompanySettings] = useState<any>(null)
+  const [productSearchTerms, setProductSearchTerms] = useState<{[key: string]: string}>({})
+  const [serviceSearchTerms, setServiceSearchTerms] = useState<{[key: string]: string}>({})
   const [invoiceDate, setInvoiceDate] = useState(() => {
     const today = new Date()
     return today.toISOString().split('T')[0]
@@ -60,6 +63,7 @@ export default function NewInvoicePage() {
     return nextMonth.toISOString().split('T')[0]
   })
   const [notes, setNotes] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("credito")
 
   useEffect(() => {
     fetchInitialData()
@@ -79,8 +83,8 @@ export default function NewInvoicePage() {
       const [clientsRes, projectsRes, productsRes, servicesRes, companyRes] = await Promise.all([
         supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id).order("name"),
         supabase.from("projects").select("id, name, client_id").eq("user_id", user.id).order("name"),
-        supabase.from("products").select("id, name, unit, unit_price").eq("user_id", user.id).order("name"),
-        supabase.from("services").select("id, name, unit, price").eq("user_id", user.id).order("name"),
+        supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", user.id).order("name"),
+        supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", user.id).order("name"),
         supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
       ])
 
@@ -289,6 +293,7 @@ export default function NewInvoicePage() {
           notes: (formData.get("notes") as string) || null,
           include_itbis: includeItbis,
           ncf: includeItbis ? ncf.trim() : null,
+          payment_method: paymentMethod,
           items: apiItems
         }),
       })
@@ -345,6 +350,31 @@ export default function NewInvoicePage() {
         updateItem(itemId, "unit_price", Number(price))
       }
     }
+  }
+
+  // Funciones de filtrado por búsqueda
+  const getFilteredProducts = (itemId: string) => {
+    const searchTerm = productSearchTerms[itemId]?.toLowerCase() || ""
+    if (!searchTerm) {
+      return products
+    }
+    
+    return products.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.product_code?.toLowerCase().includes(searchTerm)
+    )
+  }
+
+  const getFilteredServices = (itemId: string) => {
+    const searchTerm = serviceSearchTerms[itemId]?.toLowerCase() || ""
+    if (!searchTerm) {
+      return services
+    }
+    
+    return services.filter(service => 
+      service.name.toLowerCase().includes(searchTerm) ||
+      service.service_code?.toLowerCase().includes(searchTerm)
+    )
   }
 
   const handlePriceSelect = (itemId: string, priceId: string, priceValue: number) => {
@@ -482,7 +512,7 @@ export default function NewInvoicePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="due_date" className="text-slate-700 font-medium">
                     Fecha de Vencimiento *
@@ -510,6 +540,23 @@ export default function NewInvoicePage() {
                       <SelectItem value="enviada">Enviada</SelectItem>
                       <SelectItem value="pagada">Pagada</SelectItem>
                       <SelectItem value="cancelada">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment_method" className="text-slate-700 font-medium">
+                    Forma de Pago
+                  </Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="efectivo">Efectivo</SelectItem>
+                      <SelectItem value="credito">Crédito</SelectItem>
+                      <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                      <SelectItem value="transferencia">Transferencia</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -692,14 +739,29 @@ export default function NewInvoicePage() {
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
+                            <div className="p-2 border-b sticky top-0 bg-white z-10">
+                              <Input
+                                placeholder={`Buscar ${item.item_type === "product" ? "producto" : "servicio"} por código o nombre...`}
+                                value={item.item_type === "product" ? productSearchTerms[item.id] || "" : serviceSearchTerms[item.id] || ""}
+                                onChange={(e) => {
+                                  if (item.item_type === "product") {
+                                    setProductSearchTerms(prev => ({...prev, [item.id]: e.target.value}))
+                                  } else {
+                                    setServiceSearchTerms(prev => ({...prev, [item.id]: e.target.value}))
+                                  }
+                                }}
+                                className="h-8 text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
                             <SelectItem value="default" disabled>
                               Seleccionar {item.item_type === "product" ? "producto" : "servicio"}
                             </SelectItem>
                             {item.item_type === "product" ? (
-                              products.length > 0 ? (
-                                products.map((product) => (
+                              getFilteredProducts(item.id).length > 0 ? (
+                                getFilteredProducts(item.id).map((product) => (
                                   <SelectItem key={product.id} value={product.id}>
-                                    {product.name} - {formatCurrency(product.unit_price || 0)}
+                                    {product.product_code ? `[${product.product_code}] ` : ''}{product.name} - {formatCurrency(product.unit_price || 0)}
                                   </SelectItem>
                                 ))
                               ) : (
@@ -707,16 +769,16 @@ export default function NewInvoicePage() {
                                   No hay productos disponibles
                                 </SelectItem>
                               )
-                            ) : services.length > 0 ? (
-                              services.map((service) => (
+                            ) : getFilteredServices(item.id).length > 0 ? (
+                              getFilteredServices(item.id).map((service) => (
                                 <SelectItem key={service.id} value={service.id}>
-                                  {service.name} -{" "}
+                                  {service.service_code ? `[${service.service_code}] ` : ''}{service.name} -{" "}
                                   {service.price !== null ? formatCurrency(service.price) : "Precio personalizado"}
                                 </SelectItem>
                               ))
                             ) : (
                               <SelectItem value="no-items" disabled>
-                                No hay servicios disponibles
+                                No hay {item.item_type === "product" ? "productos" : "servicios"} disponibles
                               </SelectItem>
                             )}
                           </SelectContent>
@@ -743,6 +805,14 @@ export default function NewInvoicePage() {
                         {item.item_type === "product" && item.item_id ? (
                           <ProductPriceDropdown
                             productId={item.item_id}
+                            selectedPriceId={item.selected_price_id}
+                            quantity={item.quantity}
+                            onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(item.id, priceId, priceValue)}
+                            className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : item.item_type === "service" && item.item_id ? (
+                          <ServicePriceDropdown
+                            serviceId={item.item_id}
                             selectedPriceId={item.selected_price_id}
                             quantity={item.quantity}
                             onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(item.id, priceId, priceValue)}
@@ -965,6 +1035,7 @@ export default function NewInvoicePage() {
               discountType={discountType}
               discountValue={discountValue}
               notes={notes}
+              paymentMethod={paymentMethod}
               companyInfo={{
                 name: companySettings?.company_name || "Mi Empresa",
                 address: companySettings?.company_address,

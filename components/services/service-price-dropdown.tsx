@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { useProductPrices, type ProductPrice } from '@/hooks/use-product-prices'
+import { useServicePrices, type ServicePrice } from '@/hooks/use-service-prices'
 import { useCurrency } from '@/hooks/use-currency'
 import { supabase } from '@/lib/supabase'
 
-interface ProductPriceDropdownProps {
-  productId: string
+interface ServicePriceDropdownProps {
+  serviceId: string
   selectedPriceId?: string | null
   quantity?: number
   onPriceSelect?: (_priceId: string, _priceValue: number) => void
@@ -17,88 +17,86 @@ interface ProductPriceDropdownProps {
   className?: string
 }
 
-interface ProductInfo {
+interface ServiceInfo {
   id: string
   name: string
-  unit_price: number
+  price: number
 }
 
-interface ExtendedPrice extends ProductPrice {
+interface ExtendedPrice extends ServicePrice {
   isBasePrice?: boolean
 }
 
-export function ProductPriceDropdown({
-  productId,
+export function ServicePriceDropdown({
+  serviceId,
   selectedPriceId,
   quantity = 1,
   onPriceSelect,
   disabled = false,
   className = ''
-}: ProductPriceDropdownProps) {
-  const { prices, loading } = useProductPrices(productId)
+}: ServicePriceDropdownProps) {
+  const { prices, loading } = useServicePrices(serviceId)
   const { formatCurrency } = useCurrency()
   const [selectedPrice, setSelectedPrice] = useState<ExtendedPrice | null>(null)
-  const [productInfo, setProductInfo] = useState<ProductInfo | null>(null)
-  const [productLoading, setProductLoading] = useState(true)
+  const [serviceInfo, setServiceInfo] = useState<ServiceInfo | null>(null)
+  const [serviceLoading, setServiceLoading] = useState(true)
 
-  // Fetch product information to get base price
+  // Fetch service information to get base price
   useEffect(() => {
-    async function fetchProductInfo() {
+    async function fetchServiceInfo() {
       try {
-        setProductLoading(true)
-        console.log(`Fetching product info for productId: ${productId}`)
+        setServiceLoading(true)
+        console.log(`Fetching service info for serviceId: ${serviceId}`)
         
         const { data, error } = await supabase
-          .from('products')
-          .select('id, name, unit_price')
-          .eq('id', productId)
+          .from('services')
+          .select('id, name, price')
+          .eq('id', serviceId)
           .single()
         
         if (error) {
-          console.error('Error in product query:', error)
+          console.error('Error in service query:', error)
           throw error
         }
         
-        console.log(`Product data fetched:`, data)
-        setProductInfo(data)
+        console.log(`Service data fetched:`, data)
+        setServiceInfo(data)
       } catch (err) {
-        console.error('Error fetching product info:', err)
+        console.error('Error fetching service info:', err)
       } finally {
-        setProductLoading(false)
+        setServiceLoading(false)
       }
     }
 
-    if (productId) {
-      fetchProductInfo()
+    if (serviceId) {
+      fetchServiceInfo()
     }
-  }, [productId])
+  }, [serviceId])
 
-  // Combine product base price with multiple prices
+  // Combine service base price with multiple prices
   const allPrices: ExtendedPrice[] = React.useMemo(() => {
     const combinedPrices: ExtendedPrice[] = []
     
-    console.log(`Creating allPrices for product ${productId}:`)
-    console.log(`- Product Info:`, productInfo)
-    console.log(`- Base Price Check:`, productInfo?.unit_price, 'type:', typeof productInfo?.unit_price, 'is greater than 0?', productInfo?.unit_price && productInfo.unit_price > 0)
+    console.log(`Creating allPrices for service ${serviceId}:`)
+    console.log(`- Service Info:`, serviceInfo)
+    console.log(`- Base Price Check:`, serviceInfo?.price, 'type:', typeof serviceInfo?.price, 'is greater than 0?', serviceInfo?.price && serviceInfo.price > 0)
     
-    // Add base price from product (only if it has a defined price > 0)
-    const basePrice = productInfo?.unit_price ? parseFloat(productInfo.unit_price.toString()) : 0
-    if (productInfo && basePrice > 0) {
+    // Add base price from service (only if it has a defined price > 0)
+    const basePrice = serviceInfo?.price ? parseFloat(serviceInfo.price.toString()) : 0
+    if (serviceInfo && basePrice > 0) {
       const basePriceObj = {
-        id: `base-${productInfo.id}`,
-        product_id: productInfo.id,
-        user_id: '',
+        id: `base-${serviceInfo.id}`,
+        service_id: serviceInfo.id,
         price_name: 'Precio Base',
         price: basePrice,
         min_quantity: 1,
         max_quantity: null,
-        description: 'Precio base del producto',
+        description: 'Precio base del servicio',
         valid_from: null,
         valid_until: null,
         customer_type: null,
         customer_id: null,
         is_default: true,
-        is_active: true,
         created_at: '',
         updated_at: '',
         isBasePrice: true
@@ -115,33 +113,40 @@ export function ProductPriceDropdown({
     
     console.log(`Final combined prices:`, combinedPrices)
     return combinedPrices
-  }, [productInfo, prices, productId])
+  }, [serviceInfo, prices, serviceId])
 
   // Filter applicable prices based on quantity and validity
   const applicablePrices = allPrices.filter(price => {
     // Check quantity constraints
-    const minQty = price.min_quantity || 1
-    const maxQty = price.max_quantity
-    const quantityMatch = quantity >= minQty && (!maxQty || quantity <= maxQty)
+    const quantityValid = (price.min_quantity || 1) <= quantity &&
+                         (price.max_quantity === null || quantity <= price.max_quantity)
     
-    return price.is_active && quantityMatch
+    // Check date validity
+    const now = new Date()
+    const validFrom = price.valid_from ? new Date(price.valid_from) : null
+    const validUntil = price.valid_until ? new Date(price.valid_until) : null
+    
+    const dateValid = (!validFrom || now >= validFrom) &&
+                     (!validUntil || now <= validUntil)
+    
+    return quantityValid && dateValid
   })
 
-  // Debug output
+  // Debug: log prices to console
   React.useEffect(() => {
-    console.log(`ProductPriceDropdown DEBUG - Product ${productId}:`)
-    console.log(`- Product info:`, productInfo)
+    console.log(`ServicePriceDropdown DEBUG - Service ${serviceId}:`)
+    console.log(`- Service info:`, serviceInfo)
     console.log(`- Multiple prices:`, prices)
     console.log(`- All prices combined:`, allPrices)
     console.log(`- Applicable prices (quantity ${quantity}):`, applicablePrices)
-  }, [productId, productInfo, prices, allPrices, applicablePrices, quantity])
+  }, [allPrices, applicablePrices, serviceId, quantity, serviceInfo, prices])
 
   // Auto-select best price when no price is selected
   useEffect(() => {
     if (applicablePrices.length > 0 && !selectedPriceId && !selectedPrice) {
       // Find default price first, then highest quantity applicable, then first price
       const bestPrice = applicablePrices.find(p => p.is_default) || 
-                       applicablePrices.sort((a, b) => b.min_quantity - a.min_quantity)[0]
+                       applicablePrices.sort((a, b) => (b.min_quantity || 1) - (a.min_quantity || 1))[0]
       
       if (bestPrice) {
         setSelectedPrice(bestPrice)
@@ -160,7 +165,7 @@ export function ProductPriceDropdown({
     }
   }, [selectedPriceId, allPrices])
 
-  if (loading || productLoading) {
+  if (loading || serviceLoading) {
     return (
       <Select disabled>
         <SelectTrigger className={className}>
@@ -170,50 +175,32 @@ export function ProductPriceDropdown({
     )
   }
 
-  // Para productos personalizados (precio base 0) sin precios múltiples, mostrar input manual
-  if (allPrices.length === 0 && productInfo && (!productInfo.unit_price || productInfo.unit_price === 0)) {
+  // Para servicios personalizados (precio base 0) sin precios múltiples, mostrar input manual
+  if (allPrices.length === 0 && serviceInfo && (!serviceInfo.price || serviceInfo.price === 0)) {
     return (
       <Input
         type="number"
         step="0.01"
         min="0"
         placeholder="Precio personalizado"
-        value={selectedPrice?.price || ''}
         onChange={(e) => {
           const value = parseFloat(e.target.value) || 0
-          const customPrice: ExtendedPrice = {
-            id: `custom-${productId}`,
-            product_id: productId,
-            user_id: '',
-            price_name: 'Precio Personalizado',
-            price: value,
-            min_quantity: 1,
-            max_quantity: null,
-            description: 'Precio personalizado',
-            valid_from: null,
-            valid_until: null,
-            customer_type: null,
-            customer_id: null,
-            is_default: false,
-            is_active: true,
-            created_at: '',
-            updated_at: '',
-            isBasePrice: false
+          // Crear un precio temporal para servicios personalizados
+          if (value > 0) {
+            onPriceSelect?.('custom-price', value)
           }
-          setSelectedPrice(customPrice)
-          onPriceSelect?.(customPrice.id, value)
         }}
-        disabled={disabled}
         className={className}
       />
     )
   }
 
+  // Solo mostrar como disabled si no hay ningún precio (ni base ni múltiples) para servicios con precio fijo
   if (allPrices.length === 0) {
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Sin precios disponibles" />
+          <SelectValue placeholder="Sin precios definidos" />
         </SelectTrigger>
       </Select>
     )
@@ -248,34 +235,28 @@ export function ProductPriceDropdown({
         {allPrices.map((price) => {
           const isApplicable = applicablePrices.includes(price)
           return (
-            <SelectItem 
-              key={price.id} 
-              value={price.id} 
-              disabled={!price.is_active}
-            >
+            <SelectItem key={price.id} value={price.id}>
               <div className="flex flex-col gap-1 w-full">
                 <div className="flex items-center justify-between">
-                  <span className={`font-medium ${price.is_active ? '' : 'text-gray-400'}`}>
-                    {price.price_name}
-                  </span>
-                  <span className={`font-bold ml-4 ${price.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                  <span className="font-medium">{price.price_name || 'Precio sin nombre'}</span>
+                  <span className="font-bold text-green-600 ml-4">
                     {formatCurrency(price.price)}
                   </span>
                 </div>
                 <div className="flex gap-1 text-xs text-muted-foreground">
-                  {!price.is_active && (
-                    <Badge variant="destructive" className="text-xs h-4">
-                      Inactivo
-                    </Badge>
-                  )}
-                  {price.is_default && (
-                    <Badge variant="default" className="text-xs h-4">
-                      Por Defecto
-                    </Badge>
-                  )}
                   {price.isBasePrice && (
-                    <Badge variant="secondary" className="text-xs h-4 bg-blue-100 text-blue-700">
+                    <Badge variant="secondary" className="text-xs h-4">
                       Precio Base
+                    </Badge>
+                  )}
+                  {price.is_default && !price.isBasePrice && (
+                    <Badge variant="default" className="text-xs h-4">
+                      Defecto
+                    </Badge>
+                  )}
+                  {!isApplicable && (
+                    <Badge variant="outline" className="text-xs h-4 bg-orange-50 text-orange-700">
+                      Condiciones no cumplen
                     </Badge>
                   )}
                   {price.customer_type && (
@@ -285,16 +266,25 @@ export function ProductPriceDropdown({
                   )}
                   {price.customer_id && (
                     <Badge variant="outline" className="text-xs h-4">
-                      Cliente Específico
+                      Cliente específico
                     </Badge>
                   )}
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                  <span className="text-xs">
                     Qty: {price.min_quantity}
                     {price.max_quantity ? `-${price.max_quantity}` : '+'}
                   </span>
-                  {!isApplicable && (
-                    <Badge variant="secondary" className="text-xs h-4 bg-yellow-100 text-yellow-700">
-                      No Aplica
+                  {price.customer_id && (
+                    <Badge variant="outline" className="text-xs h-4">
+                      Cliente específico
+                    </Badge>
+                  )}
+                  <span className="text-xs">
+                    Qty: {price.min_quantity || 1}
+                    {price.max_quantity ? `-${price.max_quantity}` : '+'}
+                  </span>
+                  {(price.valid_from || price.valid_until) && (
+                    <Badge variant="secondary" className="text-xs h-4">
+                      Limitado por fechas
                     </Badge>
                   )}
                 </div>

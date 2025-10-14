@@ -29,6 +29,7 @@ interface InvoicePreviewProps {
   discountType: "percentage" | "fixed"
   discountValue: number
   notes?: string
+  paymentMethod?: string
   companyInfo?: {
     name: string
     address?: string
@@ -54,6 +55,7 @@ export function InvoicePreview({
   discountType,
   discountValue,
   notes,
+  paymentMethod,
   companyInfo
 }: InvoicePreviewProps) {
   const { formatCurrency } = useCurrency()
@@ -94,6 +96,22 @@ export function InvoicePreview({
     } catch {
       return dateString
     }
+  }
+
+  const getPaymentMethodLabel = (paymentMethod: string) => {
+    const paymentMethods: { [key: string]: string } = {
+      'efectivo': 'Efectivo',
+      'credito': 'Crédito',
+      'tarjeta': 'Tarjeta',
+      'cheque': 'Cheque',
+      'transferencia': 'Transferencia',
+      'cash': 'Efectivo',
+      'credit': 'Crédito',
+      'card': 'Tarjeta',
+      'check': 'Cheque',
+      'transfer': 'Transferencia'
+    }
+    return paymentMethods[paymentMethod] || 'Crédito'
   }
 
   const getItemInfo = (item: InvoiceItem) => {
@@ -196,6 +214,12 @@ export function InvoicePreview({
               <h4 className="text-sm font-bold text-slate-800 mb-2">VENCIMIENTO:</h4>
               <p className="text-xs text-slate-600">
                 {dueDate ? formatDate(dueDate) : "---"}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-800 mb-2">FORMA DE PAGO:</h4>
+              <p className="text-xs text-slate-600">
+                {getPaymentMethodLabel(paymentMethod || "credito")}
               </p>
             </div>
           </div>

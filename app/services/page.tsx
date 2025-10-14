@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -18,14 +19,20 @@ interface Service {
   id: string
   name: string
   description?: string
+  service_code?: string
   price: number | null
   unit: string
   category?: string
+  categories?: {
+    name: string
+    color?: string
+  }
   duration?: string
   created_at: string
 }
 
 export default function ServicesPage() {
+  const router = useRouter()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -33,7 +40,7 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
-  const { canDelete, canAccessModule } = useUserPermissions()
+  const { canDelete, canEdit, canAccessModule } = useUserPermissions()
   const { categories } = useCategories('service')
 
   useEffect(() => {
@@ -43,7 +50,7 @@ export default function ServicesPage() {
   // Check if user has permission to access services
   if (!canAccessModule('services')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
           <Card className="border-2 border-red-200 bg-red-50">
             <CardContent className="p-8 text-center">
@@ -77,7 +84,13 @@ export default function ServicesPage() {
 
       const { data, error } = await supabase
         .from("services")
-        .select("*")
+        .select(`
+          *,
+          categories!services_category_id_fkey (
+            name,
+            color
+          )
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -112,9 +125,10 @@ export default function ServicesPage() {
   const filteredServices = services.filter((service) => {
     const matchesSearch = 
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.service_code?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesCategory = selectedCategoryId === null || service.category_id === selectedCategoryId
+    const matchesCategory = selectedCategoryId === null || service.category === selectedCategoryId
     
     return matchesSearch && matchesCategory
   })
@@ -138,29 +152,39 @@ export default function ServicesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Servicios
           </h1>
           <p className="text-gray-600 dark:text-gray-400">Gestiona tu catálogo de servicios</p>
         </div>
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Servicio
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
-            <ServiceForm
-              service={editingService}
-              onSuccess={() => {
-                setShowForm(false)
-                setEditingService(null)
-                fetchServices()
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => router.push('/services/multiple-prices')}
+            variant="outline"
+            className="border-blue-200 hover:bg-blue-50"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            Precios Múltiples
+          </Button>
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Servicio
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-full max-w[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
+              <ServiceForm
+                service={editingService}
+                onSuccess={() => {
+                  setShowForm(false)
+                  setEditingService(null)
+                  fetchServices()
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
@@ -169,7 +193,7 @@ export default function ServicesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
               <Input
-                placeholder="Buscar servicios..."
+                placeholder="Buscar por nombre, código o descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30"
@@ -207,7 +231,14 @@ export default function ServicesPage() {
                 >
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{service.name}</h3>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{service.name}</h3>
+                        {service.service_code && (
+                          <p className="text-sm text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mt-1 inline-block">
+                            {service.service_code}
+                          </p>
+                        )}
+                      </div>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
@@ -218,6 +249,7 @@ export default function ServicesPage() {
                           }}
                           className="hover:bg-blue-50 text-blue-600"
                           aria-label={`Editar servicio ${service.name}`}
+                          disabled={!canEdit('services')}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -252,9 +284,9 @@ export default function ServicesPage() {
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        {service.category && (
+                        {service.categories?.name && (
                           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                            {service.category}
+                            {service.categories.name}
                           </Badge>
                         )}
                         {service.duration && (

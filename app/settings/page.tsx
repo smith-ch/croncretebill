@@ -6,6 +6,7 @@ import { ProfileSettings } from "@/components/settings/profile-settings"
 import { CompanySettings } from "@/components/settings/company-settings"
 import { SystemSettings } from "@/components/settings/system-settings"
 import { SecuritySettingsComponent } from "@/components/settings/security-settings"
+import { RoleSecuritySettings } from "@/components/settings/role-security-settings"
 import { User, Building2, Settings, Shield } from "lucide-react"
 
 export default function SettingsPage() {
