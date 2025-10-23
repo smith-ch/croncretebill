@@ -73,6 +73,11 @@ interface Invoice {
   client_id?: string
   client_rnc?: string
   client_name?: string
+  // Additional fields for compatibility with existing data
+  fecha?: string
+  date?: string
+  monto?: number
+  itbis?: number
   clients?: {
     id: string
     name: string
@@ -83,10 +88,6 @@ interface Invoice {
     tipo_id: string
     address?: string
   }
-}
-
-interface CompanySetting {
-  company_name: string
 }
 
 interface PaymentMethodStat {
