@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { 
   Dialog,
   DialogContent,
@@ -92,6 +93,7 @@ interface LivePreviewProps {
   profile: Profile | null
   generalDiscountPercentage: number
   generalDiscountAmount: number
+  includeItbis: boolean
 }
 
 const LivePreview: React.FC<LivePreviewProps> = React.memo(({ 
@@ -102,7 +104,8 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
   notes, 
   profile,
   generalDiscountPercentage,
-  generalDiscountAmount
+  generalDiscountAmount,
+  includeItbis
 }) => {
   const { formatCurrency } = useCurrency()
 
@@ -119,14 +122,14 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
     }
     
     const subtotalAfterDiscount = subtotal - discountTotal
-    const tax_amount = subtotalAfterDiscount * 0.18
+    const tax_amount = includeItbis ? subtotalAfterDiscount * 0.18 : 0
     const total_amount = subtotalAfterDiscount + tax_amount
     const change_amount = Math.max(0, amountReceived - total_amount)
     
     return { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount }
-  }, [items, amountReceived, generalDiscountPercentage, generalDiscountAmount])
+  }, [items, amountReceived, generalDiscountPercentage, generalDiscountAmount, includeItbis])
 
-  const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
+  const { subtotal, discountTotal, tax_amount, total_amount, change_amount } = calculateTotals()
   
   const receiptNumber = useMemo(() => {
     const currentDate = new Date()
@@ -198,10 +201,12 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
             <span>-{formatCurrency(discountTotal)}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span>ITBIS (18%):</span>
-          <span>{formatCurrency(tax_amount)}</span>
-        </div>
+        {includeItbis && (
+          <div className="flex justify-between">
+            <span>ITBIS (18%):</span>
+            <span>{formatCurrency(tax_amount)}</span>
+          </div>
+        )}
         <div className="border-t border-dashed border-gray-300 pt-1 mt-1">
           <div className="flex justify-between font-bold">
             <span>TOTAL:</span>
@@ -261,8 +266,6 @@ interface ThermalReceiptItem {
   product_id?: string
   service_id?: string
   selected_price_id?: string | null // Para tracking del precio seleccionado
-  discount_percentage?: number // Descuento en porcentaje
-  discount_amount?: number // Descuento en cantidad fija
 }
 
 interface ThermalReceipt {
@@ -282,8 +285,6 @@ interface ThermalReceipt {
   status: string
   created_at: string
   items: ThermalReceiptItem[]
-  discount_percentage?: number // Descuento general en porcentaje
-  discount_amount?: number // Descuento general en cantidad fija
 }
 
 export default function ThermalReceiptsPage() {
@@ -309,6 +310,7 @@ export default function ThermalReceiptsPage() {
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [amountReceived, setAmountReceived] = useState(0)
   const [notes, setNotes] = useState("")
+  const [includeItbis, setIncludeItbis] = useState(true)
   const [items, setItems] = useState<ThermalReceiptItem[]>([
     { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }
   ])
@@ -526,7 +528,7 @@ export default function ThermalReceiptsPage() {
     }
     
     const subtotalAfterDiscount = Math.max(0, subtotal - discountTotal)
-    const tax_amount = subtotalAfterDiscount * 0.18 // 18% tax
+    const tax_amount = includeItbis ? subtotalAfterDiscount * 0.18 : 0 // 18% tax only if enabled
     const total_amount = subtotalAfterDiscount + tax_amount
     const receivedAmount = isNaN(amountReceived) ? 0 : amountReceived
     const change_amount = Math.max(0, receivedAmount - total_amount)
@@ -539,7 +541,7 @@ export default function ThermalReceiptsPage() {
   }
 
   const generatePreview = () => {
-    const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
+    const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
     
     if (total_amount <= 0) {
       notifyError("Debe agregar al menos un producto con precio válido")
@@ -565,10 +567,7 @@ export default function ThermalReceiptsPage() {
       notes,
       items: items.filter(item => item.item_name.trim() !== "" && item.line_total > 0),
       created_at: new Date().toISOString(),
-      status: 'preview',
-      discount_percentage: generalDiscountType === "percentage" ? generalDiscountPercentage : null,
-      discount_amount: generalDiscountType === "amount" ? generalDiscountAmount : null,
-      discountTotal
+      status: 'preview'
     }
 
     setPreviewData(previewReceipt)
@@ -585,7 +584,7 @@ export default function ThermalReceiptsPage() {
         return
       }
 
-      const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
+      const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
       
       if (total_amount <= 0) {
         notifyError("Debe agregar al menos un producto con precio válido")
@@ -615,8 +614,7 @@ export default function ThermalReceiptsPage() {
           verification_code,
           digital_receipt_url: qr_url,
           notes,
-          discount_percentage: generalDiscountType === "percentage" ? generalDiscountPercentage : null,
-          discount_amount: generalDiscountType === "amount" ? generalDiscountAmount : null
+          include_itbis: includeItbis
         } as any)
         .select()
         .single()
@@ -656,6 +654,7 @@ export default function ThermalReceiptsPage() {
       setPaymentMethod("cash")
       setAmountReceived(0)
       setNotes("")
+      setIncludeItbis(true)
       setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
       setGeneralDiscountPercentage(0)
       setGeneralDiscountAmount(0)
@@ -777,7 +776,7 @@ export default function ThermalReceiptsPage() {
   }
 
   // Calculate totals for the form
-  const { subtotal, discountTotal, subtotalAfterDiscount, tax_amount, total_amount, change_amount } = calculateTotals()
+  const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-3 lg:p-6">
@@ -1040,6 +1039,18 @@ export default function ThermalReceiptsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* ITBIS Option */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="includeItbis"
+                  checked={includeItbis}
+                  onCheckedChange={(checked) => setIncludeItbis(checked as boolean)}
+                />
+                <Label htmlFor="includeItbis" className="text-sm font-medium">
+                  Incluir ITBIS (18%)
+                </Label>
               </div>
 
               {/* Items */}
@@ -1320,6 +1331,7 @@ export default function ThermalReceiptsPage() {
                     setPaymentMethod("cash")
                     setAmountReceived(0)
                     setNotes("")
+                    setIncludeItbis(true)
                     setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
                     setGeneralDiscountPercentage(0)
                     setGeneralDiscountAmount(0)
@@ -1365,6 +1377,7 @@ export default function ThermalReceiptsPage() {
               profile={profile}
               generalDiscountPercentage={generalDiscountPercentage}
               generalDiscountAmount={generalDiscountAmount}
+              includeItbis={includeItbis}
             />
           </div>
         </div>

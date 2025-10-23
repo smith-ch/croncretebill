@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { 
   Dialog,
   DialogContent,
@@ -81,6 +82,7 @@ export default function ThermalReceiptsPage() {
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [amountReceived, setAmountReceived] = useState(0)
   const [notes, setNotes] = useState("")
+  const [includeItbis, setIncludeItbis] = useState(true)
   const [items, setItems] = useState<ThermalReceiptItem[]>([
     { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }
   ])
@@ -112,7 +114,7 @@ export default function ThermalReceiptsPage() {
         }
         setReceipts([])
       } else {
-        setReceipts(receiptsData?.map(receipt => ({
+        setReceipts(receiptsData?.map((receipt: any) => ({
           ...receipt,
           items: receipt.thermal_receipt_items || []
         })) || [])
@@ -193,7 +195,7 @@ export default function ThermalReceiptsPage() {
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + item.line_total, 0)
-    const tax_amount = subtotal * 0.18 // 18% tax
+    const tax_amount = includeItbis ? subtotal * 0.18 : 0 // 18% tax only if enabled
     const total_amount = subtotal + tax_amount
     const receivedAmount = isNaN(amountReceived) ? 0 : amountReceived
     const change_amount = Math.max(0, receivedAmount - total_amount)
@@ -242,8 +244,9 @@ export default function ThermalReceiptsPage() {
           qr_code: qr_url,
           verification_code,
           digital_receipt_url: qr_url,
-          notes
-        })
+          notes,
+          include_itbis: includeItbis
+        } as any)
         .select()
         .single()
 
@@ -260,7 +263,7 @@ export default function ThermalReceiptsPage() {
       const itemsToSave = items
         .filter(item => item.item_name.trim() !== "" && item.line_total > 0)
         .map(item => ({
-          thermal_receipt_id: receiptData.id,
+          thermal_receipt_id: (receiptData as any)?.id,
           product_id: item.product_id || null,
           service_id: item.service_id || null,
           item_name: item.item_name,
@@ -271,7 +274,7 @@ export default function ThermalReceiptsPage() {
 
       const { error: itemsError } = await supabase
         .from("thermal_receipt_items")
-        .insert(itemsToSave)
+        .insert(itemsToSave as any)
 
       if (itemsError) {
         throw itemsError
@@ -282,13 +285,14 @@ export default function ThermalReceiptsPage() {
       setPaymentMethod("cash")
       setAmountReceived(0)
       setNotes("")
+      setIncludeItbis(true)
       setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
 
       notifySuccess("Recibo térmico creado exitosamente")
       await fetchData()
 
       // Generate and print receipt
-      const fullReceipt = { ...receiptData, items: itemsToSave }
+      const fullReceipt = { ...(receiptData as any), items: itemsToSave }
       await generateThermalReceiptPDF(fullReceipt)
 
     } catch (error) {
@@ -369,6 +373,18 @@ export default function ThermalReceiptsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* ITBIS Option */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="includeItbis"
+                  checked={includeItbis}
+                  onCheckedChange={(checked) => setIncludeItbis(checked as boolean)}
+                />
+                <Label htmlFor="includeItbis" className="text-sm font-medium">
+                  Incluir ITBIS (18%)
+                </Label>
               </div>
 
               {/* Items */}
@@ -476,10 +492,12 @@ export default function ThermalReceiptsPage() {
                     <span>Subtotal:</span>
                     <span className="font-semibold">{formatCurrency(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>ITBIS (18%):</span>
-                    <span className="font-semibold">{formatCurrency(tax_amount)}</span>
-                  </div>
+                  {includeItbis && (
+                    <div className="flex justify-between">
+                      <span>ITBIS (18%):</span>
+                      <span className="font-semibold">{formatCurrency(tax_amount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg text-blue-600">
                     <span>Total:</span>
                     <span>{formatCurrency(total_amount)}</span>
@@ -530,6 +548,7 @@ export default function ThermalReceiptsPage() {
                     setPaymentMethod("cash")
                     setAmountReceived(0)
                     setNotes("")
+                    setIncludeItbis(true)
                     setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
                   }}
                   className="border-blue-200 text-blue-600 hover:bg-blue-50"
