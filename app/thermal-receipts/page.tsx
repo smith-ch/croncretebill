@@ -51,7 +51,7 @@ import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
-import { generateThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
+import { downloadThermalReceiptPDF, printThermalReceiptPDF, previewThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
 
@@ -672,7 +672,7 @@ export default function ThermalReceiptsPage() {
         logo: profile.company_logo || undefined
       } : undefined
       
-      await generateThermalReceiptPDF(fullReceipt, companyData)
+      await downloadThermalReceiptPDF(fullReceipt, companyData)
 
     } catch (error) {
       console.error("Error saving receipt:", error)
@@ -697,11 +697,47 @@ export default function ThermalReceiptsPage() {
         logo: profile.company_logo || undefined
       } : undefined
       
-      await generateThermalReceiptPDF(receipt, companyData)
+      await printThermalReceiptPDF(receipt, companyData)
       notifySuccess("Recibo enviado a impresión")
     } catch (error) {
       console.error("Error printing receipt:", error)
       notifyError("Error al imprimir el recibo")
+    }
+  }
+
+  const handleDownloadReceipt = async (receipt: ThermalReceipt) => {
+    try {
+      const companyData = profile ? {
+        name: profile.company_name || "MI EMPRESA",
+        phone: profile.company_phone || "",
+        rnc: profile.tax_id || "",
+        address: profile.company_address || "",
+        logo: profile.company_logo || undefined
+      } : undefined
+      
+      await downloadThermalReceiptPDF(receipt, companyData)
+      notifySuccess("Recibo descargado exitosamente")
+    } catch (error) {
+      console.error("Error downloading receipt:", error)
+      notifyError("Error al descargar el recibo")
+    }
+  }
+
+  const handlePreviewReceipt = async (receipt: ThermalReceipt) => {
+    try {
+      const companyData = profile ? {
+        name: profile.company_name || "MI EMPRESA",
+        phone: profile.company_phone || "",
+        rnc: profile.tax_id || "",
+        address: profile.company_address || "",
+        logo: profile.company_logo || undefined
+      } : undefined
+      
+      await previewThermalReceiptPDF(receipt, companyData)
+      notifySuccess("Vista previa abierta")
+    } catch (error) {
+      console.error("Error previewing receipt:", error)
+      notifyError("Error al mostrar vista previa del recibo")
     }
   }
 
@@ -1753,23 +1789,35 @@ export default function ThermalReceiptsPage() {
                       variant="outline"
                       onClick={() => setSelectedReceipt(receipt)}
                       className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      title="Ver detalles"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setSelectedReceipt(receipt)}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      onClick={() => handlePreviewReceipt(receipt)}
+                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                      title="Vista previa PDF"
                     >
-                      <QrCode className="h-4 w-4" />
+                      <FileText className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
                       className="bg-blue-600 hover:bg-blue-700"
                       onClick={() => handlePrintReceipt(receipt)}
+                      title="Imprimir directamente"
                     >
                       <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadReceipt(receipt)}
+                      className="border-green-200 text-green-600 hover:bg-green-50"
+                      title="Descargar PDF"
+                    >
+                      <Download className="h-4 w-4" />
                     </Button>
                     {canDelete('thermalReceipts') && (
                       <Button
@@ -1912,11 +1960,27 @@ export default function ThermalReceiptsPage() {
               <div className="flex justify-end space-x-2 pt-4 border-t border-blue-200">
                 <Button
                   variant="outline"
+                  onClick={() => handlePreviewReceipt(selectedReceipt)}
+                  className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Vista Previa
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => handlePrintReceipt(selectedReceipt)}
                   className="border-blue-200 text-blue-600 hover:bg-blue-50"
                 >
                   <Printer className="h-4 w-4 mr-2" />
-                  Reimprimir
+                  Imprimir
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadReceipt(selectedReceipt)}
+                  className="border-green-200 text-green-600 hover:bg-green-50"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar
                 </Button>
                 {canDelete('thermalReceipts') && (
                   <Button

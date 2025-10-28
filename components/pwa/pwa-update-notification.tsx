@@ -2,72 +2,60 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Download } from 'lucide-react'
+import { RefreshCw, Download, X } from 'lucide-react'
+
+interface PWAUpdateEvent extends CustomEvent {
+  detail: {
+    registration: ServiceWorkerRegistration
+    newWorker: ServiceWorker
+  }
+}
 
 export function PWAUpdateNotification() {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const wb = navigator.serviceWorker
+    if (typeof window === 'undefined') {
+      return
+    }
 
-      const showSkipWaitingPrompt = (event: any) => {
-        setWaitingWorker(event.detail.waiting)
-        setShowUpdatePrompt(true)
-      }
+    // Listen for PWA update events from our optimized script
+    const handlePWAUpdate = (event: PWAUpdateEvent) => {
+      console.log('PWA update available')
+      setWaitingWorker(event.detail.newWorker)
+      setShowUpdatePrompt(true)
+    }
 
-      wb.addEventListener('message', showSkipWaitingPrompt)
+    // Listen for cache update events
+    const handleCacheUpdate = (event: CustomEvent) => {
+      console.log('PWA cache updated:', event.detail.message)
+    }
 
-      // Check if there's a waiting service worker
-      wb.ready.then((registration) => {
-        if (registration.waiting) {
-          setWaitingWorker(registration.waiting)
-          setShowUpdatePrompt(true)
-        }
+    window.addEventListener('pwa-update-available', handlePWAUpdate as any)
+    window.addEventListener('pwa-cache-updated', handleCacheUpdate as any)
 
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setWaitingWorker(newWorker)
-                setShowUpdatePrompt(true)
-              }
-            })
-          }
-        })
-      })
-
-      // Force update check on load
-      wb.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => {
-          registration.update()
-        })
-      })
-
-      return () => {
-        wb.removeEventListener('message', showSkipWaitingPrompt)
-      }
+    return () => {
+      window.removeEventListener('pwa-update-available', handlePWAUpdate as any)
+      window.removeEventListener('pwa-cache-updated', handleCacheUpdate as any)
     }
   }, [])
 
-  const updateApp = () => {
+  const handleUpdate = async () => {
     if (waitingWorker) {
+      // Tell the waiting service worker to skip waiting
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
-      setShowUpdatePrompt(false)
       
-      // Force refresh after service worker activates
-      waitingWorker.addEventListener('statechange', () => {
-        if (waitingWorker.state === 'activated') {
-          window.location.reload()
-        }
-      })
+      // Reload the page to activate the new service worker
+      setTimeout(() => {
+        window.location.reload()
+      }, 500)
     }
   }
 
   const dismissUpdate = () => {
     setShowUpdatePrompt(false)
+    setWaitingWorker(null)
   }
 
   if (!showUpdatePrompt) {
@@ -75,35 +63,38 @@ export function PWAUpdateNotification() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-lg p-4 max-w-sm">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
-          <Download className="h-6 w-6 text-blue-600" />
-        </div>
-        <div className="flex-1">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-            Nueva versión disponible
-          </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
-            Se ha actualizado ConcreteBill con nuevas funciones y mejoras.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={updateApp}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Actualizar
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={dismissUpdate}
-              className="px-3 py-1 text-xs"
-            >
-              Más tarde
-            </Button>
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+      <div className="bg-blue-600 text-white rounded-lg shadow-lg p-4 border border-blue-500">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0">
+            <Download className="h-5 w-5 text-blue-200" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-sm mb-1">
+              Nueva versión disponible
+            </h3>
+            <p className="text-xs text-blue-100 mb-3">
+              Hay una actualización de ConcreteBill lista para instalar.
+            </p>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={handleUpdate}
+                className="text-xs"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Actualizar
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={dismissUpdate}
+                className="text-xs text-blue-100 hover:text-white hover:bg-blue-700"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

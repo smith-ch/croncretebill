@@ -25,9 +25,9 @@ const queryCache = new Map<string, { data: any; timestamp: number; staleTime: nu
 export function useOptimizedQuery<T>({
   queryKey,
   queryFn,
-  staleTime = 5 * 60 * 1000, // 5 minutes
-  cacheTime = 10 * 60 * 1000, // 10 minutes
-  refetchOnWindowFocus = true,
+  staleTime = 2 * 60 * 1000, // 2 minutes - más agresivo
+  cacheTime = 5 * 60 * 1000, // 5 minutes - reducido
+  refetchOnWindowFocus = false, // Desactivado por defecto para mejor rendimiento
   enabled = true,
 }: QueryOptions<T>): QueryResult<T> {
   const [data, setData] = useState<T | undefined>(undefined)

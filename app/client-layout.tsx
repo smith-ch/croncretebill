@@ -15,6 +15,7 @@ import { SessionIndicator } from "@/components/auth/session-indicator"
 import { RouteProtection } from "@/components/auth/route-protection"
 import { PWAUpdateNotification } from "@/components/pwa/pwa-update-notification"
 import { MobileNav } from "@/components/layout/mobile-nav"
+import { RoutePreloader } from "@/hooks/use-route-preloader"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,9 +27,9 @@ export default function ClientLayout({
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  // Configurar auto-logout cuando hay un usuario logueado
+  // Configurar auto-logout cuando hay un usuario logueado (solo si hay usuario)
   useAutoLogout({
-    timeoutMinutes: 30 // Cerrar sesión después de 30 minutos de inactividad
+    timeoutMinutes: 45 // Más tiempo para mejor UX
   })
 
   useEffect(() => {
@@ -53,8 +54,11 @@ export default function ClientLayout({
     return (
       <html lang="es">
         <body className={inter.className}>
-          <div className="pwa-container min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-16 w-16 sm:h-24 sm:w-24 lg:h-32 lg:w-32 border-b-2 border-blue-600"></div>
+          <div className="pwa-container min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-sm text-gray-600">Cargando ConcreteBill...</p>
+            </div>
           </div>
         </body>
       </html>
@@ -97,7 +101,18 @@ export default function ClientLayout({
                 <div className="container-responsive spacing-responsive">
                   <NotificationCenter className="mb-4 sm:mb-6" />
                   <RouteProtection>
-                    {children}
+                    <React.Suspense 
+                      fallback={
+                        <div className="flex items-center justify-center min-h-[400px]">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p className="text-sm text-gray-600">Cargando página...</p>
+                          </div>
+                        </div>
+                      }
+                    >
+                      {children}
+                    </React.Suspense>
                   </RouteProtection>
                 </div>
               </main>
@@ -106,6 +121,8 @@ export default function ClientLayout({
             <SessionIndicator timeoutMinutes={30} />
             {/* Notificación de actualización PWA */}
             <PWAUpdateNotification />
+            {/* Pre-carga de rutas comunes */}
+            <RoutePreloader />
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

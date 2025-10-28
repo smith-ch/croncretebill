@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isRealEmployeeByEmail } from '@/lib/employee-config'
 
@@ -68,16 +68,133 @@ export function useUserPermissions() {
     canDeleteAgendaEvents: true,
     canDeleteExpenses: true
   })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
+  const loadingRef = useRef(false) // Prevenir múltiples llamadas concurrentes
 
   useEffect(() => {
-    loadUserPermissions()
-  }, [])
+    if (!initialized && !loadingRef.current) {
+      setInitialized(true)
+      loadingRef.current = true
+      setLoading(true)
+      loadUserPermissions().finally(() => {
+        loadingRef.current = false
+      })
+    }
+  }, [initialized])
 
   const loadUserPermissions = async () => {
+    // Verificar cache de permisos primero para carga rápida
+    const cacheKey = 'cached-permissions'
+    const cacheTimeKey = 'permissions-cache-time'
+    const cachedPermissions = localStorage.getItem(cacheKey)
+    
+    if (cachedPermissions) {
+      try {
+        const parsed = JSON.parse(cachedPermissions)
+        const cacheTime = localStorage.getItem(cacheTimeKey)
+        const now = Date.now()
+        // Cache válido por 5 minutos
+        if (cacheTime && (now - parseInt(cacheTime)) < 5 * 60 * 1000) {
+          // Solo log en desarrollo
+          if (process.env.NODE_ENV === 'development' && !(window as any).permissionsCacheLogged) {
+            console.log('Using cached permissions for faster load')
+            ;(window as any).permissionsCacheLogged = true
+          }
+          setPermissions(parsed)
+          setLoading(false)
+          return
+        } else {
+          // Cache expirado, limpiar
+          localStorage.removeItem(cacheKey)
+          localStorage.removeItem(cacheTimeKey)
+        }
+      } catch (e) {
+        console.warn('Invalid cached permissions, loading fresh')
+        localStorage.removeItem(cacheKey)
+        localStorage.removeItem(cacheTimeKey)
+      }
+    }
+    
+    // Verificar si hay override de emergencia
+    const emergencyOverride = localStorage.getItem('emergency-override') === 'true'
+    if (emergencyOverride) {
+      // Emergency override active
+      setPermissions({
+        canCreateInvoices: true,
+        canViewFinances: true,
+        canManageInventory: true,
+        canManageClients: true,
+        maxInvoiceAmount: null,
+        role: 'owner',
+        isOwner: true,
+        wasOriginallyOwner: true,
+        isRealEmployee: false,
+        canEditInvoices: true,
+        canEditClients: true,
+        canEditProducts: true,
+        canEditServices: true,
+        canEditProjects: true,
+        canEditVehicles: true,
+        canEditThermalReceipts: true,
+        canEditAgendaEvents: true,
+        canEditExpenses: true,
+        canDeleteInvoices: true,
+        canDeleteClients: true,
+        canDeleteProducts: true,
+        canDeleteServices: true,
+        canDeleteProjects: true,
+        canDeleteVehicles: true,
+        canDeleteThermalReceipts: true,
+        canDeleteAgendaEvents: true,
+        canDeleteExpenses: true
+      })
+      setLoading(false)
+      return
+    }
+    
+    // Timeout de seguridad para evitar loading infinito
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    
     try {
+      timeoutId = setTimeout(() => {
+        console.warn('Permission loading timeout, setting default owner permissions')
+        // Set default owner permissions if timeout occurs
+        setPermissions({
+          canCreateInvoices: true,
+          canViewFinances: true,
+          canManageInventory: true,
+          canManageClients: true,
+          maxInvoiceAmount: null,
+          role: 'owner',
+          isOwner: true,
+          wasOriginallyOwner: true,
+          isRealEmployee: false,
+          canEditInvoices: true,
+          canEditClients: true,
+          canEditProducts: true,
+          canEditServices: true,
+          canEditProjects: true,
+          canEditVehicles: true,
+          canEditThermalReceipts: true,
+          canEditAgendaEvents: true,
+          canEditExpenses: true,
+          canDeleteInvoices: true,
+          canDeleteClients: true,
+          canDeleteProducts: true,
+          canDeleteServices: true,
+          canDeleteProjects: true,
+          canDeleteVehicles: true,
+          canDeleteThermalReceipts: true,
+          canDeleteAgendaEvents: true,
+          canDeleteExpenses: true
+        })
+        setLoading(false)
+      }, 3000) // 3 segundos máximo - más rápido
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
+        clearTimeout(timeoutId)
         setLoading(false)
         return
       }
@@ -139,7 +256,7 @@ export function useUserPermissions() {
           canDeleteExpenses: true
         }
 
-        console.log('Using default owner permissions due to error')
+        // Fallback to default owner permissions
 
         // Si está en modo empleado O es empleado real, aplicar restricciones ESTRICTAS
         if (isEmployeeMode || isRealEmployee) {
@@ -298,9 +415,13 @@ export function useUserPermissions() {
         }
 
         setPermissions(finalPermissions)
+        
+        // Cache permissions for faster subsequent loads
+        localStorage.setItem('cached-permissions', JSON.stringify(finalPermissions))
+        localStorage.setItem('permissions-cache-time', Date.now().toString())
       } else {
         // No hay datos de permisos específicos, asumir que es owner principal
-        console.log('No permissions data found, assuming primary owner')
+        // No permissions data - primary owner
         
         // Guardar que es owner originalmente
         localStorage.setItem('was-originally-owner', 'true')
@@ -371,6 +492,10 @@ export function useUserPermissions() {
         }
 
         setPermissions(ownerPermissions)
+        
+        // Cache permissions for faster subsequent loads
+        localStorage.setItem('cached-permissions', JSON.stringify(ownerPermissions))
+        localStorage.setItem('permissions-cache-time', Date.now().toString())
       }
     } catch (error) {
       console.error('Error loading user permissions:', error)
@@ -407,6 +532,10 @@ export function useUserPermissions() {
         canDeleteExpenses: true
       })
     } finally {
+      // Limpiar el timeout de seguridad
+      if (typeof timeoutId !== 'undefined') {
+        clearTimeout(timeoutId)
+      }
       setLoading(false)
     }
   }

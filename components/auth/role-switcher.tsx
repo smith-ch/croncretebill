@@ -10,7 +10,7 @@ import { RolePasswordVerification } from './role-password-verification'
 
 export function RoleSwitcher() {
   const [isEmployeeMode, setIsEmployeeMode] = useState(false)
-  const { permissions, refresh } = useUserPermissions()
+  const { permissions } = useUserPermissions()
 
   // Solo mostrar para owners (incluso si están en modo empleado) O empleados reales
   const isOwner = permissions.isOwner || permissions.wasOriginallyOwner
@@ -28,13 +28,10 @@ export function RoleSwitcher() {
     setIsEmployeeMode(true)
     localStorage.setItem('employee-view-mode', 'true')
     
-    // Forzar actualización de permisos
-    if (refresh) {
-      refresh()
-    }
-    
-    // Recargar la página para aplicar los cambios
-    window.location.reload()
+    // Recargar después de un breve delay para aplicar cambios
+    setTimeout(() => {
+      window.location.reload()
+    }, 300)
   }
 
   const handleEmergencyResetVerified = () => {
@@ -48,13 +45,10 @@ export function RoleSwitcher() {
     setIsEmployeeMode(false)
     localStorage.setItem('employee-view-mode', 'false')
     
-    // Forzar actualización de permisos
-    if (refresh) {
-      refresh()
-    }
-    
-    // Recargar la página para aplicar los cambios
-    window.location.reload()
+    // Recargar después de un breve delay para aplicar cambios
+    setTimeout(() => {
+      window.location.reload()
+    }, 300)
   }
 
   if (!isOwner && !isRealEmployee && permissions.role !== 'owner' && permissions.role !== 'admin') {

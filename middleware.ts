@@ -3,10 +3,29 @@ import { NextResponse, type NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Handle Chrome DevTools requests to prevent 404 errors
+  if (pathname === '/.well-known/appspecific/com.chrome.devtools.json') {
+    return new NextResponse('{}', {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0'
+      }
+    })
+  }
+
+  // Handle sw.js requests - allow service worker in production
+  if (pathname === '/sw.js') {
+    const response = NextResponse.next()
+    response.headers.set('Content-Type', 'application/javascript')
+    response.headers.set('Service-Worker-Allowed', '/')
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
+  }
+
   // Permitir acceso sin autenticación a archivos PWA y estáticos
   const pwaRoutes = [
     '/manifest.json',
-    '/sw.js',
     '/pwa-update.js',
     '/offline',
     '/pwa-status',
@@ -24,12 +43,6 @@ export function middleware(request: NextRequest) {
     if (pathname === '/manifest.json') {
       response.headers.set('Content-Type', 'application/manifest+json')
       response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate')
-    }
-    
-    if (pathname === '/sw.js') {
-      response.headers.set('Content-Type', 'application/javascript')
-      response.headers.set('Service-Worker-Allowed', '/')
-      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
     }
     
     return response

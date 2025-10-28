@@ -78,7 +78,7 @@ export default function AgendaPage() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
   const [editingItem, setEditingItem] = useState<AgendaItem | null>(null)
   // All hooks must be called first before any conditional returns
-  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [autoRefresh, setAutoRefresh] = useState(false) // Cambiado a false para evitar refrescos automáticos no deseados
   const { formatCurrency } = useCurrency()
   const { canAccessModule, canDelete, permissions } = useUserPermissions()
   
