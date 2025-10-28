@@ -160,240 +160,389 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
   height += 15
   
   // Mínimo 60mm, máximo 300mm
-  return Math.max(60, Math.min(300, height))
+  return Math.max(60, Math.min(210, height))
 }
 
 export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData, companyData?: CompanyData) => {
   try {
-    // Calcular altura dinámica basada en contenido
-    const dynamicHeight = calculateReceiptHeight(receiptData, companyData)
-    
-    const doc = new jsPDF({
+    // 1. Usar una altura inicial generosa
+    const tempHeight = calculateReceiptHeight(receiptData, companyData) + 40; // margen extra
+    let doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [58, dynamicHeight] // 58mm para impresoras térmicas estándar
-    })
+      format: [58, tempHeight]
+    });
 
-    let currentY = 3
-    const centerX = 29 // Centro para 58mm
-    const leftMargin = 2 // Margen mínimo
-    const rightMargin = 56
+    let currentY = 3;
+    const centerX = 29;
+    const leftMargin = 2;
+    const rightMargin = 56;
 
-    // CONFIGURACIÓN: Todo en negrita para máxima visibilidad
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(7)
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(7);
 
     // Logo de la empresa (si existe) - convertido a escala de grises
     if (companyData?.logo) {
       try {
-        const grayscaleLogo = await convertToGrayscale(companyData.logo)
-        const logoSize = 14 // Más pequeño para formato compacto
-        const logoX = centerX - (logoSize / 2)
-        doc.addImage(grayscaleLogo, 'PNG', logoX, currentY, logoSize, logoSize)
-        currentY += logoSize + 2 // Menos espacio
+        const grayscaleLogo = await convertToGrayscale(companyData.logo);
+        const logoSize = 14;
+        const logoX = centerX - (logoSize / 2);
+        doc.addImage(grayscaleLogo, 'PNG', logoX, currentY, logoSize, logoSize);
+        currentY += logoSize + 2;
       } catch (logoError) {
-        console.warn('Error adding logo to PDF:', logoError)
-        currentY += 1
+        console.warn('Error adding logo to PDF:', logoError);
+        currentY += 1;
       }
     }
 
-    // Header de la empresa
     if (companyData?.name) {
-      doc.setFont('courier', 'bold')
-      doc.setFontSize(9) // Más compacto
-      doc.text(companyData.name.toUpperCase(), centerX, currentY, { align: 'center' })
-      currentY += 4 // Menos espacio
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(9);
+      doc.text(companyData.name.toUpperCase(), centerX, currentY, { align: 'center' });
+      currentY += 4;
     } else {
-      doc.setFont('courier', 'bold')
-      doc.setFontSize(9)
-      doc.text('MI EMPRESA', centerX, currentY, { align: 'center' })
-      currentY += 4
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(9);
+      doc.text('MI EMPRESA', centerX, currentY, { align: 'center' });
+      currentY += 4;
     }
 
-    doc.setFont('courier', 'bold') // CAMBIO: Todo en negrita
-    doc.setFontSize(6) // Más compacto para detalles
-    
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6);
     if (companyData?.rnc) {
-      doc.text(`RNC: ${companyData.rnc}`, centerX, currentY, { align: 'center' })
-      currentY += 2.5
+      doc.text(`RNC: ${companyData.rnc}`, centerX, currentY, { align: 'center' });
+      currentY += 2.5;
     }
-    
     if (companyData?.address) {
-      const addressLines = splitTextToLines(companyData.address, 25) // Ajustado para 58mm
+      const addressLines = splitTextToLines(companyData.address, 25);
       addressLines.forEach(line => {
-        doc.text(line, centerX, currentY, { align: 'center' })
-        currentY += 2.5 // Menos espacio
-      })
+        doc.text(line, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
+      });
     }
-    
     if (companyData?.phone) {
-      doc.text(`Tel: ${companyData.phone}`, centerX, currentY, { align: 'center' })
-      currentY += 2.5
+      doc.text(`Tel: ${companyData.phone}`, centerX, currentY, { align: 'center' });
+      currentY += 2.5;
     }
 
-    currentY += 1
-    doc.setLineWidth(0.1)
-    doc.line(leftMargin, currentY, rightMargin, currentY)
-    currentY += 2
+    currentY += 1;
+    doc.setLineWidth(0.1);
+    doc.line(leftMargin, currentY, rightMargin, currentY);
+    currentY += 2;
 
-    // Información del recibo
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(8) // Más compacto
-    doc.text('COMPROBANTE DE VENTA', centerX, currentY, { align: 'center' })
-    currentY += 3
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(8);
+    doc.text('COMPROBANTE DE VENTA', centerX, currentY, { align: 'center' });
+    currentY += 3;
 
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(7)
-    doc.text(`No. ${receiptData.receipt_number}`, centerX, currentY, { align: 'center' })
-    currentY += 2.5
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(7);
+    doc.text(`No. ${receiptData.receipt_number}`, centerX, currentY, { align: 'center' });
+    currentY += 2.5;
 
-    const date = new Date(receiptData.created_at)
-    const dateStr = date.toLocaleDateString('es-DO')
-    const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })
-    doc.text(`${dateStr} ${timeStr}`, centerX, currentY, { align: 'center' })
-    currentY += 3
+    const date = new Date(receiptData.created_at);
+    const dateStr = date.toLocaleDateString('es-DO');
+    const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+    doc.text(`${dateStr} ${timeStr}`, centerX, currentY, { align: 'center' });
+    currentY += 3;
 
     if (receiptData.client_name && receiptData.client_name !== 'Cliente General') {
-      doc.setLineWidth(0.2) // Líneas más gruesas
-      doc.line(leftMargin, currentY, rightMargin, currentY)
-      currentY += 4
-      
-      doc.setFont('courier', 'bold') // Bold para el cliente
-      doc.setFontSize(7) // Más compacto pero bold
-      doc.text(`Cliente: ${receiptData.client_name}`, leftMargin, currentY)
-      currentY += 4
+      doc.setLineWidth(0.2);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 4;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(7);
+      doc.text(`Cliente: ${receiptData.client_name}`, leftMargin, currentY);
+      currentY += 4;
     }
 
-    doc.setLineWidth(0.2) // Líneas más gruesas
-    doc.line(leftMargin, currentY, rightMargin, currentY)
-    currentY += 3
+    doc.setLineWidth(0.2);
+    doc.line(leftMargin, currentY, rightMargin, currentY);
+    currentY += 3;
 
-    // Items del recibo
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(6) // Más compacto
-    
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6);
     receiptData.items.forEach((item, index) => {
-      // Solo mostrar el nombre si es muy largo, sino en una línea
       if (item.item_name.length > 22) {
-        const nameLines = splitTextToLines(item.item_name, 22) // Ajustado para 58mm
+        const nameLines = splitTextToLines(item.item_name, 22);
         nameLines.forEach(line => {
-          doc.text(line, leftMargin, currentY)
-          currentY += 2.5
-        })
+          doc.text(line, leftMargin, currentY);
+          currentY += 2.5;
+        });
       } else {
-        doc.text(item.item_name, leftMargin, currentY)
-        currentY += 2.5
+        doc.text(item.item_name, leftMargin, currentY);
+        currentY += 2.5;
       }
-
-      const qtyText = `${item.quantity.toFixed(item.quantity % 1 === 0 ? 0 : 1)}`
-      const priceText = `$${item.unit_price.toFixed(2)}`
-      const totalText = `$${item.line_total.toFixed(2)}`
-      
-      doc.setFont('courier', 'bold') // CAMBIO: cantidad y precio en bold
-      doc.setFontSize(5.5)
-      doc.text(`${qtyText}x${priceText}`, leftMargin, currentY)
-      doc.setFont('courier', 'bold') // Mantener bold
-      doc.setFontSize(6)
-      doc.text(totalText, rightMargin, currentY, { align: 'right' })
-      
-      // Solo agregar espacio entre items si no es el último
+      const qtyText = `${item.quantity.toFixed(item.quantity % 1 === 0 ? 0 : 1)}`;
+      const priceText = `$${item.unit_price.toFixed(2)}`;
+      const totalText = `$${item.line_total.toFixed(2)}`;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(5.5);
+      doc.text(`${qtyText}x${priceText}`, leftMargin, currentY);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      doc.text(totalText, rightMargin, currentY, { align: 'right' });
       if (index < receiptData.items.length - 1) {
-        currentY += 3
+        currentY += 3;
       } else {
-        currentY += 2
+        currentY += 2;
       }
-    })
+    });
 
-    currentY += 1
-    doc.setLineWidth(0.1)
-    doc.line(leftMargin, currentY, rightMargin, currentY)
-    currentY += 3
+    currentY += 1;
+    doc.setLineWidth(0.1);
+    doc.line(leftMargin, currentY, rightMargin, currentY);
+    currentY += 3;
 
-    // Totales más compactos
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(6)
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6);
+    doc.text('SUBTOTAL:', leftMargin, currentY);
+    doc.text(`$${receiptData.subtotal.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+    currentY += 2.5;
+    doc.text('ITBIS:', leftMargin, currentY);
+    doc.text(`$${receiptData.tax_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+    currentY += 2.5;
+    doc.setLineWidth(0.2);
+    doc.line(leftMargin, currentY, rightMargin, currentY);
+    currentY += 2.5;
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(8);
+    doc.text('TOTAL:', leftMargin, currentY);
+    doc.text(`$${receiptData.total_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+    currentY += 3;
 
-    doc.text('SUBTOTAL:', leftMargin, currentY)
-    doc.text(`$${receiptData.subtotal.toFixed(2)}`, rightMargin, currentY, { align: 'right' })
-    currentY += 2.5
-
-    doc.text('ITBIS:', leftMargin, currentY)
-    doc.text(`$${receiptData.tax_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' })
-    currentY += 2.5
-
-    doc.setLineWidth(0.2)
-    doc.line(leftMargin, currentY, rightMargin, currentY)
-    currentY += 2.5
-
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(8) // Total destacado pero no excesivo
-    doc.text('TOTAL:', leftMargin, currentY)
-    doc.text(`$${receiptData.total_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' })
-    currentY += 3
-
-    // Información de pago más compacta
-    doc.setFont('courier', 'bold') // CAMBIO: info pago en bold
-    doc.setFontSize(6)
-    
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6);
     const paymentMethodText = receiptData.payment_method === 'cash' ? 'Efectivo' : 
                              receiptData.payment_method === 'card' ? 'Tarjeta' : 
-                             'Transferencia'
-    
-    doc.text(`Pago: ${paymentMethodText}`, leftMargin, currentY)
-    currentY += 2.5
-
+                             'Transferencia';
+    doc.text(`Pago: ${paymentMethodText}`, leftMargin, currentY);
+    currentY += 2.5;
     if (receiptData.amount_received > 0) {
-      doc.text(`Recibido: $${receiptData.amount_received.toFixed(2)}`, leftMargin, currentY)
-      currentY += 2.5
-      
+      doc.text(`Recibido: $${receiptData.amount_received.toFixed(2)}`, leftMargin, currentY);
+      currentY += 2.5;
       if (receiptData.change_amount > 0) {
-        doc.text(`Cambio: $${receiptData.change_amount.toFixed(2)}`, leftMargin, currentY)
-        currentY += 2.5
+        doc.text(`Cambio: $${receiptData.change_amount.toFixed(2)}`, leftMargin, currentY);
+        currentY += 2.5;
       }
     }
 
-    // Código de verificación (sin QR) más compacto
-    currentY += 2
-    doc.setFont('courier', 'bold') // CAMBIO: código en bold
-    doc.setFontSize(5)
-    doc.text(`Cod: ${receiptData.verification_code}`, centerX, currentY, { align: 'center' })
-    currentY += 3
+    currentY += 2;
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(5);
+    doc.text(`Cod: ${receiptData.verification_code}`, centerX, currentY, { align: 'center' });
+    currentY += 3;
 
-    // Notas
     if (receiptData.notes && receiptData.notes.trim()) {
-      doc.setLineWidth(0.1)
-      doc.line(leftMargin, currentY, rightMargin, currentY)
-      currentY += 3
-      
-      doc.setFont('courier', 'bold') // CAMBIO: título notas en bold
-      doc.setFontSize(6)
-      doc.text('Notas:', leftMargin, currentY)
-      currentY += 3
-      
-      doc.setFont('courier', 'bold') // CAMBIO: contenido notas en bold
-      const notesLines = splitTextToLines(receiptData.notes, 25) // Ajustado para 58mm
+      doc.setLineWidth(0.1);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      doc.text('Notas:', leftMargin, currentY);
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      const notesLines = splitTextToLines(receiptData.notes, 25);
       notesLines.forEach(line => {
-        doc.text(line, leftMargin, currentY)
-        currentY += 2.5
-      })
-      currentY += 2
+        doc.text(line, leftMargin, currentY);
+        currentY += 2.5;
+      });
+      currentY += 2;
     }
 
-    // Footer compacto
-    currentY += 2
-    doc.setLineWidth(0.1)
-    doc.line(leftMargin, currentY, rightMargin, currentY)
-    currentY += 3
+    currentY += 2;
+    doc.setLineWidth(0.1);
+    doc.line(leftMargin, currentY, rightMargin, currentY);
+    currentY += 3;
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6);
+    doc.text('¡GRACIAS POR SU COMPRA!', centerX, currentY, { align: 'center' });
 
-    doc.setFont('courier', 'bold')
-    doc.setFontSize(6)
-    doc.text('¡GRACIAS POR SU COMPRA!', centerX, currentY, { align: 'center' })
+    // 2. Ajustar la altura real al contenido generado
+    let finalHeight = Math.ceil(currentY + 4); // margen inferior
+    finalHeight = Math.max(60, Math.min(210, finalHeight));
 
-    return doc
+    // 3. Si la altura es menor a la inicial, regenerar el PDF con la altura justa
+    if (finalHeight < tempHeight) {
+      // Volver a crear el PDF con la altura ajustada
+      doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [58, finalHeight]
+      });
+      currentY = 3;
+      // ...RENDERIZAR TODO OTRA VEZ...
+      // (Duplicar el bloque de renderizado anterior, pero usando finalHeight)
+      // Para evitar duplicar código, se recomienda refactorizar a una función interna,
+      // pero aquí lo hacemos directo para claridad y compatibilidad.
 
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(7);
+      if (companyData?.logo) {
+        try {
+          const grayscaleLogo = await convertToGrayscale(companyData.logo);
+          const logoSize = 14;
+          const logoX = centerX - (logoSize / 2);
+          doc.addImage(grayscaleLogo, 'PNG', logoX, currentY, logoSize, logoSize);
+          currentY += logoSize + 2;
+        } catch (logoError) {
+          currentY += 1;
+        }
+      }
+      if (companyData?.name) {
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(9);
+        doc.text(companyData.name.toUpperCase(), centerX, currentY, { align: 'center' });
+        currentY += 4;
+      } else {
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(9);
+        doc.text('MI EMPRESA', centerX, currentY, { align: 'center' });
+        currentY += 4;
+      }
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      if (companyData?.rnc) {
+        doc.text(`RNC: ${companyData.rnc}`, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
+      }
+      if (companyData?.address) {
+        const addressLines = splitTextToLines(companyData.address, 25);
+        addressLines.forEach(line => {
+          doc.text(line, centerX, currentY, { align: 'center' });
+          currentY += 2.5;
+        });
+      }
+      if (companyData?.phone) {
+        doc.text(`Tel: ${companyData.phone}`, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
+      }
+      currentY += 1;
+      doc.setLineWidth(0.1);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 2;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(8);
+      doc.text('COMPROBANTE DE VENTA', centerX, currentY, { align: 'center' });
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(7);
+      doc.text(`No. ${receiptData.receipt_number}`, centerX, currentY, { align: 'center' });
+      currentY += 2.5;
+      const date = new Date(receiptData.created_at);
+      const dateStr = date.toLocaleDateString('es-DO');
+      const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+      doc.text(`${dateStr} ${timeStr}`, centerX, currentY, { align: 'center' });
+      currentY += 3;
+      if (receiptData.client_name && receiptData.client_name !== 'Cliente General') {
+        doc.setLineWidth(0.2);
+        doc.line(leftMargin, currentY, rightMargin, currentY);
+        currentY += 4;
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(7);
+        doc.text(`Cliente: ${receiptData.client_name}`, leftMargin, currentY);
+        currentY += 4;
+      }
+      doc.setLineWidth(0.2);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      receiptData.items.forEach((item, index) => {
+        if (item.item_name.length > 22) {
+          const nameLines = splitTextToLines(item.item_name, 22);
+          nameLines.forEach(line => {
+            doc.text(line, leftMargin, currentY);
+            currentY += 2.5;
+          });
+        } else {
+          doc.text(item.item_name, leftMargin, currentY);
+          currentY += 2.5;
+        }
+        const qtyText = `${item.quantity.toFixed(item.quantity % 1 === 0 ? 0 : 1)}`;
+        const priceText = `$${item.unit_price.toFixed(2)}`;
+        const totalText = `$${item.line_total.toFixed(2)}`;
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(5.5);
+        doc.text(`${qtyText}x${priceText}`, leftMargin, currentY);
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(6);
+        doc.text(totalText, rightMargin, currentY, { align: 'right' });
+        if (index < receiptData.items.length - 1) {
+          currentY += 3;
+        } else {
+          currentY += 2;
+        }
+      });
+      currentY += 1;
+      doc.setLineWidth(0.1);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      doc.text('SUBTOTAL:', leftMargin, currentY);
+      doc.text(`$${receiptData.subtotal.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+      currentY += 2.5;
+      doc.text('ITBIS:', leftMargin, currentY);
+      doc.text(`$${receiptData.tax_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+      currentY += 2.5;
+      doc.setLineWidth(0.2);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 2.5;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(8);
+      doc.text('TOTAL:', leftMargin, currentY);
+      doc.text(`$${receiptData.total_amount.toFixed(2)}`, rightMargin, currentY, { align: 'right' });
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      const paymentMethodText2 = receiptData.payment_method === 'cash' ? 'Efectivo' : 
+                                receiptData.payment_method === 'card' ? 'Tarjeta' : 
+                                'Transferencia';
+      doc.text(`Pago: ${paymentMethodText2}`, leftMargin, currentY);
+      currentY += 2.5;
+      if (receiptData.amount_received > 0) {
+        doc.text(`Recibido: $${receiptData.amount_received.toFixed(2)}`, leftMargin, currentY);
+        currentY += 2.5;
+        if (receiptData.change_amount > 0) {
+          doc.text(`Cambio: $${receiptData.change_amount.toFixed(2)}`, leftMargin, currentY);
+          currentY += 2.5;
+        }
+      }
+      currentY += 2;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(5);
+      doc.text(`Cod: ${receiptData.verification_code}`, centerX, currentY, { align: 'center' });
+      currentY += 3;
+      if (receiptData.notes && receiptData.notes.trim()) {
+        doc.setLineWidth(0.1);
+        doc.line(leftMargin, currentY, rightMargin, currentY);
+        currentY += 3;
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(6);
+        doc.text('Notas:', leftMargin, currentY);
+        currentY += 3;
+        doc.setFont('courier', 'bold');
+        const notesLines = splitTextToLines(receiptData.notes, 25);
+        notesLines.forEach(line => {
+          doc.text(line, leftMargin, currentY);
+          currentY += 2.5;
+        });
+        currentY += 2;
+      }
+      currentY += 2;
+      doc.setLineWidth(0.1);
+      doc.line(leftMargin, currentY, rightMargin, currentY);
+      currentY += 3;
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6);
+      doc.text('¡GRACIAS POR SU COMPRA!', centerX, currentY, { align: 'center' });
+    }
+
+    return doc;
   } catch (error) {
-    console.error('Error generating thermal receipt PDF:', error)
-    throw new Error('Error al generar el PDF del recibo térmico')
+    console.error('Error generating thermal receipt PDF:', error);
+    throw new Error('Error al generar el PDF del recibo térmico');
   }
 }
 
