@@ -22,13 +22,23 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
+  },
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Faster builds
+  swcMinify: true,
 }
 
 const isProduction = process.env.NODE_ENV === 'production'
 
 export default withPWA({
   dest: 'public',
-  disable: false, // Enable in all environments for testing
+  disable: false, // PWA enabled with optimizations
   register: true,
   skipWaiting: true,
   buildExcludes: [/middleware-manifest\.json$/],

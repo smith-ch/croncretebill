@@ -419,14 +419,11 @@ export default function DashboardPage() {
       const totalInvoices = invoices?.length || 0
       // Usar la consulta directa de facturas pendientes
       const facturasPendientesSimple = pendingInvoicesData || []
-      console.log("🔥 FACTURAS PENDIENTES DIRECTAS:", facturasPendientesSimple)
       
       // Filtrar facturas válidas (excluir canceladas y borradores) para otras estadísticas
       const validInvoices = invoices?.filter((inv) => inv.status !== "cancelada" && inv.status !== "borrador") || []
       const paidInvoices = validInvoices.filter((inv) => inv.status === "pagada") || []
       const unpaidInvoices = validInvoices.filter((inv) => inv.status === "enviada") || []
-
-      // Los logs de debug muestran que hay 4 facturas "enviada" pero de meses anteriores
 
       const invoiceRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       // Si hay error en thermal receipts, usar 0 como fallback
@@ -436,17 +433,9 @@ export default function DashboardPage() {
       const totalExpenses = expenses?.length || 0
       const totalExpenseAmount = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
-      // Cálculo SUPER SIMPLE usando la consulta directa
+      // Cálculo usando la consulta directa
       const pendingInvoices = facturasPendientesSimple.length
       const pendingRevenue = facturasPendientesSimple.reduce((sum, inv) => sum + (inv.total || 0), 0)
-      
-      console.log("� RESULTADO FINAL SIMPLE:")
-      console.log("- Cantidad facturas pendientes:", pendingInvoices)
-      console.log("- Revenue pendiente:", pendingRevenue)
-      console.log("- Lista facturas:", facturasPendientesSimple.map(inv => ({
-        numero: inv.invoice_number,
-        total: inv.total
-      })))
       
       const overdueInvoices =
         facturasPendientesSimple.filter((inv) => {
@@ -605,7 +594,7 @@ export default function DashboardPage() {
       const previousMonthRevenue = previousMonthInvoiceRevenue + previousMonthThermalRevenue
 
       // ✅ VALORES FINALES CONFIRMADOS:
-      console.log("✅ ENVIANDO A setStats:", { pendingInvoices, pendingRevenue, overdueInvoices })
+      // Stats calculated successfully
 
       setStats((prev) => ({
         ...prev,
