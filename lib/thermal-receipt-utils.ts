@@ -105,62 +105,81 @@ const splitTextToLines = (text: string, maxCharsPerLine: number): string[] => {
   return lines
 }
 
-// Función para calcular altura dinámica del recibo
+// Función para calcular altura dinámica del recibo de forma precisa
 const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: CompanyData): number => {
-  let height = 30 // Base mínima
+  let height = 5 // Margen superior mínimo
   
   // Logo
   if (companyData?.logo) {
-    height += 25
+    height += 16 // 14 logo + 2 espacio
   }
   
-  // Header empresa (nombre, rnc, dirección, teléfono)
-  height += 20
-  if (companyData?.address) {
-    const addressLines = Math.ceil((companyData.address.length) / 30)
-    height += addressLines * 4
+  // Header empresa
+  height += 4 // Nombre empresa
+  
+  if (companyData?.rnc) {
+    height += 2.5
   }
+  if (companyData?.address) {
+    const addressLines = splitTextToLines(companyData.address, 25).length
+    height += addressLines * 2.5
+  }
+  if (companyData?.phone) {
+    height += 2.5
+  }
+  
+  height += 1 + 2 // línea + espacio
   
   // Información del recibo
-  height += 15
+  height += 3 + 3 + 2.5 + 3 // título + número + fecha + espacio
   
   // Cliente (si no es general)
   if (receiptData.client_name && receiptData.client_name !== 'Cliente General') {
-    height += 10
+    height += 4 + 4 + 4 // línea + cliente + línea
+  } else {
+    height += 3 // solo línea
   }
   
   // Items
-  receiptData.items.forEach(item => {
-    const nameLines = Math.ceil(item.item_name.length / 28)
-    height += nameLines * 3.5 + 5 // Nombre + detalles
+  receiptData.items.forEach((item, index) => {
+    const nameLines = item.item_name.length > 22 ? 
+      splitTextToLines(item.item_name, 22).length : 1
+    height += nameLines * 2.5 + 2.5 // nombre + línea de precio
+    if (index < receiptData.items.length - 1) {
+      height += 3
+    } else {
+      height += 2
+    }
   })
   
   // Totales
-  height += 20
+  height += 1 + 3 + 2.5 + 2.5 + 2.5 + 2.5 + 3 // línea + subtotal + itbis + línea + total + espacio
   
   // Pago
-  height += 12
+  height += 2.5 // método de pago
   if (receiptData.amount_received > 0) {
-    height += 4
-  }
-  if (receiptData.change_amount > 0) {
-    height += 4
+    height += 2.5
+    if (receiptData.change_amount > 0) {
+      height += 2.5
+    }
   }
   
   // Código verificación
-  height += 8
+  height += 2 + 3 // espacio + código
   
   // Notas
   if (receiptData.notes && receiptData.notes.trim()) {
-    const notesLines = Math.ceil(receiptData.notes.length / 30)
-    height += notesLines * 3 + 8
+    const notesLines = splitTextToLines(receiptData.notes, 25).length
+    height += 3 + 3 + (notesLines * 2.5) + 2 // línea + "Notas:" + contenido + espacio
   }
   
   // Footer
-  height += 15
+  height += 2 + 3 + 3 // espacio + línea + mensaje final
   
-  // Mínimo 60mm, máximo 300mm
-  return Math.max(60, Math.min(210, height))
+  // Agregar margen inferior
+  height += 3
+  
+  return Math.ceil(height)
 }
 
 export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData, companyData?: CompanyData) => {
