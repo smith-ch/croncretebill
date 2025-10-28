@@ -107,11 +107,11 @@ const splitTextToLines = (text: string, maxCharsPerLine: number): string[] => {
 
 // Función para calcular altura dinámica del recibo de forma precisa
 const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: CompanyData): number => {
-  let height = 5 // Margen superior mínimo
+  let height = 2 // Margen superior mínimo
   
   // Logo
   if (companyData?.logo) {
-    height += 16 // 14 logo + 2 espacio
+    height += 20 // 18 logo + 2 espacio
   }
   
   // Header empresa
@@ -121,7 +121,7 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
     height += 2.5
   }
   if (companyData?.address) {
-    const addressLines = splitTextToLines(companyData.address, 25).length
+    const addressLines = splitTextToLines(companyData.address, 35).length
     height += addressLines * 2.5
   }
   if (companyData?.phone) {
@@ -142,8 +142,8 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
   
   // Items
   receiptData.items.forEach((item, index) => {
-    const nameLines = item.item_name.length > 22 ? 
-      splitTextToLines(item.item_name, 22).length : 1
+    const nameLines = item.item_name.length > 32 ? 
+      splitTextToLines(item.item_name, 32).length : 1
     height += nameLines * 2.5 + 2.5 // nombre + línea de precio
     if (index < receiptData.items.length - 1) {
       height += 3
@@ -169,15 +169,15 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
   
   // Notas
   if (receiptData.notes && receiptData.notes.trim()) {
-    const notesLines = splitTextToLines(receiptData.notes, 25).length
+    const notesLines = splitTextToLines(receiptData.notes, 35).length
     height += 3 + 3 + (notesLines * 2.5) + 2 // línea + "Notas:" + contenido + espacio
   }
   
   // Footer
-  height += 2 + 3 + 3 // espacio + línea + mensaje final
+  height += 1 + 3 + 3 // espacio + línea + mensaje final
   
-  // Agregar margen inferior
-  height += 3
+  // Agregar margen inferior mínimo
+  height += 2
   
   return Math.ceil(height)
 }
