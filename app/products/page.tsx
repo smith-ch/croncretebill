@@ -21,9 +21,16 @@ interface Product {
   description?: string
   product_code?: string
   unit_price: number
+  cost_price?: number
   unit: string
   mix_type?: string
   resistance?: string
+  slump?: string
+  stock_quantity?: number
+  category_id?: string
+  categories?: {
+    name: string
+  }
   created_at: string
 }
 
@@ -36,7 +43,7 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, permissions } = useUserPermissions()
-  const { categories } = useCategories('product')
+  // const { categories } = useCategories('product')
 
   useEffect(() => {
     fetchProducts()
@@ -51,7 +58,13 @@ export default function ProductsPage() {
 
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          categories!products_category_id_fkey (
+            name,
+            color
+          )
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -212,18 +225,25 @@ export default function ProductsPage() {
                     className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white border-0 shadow-md hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50"
                   >
                     <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
                             {product.name}
                           </h3>
-                          {product.product_code && (
-                            <p className="text-sm text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mt-1 inline-block">
-                              {product.product_code}
-                            </p>
-                          )}
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {product.product_code && (
+                              <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
+                                {product.product_code}
+                              </Badge>
+                            )}
+                            {product.categories?.name && (
+                              <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
+                                {product.categories.name}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 ml-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -250,26 +270,92 @@ export default function ProductsPage() {
                           )}
                         </div>
                       </div>
-                      {product.description && <p className="text-sm text-slate-600 mb-4">{product.description}</p>}
+                      
+                      {product.description && (
+                        <p className="text-sm text-slate-600 mb-3 line-clamp-2">{product.description}</p>
+                      )}
+
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-slate-700">Precio:</span>
-                          <span className="font-bold text-blue-600 text-lg">
-                            {formatCurrency(product.unit_price)}/{product.unit}
-                          </span>
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          {product.mix_type && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-                              {product.mix_type}
-                            </Badge>
+                        {/* Precios */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                            <div className="text-xs text-blue-700 font-semibold mb-1">Precio Venta</div>
+                            <div className="font-bold text-blue-800 text-lg">
+                              {formatCurrency(product.unit_price)}
+                            </div>
+                            <div className="text-xs text-blue-600">por {product.unit}</div>
+                          </div>
+                          {product.cost_price ? (
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-200">
+                              <div className="text-xs text-slate-700 font-semibold mb-1">Costo</div>
+                              <div className="font-bold text-slate-800 text-sm">
+                                {formatCurrency(product.cost_price)}
+                              </div>
+                              {product.cost_price > 0 && (
+                                <div className="text-xs text-green-600 font-medium">
+                                  {(((product.unit_price - product.cost_price) / product.cost_price) * 100).toFixed(0)}% ganancia
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200 flex items-center justify-center">
+                              <div className="text-center">
+                                <Calculator className="h-4 w-4 text-gray-400 mx-auto mb-1" />
+                                <div className="text-xs text-gray-500">Sin costo definido</div>
+                              </div>
+                            </div>
                           )}
-                          {product.resistance && (
-                            <Badge variant="outline" className="border-slate-300 text-slate-700">
-                              {product.resistance}
-                            </Badge>
-                          )}
                         </div>
+
+                        {/* Stock */}
+                        {product.stock_quantity !== undefined && product.stock_quantity !== null && (
+                          <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4 text-gray-600" />
+                              <span className="text-sm font-semibold text-gray-700">Stock:</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-bold text-sm ${
+                                product.stock_quantity > 10 ? 'text-green-600' : 
+                                product.stock_quantity > 0 ? 'text-amber-600' : 
+                                'text-red-600'
+                              }`}>
+                                {product.stock_quantity} {product.unit}
+                              </span>
+                              {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+                                <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 bg-amber-50">
+                                  Bajo
+                                </Badge>
+                              )}
+                              {product.stock_quantity === 0 && (
+                                <Badge variant="outline" className="text-xs border-red-400 text-red-700 bg-red-50">
+                                  Agotado
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Información técnica */}
+                        {(product.mix_type || product.resistance || product.slump) && (
+                          <div className="flex gap-2 flex-wrap">
+                            {product.mix_type && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                🏗️ {product.mix_type}
+                              </Badge>
+                            )}
+                            {product.resistance && (
+                              <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                                💪 {product.resistance}
+                              </Badge>
+                            )}
+                            {product.slump && (
+                              <Badge variant="outline" className="border-purple-300 text-purple-700 text-xs">
+                                📏 {product.slump}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

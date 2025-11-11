@@ -108,6 +108,7 @@ export interface Database {
           name: string
           description: string | null
           price: number | null
+          production_cost: number | null
           unit: string
           category: string | null
           category_id: string | null
@@ -124,6 +125,7 @@ export interface Database {
           name: string
           description?: string | null
           price?: number | null
+          production_cost?: number | null
           unit?: string
           category?: string | null
           category_id?: string | null
@@ -140,6 +142,7 @@ export interface Database {
           name?: string
           description?: string | null
           price?: number | null
+          production_cost?: number | null
           unit?: string
           category?: string | null
           category_id?: string | null
