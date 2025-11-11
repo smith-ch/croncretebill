@@ -38,6 +38,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
       description: formData.get("description") as string,
       service_code: formData.get("service_code") as string,
       price: isCustomPricing ? null : priceValue ? Number.parseFloat(priceValue) : 0,
+      production_cost: formData.get("production_cost") ? Number.parseFloat(formData.get("production_cost") as string) : 0,
       unit: formData.get("unit") as string,
       category: formData.get("category") as string, // Mantener compatibilidad hacia atrás
       category_id: selectedCategoryId || null,
@@ -174,7 +175,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Precio {!isCustomPricing && "*"}</Label>
                 <Input
@@ -189,6 +190,18 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   className={isCustomPricing ? "bg-gray-100 text-gray-500" : ""}
                 />
                 {isCustomPricing && <p className="text-xs text-gray-600">El precio se definirá al crear la factura</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="production_cost">Precio de Producción</Label>
+                <Input
+                  id="production_cost"
+                  name="production_cost"
+                  type="number"
+                  step="0.01"
+                  defaultValue={service?.production_cost || ""}
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-gray-600">Costo interno para calcular margen de ganancia</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit">Unidad</Label>
