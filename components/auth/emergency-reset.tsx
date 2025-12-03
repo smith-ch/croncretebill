@@ -1,11 +1,18 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function EmergencyReset() {
+  const [showConfirm, setShowConfirm] = useState(false)
+
   const handleEmergencyReset = () => {
+    setShowConfirm(true)
+  }
+
+  const confirmReset = () => {
     // Limpiar todos los estados problemáticos del localStorage
     const keysToRemove = [
       'employee-view-mode',
@@ -17,25 +24,32 @@ export function EmergencyReset() {
       localStorage.removeItem(key)
     })
     
-    // Mostrar mensaje de confirmación
-    const confirmed = confirm(
-      'Se han limpiado los datos de sesión. La página se recargará para aplicar los cambios. ¿Continuar?'
-    )
-    
-    if (confirmed) {
-      window.location.reload()
-    }
+    // Recargar la página
+    window.location.reload()
   }
 
   return (
-    <Button 
-      onClick={handleEmergencyReset}
-      variant="destructive"
-      size="sm"
-      className="fixed bottom-4 left-4 z-50 opacity-75 hover:opacity-100"
-    >
-      <AlertTriangle className="h-4 w-4 mr-2" />
-      Reset Emergencia
-    </Button>
+    <>
+      <Button 
+        onClick={handleEmergencyReset}
+        variant="destructive"
+        size="sm"
+        className="fixed bottom-4 left-4 z-50 opacity-75 hover:opacity-100"
+      >
+        <AlertTriangle className="h-4 w-4 mr-2" />
+        Reset Emergencia
+      </Button>
+
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Reset de Emergencia"
+        description="Se limpiarán los datos de sesión y la página se recargará. ¿Deseas continuar?"
+        confirmLabel="Sí, continuar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmReset}
+        variant="warning"
+      />
+    </>
   )
 }

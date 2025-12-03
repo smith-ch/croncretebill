@@ -9,11 +9,13 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ProductForm } from "@/components/forms/product-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Package, Edit, Trash2, Calculator } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useCategories } from "@/hooks/use-categories"
+import { useToast } from "@/hooks/use-toast"
 
 interface Product {
   id: string
@@ -41,8 +43,11 @@ export default function ProductsPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, permissions } = useUserPermissions()
+  const { toast } = useToast()
   // const { categories } = useCategories('product')
 
   useEffect(() => {
@@ -79,20 +84,40 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!canDelete('products')) {
-      alert("No tienes permisos para eliminar productos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar productos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
-      return
-    }
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("products").delete().eq("id", id)
-      if (error) { throw error }
+      const { error } = await supabase.from("products").delete().eq("id", deleteConfirm.id)
+      if (error) throw error
+      
+      toast({
+        title: "Producto eliminado",
+        description: "El producto ha sido eliminado exitosamente"
+      })
       fetchProducts()
     } catch (error) {
       console.error("Error deleting product:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el producto",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -308,30 +333,38 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Stock */}
-                        {product.stock_quantity !== undefined && product.stock_quantity !== null && (
+                        {((product.current_stock !== undefined && product.current_stock !== null) || 
+                          (product.stock_quantity !== undefined && product.stock_quantity !== null)) && (
                           <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
                             <div className="flex items-center gap-2">
                               <Package className="h-4 w-4 text-gray-600" />
-                              <span className="text-sm font-semibold text-gray-700">Stock:</span>
+                              <span className="text-sm font-semibold text-gray-700">Stock Disponible:</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className={`font-bold text-sm ${
-                                product.stock_quantity > 10 ? 'text-green-600' : 
-                                product.stock_quantity > 0 ? 'text-amber-600' : 
-                                'text-red-600'
-                              }`}>
-                                {product.stock_quantity} {product.unit}
-                              </span>
-                              {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-                                <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 bg-amber-50">
-                                  Bajo
-                                </Badge>
-                              )}
-                              {product.stock_quantity === 0 && (
-                                <Badge variant="outline" className="text-xs border-red-400 text-red-700 bg-red-50">
-                                  Agotado
-                                </Badge>
-                              )}
+                              {(() => {
+                                const stock = product.current_stock ?? product.stock_quantity ?? 0
+                                return (
+                                  <>
+                                    <span className={`font-bold text-sm ${
+                                      stock > 10 ? 'text-green-600' : 
+                                      stock > 0 ? 'text-amber-600' : 
+                                      'text-red-600'
+                                    }`}>
+                                      {stock} {product.unit}
+                                    </span>
+                                    {stock <= 5 && stock > 0 && (
+                                      <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 bg-amber-50">
+                                        Bajo
+                                      </Badge>
+                                    )}
+                                    {stock === 0 && (
+                                      <Badge variant="outline" className="text-xs border-red-400 text-red-700 bg-red-50">
+                                        Agotado
+                                      </Badge>
+                                    )}
+                                  </>
+                                )
+                              })()}
                             </div>
                           </div>
                         )}
@@ -365,6 +398,18 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Producto"
+        description="¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

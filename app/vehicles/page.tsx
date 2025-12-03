@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Car, Edit, Trash2, Loader2 } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<any[]>([])
@@ -22,6 +24,9 @@ export default function VehiclesPage() {
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchVehicles()
@@ -93,18 +98,40 @@ export default function VehiclesPage() {
 
   const handleDelete = async (id: string) => {
     if (!canDelete('vehicles')) {
-      alert("No tienes permisos para eliminar vehículos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar vehículos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este vehículo?")) { return }
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("vehicles").delete().eq("id", id)
-      if (error) { throw error }
+      const { error } = await supabase.from("vehicles").delete().eq("id", deleteConfirm.id)
+      if (error) throw error
+      
+      toast({
+        title: "Vehículo eliminado",
+        description: "El vehículo ha sido eliminado exitosamente"
+      })
       fetchVehicles()
     } catch (error) {
       console.error("Error deleting vehicle:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el vehículo",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -311,6 +338,18 @@ export default function VehiclesPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Vehículo"
+        description="¿Estás seguro de que quieres eliminar este vehículo? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

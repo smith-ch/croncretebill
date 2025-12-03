@@ -29,6 +29,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { WarehouseTransfer } from "@/components/inventory/warehouse-transfer"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 
 // Types
@@ -71,8 +73,11 @@ export default function UnifiedInventoryPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterWarehouse, setFilterWarehouse] = useState<string>("all")
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null; name: string }>({ show: false, id: null, name: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency, formatNumber } = useCurrency()
   const { permissions, canEdit } = useUserPermissions()
+  const { toast } = useToast()
 
   const fetchProducts = async () => {
     try {
@@ -312,10 +317,11 @@ export default function UnifiedInventoryPage() {
         // Actualizar stock existente
         const stockData = existingStock as any
         const newStock = Math.max(0, stockData.current_stock + quantityChange)
-        const { error: updateError } = await (supabase as any)
+        const { error: updateError } = await supabase
           .from('product_warehouse_stock')
           .update({
             current_stock: newStock,
+            available_stock: newStock,
             updated_at: new Date().toISOString()
           })
           .eq('id', stockData.id)
@@ -325,12 +331,13 @@ export default function UnifiedInventoryPage() {
         }
       } else if (movementFormData.movement_type === 'entrada' && quantityChange > 0) {
         // Crear nuevo registro si es entrada
-        const { error: createError } = await (supabase as any)
+        const { error: createError } = await supabase
           .from('product_warehouse_stock')
           .insert({
             product_id: movementFormData.product_id,
             warehouse_id: movementFormData.warehouse_id,
             current_stock: quantityChange,
+            available_stock: quantityChange,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -340,18 +347,48 @@ export default function UnifiedInventoryPage() {
         }
       }
 
-      // 3. Actualizar el stock total del producto si es necesario
-      const { data: allWarehouseStock } = await supabase
+      // 3. Actualizar el stock total del producto en la tabla products
+      // CRÍTICO: Solo sumar stock de almacenes ACTIVOS
+      const { data: allWarehouseStock, error: fetchStockError } = await supabase
         .from('product_warehouse_stock')
-        .select('current_stock')
+        .select(`
+          current_stock,
+          warehouse:warehouses!inner(is_active)
+        `)
         .eq('product_id', movementFormData.product_id)
+        .eq('warehouse.is_active', true)
 
-      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => sum + stock.current_stock, 0) || 0
+      if (fetchStockError) {
+        console.error('Error fetching warehouse stock:', fetchStockError)
+      }
 
-      await (supabase as any)
+      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => 
+        sum + (stock.current_stock || 0), 0) || 0
+
+      console.log(`📊 Stock calculation for product ${movementFormData.product_id}:`, {
+        warehouseStocks: allWarehouseStock,
+        totalCalculated: totalStock
+      })
+
+      const { error: productUpdateError } = await supabase
         .from('products')
-        .update({ current_stock: totalStock })
+        .update({ 
+          current_stock: totalStock,
+          available_stock: totalStock,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', movementFormData.product_id)
+
+      if (productUpdateError) {
+        console.error('Error updating product stock:', productUpdateError)
+        throw new Error('Error al actualizar stock total del producto')
+      }
+
+      // Mostrar notificación de éxito
+      toast({
+        title: "Movimiento creado",
+        description: `Movimiento de ${movementFormData.movement_type} registrado correctamente`,
+      })
 
       // Limpiar formulario y recargar datos
       setMovementFormData({
@@ -406,10 +443,11 @@ export default function UnifiedInventoryPage() {
       const quantityChange = newStock - oldStock
 
       // 1. Actualizar stock en product_warehouse_stock
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from('product_warehouse_stock')
         .update({
           current_stock: Math.max(0, newStock),
+          available_stock: Math.max(0, newStock),
           updated_at: new Date().toISOString()
         })
         .eq('id', stockItemId)
@@ -419,7 +457,7 @@ export default function UnifiedInventoryPage() {
       }
 
       // 2. Registrar el movimiento
-      await (supabase as any)
+      await supabase
         .from('stock_movements')
         .insert({
           product_id: stockData.product_id,
@@ -431,18 +469,52 @@ export default function UnifiedInventoryPage() {
           user_id: user.id
         })
 
-      // 3. Actualizar el stock total del producto
-      const { data: allWarehouseStock } = await supabase
+      // 3. Actualizar el stock total del producto en la tabla products
+      // Esto es CRÍTICO para sincronización con catálogo y recibos térmicos
+      // IMPORTANTE: Solo sumar stock de almacenes ACTIVOS para evitar duplicados
+      const { data: allWarehouseStock, error: fetchStockError } = await supabase
         .from('product_warehouse_stock')
-        .select('current_stock')
+        .select(`
+          current_stock,
+          warehouse:warehouses!inner(is_active)
+        `)
         .eq('product_id', stockData.product_id)
+        .eq('warehouse.is_active', true)
 
-      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => sum + stock.current_stock, 0) || 0
+      if (fetchStockError) {
+        console.error('Error fetching warehouse stock:', fetchStockError)
+      }
 
-      await (supabase as any)
+      // Calcular total solo de almacenes activos
+      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => 
+        sum + (stock.current_stock || 0), 0) || 0
+
+      console.log(`📊 Stock calculation for product ${stockData.product_id}:`, {
+        warehouseStocks: allWarehouseStock,
+        totalCalculated: totalStock,
+        previousTotal: stockData.product?.current_stock
+      })
+
+      // Actualizar products.current_stock y available_stock
+      const { error: productUpdateError } = await supabase
         .from('products')
-        .update({ current_stock: totalStock })
+        .update({ 
+          current_stock: totalStock,
+          available_stock: totalStock,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', stockData.product_id)
+
+      if (productUpdateError) {
+        console.error('Error updating product stock:', productUpdateError)
+        throw new Error('Error al actualizar stock total del producto')
+      }
+
+      // Mostrar notificación de éxito
+      toast({
+        title: "Stock actualizado",
+        description: `Stock de "${stockData.product.name}" actualizado correctamente. Nuevo stock: ${newStock}`,
+      })
 
       // Actualizar interfaz
       setEditingStock(null)
@@ -451,7 +523,11 @@ export default function UnifiedInventoryPage() {
 
     } catch (error: any) {
       console.error('Error updating stock:', error)
-      alert(`Error al actualizar stock: ${error.message}`)
+      toast({
+        title: "Error",
+        description: `Error al actualizar stock: ${error.message}`,
+        variant: "destructive"
+      })
     }
   }
 
@@ -516,10 +592,21 @@ export default function UnifiedInventoryPage() {
   }
 
   const deleteWarehouse = async (warehouseId: string, warehouseName: string) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar el almacén "${warehouseName}"?`)) {
+    if (!canEdit) {
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar almacenes",
+        variant: "destructive"
+      })
       return
     }
+    setDeleteConfirm({ show: true, id: warehouseId, name: warehouseName })
+  }
 
+  const confirmDeleteWarehouse = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
       const {
         data: { user },
@@ -532,12 +619,18 @@ export default function UnifiedInventoryPage() {
       const { data: stockItems } = await supabase
         .from('product_warehouse_stock')
         .select('id')
-        .eq('warehouse_id', warehouseId)
+        .eq('warehouse_id', deleteConfirm.id)
         .gt('current_stock', 0)
         .limit(1)
 
       if (stockItems && stockItems.length > 0) {
-        alert('No se puede eliminar un almacén que tiene productos con stock. Transfiere los productos primero.')
+        toast({
+          title: "No se puede eliminar",
+          description: "No se puede eliminar un almacén que tiene productos con stock. Transfiere los productos primero.",
+          variant: "destructive"
+        })
+        setDeleteConfirm({ show: false, id: null, name: '' })
+        setIsDeleting(false)
         return
       }
 
@@ -545,21 +638,32 @@ export default function UnifiedInventoryPage() {
       const { error } = await supabase
         .from('warehouses')
         .delete()
-        .eq('id', warehouseId)
+        .eq('id', deleteConfirm.id)
         .eq('user_id', user.id)
 
       if (error) {
         throw error
       }
 
-      console.log('Warehouse deleted successfully:', warehouseId)
+      toast({
+        title: "Almacén eliminado",
+        description: `El almacén "${deleteConfirm.name}" ha sido eliminado exitosamente`,
+      })
+      
+      setDeleteConfirm({ show: false, id: null, name: '' })
       
       // Recargar datos
       fetchAllData()
 
     } catch (error: any) {
       console.error('Error deleting warehouse:', error)
-      alert(`Error al eliminar almacén: ${error.message}`)
+      toast({
+        title: "Error al eliminar",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -1649,6 +1753,18 @@ export default function UnifiedInventoryPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null, name: '' })}
+        title="Eliminar Almacén"
+        description={`¿Estás seguro de que deseas eliminar el almacén "${deleteConfirm.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteWarehouse}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

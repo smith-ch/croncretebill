@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, UserCheck, Edit, Trash2, Phone, CreditCard, Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<any[]>([])
@@ -21,6 +23,9 @@ export default function DriversPage() {
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchDrivers()
@@ -89,14 +94,32 @@ export default function DriversPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este conductor?")) return
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("drivers").delete().eq("id", id)
+      const { error } = await supabase.from("drivers").delete().eq("id", deleteConfirm.id)
       if (error) throw error
+      
+      toast({
+        title: "Conductor eliminado",
+        description: "El conductor ha sido eliminado exitosamente"
+      })
       fetchDrivers()
     } catch (error) {
       console.error("Error deleting driver:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el conductor",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -285,6 +308,18 @@ export default function DriversPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Conductor"
+        description="¿Estás seguro de que quieres eliminar este conductor? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

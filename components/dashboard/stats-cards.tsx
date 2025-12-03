@@ -56,10 +56,10 @@ export function StatsCards({
       {permissions.canViewFinances && (
         <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/10 group-hover:from-blue-500/10 group-hover:to-indigo-500/15 transition-all duration-300"></div>
-        <div className="hidden lg:block absolute top-0 right-0 w-16 h-16 lg:w-24 lg:h-24 bg-gradient-to-br from-blue-300/20 to-indigo-400/30 rounded-full -translate-y-8 lg:-translate-y-12 translate-x-8 lg:translate-x-12 group-hover:scale-110 transition-transform duration-300"></div>
-        <CardHeader className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-1 lg:space-y-0 pb-2 lg:pb-3 relative p-3 lg:p-6">
-          <div className="space-y-1">
-            <CardTitle className="text-xs lg:text-sm font-bold text-blue-700 uppercase tracking-wide">Ingresos</CardTitle>
+        <div className="hidden lg:block absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-300/20 to-indigo-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-300"></div>
+        <CardHeader className="flex flex-row items-center justify-between pb-2 relative p-3 lg:p-6">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-xs lg:text-sm font-bold text-blue-700 uppercase tracking-wide mb-1">Ingresos</CardTitle>
             <div className="hidden lg:flex items-center gap-2">
               {revenueTrend >= 0 ? (
                 <ArrowUpRight className="h-4 w-4 text-emerald-600" />
@@ -71,39 +71,41 @@ export function StatsCards({
               </Badge>
             </div>
           </div>
-          <div className="hidden lg:block p-2 lg:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl lg:rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
-            <DollarSign className="h-4 w-4 lg:h-6 lg:w-6 text-white" />
+          <div className="hidden lg:block p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex-shrink-0">
+            <DollarSign className="h-6 w-6 text-white" />
           </div>
         </CardHeader>
         <CardContent className="relative p-3 lg:p-6 pt-0">
-          <div className="text-lg lg:text-3xl font-bold text-blue-900 mb-1 lg:mb-2">{formatCurrency(totalRevenue)}</div>
-          <div className="flex items-center justify-between text-xs lg:text-sm">
-            <span className="text-blue-600 font-medium">Semana:</span>
-            <span className="font-bold text-blue-800">{formatCurrency(weeklyRevenue)}</span>
+          <div className="flex flex-col">
+            <span className="text-2xl lg:text-3xl font-bold text-blue-900 mb-2">{formatCurrency(totalRevenue)}</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-blue-500 uppercase tracking-wide">Semana:</span>
+              <span className="font-bold text-blue-800">{formatCurrency(weeklyRevenue)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
       )}
 
-      {/* Net Profit - Enhanced - Only visible with financial permissions */}
+      {/* Net Profit - Mobile Optimized */}
       {permissions.canViewFinances && (
-      <Card className={`border-0 shadow-2xl bg-gradient-to-br hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group ${
+      <Card className={`border-0 shadow-lg bg-gradient-to-br hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group ${
         netProfit >= 0 ? 'from-emerald-50 via-green-50 to-emerald-100' : 'from-red-50 via-pink-50 to-red-100'
       }`}>
-        <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
+        <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-300 ${
           netProfit >= 0 
             ? 'from-emerald-500/5 to-green-500/10 group-hover:from-emerald-500/10 group-hover:to-green-500/15' 
             : 'from-red-500/5 to-pink-500/10 group-hover:from-red-500/10 group-hover:to-pink-500/15'
         }`}></div>
-        <div className={`absolute top-0 right-0 w-24 h-24 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500 ${
+        <div className={`hidden lg:block absolute top-0 right-0 w-24 h-24 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-300 ${
           netProfit >= 0 ? 'bg-gradient-to-br from-emerald-300/20 to-green-400/30' : 'bg-gradient-to-br from-red-300/20 to-pink-400/30'
         }`}></div>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
-          <div className="space-y-1">
-            <CardTitle className={`text-sm font-bold uppercase tracking-wide ${netProfit >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+        <CardHeader className="flex flex-row items-center justify-between pb-2 relative p-3 lg:p-6">
+          <div className="flex-1 min-w-0">
+            <CardTitle className={`text-xs lg:text-sm font-bold uppercase tracking-wide mb-1 ${netProfit >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
               Ganancia Neta
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2">
               {netProfit >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
               ) : (
@@ -114,7 +116,7 @@ export function StatsCards({
               </Badge>
             </div>
           </div>
-          <div className={`p-3 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+          <div className={`hidden lg:block p-3 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex-shrink-0 ${
             netProfit >= 0
               ? "bg-gradient-to-br from-emerald-500 to-green-600"
               : "bg-gradient-to-br from-red-500 to-pink-600"
@@ -126,29 +128,31 @@ export function StatsCards({
             )}
           </div>
         </CardHeader>
-        <CardContent className="relative">
-          <div className={`text-3xl font-bold mb-2 ${netProfit >= 0 ? "text-emerald-900" : "text-red-900"}`}>
-            {formatCurrency(netProfit)}
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className={`font-medium ${netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>Esta semana:</span>
-            <span className={`font-bold ${weeklyNetProfit >= 0 ? "text-emerald-800" : "text-red-800"}`}>
-              {formatCurrency(weeklyNetProfit)}
+        <CardContent className="relative p-3 lg:p-6 pt-0">
+          <div className="flex flex-col">
+            <span className={`text-2xl lg:text-3xl font-bold mb-2 ${netProfit >= 0 ? "text-emerald-900" : "text-red-900"}`}>
+              {formatCurrency(netProfit)}
             </span>
+            <div className="flex items-center justify-between text-xs">
+              <span className={`uppercase tracking-wide ${netProfit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>Esta semana:</span>
+              <span className={`font-bold ${weeklyNetProfit >= 0 ? "text-emerald-800" : "text-red-800"}`}>
+                {formatCurrency(weeklyNetProfit)}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
       )}
 
-      {/* Total Expenses - Enhanced - Only visible with financial permissions */}
+      {/* Total Expenses - Mobile Optimized */}
       {permissions.canViewFinances && (
-      <Card className="border-0 shadow-2xl bg-gradient-to-br from-red-50 via-pink-50 to-red-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/10 group-hover:from-red-500/10 group-hover:to-pink-500/15 transition-all duration-500"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-300/20 to-pink-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
-          <div className="space-y-1">
-            <CardTitle className="text-sm font-bold text-red-700 uppercase tracking-wide">Gastos Totales</CardTitle>
-            <div className="flex items-center gap-2">
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 via-pink-50 to-red-100 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/10 group-hover:from-red-500/10 group-hover:to-pink-500/15 transition-all duration-300"></div>
+        <div className="hidden lg:block absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-300/20 to-pink-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-300"></div>
+        <CardHeader className="flex flex-row items-center justify-between pb-2 relative p-3 lg:p-6">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-xs lg:text-sm font-bold text-red-700 uppercase tracking-wide mb-1">Gastos Totales</CardTitle>
+            <div className="hidden lg:flex items-center gap-2">
               {expenseTrend >= 0 ? (
                 <ArrowUpRight className="h-4 w-4 text-red-600" />
               ) : (
@@ -159,43 +163,47 @@ export function StatsCards({
               </Badge>
             </div>
           </div>
-          <div className="p-3 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
+          <div className="hidden lg:block p-3 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex-shrink-0">
             <Receipt className="h-6 w-6 text-white" />
           </div>
         </CardHeader>
-        <CardContent className="relative">
-          <div className="text-3xl font-bold text-red-900 mb-2">{formatCurrency(totalExpenseAmount)}</div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-red-600 font-medium">Esta semana:</span>
-            <span className="font-bold text-red-800">{formatCurrency(weeklyExpenseAmount)}</span>
+        <CardContent className="relative p-3 lg:p-6 pt-0">
+          <div className="flex flex-col">
+            <span className="text-2xl lg:text-3xl font-bold text-red-900 mb-2">{formatCurrency(totalExpenseAmount)}</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-red-500 uppercase tracking-wide">Esta semana:</span>
+              <span className="font-bold text-red-800">{formatCurrency(weeklyExpenseAmount)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
       )}
 
-      {/* Total Invoices - Enhanced */}
-      <Card className="border-0 shadow-2xl bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 hover:shadow-3xl transition-all duration-500 hover:scale-105 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-gray-500/10 group-hover:from-slate-500/10 group-hover:to-gray-500/15 transition-all duration-500"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-slate-300/20 to-gray-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-500"></div>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
-          <div className="space-y-1">
-            <CardTitle className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Facturas</CardTitle>
-            <div className="flex items-center gap-2">
+      {/* Total Invoices - Mobile Optimized */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-gray-500/10 group-hover:from-slate-500/10 group-hover:to-gray-500/15 transition-all duration-300"></div>
+        <div className="hidden lg:block absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-slate-300/20 to-gray-400/30 rounded-full -translate-y-12 translate-x-12 group-hover:scale-110 transition-transform duration-300"></div>
+        <CardHeader className="flex flex-row items-center justify-between pb-2 relative p-3 lg:p-6">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-xs lg:text-sm font-bold text-slate-700 uppercase tracking-wide mb-1">Total Facturas</CardTitle>
+            <div className="hidden lg:flex items-center gap-2">
               <Activity className="h-4 w-4 text-slate-600" />
               <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700">
                 {totalInvoices} docs
               </Badge>
             </div>
           </div>
-          <div className="p-3 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
+          <div className="hidden lg:block p-3 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex-shrink-0">
             <FileText className="h-6 w-6 text-white" />
           </div>
         </CardHeader>
-        <CardContent className="relative">
-          <div className="text-3xl font-bold text-slate-900 mb-2">{totalInvoices}</div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600 font-medium">Esta semana:</span>
-            <span className="font-bold text-slate-800">{weeklyInvoices}</span>
+        <CardContent className="relative p-3 lg:p-6 pt-0">
+          <div className="flex flex-col">
+            <span className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">{totalInvoices}</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-500 uppercase tracking-wide">Esta semana:</span>
+              <span className="font-bold text-slate-800">{weeklyInvoices}</span>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ import {
 import { motion } from "framer-motion"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 
 interface Expense {
   id: string
@@ -84,8 +86,11 @@ export default function ExpensesPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([])
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'expense' | 'category' | 'bulk', name?: string}>({show: false, id: null, type: 'expense'})
+  const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchExpenses()
@@ -170,11 +175,61 @@ export default function ExpensesPage() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    
+    // Validación: Descripción es obligatoria
+    const description = formData.get("description") as string
+    if (!description || description.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "La descripción del gasto es obligatoria",
+      })
+      setFormLoading(false)
+      return
+    }
+
+    // Validación: Monto debe ser válido y positivo
+    const amountStr = formData.get("amount") as string
+    const amount = Number.parseFloat(amountStr)
+    if (!amountStr || isNaN(amount) || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "❌ Monto inválido",
+        description: "El monto debe ser un número mayor a 0",
+      })
+      setFormLoading(false)
+      return
+    }
+
+    // Validación: Categoría es obligatoria
+    const category = formData.get("category") as string
+    if (!category || category.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Categoría requerida",
+        description: "Debe seleccionar una categoría para el gasto",
+      })
+      setFormLoading(false)
+      return
+    }
+
+    // Validación: Fecha del gasto
+    const expenseDate = formData.get("expense_date") as string
+    if (!expenseDate) {
+      toast({
+        variant: "destructive",
+        title: "❌ Fecha requerida",
+        description: "Debe seleccionar la fecha del gasto",
+      })
+      setFormLoading(false)
+      return
+    }
+
     const expenseData = {
-      description: formData.get("description") as string,
-      amount: Number.parseFloat(formData.get("amount") as string),
-      category: formData.get("category") as string,
-      expense_date: formData.get("expense_date") as string,
+      description: description.trim(),
+      amount: amount,
+      category: category,
+      expense_date: expenseDate,
       receipt_number: formData.get("receipt_number") as string,
       notes: formData.get("notes") as string,
     }
@@ -193,6 +248,11 @@ export default function ExpensesPage() {
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Gasto actualizado",
+          description: `${expenseData.description} ha sido actualizado correctamente`,
+        })
       } else {
         // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expenses").insert({
@@ -202,13 +262,24 @@ export default function ExpensesPage() {
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Gasto registrado exitosamente",
+          description: `${expenseData.description} por ${formatCurrency(expenseData.amount)}`,
+        })
       }
 
       setShowExpenseForm(false)
       setEditingExpense(null)
       fetchExpenses()
     } catch (error: any) {
-      setError(error.message)
+      const errorMsg = error.message || "Error al guardar el gasto"
+      setError(errorMsg)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar gasto",
+        description: errorMsg,
+      })
     } finally {
       setFormLoading(false)
     }
@@ -220,8 +291,21 @@ export default function ExpensesPage() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    
+    // Validación: Nombre de categoría es obligatorio
+    const name = formData.get("name") as string
+    if (!name || name.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El nombre de la categoría es obligatorio",
+      })
+      setFormLoading(false)
+      return
+    }
+
     const categoryData = {
-      name: formData.get("name") as string,
+      name: name.trim(),
       description: formData.get("description") as string,
       color: formData.get("color") as string,
     }
@@ -240,6 +324,11 @@ export default function ExpensesPage() {
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Categoría actualizada",
+          description: `${categoryData.name} ha sido actualizada correctamente`,
+        })
       } else {
         // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expense_categories").insert({
@@ -249,97 +338,125 @@ export default function ExpensesPage() {
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Categoría creada exitosamente",
+          description: `${categoryData.name} ha sido agregada`,
+        })
       }
 
       setShowCategoryForm(false)
       setEditingCategory(null)
       fetchCategories()
     } catch (error: any) {
-      setError(error.message)
+      const errorMsg = error.message || "Error al guardar la categoría"
+      setError(errorMsg)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar categoría",
+        description: errorMsg,
+      })
     } finally {
       setFormLoading(false)
     }
   }
 
   const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoryName}"?`)) {
-      return
-    }
-
-    try {
-      // Check if category is being used by any expenses
-      const { data: expensesUsingCategory, error: checkError } = await supabase
-        .from("expenses")
-        .select("id")
-        .eq("category", categoryName)
-        .limit(1)
-
-      if (checkError) {
-        throw checkError
-      }
-
-      if (expensesUsingCategory && expensesUsingCategory.length > 0) {
-        alert("No se puede eliminar esta categoría porque está siendo utilizada por uno o más gastos.")
-        return
-      }
-
-      const { error } = await supabase.from("expense_categories").delete().eq("id", categoryId)
-      if (error) {
-        throw error
-      }
-
-      fetchCategories()
-    } catch (error) {
-      console.error("Error deleting category:", error)
-      alert("Error al eliminar la categoría")
-    }
+    setDeleteConfirm({show: true, id: categoryId, type: 'category', name: categoryName})
   }
 
   const handleDelete = async (id: string) => {
     if (!canDelete('expenses')) {
-      alert("No tienes permisos para eliminar gastos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar gastos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
-      return
-    }
-
-    try {
-      const { error } = await supabase.from("expenses").delete().eq("id", id)
-      if (error) {
-        throw error
-      }
-      fetchExpenses()
-      setSelectedExpenses(selectedExpenses.filter((expenseId) => expenseId !== id))
-    } catch (error) {
-      console.error("Error deleting expense:", error)
-    }
+    setDeleteConfirm({show: true, id, type: 'expense'})
   }
 
   const handleBulkDelete = async () => {
     if (!canDelete('expenses')) {
-      alert("No tienes permisos para eliminar gastos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar gastos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (selectedExpenses.length === 0) {
-      return
-    }
-    if (!confirm(`¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos?`)) {
-      return
-    }
+    setDeleteConfirm({show: true, id: null, type: 'bulk'})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id && deleteConfirm.type !== 'bulk') return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("expenses").delete().in("id", selectedExpenses)
-      if (error) {
-        throw error
-      }
+      if (deleteConfirm.type === 'category') {
+        // Check if category is being used by any expenses
+        const { data: expensesUsingCategory, error: checkError } = await supabase
+          .from("expenses")
+          .select("id")
+          .eq("category", deleteConfirm.name)
+          .limit(1)
 
-      fetchExpenses()
-      setSelectedExpenses([])
+        if (checkError) throw checkError
+
+        if (expensesUsingCategory && expensesUsingCategory.length > 0) {
+          toast({
+            title: "No se puede eliminar",
+            description: "Esta categoría está siendo utilizada por uno o más gastos",
+            variant: "destructive"
+          })
+          setIsDeleting(false)
+          setDeleteConfirm({show: false, id: null, type: 'expense'})
+          return
+        }
+
+        const { error } = await supabase.from("expense_categories").delete().eq("id", deleteConfirm.id)
+        if (error) throw error
+        
+        toast({
+          title: "Categoría eliminada",
+          description: "La categoría ha sido eliminada exitosamente"
+        })
+        fetchCategories()
+      } else if (deleteConfirm.type === 'bulk') {
+        for (const id of selectedExpenses) {
+          const { error } = await supabase.from("expenses").delete().eq("id", id)
+          if (error) throw error
+        }
+        
+        toast({
+          title: "Gastos eliminados",
+          description: `${selectedExpenses.length} gastos han sido eliminados exitosamente`
+        })
+        setSelectedExpenses([])
+        fetchExpenses()
+      } else {
+        const { error } = await supabase.from("expenses").delete().eq("id", deleteConfirm.id)
+        if (error) throw error
+        
+        toast({
+          title: "Gasto eliminado",
+          description: "El gasto ha sido eliminado exitosamente"
+        })
+        fetchExpenses()
+      }
     } catch (error) {
-      console.error("Error deleting expenses:", error)
+      console.error("Error deleting:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo completar la eliminación",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null, type: 'expense'})
     }
   }
 
@@ -1051,6 +1168,30 @@ export default function ExpensesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null, type: 'expense'})}
+        title={
+          deleteConfirm.type === 'category' 
+            ? "Eliminar Categoría" 
+            : deleteConfirm.type === 'bulk'
+            ? "Eliminar Gastos"
+            : "Eliminar Gasto"
+        }
+        description={
+          deleteConfirm.type === 'category'
+            ? `¿Estás seguro de que quieres eliminar la categoría "${deleteConfirm.name}"? Esta acción no se puede deshacer.`
+            : deleteConfirm.type === 'bulk'
+            ? `¿Estás seguro de que quieres eliminar ${selectedExpenses.length} gastos? Esta acción no se puede deshacer.`
+            : "¿Estás seguro de que quieres eliminar este gasto? Esta acción no se puede deshacer."
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

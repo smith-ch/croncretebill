@@ -184,15 +184,15 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
 
 export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData, companyData?: CompanyData) => {
   try {
-    // 1. Usar una altura inicial generosa
-    const tempHeight = calculateReceiptHeight(receiptData, companyData) + 40; // margen extra
+    // 1. Usar altura inicial más ajustada - eliminar espacio en blanco superior
+    const tempHeight = calculateReceiptHeight(receiptData, companyData) + 10; // margen reducido
     let doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: [58, tempHeight]
     });
 
-    let currentY = 3;
+    let currentY = 1.5; // Reducido de 3 a 1.5 para eliminar espacio superior
     const centerX = 29;
     const leftMargin = 2;
     const rightMargin = 56;

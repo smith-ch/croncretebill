@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { 
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 import { downloadThermalReceiptPDF, printThermalReceiptPDF, previewThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
@@ -319,10 +321,13 @@ export default function ThermalReceiptsPage() {
   const [generalDiscountType, setGeneralDiscountType] = useState<"percentage" | "amount">("percentage")
   const [generalDiscountPercentage, setGeneralDiscountPercentage] = useState(0)
   const [generalDiscountAmount, setGeneralDiscountAmount] = useState(0)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
   const { canDelete } = useUserPermissions()
+  const { toast } = useToast()
 
   // Use proper permissions system for delete operations
 
@@ -451,6 +456,20 @@ export default function ThermalReceiptsPage() {
   const updateItem = (index: number, field: keyof ThermalReceiptItem, value: any) => {
     const updatedItems = [...items]
     updatedItems[index] = { ...updatedItems[index], [field]: value }
+    
+    // Validar stock si se actualiza cantidad y hay product_id
+    if (field === "quantity" && updatedItems[index].product_id) {
+      const product = products.find(p => p.id === updatedItems[index].product_id)
+      if (product) {
+        const availableStock = product.current_stock ?? product.stock_quantity ?? 0
+        if (value > availableStock) {
+          notifyError(`Stock insuficiente. Solo hay ${availableStock} unidad(es) disponible(s) de "${product.name}"`)
+          // Limitar cantidad al stock disponible
+          updatedItems[index].quantity = availableStock
+          value = availableStock
+        }
+      }
+    }
     
     // Calculate line total
     if (field === "quantity" || field === "unit_price") {
@@ -591,6 +610,20 @@ export default function ThermalReceiptsPage() {
         return
       }
 
+      // Validar stock disponible antes de guardar
+      const itemsToValidate = items.filter(item => item.product_id && item.quantity > 0)
+      for (const item of itemsToValidate) {
+        const product = products.find(p => p.id === item.product_id)
+        if (product) {
+          const availableStock = product.current_stock ?? product.stock_quantity ?? 0
+          if (item.quantity > availableStock) {
+            notifyError(`Stock insuficiente de "${product.name}". Disponible: ${availableStock}, Solicitado: ${item.quantity}`)
+            setSaving(false)
+            return
+          }
+        }
+      }
+
       const verification_code = generateVerificationCode()
       // Use a fallback URL for local development
       const baseUrl = window.location.origin.includes('localhost') 
@@ -662,7 +695,7 @@ export default function ThermalReceiptsPage() {
       notifySuccess("Recibo térmico creado exitosamente")
       await fetchData()
 
-      // Generate and print receipt with company data
+      // Generate and print receipt with company data - AUTO IMPRESIÓN
       const fullReceipt = { ...(receiptData as any), items: itemsToSave }
       const companyData = profile ? {
         name: profile.company_name || "MI EMPRESA",
@@ -672,7 +705,8 @@ export default function ThermalReceiptsPage() {
         logo: profile.company_logo || undefined
       } : undefined
       
-      await downloadThermalReceiptPDF(fullReceipt, companyData)
+      // Auto-imprimir el recibo automáticamente después de crearlo
+      await printThermalReceiptPDF(fullReceipt, companyData)
 
     } catch (error) {
       console.error("Error saving receipt:", error)
@@ -742,30 +776,38 @@ export default function ThermalReceiptsPage() {
   }
 
   const handleDeleteReceipt = async (receiptId: string) => {
-  if (!canDelete('thermalReceipts')) {
-      notifyError("No tienes permisos para eliminar recibos")
+    if (!canDelete('thermalReceipts')) {
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar recibos",
+        variant: "destructive"
+      })
       return
     }
 
-    if (!confirm("¿Estás seguro de que quieres eliminar este recibo? Esta acción no se puede deshacer.")) {
-      return
-    }
+    setDeleteConfirm({show: true, id: receiptId})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
       const { error } = await supabase
         .from('thermal_receipts')
         .delete()
-        .eq('id', receiptId)
+        .eq('id', deleteConfirm.id)
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       notifySuccess("Recibo eliminado exitosamente")
       await fetchData()
     } catch (error) {
       console.error("Error deleting receipt:", error)
       notifyError("Error al eliminar el recibo")
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -1138,11 +1180,32 @@ export default function ThermalReceiptsPage() {
                             {getFilteredProducts(index).length > 0 && (
                               <>
                                 <SelectItem disabled value="products-header">Productos</SelectItem>
-                                {getFilteredProducts(index).map(product => (
-                                  <SelectItem key={product.id} value={`product|${product.id}`}>
-                                    {product.product_code ? `[${product.product_code}] ` : ''}{product.name} - {formatCurrency(product.price)}
-                                  </SelectItem>
-                                ))}
+                                {getFilteredProducts(index).map(product => {
+                                  const stock = product.current_stock ?? product.stock_quantity ?? 0
+                                  const isLowStock = stock > 0 && stock <= 10
+                                  const isOutOfStock = stock <= 0
+                                  return (
+                                    <SelectItem 
+                                      key={product.id} 
+                                      value={`product|${product.id}`}
+                                      disabled={isOutOfStock}
+                                      className={isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}
+                                    >
+                                      <div className="flex items-center justify-between w-full">
+                                        <span>
+                                          {product.product_code ? `[${product.product_code}] ` : ''}{product.name} - {formatCurrency(product.price)}
+                                        </span>
+                                        <span className={`ml-2 text-xs font-semibold px-2 py-0.5 rounded ${
+                                          isOutOfStock ? 'bg-red-100 text-red-700' : 
+                                          isLowStock ? 'bg-yellow-100 text-yellow-700' : 
+                                          'bg-green-100 text-green-700'
+                                        }`}>
+                                          {isOutOfStock ? 'Agotado' : `${stock} disponible${stock !== 1 ? 's' : ''}`}
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  )
+                                })}
                               </>
                             )}
                             {getFilteredServices(index).length > 0 && (
@@ -2171,6 +2234,18 @@ export default function ThermalReceiptsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+        title="Eliminar Recibo Térmico"
+        description="¿Estás seguro de que deseas eliminar este recibo térmico? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
       </div>
     </div>
   )

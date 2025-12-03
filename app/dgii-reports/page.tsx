@@ -2108,95 +2108,95 @@ export default function DGIIReportsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8 max-w-7xl">
+    <div className="container mx-auto py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-7xl px-3 sm:px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Reportes DGII
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Genera reportes 606 (Compras) y 607 (Ventas) para cumplimiento fiscal
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="text-sm font-medium">Período:</span>
+            <Calendar className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">Período:</span>
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border rounded-md px-3 py-1 text-sm"
+              className="border rounded-md px-2 py-1 text-sm w-full sm:w-auto"
             />
           </div>
-          <Button onClick={fetchDGIIData} disabled={loading}>
+          <Button onClick={fetchDGIIData} disabled={loading} className="w-full sm:w-auto">
             {loading ? "Cargando..." : "Actualizar"}
           </Button>
         </div>
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700">Total Compras</p>
-                <p className="text-2xl font-bold text-green-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-green-700">Total Compras</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-900 truncate">
                   {formatCurrency(dgiiData?.totalCompras || 0)}
                 </p>
                 <p className="text-xs text-green-600 mt-1">
                   {dgiiData?.compras.length || 0} registros
                 </p>
               </div>
-              <Receipt className="h-8 w-8 text-green-600" />
+              <Receipt className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-green-600 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700">Total Ventas</p>
-                <p className="text-2xl font-bold text-blue-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-blue-700">Total Ventas</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 truncate">
                   {formatCurrency(dgiiData?.totalVentas || 0)}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   {dgiiData?.ventas.length || 0} facturas
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+              <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-600 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-700">ITBIS Compras</p>
-                <p className="text-2xl font-bold text-orange-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-orange-700">ITBIS Compras</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-900 truncate">
                   {formatCurrency(dgiiData?.itbisCompras || 0)}
                 </p>
                 <p className="text-xs text-orange-600 mt-1">18% estimado</p>
               </div>
-              <FileText className="h-8 w-8 text-orange-600" />
+              <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-orange-600 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-700">ITBIS Ventas</p>
-                <p className="text-2xl font-bold text-purple-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-purple-700">ITBIS Ventas</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-900 truncate">
                   {formatCurrency(dgiiData?.itbisVentas || 0)}
                 </p>
                 <p className="text-xs text-purple-600 mt-1">Facturado</p>
               </div>
-              <Users className="h-8 w-8 text-purple-600" />
+              <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-purple-600 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -2204,10 +2204,10 @@ export default function DGIIReportsPage() {
 
       {/* Advertencia importante */}
       <Card className="border-yellow-200 bg-yellow-50">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-            <div className="text-sm text-yellow-800">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm text-yellow-800">
               <p className="font-medium">Importante:</p>
               <p>Los reportes generados son una aproximación basada en los datos del sistema. Verifica que todas las facturas tengan NCF válidos y que los proveedores tengan RNC/Cédula correctos antes de enviar a DGII.</p>
             </div>
@@ -2217,16 +2217,16 @@ export default function DGIIReportsPage() {
 
       {/* Pestañas de reportes */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="606">Reporte 606</TabsTrigger>
-          <TabsTrigger value="607">Reporte 607</TabsTrigger>
-          <TabsTrigger value="payment-methods">Métodos Pago</TabsTrigger>
-          <TabsTrigger value="fiscal-invoices">Facturas Fiscales</TabsTrigger>
-          <TabsTrigger value="annual">Resumen Anual</TabsTrigger>
-          <TabsTrigger value="manual-606">➕ Gasto 606</TabsTrigger>
-          <TabsTrigger value="manual-607">➕ Factura 607</TabsTrigger>
-          <TabsTrigger value="info">Info</TabsTrigger>
+        <TabsList className="w-full overflow-x-auto flex lg:grid lg:grid-cols-9 bg-slate-100 p-1">
+          <TabsTrigger value="overview" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Resumen</TabsTrigger>
+          <TabsTrigger value="606" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Reporte 606</TabsTrigger>
+          <TabsTrigger value="607" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Reporte 607</TabsTrigger>
+          <TabsTrigger value="payment-methods" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Métodos Pago</TabsTrigger>
+          <TabsTrigger value="fiscal-invoices" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Facturas Fiscales</TabsTrigger>
+          <TabsTrigger value="annual" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Resumen Anual</TabsTrigger>
+          <TabsTrigger value="manual-606" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">➕ Gasto 606</TabsTrigger>
+          <TabsTrigger value="manual-607" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">➕ Factura 607</TabsTrigger>
+          <TabsTrigger value="info" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Info</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

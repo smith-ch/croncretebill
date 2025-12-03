@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CategorySelector } from "@/components/ui/category-selector"
-
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProductFormProps {
   product?: any
@@ -24,6 +24,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(product?.category_id || "")
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -31,20 +32,85 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    
+    // Validación: Nombre es obligatorio
+    const name = formData.get("name") as string
+    if (!name || name.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El nombre del producto es obligatorio",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Precio unitario debe ser válido
+    const unitPriceStr = formData.get("unit_price") as string
+    const unitPrice = Number.parseFloat(unitPriceStr)
+    if (!unitPriceStr || isNaN(unitPrice) || unitPrice < 0) {
+      toast({
+        variant: "destructive",
+        title: "❌ Precio inválido",
+        description: "El precio unitario debe ser un número mayor o igual a 0",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Precio de costo (si se proporciona)
+    const costPriceStr = formData.get("cost_price") as string
+    const costPrice = costPriceStr ? Number.parseFloat(costPriceStr) : unitPrice
+    if (costPriceStr && (isNaN(costPrice) || costPrice < 0)) {
+      toast({
+        variant: "destructive",
+        title: "❌ Precio de costo inválido",
+        description: "El precio de costo debe ser un número mayor o igual a 0",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Stock debe ser un número válido
+    const stockStr = formData.get("stock_quantity") as string
+    const stockQuantity = stockStr ? Number.parseInt(stockStr) : 0
+    if (stockStr && (isNaN(stockQuantity) || stockQuantity < 0)) {
+      toast({
+        variant: "destructive",
+        title: "❌ Stock inválido",
+        description: "La cantidad en stock debe ser un número entero mayor o igual a 0",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Stock mínimo debe ser válido
+    const minStockStr = formData.get("min_stock") as string
+    const minStock = minStockStr ? Number.parseInt(minStockStr) : 0
+    if (minStockStr && (isNaN(minStock) || minStock < 0)) {
+      toast({
+        variant: "destructive",
+        title: "❌ Stock mínimo inválido",
+        description: "El stock mínimo debe ser un número entero mayor o igual a 0",
+      })
+      setLoading(false)
+      return
+    }
+
     const productData = {
-      name: formData.get("name") as string,
+      name: name.trim(),
       description: formData.get("description") as string,
       product_code: formData.get("product_code") as string,
-      unit_price: Number.parseFloat(formData.get("unit_price") as string),
-      cost_price: Number.parseFloat(formData.get("cost_price") as string) || Number.parseFloat(formData.get("unit_price") as string),
+      unit_price: unitPrice,
+      cost_price: costPrice,
       unit: formData.get("unit") as string,
-      category: formData.get("category") as string, // Mantener compatibilidad hacia atrás
+      category: formData.get("category") as string,
       category_id: selectedCategoryId || null,
       brand: formData.get("brand") as string,
       sku: formData.get("sku") as string,
-      stock_quantity: Number.parseInt(formData.get("stock_quantity") as string) || 0,
-      min_stock: Number.parseInt(formData.get("min_stock") as string) || 0,
-      reorder_point: Number.parseInt(formData.get("min_stock") as string) || 0,
+      stock_quantity: stockQuantity,
+      min_stock: minStock,
+      reorder_point: minStock,
     }
 
     try {
@@ -69,6 +135,11 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Producto actualizado",
+          description: `${productData.name} ha sido actualizado correctamente`,
+        })
       } else {
         // Create new product
         const { data: newProduct, error } = await supabase
@@ -84,6 +155,11 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
         if (error) {
           throw error
         }
+
+        toast({
+          title: "✅ Producto creado exitosamente",
+          description: `${productData.name} ha sido agregado al catálogo`,
+        })
 
         // Create stock movement for initial stock if quantity > 0
         if (newProduct && productData.stock_quantity > 0) {
@@ -169,6 +245,11 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
       }
       
       setError(userFriendlyMessage)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar producto",
+        description: userFriendlyMessage,
+      })
     } finally {
       setLoading(false)
     }

@@ -8,8 +8,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/forms/client-form"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -17,7 +19,10 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingClient, setEditingClient] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   const { canDelete, canEdit } = useUserPermissions()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchClients()
@@ -49,20 +54,40 @@ export default function ClientsPage() {
 
   const handleDelete = async (id: string) => {
     if (!canDelete('clients')) {
-      alert("No tienes permisos para eliminar clientes")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar clientes",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
-      return
-    }
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("clients").delete().eq("id", id)
-      if (error) { throw error }
+      const { error } = await supabase.from("clients").delete().eq("id", deleteConfirm.id)
+      if (error) throw error
+      
+      toast({
+        title: "Cliente eliminado",
+        description: "El cliente ha sido eliminado exitosamente"
+      })
       fetchClients()
     } catch (error) {
       console.error("Error deleting client:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el cliente",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -206,6 +231,11 @@ export default function ClientsPage() {
                             <span className="font-medium">RNC:</span> {client.rnc}
                           </p>
                         )}
+                        {client.cedula && (
+                          <p className="text-gray-600 dark:text-gray-400">
+                            <span className="font-medium">Cédula:</span> {client.cedula}
+                          </p>
+                        )}
                         {client.contact_person && (
                           <p className="text-gray-600 dark:text-gray-400">
                             <span className="font-medium">Contacto:</span> {client.contact_person}
@@ -234,6 +264,18 @@ export default function ClientsPage() {
         </CardContent>
       </Card>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Cliente"
+        description="¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

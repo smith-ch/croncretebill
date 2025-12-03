@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   CheckCircle,
   FileText,
@@ -30,6 +31,7 @@ import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { generatePaymentReceiptPDF } from "@/lib/payment-receipt-utils"
+import { useToast } from "@/hooks/use-toast"
 
 interface PaymentReceipt {
   id: string
@@ -149,6 +151,8 @@ export default function PaymentReceiptsPage() {
   const [generating, setGenerating] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentReceipt | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, receipt: PaymentReceipt | null}>({show: false, receipt: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   const [stats, setStats] = useState<PaymentStats>({
     totalPaid: 0,
     totalReceipts: 0,
@@ -169,6 +173,7 @@ export default function PaymentReceiptsPage() {
 
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
+  const { toast } = useToast()
 
   // Memoize expensive calculations
   const mostUsedPaymentMethod = useMemo(() => {
@@ -389,21 +394,69 @@ export default function PaymentReceiptsPage() {
   }
 
   const handleGenerateManualReceipt = async () => {
+    // Validación: Factura seleccionada
+    if (!selectedInvoice) {
+      toast({
+        variant: "destructive",
+        title: "❌ Factura requerida",
+        description: "Debe seleccionar una factura para generar el comprobante",
+      })
+      notifyError("Debe seleccionar una factura")
+      return
+    }
+
+    // Validación: Monto pagado debe ser mayor a 0
+    const amountPaid = manualReceiptData.amount_paid || selectedInvoice.total
+    if (amountPaid <= 0) {
+      toast({
+        variant: "destructive",
+        title: "❌ Monto inválido",
+        description: "El monto pagado debe ser mayor a 0",
+      })
+      return
+    }
+
+    // Validación: Monto pagado no debe exceder el total
+    if (amountPaid > selectedInvoice.total * 1.5) {
+      toast({
+        variant: "destructive",
+        title: "⚠️ Monto muy alto",
+        description: `El monto pagado (${formatCurrency(amountPaid)}) parece muy alto para esta factura (${formatCurrency(selectedInvoice.total)})`,
+      })
+      return
+    }
+
+    // Validación: Si es transferencia o cheque, debe tener referencia bancaria
+    if ((manualReceiptData.payment_method === "transfer" || manualReceiptData.payment_method === "check") 
+        && (!manualReceiptData.bank_reference || manualReceiptData.bank_reference.trim() === "")) {
+      toast({
+        variant: "destructive",
+        title: "❌ Referencia requerida",
+        description: "Para pagos por transferencia o cheque debe proporcionar la referencia bancaria",
+      })
+      return
+    }
+
     try {
       setGenerating(true)
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        return
-      }
-
-      if (!selectedInvoice) {
-        notifyError("Debe seleccionar una factura")
+        toast({
+          variant: "destructive",
+          title: "Error de autenticación",
+          description: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+        })
         return
       }
 
       // Check if receipt already exists
       const existingReceipt = paymentReceipts.find(r => r.invoice_id === selectedInvoice.id)
       if (existingReceipt) {
+        toast({
+          variant: "destructive",
+          title: "❌ Comprobante duplicado",
+          description: "Esta factura ya tiene un comprobante de pago",
+        })
         notifyError("Esta factura ya tiene un comprobante de pago")
         return
       }
@@ -417,7 +470,7 @@ export default function PaymentReceiptsPage() {
           user_id: user.id,
           invoice_id: selectedInvoice.id,
           payment_method: manualReceiptData.payment_method,
-          amount_paid: manualReceiptData.amount_paid || selectedInvoice.total,
+          amount_paid: amountPaid,
           change_amount: manualReceiptData.change_amount,
           bank_reference: manualReceiptData.bank_reference || null,
           notes: manualReceiptData.notes || null,
@@ -443,6 +496,10 @@ export default function PaymentReceiptsPage() {
       })
       setSelectedInvoice(null)
 
+      toast({
+        title: "✅ Comprobante generado exitosamente",
+        description: `Comprobante de pago para factura #${selectedInvoice.invoice_number}`,
+      })
       notifySuccess("Comprobante de pago generado exitosamente")
       await fetchData()
 
@@ -572,25 +629,29 @@ export default function PaymentReceiptsPage() {
   }
 
   const handleDeleteReceipt = async (receipt: PaymentReceipt) => {
-    try {
-      if (!confirm("¿Estás seguro de que deseas eliminar este comprobante de pago? Esta acción no se puede deshacer.")) {
-        return
-      }
+    setDeleteConfirm({show: true, receipt})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.receipt) return
+
+    setIsDeleting(true)
+    try {
       const { error } = await supabase
         .from("payment_receipts")
         .delete()
-        .eq("id", receipt.id)
+        .eq("id", deleteConfirm.receipt.id)
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       notifySuccess("Comprobante eliminado correctamente")
       await fetchData()
     } catch (error) {
       console.error("Error deleting receipt:", error)
       notifyError("Error al eliminar el comprobante")
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, receipt: null})
     }
   }
 
@@ -729,59 +790,59 @@ export default function PaymentReceiptsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-emerald-600 font-medium text-sm">Total Recaudado</p>
-                <p className="text-2xl font-bold text-emerald-900">{formatCurrency(stats.totalPaid)}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-emerald-600 font-medium text-xs uppercase tracking-wide mb-1">Total Recaudado</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(stats.totalPaid)}</p>
               </div>
-              <div className="p-3 bg-emerald-200 rounded-full">
-                <TrendingUp className="h-6 w-6 text-emerald-700" />
+              <div className="hidden sm:block p-2 bg-emerald-200 rounded-full flex-shrink-0 ml-2">
+                <TrendingUp className="h-5 w-5 text-emerald-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 font-medium text-sm">Comprobantes Emitidos</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.totalReceipts}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-blue-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Emitidos</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-900">{stats.totalReceipts}</p>
               </div>
-              <div className="p-3 bg-blue-200 rounded-full">
-                <Receipt className="h-6 w-6 text-blue-700" />
+              <div className="hidden sm:block p-2 bg-blue-200 rounded-full flex-shrink-0 ml-2">
+                <Receipt className="h-5 w-5 text-blue-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 font-medium text-sm">Comprobantes Hoy</p>
-                <p className="text-2xl font-bold text-purple-900">{stats.todayReceipts}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-purple-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Hoy</p>
+                <p className="text-xl sm:text-2xl font-bold text-purple-900">{stats.todayReceipts}</p>
               </div>
-              <div className="p-3 bg-purple-200 rounded-full">
-                <Calendar className="h-6 w-6 text-purple-700" />
+              <div className="hidden sm:block p-2 bg-purple-200 rounded-full flex-shrink-0 ml-2">
+                <Calendar className="h-5 w-5 text-purple-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-600 font-medium text-sm">Método Más Usado</p>
-                <p className="text-lg font-bold text-orange-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-orange-600 font-medium text-xs uppercase tracking-wide mb-1">Método Más Usado</p>
+                <p className="text-base sm:text-lg font-bold text-orange-900 truncate">
                   {mostUsedMethodLabel}
                 </p>
               </div>
-              <div className="p-3 bg-orange-200 rounded-full">
+              <div className="hidden sm:block p-2 bg-orange-200 rounded-full flex-shrink-0 ml-2">
                 {getPaymentMethodIcon(mostUsedPaymentMethod)}
               </div>
             </div>
@@ -842,24 +903,24 @@ export default function PaymentReceiptsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {paymentReceipts.map((receipt) => (
                     <div
                       key={receipt.id}
-                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                      className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-3 lg:gap-0"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 bg-emerald-100 rounded-lg">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className="p-2 bg-emerald-100 rounded-lg flex-shrink-0">
                           {getPaymentMethodIcon(receipt.payment_method)}
                         </div>
-                        <div>
-                          <div className="font-medium text-slate-900">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-slate-900 text-sm sm:text-base truncate">
                             {formatReceiptNumber(receipt.receipt_number)}
                           </div>
-                          <div className="text-sm text-slate-600">
+                          <div className="text-xs sm:text-sm text-slate-600 truncate">
                             Factura: {receipt.invoice?.invoice_number || 'N/A'} • {receipt.invoice?.clients?.name || 'Cliente no encontrado'}
                           </div>
-                          <div className="text-sm text-slate-600">
+                          <div className="text-xs sm:text-sm text-slate-600">
                             {getPaymentMethodLabel(receipt.payment_method)} • {formatCurrency(receipt.amount_paid)}
                           </div>
                           <div className="text-xs text-slate-500">
@@ -867,39 +928,43 @@ export default function PaymentReceiptsPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={receipt.receipt_type === "formal" ? "default" : "secondary"}
-                          className={
-                            receipt.receipt_type === "formal"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-slate-100 text-slate-600"
-                          }
-                        >
-                          {receipt.receipt_type === "formal" ? "Formal" : "Simple"}
-                        </Badge>
-                        {receipt.emailed_at && (
-                          <Badge className="bg-green-100 text-green-800">
-                            <Mail className="h-3 w-3 mr-1" />
-                            Enviado
+                      <div className="flex items-center justify-between lg:justify-end gap-2 flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                          <Badge
+                            variant={receipt.receipt_type === "formal" ? "default" : "secondary"}
+                            className={`text-xs ${
+                              receipt.receipt_type === "formal"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {receipt.receipt_type === "formal" ? "Formal" : "Simple"}
                           </Badge>
-                        )}
+                          {receipt.emailed_at && (
+                            <Badge className="bg-green-100 text-green-800 text-xs hidden sm:inline-flex">
+                              <Mail className="h-3 w-3 mr-1" />
+                              Enviado
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex gap-1">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleDownloadReceipt(receipt)}
                             title="Descargar PDF"
+                            className="h-8 w-8 p-0"
                           >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handlePreviewReceipt(receipt)}
                             title="Vista Previa PDF"
+                            className="h-8 w-8 p-0"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5" />
                           </Button>
                           {receipt.invoice?.client?.email && !receipt.emailed_at && (
                             <Button
@@ -907,18 +972,19 @@ export default function PaymentReceiptsPage() {
                               size="sm"
                               onClick={() => handleEmailReceipt(receipt)}
                               title="Enviar por Email"
+                              className="h-8 w-8 p-0 hidden sm:inline-flex"
                             >
-                              <Mail className="h-4 w-4" />
+                              <Mail className="h-3.5 w-3.5" />
                             </Button>
                           )}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteReceipt(receipt)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
                             title="Eliminar Comprobante"
                           >
-                            <XCircle className="h-4 w-4" />
+                            <XCircle className="h-3.5 w-3.5" />
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -927,8 +993,9 @@ export default function PaymentReceiptsPage() {
                                 size="sm"
                                 onClick={() => setSelectedReceipt(receipt)}
                                 title="Ver Detalles"
+                                className="h-8 w-8 p-0"
                               >
-                                <MoreVertical className="h-4 w-4" />
+                                <MoreVertical className="h-3.5 w-3.5" />
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl">
@@ -1301,6 +1368,18 @@ export default function PaymentReceiptsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, receipt: null})}
+        title="Eliminar Comprobante de Pago"
+        description="¿Estás seguro de que deseas eliminar este comprobante de pago? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

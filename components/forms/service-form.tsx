@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CategorySelector } from "@/components/ui/category-selector"
 import { Loader2, Info } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ServiceFormProps {
   service?: any
@@ -25,6 +26,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
   const [error, setError] = useState<string | null>(null)
   const [isCustomPricing, setIsCustomPricing] = useState(service?.price === null || service?.price === undefined)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(service?.category_id || "")
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,15 +34,57 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    
+    // Validación: Nombre es obligatorio
+    const name = formData.get("name") as string
+    if (!name || name.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El nombre del servicio es obligatorio",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Precio debe ser válido si no es personalizado
     const priceValue = formData.get("price") as string
+    if (!isCustomPricing) {
+      const price = priceValue ? Number.parseFloat(priceValue) : 0
+      if (isNaN(price) || price < 0) {
+        toast({
+          variant: "destructive",
+          title: "❌ Precio inválido",
+          description: "El precio debe ser un número mayor o igual a 0",
+        })
+        setLoading(false)
+        return
+      }
+    }
+
+    // Validación: Costo de producción si se proporciona
+    const costStr = formData.get("production_cost") as string
+    if (costStr) {
+      const cost = Number.parseFloat(costStr)
+      if (isNaN(cost) || cost < 0) {
+        toast({
+          variant: "destructive",
+          title: "❌ Costo inválido",
+          description: "El costo de producción debe ser un número mayor o igual a 0",
+        })
+        setLoading(false)
+        return
+      }
+    }
+
     const serviceData = {
-      name: formData.get("name") as string,
+      name: name.trim(),
       description: formData.get("description") as string,
       service_code: formData.get("service_code") as string,
       price: isCustomPricing ? null : priceValue ? Number.parseFloat(priceValue) : 0,
       production_cost: formData.get("production_cost") ? Number.parseFloat(formData.get("production_cost") as string) : 0,
       unit: formData.get("unit") as string,
-      category: formData.get("category") as string, // Mantener compatibilidad hacia atrás
+      category: formData.get("category") as string,
       category_id: selectedCategoryId || null,
       duration: formData.get("duration") as string,
       requirements: formData.get("requirements") as string,
@@ -66,6 +110,11 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Servicio actualizado",
+          description: `${serviceData.name} ha sido actualizado correctamente`,
+        })
       } else {
         const { error } = await supabase
           .from("services")
@@ -76,6 +125,11 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
         if (error) {
           throw error
         }
+        
+        toast({
+          title: "✅ Servicio creado exitosamente",
+          description: `${serviceData.name} ha sido agregado`,
+        })
       }
 
       if (onSuccess) {
@@ -84,7 +138,13 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
         router.push("/services")
       }
     } catch (error: any) {
-      setError(error.message)
+      const errorMsg = error.message || "Error al guardar el servicio"
+      setError(errorMsg)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar servicio",
+        description: errorMsg,
+      })
     } finally {
       setLoading(false)
     }

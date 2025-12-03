@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   Calendar,
   Clock,
@@ -34,6 +35,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 import { FixedExpense } from "@/types"
 import { 
   getFixedExpenses, 
@@ -77,10 +79,13 @@ export default function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
   const [editingItem, setEditingItem] = useState<AgendaItem | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'event' | 'expense'}>({show: false, id: null, type: 'event'})
+  const [isDeleting, setIsDeleting] = useState(false)
   // All hooks must be called first before any conditional returns
   const [autoRefresh, setAutoRefresh] = useState(false) // Cambiado a false para evitar refrescos automáticos no deseados
   const { formatCurrency } = useCurrency()
   const { canAccessModule, canDelete, permissions } = useUserPermissions()
+  const { toast } = useToast()
   
   // Form states
   const [newItem, setNewItem] = useState({
@@ -216,7 +221,13 @@ export default function AgendaPage() {
   }
 
   const addNewItem = async () => {
-    if (!newItem.title) {
+    // Validación: Título es obligatorio
+    if (!newItem.title || newItem.title.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El título del evento es obligatorio",
+      })
       return
     }
 
@@ -232,13 +243,27 @@ export default function AgendaPage() {
         (selectedCalendarDate ? selectedCalendarDate.toISOString().split('T')[0] : '')
 
       if (!itemDate) {
-        alert('Por favor selecciona una fecha para el evento')
+        toast({
+          variant: "destructive",
+          title: "❌ Fecha requerida",
+          description: "Por favor selecciona una fecha para el evento",
+        })
+        return
+      }
+
+      // Validación: Si tiene monto, debe ser mayor o igual a 0
+      if (newItem.amount < 0) {
+        toast({
+          variant: "destructive",
+          title: "❌ Monto inválido",
+          description: "El monto no puede ser negativo",
+        })
         return
       }
 
       // Create the agenda event in database
       const newAgendaEvent: CreateAgendaEvent = {
-        title: newItem.title,
+        title: newItem.title.trim(),
         description: newItem.description || undefined,
         due_date: itemDate,
         type: newItem.type === 'fixed_expense' ? 'expense' : newItem.type,
@@ -264,6 +289,11 @@ export default function AgendaPage() {
 
       setAgendaItems(prev => [...prev, newAgendaItem])
       
+      toast({
+        title: "✅ Evento creado exitosamente",
+        description: `${newItem.title} ha sido agregado a la agenda`,
+      })
+      
       // Reset form
       setNewItem({
         title: "",
@@ -276,7 +306,11 @@ export default function AgendaPage() {
       setShowNewItemDialog(false)
     } catch (error) {
       console.error('Error creating agenda event:', error)
-      alert('Error al crear el evento. Por favor intenta de nuevo.')
+      toast({
+        variant: "destructive",
+        title: "Error al crear evento",
+        description: "Ocurrió un error al crear el evento. Por favor intenta de nuevo.",
+      })
     }
   }
 
@@ -388,40 +422,65 @@ export default function AgendaPage() {
 
   const deleteItem = async (itemId: string) => {
     if (!canDelete('agendaEvents')) {
-      alert("No tienes permisos para eliminar eventos de la agenda")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar eventos de la agenda",
+        variant: "destructive"
+      })
       return
     }
     
-    if (confirm("¿Estás seguro de que quieres eliminar este evento?")) {
-      try {
-        // Only delete agenda events (not invoices)
-        if (!itemId.startsWith('invoice-')) {
-          await deleteAgendaEvent(itemId)
-        }
-
-        setAgendaItems(prev => prev.filter(item => item.id !== itemId))
-      } catch (error) {
-        console.error('Error deleting agenda event:', error)
-        alert('Error al eliminar el evento. Por favor intenta de nuevo.')
-      }
-    }
+    setDeleteConfirm({show: true, id: itemId, type: 'event'})
   }
 
   const handleDeleteFixedExpense = async (expenseId: string) => {
     if (!canDelete('expenses')) {
-      alert("No tienes permisos para eliminar gastos fijos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar gastos fijos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (confirm("¿Estás seguro de que quieres eliminar este gasto fijo?")) {
-      try {
-        const success = await deleteFixedExpense(expenseId)
-        if (success) {
-          setFixedExpenses(prev => prev.filter(expense => expense.id !== expenseId))
+    setDeleteConfirm({show: true, id: expenseId, type: 'expense'})
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
+    try {
+      if (deleteConfirm.type === 'event') {
+        // Only delete agenda events (not invoices)
+        if (!deleteConfirm.id.startsWith('invoice-')) {
+          await deleteAgendaEvent(deleteConfirm.id)
         }
-      } catch (error) {
-        console.error('Error deleting fixed expense:', error)
+        setAgendaItems(prev => prev.filter(item => item.id !== deleteConfirm.id))
+        toast({
+          title: "Evento eliminado",
+          description: "El evento ha sido eliminado exitosamente"
+        })
+      } else {
+        const success = await deleteFixedExpense(deleteConfirm.id)
+        if (success) {
+          setFixedExpenses(prev => prev.filter(expense => expense.id !== deleteConfirm.id))
+          toast({
+            title: "Gasto fijo eliminado",
+            description: "El gasto fijo ha sido eliminado exitosamente"
+          })
+        }
       }
+    } catch (error) {
+      console.error('Error deleting:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el elemento",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null, type: 'event'})
     }
   }
 
@@ -1601,6 +1660,22 @@ export default function AgendaPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null, type: 'event'})}
+        title={deleteConfirm.type === 'expense' ? "Eliminar Gasto Fijo" : "Eliminar Evento"}
+        description={
+          deleteConfirm.type === 'expense'
+            ? "¿Estás seguro de que quieres eliminar este gasto fijo? Esta acción no se puede deshacer."
+            : "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer."
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

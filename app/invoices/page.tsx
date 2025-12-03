@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   Plus,
   Search,
@@ -23,6 +24,7 @@ import {
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -30,8 +32,11 @@ export default function InvoicesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'delete' | 'markPaid'}>({show: false, id: null, type: 'delete'})
+  const [isProcessing, setIsProcessing] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit } = useUserPermissions()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchInvoices()
@@ -117,46 +122,60 @@ export default function InvoicesPage() {
   }
 
   const handleMarkAsPaid = async (id: string) => {
-    if (!confirm("¿Confirmar que esta factura ha sido pagada?")) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({
-          status: "pagada",
-        })
-        .eq("id", id)
-
-      if (error) {
-        throw error
-      }
-      fetchInvoices() // Refresh the list
-    } catch (error) {
-      console.error("Error marking invoice as paid:", error)
-      alert("Error al marcar la factura como pagada")
-    }
+    setDeleteConfirm({show: true, id, type: 'markPaid'})
   }
 
   const handleDelete = async (id: string) => {
     if (!canDelete('invoices')) {
-      alert("No tienes permisos para eliminar facturas")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar facturas",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) {
-      return
-    }
+    setDeleteConfirm({show: true, id, type: 'delete'})
+  }
 
+  const confirmAction = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsProcessing(true)
     try {
-      const { error } = await supabase.from("invoices").delete().eq("id", id)
-      if (error) {
-        throw error
+      if (deleteConfirm.type === 'markPaid') {
+        const { error } = await supabase
+          .from("invoices")
+          .update({ status: "pagada" })
+          .eq("id", deleteConfirm.id)
+
+        if (error) throw error
+        
+        toast({
+          title: "Factura actualizada",
+          description: "La factura ha sido marcada como pagada"
+        })
+      } else {
+        const { error } = await supabase.from("invoices").delete().eq("id", deleteConfirm.id)
+        if (error) throw error
+        
+        toast({
+          title: "Factura eliminada",
+          description: "La factura ha sido eliminada exitosamente"
+        })
       }
+      
       fetchInvoices()
     } catch (error) {
-      console.error("Error deleting invoice:", error)
+      console.error("Error processing invoice:", error)
+      toast({
+        title: "Error",
+        description: deleteConfirm.type === 'markPaid' ? "No se pudo marcar la factura como pagada" : "No se pudo eliminar la factura",
+        variant: "destructive"
+      })
+    } finally {
+      setIsProcessing(false)
+      setDeleteConfirm({show: false, id: null, type: 'delete'})
     }
   }
 
@@ -226,15 +245,15 @@ export default function InvoicesPage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="p-3 lg:p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
-                <div className="text-center lg:text-left">
-                  <p className="text-xs lg:text-sm font-medium text-blue-700">Total Facturas</p>
-                  <p className="text-lg lg:text-2xl font-bold text-blue-900">{totalInvoices}</p>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Total Facturas</p>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-900">{totalInvoices}</p>
                 </div>
-                <div className="hidden lg:block p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex-shrink-0 ml-2">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -242,13 +261,13 @@ export default function InvoicesPage() {
           </Card>
 
           <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Monto Total</p>
-                  <p className="text-2xl font-bold text-emerald-900">{formatCurrency(totalAmount)}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide mb-1">Monto Total</p>
+                  <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(totalAmount)}</p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex-shrink-0 ml-2">
                   <DollarSign className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -256,13 +275,13 @@ export default function InvoicesPage() {
           </Card>
 
           <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700">Pagadas</p>
-                  <p className="text-2xl font-bold text-green-900">{paidInvoices}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-green-700 uppercase tracking-wide mb-1">Pagadas</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-900">{paidInvoices}</p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex-shrink-0 ml-2">
                   <Eye className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -270,13 +289,13 @@ export default function InvoicesPage() {
           </Card>
 
           <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-amber-700">Pendientes</p>
-                  <p className="text-2xl font-bold text-amber-900">{pendingInvoices}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-1">Pendientes</p>
+                  <p className="text-xl sm:text-2xl font-bold text-amber-900">{pendingInvoices}</p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex-shrink-0 ml-2">
                   <Calendar className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -361,66 +380,66 @@ export default function InvoicesPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredInvoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="group flex items-center justify-between p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md"
+                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md gap-3 lg:gap-0"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-3">
-                        <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
                           {invoice.invoice_number || "Sin número"}
                         </h3>
-                        <Badge className={`${getStatusColor(invoice.status || "borrador")} border`}>
+                        <Badge className={`${getStatusColor(invoice.status || "borrador")} border text-xs whitespace-nowrap`}>
                           {invoice.status || "borrador"}
                         </Badge>
                         {invoice.clients?.rnc && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs whitespace-nowrap hidden sm:inline-flex">
                             RNC: {invoice.clients.rnc}
                           </Badge>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-slate-600">
-                        <div>
-                          <span className="font-medium text-slate-700">Cliente:</span>
-                          <p>{invoice.clients?.name || "Sin cliente"}</p>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
+                        <div className="min-w-0">
+                          <span className="font-medium text-slate-700 block text-xs">Cliente:</span>
+                          <p className="truncate">{invoice.clients?.name || "Sin cliente"}</p>
                         </div>
-                        <div>
-                          <span className="font-medium text-slate-700">Fecha:</span>
-                          <p>{new Date(invoice.invoice_date || invoice.issue_date).toLocaleDateString()}</p>
+                        <div className="min-w-0">
+                          <span className="font-medium text-slate-700 block text-xs">Fecha:</span>
+                          <p className="truncate">{new Date(invoice.invoice_date || invoice.issue_date).toLocaleDateString()}</p>
                         </div>
-                        <div>
-                          <span className="font-medium text-slate-700">Vencimiento:</span>
-                          <p>{new Date(invoice.due_date).toLocaleDateString()}</p>
+                        <div className="min-w-0">
+                          <span className="font-medium text-slate-700 block text-xs">Vencimiento:</span>
+                          <p className="truncate">{new Date(invoice.due_date).toLocaleDateString()}</p>
                         </div>
                         {invoice.projects?.name && (
-                          <div>
-                            <span className="font-medium text-slate-700">Proyecto:</span>
-                            <p>{invoice.projects.name}</p>
+                          <div className="min-w-0">
+                            <span className="font-medium text-slate-700 block text-xs">Proyecto:</span>
+                            <p className="truncate">{invoice.projects.name}</p>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-slate-900 group-hover:text-blue-900 transition-colors">
+                    <div className="flex items-center justify-between lg:justify-end gap-3 lg:gap-6 flex-shrink-0">
+                      <div className="text-left lg:text-right">
+                        <p className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-blue-900 transition-colors">
                           {formatCurrency(invoice.total || 0)}
                         </p>
                         {invoice.include_itbis && <p className="text-xs text-slate-500">Incluye ITBIS</p>}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         {canEdit('invoices') && (
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                            className="hover:bg-blue-100 hover:text-blue-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                           >
                             <Link href={`/invoices/${invoice.id}/edit`}>
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Link>
                           </Button>
                         )}
@@ -428,29 +447,29 @@ export default function InvoicesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => downloadInvoicePDF(invoice.id)}
-                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
+                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         {invoice.status !== "pagada" && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
-                            className="hover:bg-green-100 hover:text-green-700 transition-colors"
+                            className="hover:bg-green-100 hover:text-green-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                             title="Marcar como pagada"
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         )}
                         {canDelete('invoices') && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="hover:bg-red-100 hover:text-red-700 transition-colors"
+                            className="hover:bg-red-100 hover:text-red-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
                             onClick={() => handleDelete(invoice.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         )}
                       </div>
@@ -462,6 +481,22 @@ export default function InvoicesPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null, type: 'delete'})}
+        title={deleteConfirm.type === 'markPaid' ? "Marcar como Pagada" : "Eliminar Factura"}
+        description={
+          deleteConfirm.type === 'markPaid'
+            ? "¿Confirmar que esta factura ha sido pagada?"
+            : "¿Estás seguro de que quieres eliminar esta factura? Esta acción no se puede deshacer."
+        }
+        confirmLabel={deleteConfirm.type === 'markPaid' ? "Confirmar" : "Eliminar"}
+        cancelLabel="Cancelar"
+        onConfirm={confirmAction}
+        variant={deleteConfirm.type === 'markPaid' ? "success" : "danger"}
+        isLoading={isProcessing}
+      />
     </div>
   )
 }

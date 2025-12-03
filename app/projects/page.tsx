@@ -11,8 +11,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { ProjectForm } from "@/components/forms/project-form"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useToast } from "@/hooks/use-toast"
 import {
   Plus,
   Search,
@@ -46,8 +48,11 @@ export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [editingProject, setEditingProject] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchProjects()
@@ -157,20 +162,40 @@ export default function ProjectsPage() {
 
   const handleDelete = async (id: string) => {
     if (!canDelete('projects')) {
-      alert("No tienes permisos para eliminar proyectos")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar proyectos",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este proyecto?")) {
-      return
-    }
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("projects").delete().eq("id", id)
-      if (error) { throw error }
+      const { error } = await supabase.from("projects").delete().eq("id", deleteConfirm.id)
+      if (error) throw error
+      
+      toast({
+        title: "Proyecto eliminado",
+        description: "El proyecto ha sido eliminado exitosamente"
+      })
       fetchProjects()
     } catch (error) {
       console.error("Error deleting project:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el proyecto",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -635,6 +660,18 @@ export default function ProjectsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Proyecto"
+        description="¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
