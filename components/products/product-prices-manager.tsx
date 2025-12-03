@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Plus, Edit, Trash2, Star, StarOff, DollarSign, Calendar, Package } from 'lucide-react'
 import { useProductPrices, type ProductPrice } from '@/hooks/use-product-prices'
 import { useCurrency } from '@/hooks/use-currency'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface ProductPricesManagerProps {
   productId: string
@@ -24,6 +26,9 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
   const { formatCurrency } = useCurrency()
   const [showForm, setShowForm] = useState(false)
   const [editingPrice, setEditingPrice] = useState<ProductPrice | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     price_name: '',
     price: '',
@@ -105,8 +110,28 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
   }
 
   const handleDelete = async (priceId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este precio?')) {
-      await deletePrice(priceId)
+    setDeleteConfirm({ show: true, id: priceId })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
+    try {
+      await deletePrice(deleteConfirm.id)
+      toast({
+        title: "Precio eliminado",
+        description: "El precio ha sido eliminado exitosamente",
+      })
+      setDeleteConfirm({ show: false, id: null })
+    } catch (error) {
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el precio",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -158,6 +183,7 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
@@ -418,5 +444,18 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
         )}
       </CardContent>
     </Card>
+
+    <ConfirmDialog
+      open={deleteConfirm.show}
+      onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+      title="Eliminar Precio"
+      description="¿Estás seguro de que deseas eliminar este precio? Esta acción no se puede deshacer."
+      confirmLabel="Eliminar"
+      cancelLabel="Cancelar"
+      onConfirm={confirmDelete}
+      variant="danger"
+      isLoading={isDeleting}
+    />
+    </>
   )
 }

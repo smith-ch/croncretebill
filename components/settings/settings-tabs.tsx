@@ -41,6 +41,7 @@ export function SettingsTabs({
   className 
 }: SettingsTabsProps) {
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   
   const filteredTabs = tabs.filter(tab => 
     tab.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,20 +49,39 @@ export function SettingsTabs({
   )
 
   return (
-    <div className={cn("flex h-full", className)}>
+    <div className={cn("flex h-full relative", className)}>
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-80 bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 shadow-xl">
-        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-md">
-              <Settings className="h-6 w-6 text-white" />
+      <div className={cn(
+        "fixed lg:relative inset-y-0 left-0 z-50 w-80 lg:w-64 xl:w-80 bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 shadow-xl transform transition-transform duration-300 lg:transform-none",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        <div className="p-4 lg:p-6 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+          <div className="flex items-center justify-between gap-3 mb-3 lg:mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 lg:p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-md">
+                <Settings className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  Configuración
+                </h2>
+                <p className="text-xs lg:text-sm text-slate-600">Personaliza tu experiencia</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                Configuración
-              </h2>
-              <p className="text-sm text-slate-600">Personaliza tu experiencia</p>
-            </div>
+            <button 
+              className="lg:hidden p-2 hover:bg-slate-200 rounded-lg"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              ✕
+            </button>
           </div>
           
           {/* Search */}
@@ -71,13 +91,13 @@ export function SettingsTabs({
               placeholder="Buscar configuración..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-slate-300 bg-white/80 backdrop-blur-sm"
+              className="pl-10 border-slate-300 bg-white/80 backdrop-blur-sm text-sm"
               variant="modern"
             />
           </div>
         </div>
 
-        <div className="p-4 space-y-2">
+        <div className="p-3 lg:p-4 space-y-2 overflow-y-auto" style={{maxHeight: 'calc(100vh - 180px)'}}>
           {filteredTabs.map((tab, index) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -85,9 +105,12 @@ export function SettingsTabs({
             return (
               <motion.button
                 key={tab.id}
-                onClick={() => onTabChange(tab.id)}
+                onClick={() => {
+                  onTabChange(tab.id)
+                  setIsSidebarOpen(false)
+                }}
                 className={cn(
-                  "w-full text-left p-4 rounded-xl transition-all duration-300 group relative overflow-hidden",
+                  "w-full text-left p-3 lg:p-4 rounded-xl transition-all duration-300 group relative overflow-hidden",
                   isActive 
                     ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 shadow-md border border-blue-200" 
                     : "hover:bg-white/80 hover:shadow-md text-slate-700 border border-transparent hover:border-slate-200"
@@ -105,30 +128,30 @@ export function SettingsTabs({
                   />
                 )}
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 lg:gap-3">
                   <div className={cn(
-                    "p-2 rounded-lg transition-all duration-300",
+                    "p-1.5 lg:p-2 rounded-lg transition-all duration-300 flex-shrink-0",
                     isActive 
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
                       : "bg-slate-200 text-slate-600 group-hover:bg-slate-300"
                   )}>
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-sm">{tab.label}</h3>
+                      <h3 className="font-semibold text-xs lg:text-sm truncate">{tab.label}</h3>
                       {tab.badge && (
-                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                        <span className="px-1.5 lg:px-2 py-0.5 lg:py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full flex-shrink-0 ml-1">
                           {tab.badge}
                         </span>
                       )}
                       <ChevronRight className={cn(
-                        "h-4 w-4 transition-transform duration-300",
+                        "h-4 w-4 transition-transform duration-300 flex-shrink-0 ml-1",
                         isActive ? "rotate-90 text-blue-600" : "text-slate-400 group-hover:translate-x-1"
                       )} />
                     </div>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    <p className="text-xs text-slate-500 mt-0.5 lg:mt-1 line-clamp-2">
                       {tab.description}
                     </p>
                   </div>
@@ -139,8 +162,16 @@ export function SettingsTabs({
         </div>
       </div>
 
+      {/* Mobile Menu Button */}
+      <button
+        className="lg:hidden fixed bottom-4 right-4 z-30 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl"
+        onClick={() => setIsSidebarOpen(true)}
+      >
+        <Settings className="h-6 w-6" />
+      </button>
+
       {/* Content */}
-      <div className="flex-1 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
+      <div className="flex-1 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden w-full lg:w-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -174,19 +205,19 @@ export function SettingsSection({
   className 
 }: SettingsSectionProps) {
   return (
-    <div className={cn("p-8", className)}>
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center gap-4">
+    <div className={cn("p-4 sm:p-6 lg:p-8", className)}>
+      <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
+        <div className="flex items-center gap-3 lg:gap-4">
           {Icon && (
-            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg">
-              <Icon className="h-8 w-8 text-white" />
+            <div className="p-2 lg:p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl lg:rounded-2xl shadow-lg flex-shrink-0">
+              <Icon className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
             </div>
           )}
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent truncate">
               {title}
             </h1>
-            <p className="text-slate-600 text-lg mt-1">{description}</p>
+            <p className="text-slate-600 text-sm sm:text-base lg:text-lg mt-1">{description}</p>
           </div>
         </div>
         {children}

@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Badge } from "@/components/ui/badge"
+import { SidebarHeader } from "@/components/layout/sidebar-header"
 import {
   LayoutDashboard,
   FileText,
@@ -171,7 +172,7 @@ export function Sidebar() {
   const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos"])
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { alertCount } = useStockAlerts()
-  const { canAccessModule, permissions } = useUserPermissions()
+  const { canAccessModule } = useUserPermissions()
 
   // Filter navigation items based on permissions
   const filteredNavigation = navigation.filter(item => {
@@ -214,7 +215,7 @@ export function Sidebar() {
     <div
       className={cn(
         "hidden lg:flex h-full flex-col bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 transition-all duration-500 ease-in-out shadow-xl backdrop-blur-sm",
-        isCollapsed ? "w-16" : "w-64",
+        isCollapsed ? "w-16" : "w-80",
       )}
     >
       <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-gradient-to-r from-white to-blue-50 shadow-sm">
@@ -238,27 +239,8 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Distintivo de Modo Usuario */}
-      {!isCollapsed && (
-        <div className="px-4 py-2 border-b border-slate-200">
-          {permissions.isRealEmployee ? (
-            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-green-700">👤 Empleado - Vista de Trabajo</span>
-            </div>
-          ) : permissions.role === 'employee' ? (
-            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-blue-700">🔄 Owner - Modo Empleado (Prueba)</span>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2 p-2 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
-              <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-              <span className="text-xs font-medium text-yellow-700">👑 Propietario - Acceso Completo</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Información Empresarial y Métricas */}
+      <SidebarHeader isCollapsed={isCollapsed} />
 
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-2">

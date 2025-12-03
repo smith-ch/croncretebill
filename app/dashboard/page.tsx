@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { AgendaWidget } from "@/components/dashboard/agenda-widget"
-import { CompanyProfileWidget } from "@/components/dashboard/company-profile-widget"
 import { RevenueChart, ExpenseChart, ComparisonChart } from "@/components/dashboard/charts"
 import { FinancialHealthWidget, PerformanceComparisonWidget, QuickInsightsWidget } from "@/components/dashboard/interactive-widgets"
 import { Button } from "@/components/ui/button"
@@ -145,7 +144,6 @@ export default function DashboardPage() {
     recentActivity: true,
     analytics: true
   })
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [showTargetSettings, setShowTargetSettings] = useState(false)
   const [newTarget, setNewTarget] = useState(100000)
   const [isClient, setIsClient] = useState(false)
@@ -163,7 +161,6 @@ export default function DashboardPage() {
   // Check if we're on the client side
   useEffect(() => {
     setIsClient(true)
-    setLastUpdate(new Date())
   }, [])
 
   useEffect(() => {
@@ -174,7 +171,6 @@ export default function DashboardPage() {
     const interval = setInterval(
       () => {
         fetchStats()
-        setLastUpdate(new Date())
       },
       5 * 60 * 1000,
     )
@@ -692,183 +688,132 @@ export default function DashboardPage() {
   const monthlyProgress = Math.min((stats.monthlyRevenue / stats.monthlyTarget) * 100, 100)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-3 lg:p-4">
-      <div className="max-w-[1600px] mx-auto space-y-4 lg:space-y-6">
-        {/* Header Section - Mobile Optimized */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-lg border border-gray-200/50 p-3 lg:p-4 mb-4">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 lg:gap-4">
-            <div className="flex items-center gap-3 lg:gap-4">
-              <div className="p-2 lg:p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl lg:rounded-2xl shadow-lg">
-                <BarChart3 className="h-5 w-5 lg:h-7 lg:w-7 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-4">
+      <div className="max-w-[1600px] mx-auto space-y-3 sm:space-y-4 lg:space-y-6">
+        {/* Barra de Acciones Flotante - Sticky - Mobile Optimized */}
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 p-2 sm:p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            {/* Título del Dashboard */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-md">
+                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <p className="text-xs lg:text-sm text-gray-600 font-medium">Panel de control empresarial</p>
+                <p className="text-xs text-gray-600 hidden sm:block">Panel de control empresarial</p>
               </div>
             </div>
-            
-            {/* Indicadores de Estado Limpios */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg border border-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-green-700">En línea</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200">
-                <Clock className="h-3 w-3 text-gray-500" />
-                <span className="text-xs text-gray-600">
-                  {lastUpdate?.toLocaleTimeString() || 'Cargando...'}
-                </span>
-              </div>
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ${
-                monthlyProgress >= 75 ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 
-                monthlyProgress >= 50 ? 'bg-amber-50 text-amber-700 border-amber-300' : 
-                'bg-red-50 text-red-700 border-red-300'
-              }`}>
-                <Target className="h-3 w-3" />
-                <span className="text-xs font-semibold">Meta: {monthlyProgress.toFixed(0)}%</span>
-              </div>
-              {stats.overdueInvoices > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-lg border border-red-300">
-                  <AlertCircle className="h-3 w-3 text-red-500" />
-                  <span className="text-xs font-semibold text-red-700">{stats.overdueInvoices} vencidas</span>
-                </div>
-              )}
-              {stats.pendingInvoices > 5 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-300">
-                  <Clock className="h-3 w-3 text-amber-500" />
-                  <span className="text-xs font-semibold text-amber-700">{formatNumber(stats.pendingInvoices)} pendientes</span>
-                </div>
-              )}
-            </div>
 
-            {/* Información Clave y Controles */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              {/* Métricas rápidas */}
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-gray-600">Ingresos mes:</span>
-                  <span className="font-bold text-blue-700">{formatCurrency(stats.monthlyRevenue)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-600">Total clientes:</span>
-                  <span className="font-bold text-green-700">{formatNumber(stats.totalClients)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span className="text-gray-600">Facturas mes:</span>
-                  <span className="font-bold text-purple-700">{formatNumber(stats.monthlyInvoices)}</span>
-                </div>
-                
+            {/* Botones de Acción Principal - Mobile Optimized */}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <Link href="/invoices/new">
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-300 text-white text-xs sm:text-sm"
+                  size="sm"
+                >
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Nueva Factura</span>
+                  <span className="sm:hidden">Factura</span>
+                </Button>
+              </Link>
+              
+              {(permissions.isOwner || permissions.wasOriginallyOwner) && (
+                <Link href="/expenses">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white hover:bg-red-50 text-red-700 border-red-200 hover:border-red-400 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm"
+                  >
+                    <Receipt className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Nuevo Gasto</span>
+                    <span className="sm:hidden">Gasto</span>
+                  </Button>
+                </Link>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  fetchStats()
+                }}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hidden sm:flex"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Actualizar
+              </Button>
+              
+              {permissions.canViewFinances && (
+                <Link href="/monthly-reports">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm hidden sm:flex"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Reportes
+                  </Button>
+                </Link>
+              )}
 
+              {/* Divisor - Hidden on mobile */}
+              <div className="h-8 w-px bg-gray-300 mx-1 hidden lg:block"></div>
+
+              {/* Controles de Vista - Optimized for mobile */}
+              <div className="flex items-center bg-gray-100 rounded-lg p-0.5 sm:p-1">
+                <Button
+                  variant={viewMode === 'overview' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('overview')}
+                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'overview' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+                >
+                  <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Resumen</span>
+                </Button>
+                <Button
+                  variant={viewMode === 'detailed' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('detailed')}
+                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'detailed' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+                >
+                  <BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Detallado</span>
+                </Button>
               </div>
               
-              {/* Controles de Vista y Rol */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                  <Button
-                    variant={viewMode === 'overview' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('overview')}
-                    className={`rounded-md text-xs transition-all duration-200 ${viewMode === 'overview' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Resumen
-                  </Button>
-                  <Button
-                    variant={viewMode === 'detailed' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('detailed')}
-                    className={`rounded-md text-xs transition-all duration-200 ${viewMode === 'detailed' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
-                  >
-                    <BarChart3 className="h-3 w-3 mr-1" />
-                    Detallado
-                  </Button>
-                </div>
-                
-                {/* RoleSwitcher integrado elegantemente */}
-                <div className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <Users className="h-3 w-3 text-gray-500" />
-                  <RoleSwitcher />
-                </div>
+              {/* RoleSwitcher - Hidden on mobile */}
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                <Users className="h-4 w-4 text-gray-500" />
+                <RoleSwitcher />
               </div>
             </div>
-          </div>
-
-          {/* Acciones Rápidas Integradas */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/invoices/new">
-              <Button 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 text-white border-0 px-4 py-2"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Factura
-              </Button>
-            </Link>
-            
-            {(permissions.isOwner || permissions.wasOriginallyOwner) && (
-              <Link href="/expenses">
-                <Button
-                  variant="outline"
-                  className="bg-white hover:bg-red-50 text-red-700 border border-red-200 hover:border-red-400 shadow-md hover:shadow-lg transition-all duration-300 px-4 py-2"
-                >
-                  <Receipt className="h-4 w-4 mr-2" />
-                  Nuevo Gasto
-                </Button>
-              </Link>
-            )}
-            
-            <Button
-              variant="ghost"
-              onClick={() => {
-                fetchStats()
-                setLastUpdate(new Date())
-              }}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm hover:shadow-md transition-all duration-300 px-4 py-2"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualizar
-            </Button>
-            
-            {permissions.canViewFinances && (
-              <Link href="/monthly-reports">
-                <Button
-                  variant="outline"
-                  className="bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 hover:border-emerald-400 shadow-md hover:shadow-lg transition-all duration-300 px-4 py-2"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Reportes
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
 
-        {/* Layout principal - Simplificado */}
-        <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4 mb-4">
-          {/* Meta Mensual - Simplificada */}
-          <Card className="xl:col-span-2 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-            <CardHeader className="pb-3">
+        {/* Layout principal - Reorganizado y optimizado para móvil */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3 mb-3 sm:mb-4">
+          {/* Meta Mensual - Stack completo en mobile, 1 columna en desktop */}
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500 rounded-lg">
-                    <Target className="h-5 w-5 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
+                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-bold text-blue-900 flex items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg font-bold text-blue-900 flex items-center gap-2">
                       Meta Mensual
                       <Badge className={`${
                         monthlyProgress >= 100 ? 'bg-emerald-500' :
                         monthlyProgress >= 75 ? 'bg-blue-500' :
                         monthlyProgress >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                      } text-white px-2 py-0.5 text-sm`}>
+                      } text-white px-1.5 sm:px-2 py-0.5 text-xs sm:text-sm`}>
                         {monthlyProgress.toFixed(1)}%
                       </Badge>
                     </CardTitle>
-                    <p className="text-sm text-blue-600">
+                    <p className="text-xs text-blue-600">
                       {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
@@ -880,28 +825,28 @@ export default function DashboardPage() {
                     console.log("Botón de configuración clickeado, showTargetSettings actual:", showTargetSettings)
                     setShowTargetSettings(!showTargetSettings)
                   }}
-                  className="text-blue-700 hover:bg-blue-100 rounded-lg p-2"
+                  className="text-blue-700 hover:bg-blue-100 rounded-lg p-1.5 sm:p-2"
                   title="Configurar meta mensual"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="pt-2">
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/60 rounded-lg p-3">
-                    <div className="text-sm text-blue-600">Alcanzado</div>
-                    <div className="text-xl font-bold text-blue-800">{formatCurrency(stats.monthlyRevenue)}</div>
+            <CardContent className="pt-2 p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/60 rounded-lg p-2 sm:p-3">
+                    <div className="text-xs text-blue-600">Alcanzado</div>
+                    <div className="text-base sm:text-lg font-bold text-blue-800">{formatCurrency(stats.monthlyRevenue)}</div>
                   </div>
-                  <div className="bg-white/60 rounded-lg p-3">
-                    <div className="text-sm text-blue-600">Meta</div>
-                    <div className="text-xl font-bold text-blue-800">{formatCurrency(stats.monthlyTarget)}</div>
+                  <div className="bg-white/60 rounded-lg p-2 sm:p-3">
+                    <div className="text-xs text-blue-600">Meta</div>
+                    <div className="text-base sm:text-lg font-bold text-blue-800">{formatCurrency(stats.monthlyTarget)}</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs">
                     <span className="text-blue-600">Progreso</span>
                     <span className="text-blue-800 font-semibold">
                       {monthlyProgress >= 100 ? '¡Meta Superada! 🎉' : 
@@ -911,7 +856,7 @@ export default function DashboardPage() {
                   <Progress value={Math.min(monthlyProgress, 100)} className="h-2" />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
+                <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="bg-white/50 rounded-lg p-2">
                     <div className="text-xs text-amber-600">Facturas</div>
                     <div className="text-sm font-bold text-amber-900">{formatNumber(stats.monthlyInvoices)}</div>
@@ -932,82 +877,127 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          
-          {/* Información Empresarial y Perfil - 2 columnas */}
-          <div className="xl:col-span-2">
-            <CompanyProfileWidget />
-          </div>
-        </div>
 
-        {/* Métricas Clave - Simplificadas */}
-        <div className="grid gap-3 lg:grid-cols-3 mb-4">
-          {/* Facturas Pendientes */}
+          {/* Facturas Pendientes - Mobile Optimized */}
           <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold text-amber-800 flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Pendientes
-              </CardTitle>
+            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-amber-500 rounded-lg">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                </div>
+                <CardTitle className="text-base sm:text-lg font-bold text-amber-800">Pendientes</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-800">
+            <CardContent className="p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="text-center bg-white/60 rounded-lg p-2 sm:p-3">
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-800">
                     {formatCurrency(stats.pendingRevenue)}
                   </div>
-                  <div className="text-sm text-amber-600">Total por cobrar</div>
+                  <div className="text-xs sm:text-sm text-amber-600">Total por cobrar</div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-center text-sm">
-                  <div>
-                    <div className="font-bold text-amber-700">{formatNumber(stats.pendingInvoices)}</div>
-                    <div className="text-amber-600">Facturas</div>
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-white/50 rounded-lg p-2">
+                    <div className="text-lg sm:text-xl font-bold text-amber-700">{formatNumber(stats.pendingInvoices)}</div>
+                    <div className="text-xs text-amber-600">Facturas</div>
                   </div>
-                  <div>
-                    <div className="font-bold text-red-700">{stats.overdueInvoices}</div>
-                    <div className="text-red-600">Vencidas</div>
+                  <div className="bg-white/50 rounded-lg p-2">
+                    <div className="text-lg sm:text-xl font-bold text-red-700">{stats.overdueInvoices}</div>
+                    <div className="text-xs text-red-600">Vencidas</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Gastos del Mes */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-300/20 to-rose-300/20 rounded-full -translate-y-12 translate-x-12"></div>
-            <CardHeader className="relative pb-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-gradient-to-r from-red-500 to-rose-500 rounded-xl shadow-lg">
-                  <TrendingUp className="h-5 w-5 text-white transform rotate-180" />
+          {/* Rendimiento Semanal - Mobile Optimized */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-300/20 to-green-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
+            <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <CardTitle className="text-lg font-bold text-red-900">Gastos del Mes</CardTitle>
+                <CardTitle className="text-base sm:text-lg font-bold text-emerald-900">Esta Semana</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="relative pt-0">
-              <div className="space-y-4">
-                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-red-200/50">
-                  <div className="text-3xl font-bold text-red-800 mb-1">
-                    {formatCurrency(stats.monthlyExpenseAmount)}
+            <CardContent className="relative pt-0 p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-emerald-200/50">
+                  <div className="text-2xl sm:text-3xl font-bold text-emerald-800">
+                    {formatCurrency(stats.weeklyRevenue)}
                   </div>
-                  <div className="text-sm text-red-600 font-medium">Total gastado</div>
+                  <div className="text-xs sm:text-sm text-emerald-600 font-medium">Ingresos semanales</div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-red-700">{formatNumber(stats.monthlyExpenses)}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-emerald-700">{formatNumber(stats.weeklyInvoices)}</div>
+                    <div className="text-xs text-emerald-600">Facturas</div>
+                  </div>
+                  <div className="bg-white/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-emerald-700">
+                      {formatCurrency(stats.weeklyExpenseAmount)}
+                    </div>
+                    <div className="text-xs text-emerald-600">Gastos</div>
+                  </div>
+                </div>
+
+                <div className="bg-white/50 rounded-lg p-2">
+                  <div className="text-xs text-emerald-600">Balance neto semanal</div>
+                  <div className="text-base sm:text-lg font-bold text-emerald-800">
+                    {formatCurrency(stats.weeklyRevenue - stats.weeklyExpenseAmount)}
+                  </div>
+                  <div className={`text-xs ${
+                    (stats.weeklyRevenue - stats.weeklyExpenseAmount) > 0 ? 'text-emerald-600' : 'text-red-600'
+                  } flex items-center gap-1`}>
+                    {(stats.weeklyRevenue - stats.weeklyExpenseAmount) > 0 ? '↗ Positivo' : '↘ Negativo'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Segunda fila - Gastos del Mes - Mobile Optimized */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3 mb-3 sm:mb-4">
+          {/* Gastos del Mes - Tarjeta completa */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-red-300/20 to-rose-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
+            <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 bg-gradient-to-r from-red-500 to-rose-500 rounded-xl shadow-lg">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white transform rotate-180" />
+                </div>
+                <CardTitle className="text-base sm:text-lg font-bold text-red-900">Gastos del Mes</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="relative pt-0 p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-red-200/50">
+                  <div className="text-2xl sm:text-3xl font-bold text-red-800">
+                    {formatCurrency(stats.monthlyExpenseAmount)}
+                  </div>
+                  <div className="text-xs sm:text-sm text-red-600 font-medium">Total gastado</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-red-700">{formatNumber(stats.monthlyExpenses)}</div>
                     <div className="text-xs text-red-600">Registros</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-red-700">
+                  <div className="bg-white/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-red-700">
                       {stats.monthlyExpenses > 0 ? formatCurrency(stats.monthlyExpenseAmount / stats.monthlyExpenses) : formatCurrency(0)}
                     </div>
                     <div className="text-xs text-red-600">Promedio</div>
                   </div>
                 </div>
 
-                <div className="bg-white/50 rounded-lg p-3">
-                  <div className="text-xs text-red-600 mb-1">Margen bruto</div>
-                  <div className="text-lg font-bold text-red-800">
+                <div className="bg-white/50 rounded-lg p-2">
+                  <div className="text-xs text-red-600">Margen bruto</div>
+                  <div className="text-base sm:text-lg font-bold text-red-800">
                     {formatCurrency(stats.monthlyRevenue - stats.monthlyExpenseAmount)}
                   </div>
                   <div className="text-xs text-red-500">
@@ -1021,48 +1011,40 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Rendimiento Semanal */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-300/20 to-green-300/20 rounded-full -translate-y-12 translate-x-12"></div>
-            <CardHeader className="relative pb-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
-                  <Activity className="h-5 w-5 text-white" />
+          {/* Resumen General - Mobile Optimized Vertical Stack */}
+          <Card className="lg:col-span-2 border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-100">
+            <CardHeader className="pb-3 p-3 sm:p-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-gradient-to-r from-slate-600 to-gray-700 rounded-lg">
+                  <BarChart3 className="h-4 w-4 text-white" />
                 </div>
-                <CardTitle className="text-lg font-bold text-emerald-900">Esta Semana</CardTitle>
+                <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Resumen General</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="relative pt-0">
-              <div className="space-y-4">
-                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50">
-                  <div className="text-3xl font-bold text-emerald-800 mb-1">
-                    {formatCurrency(stats.weeklyRevenue)}
-                  </div>
-                  <div className="text-sm text-emerald-600 font-medium">Ingresos semanales</div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-emerald-700">{formatNumber(stats.weeklyInvoices)}</div>
-                    <div className="text-xs text-emerald-600">Facturas</div>
-                  </div>
-                  <div className="bg-white/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-emerald-700">
-                      {formatCurrency(stats.weeklyExpenseAmount)}
-                    </div>
-                    <div className="text-xs text-emerald-600">Gastos</div>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Clientes</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalClients)}</span>
                   </div>
                 </div>
-
-                <div className="bg-white/50 rounded-lg p-3">
-                  <div className="text-xs text-emerald-600 mb-1">Balance neto semanal</div>
-                  <div className="text-lg font-bold text-emerald-800">
-                    {formatCurrency(stats.weeklyRevenue - stats.weeklyExpenseAmount)}
+                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Productos</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalProducts)}</span>
                   </div>
-                  <div className={`text-xs ${
-                    (stats.weeklyRevenue - stats.weeklyExpenseAmount) >= 0 ? 'text-emerald-600' : 'text-red-600'
-                  }`}>
-                    {(stats.weeklyRevenue - stats.weeklyExpenseAmount) >= 0 ? '↗ Positivo' : '↘ Negativo'}
+                </div>
+                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Proyectos</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalProjects)}</span>
+                  </div>
+                </div>
+                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Facturas</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalInvoices)}</span>
                   </div>
                 </div>
               </div>
@@ -1634,69 +1616,58 @@ export default function DashboardPage() {
           </div>
 
           <div className="xl:col-span-3 space-y-4">
-            {/* Actividad Reciente Compacta */}
+            {/* Actividad Reciente Compacta - Ultra Mobile Optimized */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-1 w-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                <h2 className="text-xl font-bold text-gray-800">Actividad Reciente</h2>
-                <Activity className="h-4 w-4 text-emerald-500" />
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-1 w-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                <h2 className="text-base sm:text-xl font-bold text-gray-800">Actividad Reciente</h2>
               </div>
               <Card className="shadow-lg border-0 bg-white relative overflow-hidden">
-                <CardContent className="p-4 relative">
+                <CardContent className="p-2 sm:p-4 relative">
                   {stats.recentActivity.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {stats.recentActivity.slice(0, 8).map((activity, index) => (
                         <div
                           key={activity.id}
-                          className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300 ${
-                            index === 0 ? 'border-l-4 border-l-emerald-500 bg-emerald-50 hover:bg-emerald-100' : ''
+                          className={`flex items-center gap-2 p-2 bg-gray-50 rounded-lg ${
+                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-50' : ''
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`p-2 rounded-lg ${
-                                activity.type === "invoice" 
-                                  ? "bg-blue-500 text-white" 
-                                  : activity.type === "thermal_receipt"
-                                  ? "bg-green-500 text-white"
-                                  : "bg-red-500 text-white"
-                              }`}
-                            >
-                              {activity.type === "invoice" ? (
-                                <FileText className="h-3 w-3" />
-                              ) : activity.type === "thermal_receipt" ? (
-                                <Receipt className="h-3 w-3" />
-                              ) : (
-                                <Receipt className="h-3 w-3" />
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-gray-900 text-sm truncate">
-                                {activity.type === "invoice" 
-                                  ? `Factura ${activity.number}` 
-                                  : activity.type === "thermal_receipt"
-                                  ? `Comprobante ${activity.number}`
-                                  : activity.description}
-                              </p>
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span className="truncate">{activity.client_name || activity.type === "thermal_receipt" ? "Venta directa" : "Gasto"}</span>
-                                <span>•</span>
-                                <span>{new Date(activity.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}</span>
-                                {index === 0 && (
-                                  <Badge className="bg-emerald-100 text-emerald-700 text-xs py-0 px-1">
-                                    Nuevo
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
+                          <div
+                            className={`p-1 rounded-md flex-shrink-0 ${
+                              activity.type === "invoice" 
+                                ? "bg-blue-500 text-white" 
+                                : activity.type === "thermal_receipt"
+                                ? "bg-green-500 text-white"
+                                : "bg-red-500 text-white"
+                            }`}
+                          >
+                            {activity.type === "invoice" ? (
+                              <FileText className="h-3 w-3" />
+                            ) : activity.type === "thermal_receipt" ? (
+                              <Receipt className="h-3 w-3" />
+                            ) : (
+                              <Receipt className="h-3 w-3" />
+                            )}
                           </div>
-                          <div className="text-right">
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <p className="font-semibold text-gray-900 text-xs truncate">
+                              {activity.type === "invoice" 
+                                ? `#${activity.number}` 
+                                : activity.type === "thermal_receipt"
+                                ? `TRM-${activity.number}`
+                                : activity.description?.substring(0, 15)}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {activity.client_name?.substring(0, 20) || (activity.type === "thermal_receipt" ? "Venta" : "Gasto")}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
                             <p
-                              className={`font-bold text-sm ${
+                              className={`font-bold text-xs ${
                                 activity.type === "expense" ? "text-red-600" : "text-emerald-600"
                               }`}
                             >
-                              {activity.type === "expense" ? "-" : "+"}
                               {formatCurrency(activity.total)}
                             </p>
                           </div>
@@ -1704,138 +1675,105 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <div className="p-6 bg-gray-100 rounded-full w-fit mx-auto mb-4">
-                        <TrendingUp className="h-16 w-16 text-gray-400" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay actividad reciente</h3>
-                      <p className="text-gray-500">Crea tu primera factura o registra un gasto para comenzar</p>
+                    <div className="text-center py-6 text-gray-500">
+                      <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm font-semibold">Sin actividad</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Enhanced Analytics Cards */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Top Clients */}
-              <Card className="shadow-2xl border-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+            {/* Enhanced Analytics Cards - Ultra Compact Mobile */}
+            <div className="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2">
+              {/* Top Clients - Ultra Compact */}
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-300/20 to-purple-400/20 rounded-full -translate-y-12 translate-x-12"></div>
-                <CardHeader className="relative">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-                      <Users className="h-6 w-6 text-white" />
+                <CardHeader className="p-3 sm:p-6">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                      <Users className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div>
-                      <CardTitle className="text-blue-900 text-xl font-bold">Mejores Clientes</CardTitle>
-                      <CardDescription className="text-blue-700 font-medium">Por ingresos generados</CardDescription>
+                    <div className="overflow-hidden">
+                      <CardTitle className="text-blue-900 text-sm sm:text-xl font-bold">Mejores Clientes</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent className="p-3 sm:p-6 pt-0">
                   {stats.topClients.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {stats.topClients.map((client, index) => (
-                        <div key={client.name} className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${
-                              index === 0 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                              index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
-                              index === 2 ? 'bg-gradient-to-r from-orange-600 to-red-600' :
-                              'bg-gradient-to-r from-blue-500 to-indigo-600'
-                            }`}>
-                              {index + 1}
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 text-lg">{client.name}</p>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <FileText className="h-3 w-3" />
-                                <span>{client.invoices} facturas</span>
-                              </div>
-                            </div>
+                        <div key={client.name} className="flex items-center gap-2 p-2 bg-white/80 rounded-lg shadow-sm">
+                          <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-lg shadow-lg flex-shrink-0 ${
+                            index === 0 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                            index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                            index === 2 ? 'bg-gradient-to-r from-orange-600 to-red-600' :
+                            'bg-gradient-to-r from-blue-500 to-indigo-600'
+                          }`}>
+                            {index + 1}
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-blue-700 text-lg">{formatCurrency(client.total)}</p>
-                            <p className="text-sm text-blue-600">
-                              {formatCurrency(client.total / client.invoices)} prom.
-                            </p>
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <p className="font-bold text-gray-900 text-xs sm:text-base truncate">{client.name}</p>
+                            <p className="text-xs text-gray-600">{client.invoices} fact.</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-bold text-blue-700 text-xs sm:text-base whitespace-nowrap">{formatCurrency(client.total)}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="p-4 bg-blue-100 rounded-full w-fit mx-auto mb-3">
-                        <Users className="h-12 w-12 text-blue-500" />
-                      </div>
-                      <p className="text-gray-600 font-medium">No hay datos de clientes disponibles</p>
-                      <p className="text-sm text-gray-500 mt-1">Crea facturas para ver tus mejores clientes</p>
+                    <div className="text-center py-4">
+                      <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                      <p className="text-xs text-gray-600">Sin datos</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Expenses by Category */}
-              <Card className="shadow-2xl border-0 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 relative overflow-hidden">
+              {/* Expenses by Category - Ultra Compact */}
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-red-50 to-rose-50 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/5"></div>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-300/20 to-rose-400/20 rounded-full -translate-y-12 translate-x-12"></div>
-                <CardHeader className="relative">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl shadow-lg">
-                      <PieChart className="h-6 w-6 text-white" />
+                <CardHeader className="p-3 sm:p-6">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl shadow-lg">
+                      <PieChart className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div>
-                      <CardTitle className="text-red-900 text-xl font-bold">Gastos por Categoría</CardTitle>
-                      <CardDescription className="text-red-700 font-medium">Distribución de gastos</CardDescription>
+                    <div className="overflow-hidden">
+                      <CardTitle className="text-red-900 text-sm sm:text-xl font-bold">Gastos</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent className="p-3 sm:p-6 pt-0">
                   {stats.expensesByCategory.length > 0 ? (
-                    <div className="space-y-4">
-                      {stats.expensesByCategory.map((category, index) => {
-                        const percentage = stats.totalExpenseAmount > 0 ? (category.amount / stats.totalExpenseAmount) * 100 : 0;
-                        return (
-                          <div
-                            key={category.category}
-                            className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg ${
-                                index === 0 ? 'bg-gradient-to-r from-red-500 to-pink-600' :
-                                index === 1 ? 'bg-gradient-to-r from-orange-500 to-red-500' :
-                                index === 2 ? 'bg-gradient-to-r from-pink-500 to-rose-600' :
-                                'bg-gradient-to-r from-purple-500 to-pink-600'
-                              }`}>
-                                <Receipt className="h-5 w-5" />
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900 text-lg">{category.category}</p>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <span>{category.count} gastos</span>
-                                  <span>•</span>
-                                  <span>{percentage.toFixed(1)}%</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-red-700 text-lg">{formatCurrency(category.amount)}</p>
-                              <p className="text-sm text-red-600">
-                                {formatCurrency(category.amount / category.count)} prom.
-                              </p>
-                            </div>
+                    <div className="space-y-2">
+                      {stats.expensesByCategory.map((category, index) => (
+                        <div
+                          key={category.category}
+                          className="flex items-center gap-2 p-2 bg-white/80 rounded-lg shadow-sm"
+                        >
+                          <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-lg flex-shrink-0 ${
+                            index === 0 ? 'bg-gradient-to-r from-red-500 to-pink-600' :
+                            index === 1 ? 'bg-gradient-to-r from-orange-500 to-red-500' :
+                            index === 2 ? 'bg-gradient-to-r from-pink-500 to-rose-600' :
+                            'bg-gradient-to-r from-purple-500 to-pink-600'
+                          }`}>
+                            <Receipt className="h-3 w-3 sm:h-5 sm:w-5" />
                           </div>
-                        )
-                      })}
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <p className="font-bold text-gray-900 text-xs sm:text-base truncate">{category.category}</p>
+                            <p className="text-xs text-gray-600">{category.count} reg.</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-bold text-red-700 text-xs sm:text-base whitespace-nowrap">{formatCurrency(category.amount)}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="p-4 bg-red-100 rounded-full w-fit mx-auto mb-3">
-                        <Receipt className="h-12 w-12 text-red-500" />
-                      </div>
-                      <p className="text-gray-600 font-medium">No hay datos de gastos disponibles</p>
-                      <p className="text-sm text-gray-500 mt-1">Registra gastos para ver la distribución por categorías</p>
+                    <div className="text-center py-4">
+                      <Receipt className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                      <p className="text-xs text-gray-600">Sin gastos</p>
                     </div>
                   )}
                 </CardContent>

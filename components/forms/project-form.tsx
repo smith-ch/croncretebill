@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProjectFormProps {
   project?: any
@@ -24,6 +25,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<any[]>([])
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchClients()
@@ -34,11 +36,15 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        return
+      }
 
       const { data, error } = await supabase.from("clients").select("id, name").eq("user_id", user.id)
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setClients(data || [])
     } catch (error) {
       console.error("Error fetching clients:", error)
@@ -52,13 +58,51 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
     const formData = new FormData(e.currentTarget)
 
+    // Validación: Nombre del proyecto es obligatorio
+    const name = formData.get("name") as string
+    if (!name || name.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El nombre del proyecto es obligatorio",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Cliente es obligatorio
+    const clientId = formData.get("client_id") as string
+    if (!clientId) {
+      toast({
+        variant: "destructive",
+        title: "❌ Cliente requerido",
+        description: "Debe seleccionar un cliente para el proyecto",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Fechas
+    const startDate = formData.get("start_date") as string
+    const endDate = formData.get("end_date") as string
+    
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      toast({
+        variant: "destructive",
+        title: "❌ Fechas inválidas",
+        description: "La fecha de inicio debe ser anterior a la fecha de finalización",
+      })
+      setLoading(false)
+      return
+    }
+
     const projectData = {
-      name: formData.get("name") as string,
+      name: name.trim(),
       description: formData.get("description") as string,
-      client_id: formData.get("client_id") as string,
+      client_id: clientId,
       address: formData.get("address") as string,
-      start_date: formData.get("start_date") as string,
-      end_date: formData.get("end_date") as string,
+      start_date: startDate,
+      end_date: endDate,
       status: formData.get("status") as string,
     }
 
@@ -66,19 +110,35 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) throw new Error("Usuario no autenticado")
+      if (!user) {
+        throw new Error("Usuario no autenticado")
+      }
 
       if (project) {
         // Update existing project
         const { error } = await supabase.from("projects").update(projectData).eq("id", project.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
+        
+        toast({
+          title: "✅ Proyecto actualizado",
+          description: `${projectData.name} ha sido actualizado correctamente`,
+        })
       } else {
         // Create new project
         const { error } = await supabase.from("projects").insert({
           ...projectData,
           user_id: user.id,
         })
-        if (error) throw error
+        if (error) {
+          throw error
+        }
+        
+        toast({
+          title: "✅ Proyecto creado exitosamente",
+          description: `${projectData.name} ha sido agregado`,
+        })
       }
 
       if (onSuccess) {
@@ -87,7 +147,13 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
         router.push("/projects")
       }
     } catch (error: any) {
-      setError(error.message)
+      const errorMsg = error.message || "Error al guardar el proyecto"
+      setError(errorMsg)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar proyecto",
+        description: errorMsg,
+      })
     } finally {
       setLoading(false)
     }

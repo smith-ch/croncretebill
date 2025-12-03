@@ -10,10 +10,12 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useCategories } from "@/hooks/use-categories"
+import { useToast } from "@/hooks/use-toast"
 
 interface Service {
   id: string
@@ -43,8 +45,11 @@ export default function ServicesPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, canAccessModule } = useUserPermissions()
+  const { toast } = useToast()
   // const { categories } = useCategories('service')
 
   useEffect(() => {
@@ -109,20 +114,40 @@ export default function ServicesPage() {
 
   const handleDelete = async (id: string) => {
     if (!canDelete('services')) {
-      alert("No tienes permisos para eliminar servicios")
+      toast({
+        title: "Permiso denegado",
+        description: "No tienes permisos para eliminar servicios",
+        variant: "destructive"
+      })
       return
     }
     
-    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) {
-      return
-    }
+    setDeleteConfirm({show: true, id})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("services").delete().eq("id", id)
-      if (error) {throw error}
+      const { error } = await supabase.from("services").delete().eq("id", deleteConfirm.id)
+      if (error) throw error
+      
+      toast({
+        title: "Servicio eliminado",
+        description: "El servicio ha sido eliminado exitosamente"
+      })
       fetchServices()
     } catch (error) {
       console.error("Error deleting service:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el servicio",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -385,6 +410,18 @@ export default function ServicesPage() {
           )}
         </CardContent>
       </Card>
+      
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        title="Eliminar Servicio"
+        description="¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

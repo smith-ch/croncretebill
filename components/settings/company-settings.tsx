@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/ui/loading"
+import { useToast } from "@/hooks/use-toast"
 
 interface CompanySettingsData {
   id?: string
@@ -86,6 +87,7 @@ export function CompanySettings() {
   const [fetchLoading, setFetchLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
+  const { toast } = useToast()
   
   const [settings, setSettings] = React.useState<CompanySettingsData>({
     company_name: "",
@@ -164,10 +166,59 @@ export function CompanySettings() {
     setError(null)
     setSuccess(null)
 
+    // Validación: Nombre de empresa es obligatorio
+    if (!settings.company_name || settings.company_name.trim() === "") {
+      toast({
+        variant: "destructive",
+        title: "❌ Campo requerido",
+        description: "El nombre de la empresa es obligatorio",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: RNC/Tax ID debe tener 9 dígitos si se proporciona
+    if (settings.tax_id && !/^\d{9}$/.test(settings.tax_id)) {
+      toast({
+        variant: "destructive",
+        title: "❌ RNC inválido",
+        description: "El RNC debe contener exactamente 9 dígitos",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Email debe ser válido
+    if (settings.company_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.company_email)) {
+      toast({
+        variant: "destructive",
+        title: "❌ Email inválido",
+        description: "Por favor ingrese un correo electrónico válido",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Validación: Teléfono debe tener formato válido
+    if (settings.company_phone && settings.company_phone.replace(/\D/g, '').length < 10) {
+      toast({
+        variant: "destructive",
+        title: "⚠️ Teléfono incompleto",
+        description: "El teléfono debe tener al menos 10 dígitos",
+      })
+      setLoading(false)
+      return
+    }
+
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       
       if (authError || !user) {
+        toast({
+          variant: "destructive",
+          title: "Error de autenticación",
+          description: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+        })
         setError("Error de autenticación")
         return
       }
@@ -197,7 +248,7 @@ export function CompanySettings() {
 
       const settingsData = {
         user_id: user.id,
-        company_name: settings.company_name,
+        company_name: settings.company_name.trim(),
         company_address: settings.company_address,
         company_phone: settings.company_phone,
         company_email: settings.company_email,
@@ -224,10 +275,20 @@ export function CompanySettings() {
       }
 
       setSuccess("Configuración de empresa guardada exitosamente")
+      toast({
+        title: "✅ Configuración guardada",
+        description: "La configuración de la empresa ha sido actualizada correctamente",
+      })
       setLogoFile(null)
     } catch (error) {
       console.error('Error:', error)
-      setError("Error al guardar la configuración de empresa")
+      const errorMsg = "Error al guardar la configuración de empresa"
+      setError(errorMsg)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: errorMsg,
+      })
     } finally {
       setLoading(false)
     }

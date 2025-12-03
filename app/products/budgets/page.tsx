@@ -10,12 +10,17 @@ import { Badge } from "@/components/ui/badge"
 import { BudgetPDFGenerator } from "@/components/pdf/budget-pdf-generator"
 import { Plus, Search, Calculator, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<any[]>([])
   const [companySettings, setCompanySettings] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchBudgets()
@@ -70,14 +75,33 @@ export default function BudgetsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este presupuesto?")) return
+    setDeleteConfirm({ show: true, id })
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("budgets").delete().eq("id", id)
+      const { error } = await supabase.from("budgets").delete().eq("id", deleteConfirm.id)
       if (error) throw error
+      
+      toast({
+        title: "Presupuesto eliminado",
+        description: "El presupuesto ha sido eliminado exitosamente",
+      })
+      
+      setDeleteConfirm({ show: false, id: null })
       fetchBudgets()
     } catch (error) {
       console.error("Error deleting budget:", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el presupuesto",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -260,6 +284,18 @@ export default function BudgetsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+        title="Eliminar Presupuesto"
+        description="¿Estás seguro de que deseas eliminar este presupuesto? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Search, Truck, User, MapPin, Clock, Trash2 } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DriverDeliveriesPage() {
   const [loading, setLoading] = useState(true)
@@ -22,6 +24,9 @@ export default function DriverDeliveriesPage() {
   const [dateFilter, setDateFilter] = useState("")
   const [editingDelivery, setEditingDelivery] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchData()
@@ -120,16 +125,34 @@ export default function DriverDeliveriesPage() {
   }
 
   const deleteDelivery = async (deliveryId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta entrega?")) return
+    setDeleteConfirm({ show: true, id: deliveryId })
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("driver_deliveries").delete().eq("id", deliveryId)
+      const { error } = await supabase.from("driver_deliveries").delete().eq("id", deleteConfirm.id)
 
       if (error) throw error
 
+      toast({
+        title: "Entrega eliminada",
+        description: "La entrega ha sido eliminada exitosamente",
+      })
+      
+      setDeleteConfirm({ show: false, id: null })
       fetchData()
     } catch (error: any) {
       setError(error.message)
+      toast({
+        title: "Error al eliminar",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -317,6 +340,18 @@ export default function DriverDeliveriesPage() {
           </CardContent>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+        title="Eliminar Entrega"
+        description="¿Estás seguro de que deseas eliminar esta entrega? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

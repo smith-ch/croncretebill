@@ -120,10 +120,25 @@ const AIAnalytics = {
     const recentData = monthlyData.slice(-6)
     const volatility = AIAnalytics.calculateVolatility(recentData)
     
+    // Mejorar predicción con análisis de tendencia y estacionalidad
+    const nextMonth = AIAnalytics.predictNextMonth(recentData)
+    const quarterPrediction = AIAnalytics.predictNextQuarter(recentData)
+    
+    // Ajustar nivel de confianza basado en múltiples factores
+    let confidenceLevel = 90
+    if (volatility > 0.4) confidenceLevel -= 25
+    if (volatility > 0.6) confidenceLevel -= 15
+    if (recentData.length < 4) confidenceLevel -= 10
+    
+    // Bonus de confianza si hay tendencia clara
+    const hasPositiveTrend = recentData.slice(-3).every((d, i, arr) => i === 0 || d.totalRevenue >= arr[i-1].totalRevenue)
+    const hasNegativeTrend = recentData.slice(-3).every((d, i, arr) => i === 0 || d.totalRevenue <= arr[i-1].totalRevenue)
+    if (hasPositiveTrend || hasNegativeTrend) confidenceLevel += 10
+    
     return {
-      nextMonthRevenue: AIAnalytics.predictNextMonth(recentData),
-      confidenceLevel: volatility < 0.2 ? 95 : volatility < 0.4 ? 80 : 65,
-      nextQuarterRevenue: AIAnalytics.predictNextQuarter(recentData)
+      nextMonthRevenue: Math.max(0, nextMonth),
+      confidenceLevel: Math.max(50, Math.min(95, confidenceLevel)),
+      nextQuarterRevenue: Math.max(0, quarterPrediction)
     }
   },
 
@@ -133,6 +148,9 @@ const AIAnalytics = {
     }
     const revenues = data.map(d => d.totalRevenue)
     const mean = revenues.reduce((a, b) => a + b, 0) / revenues.length
+    
+    if (mean === 0) return 1
+    
     const variance = revenues.reduce((sum, rev) => sum + Math.pow(rev - mean, 2), 0) / revenues.length
     return Math.sqrt(variance) / mean
   },
@@ -141,96 +159,355 @@ const AIAnalytics = {
     if (data.length === 0) {
       return 0
     }
-    const trend = data.length >= 3 ? 
-      (data[data.length - 1].totalRevenue - data[data.length - 3].totalRevenue) / 2 : 0
+    
+    // Usar regresión lineal simple para mejor predicción
+    const n = Math.min(data.length, 6)
+    const recentData = data.slice(-n)
+    
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0
+    
+    recentData.forEach((d, i) => {
+      const x = i + 1
+      const y = d.totalRevenue
+      sumX += x
+      sumY += y
+      sumXY += x * y
+      sumX2 += x * x
+    })
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
+    const intercept = (sumY - slope * sumX) / n
+    
+    const prediction = slope * (n + 1) + intercept
+    
+    // Aplicar factor de confianza basado en volatilidad
     const lastRevenue = data[data.length - 1].totalRevenue
-    return Math.max(0, lastRevenue + trend)
+    const avgRevenue = sumY / n
+    
+    // Si hay mucha volatilidad, usar promedio ponderado
+    const volatility = AIAnalytics.calculateVolatility(recentData)
+    if (volatility > 0.5) {
+      return (prediction * 0.4) + (lastRevenue * 0.3) + (avgRevenue * 0.3)
+    }
+    
+    return (prediction * 0.6) + (lastRevenue * 0.4)
   },
 
   predictNextQuarter: (data: MonthlyData[]) => {
     const nextMonth = AIAnalytics.predictNextMonth(data)
-    const avgGrowth = data.length >= 3 ? 
-      data.slice(-3).reduce((sum, d) => sum + d.growth, 0) / 3 : 0
-    return nextMonth * 3 * (1 + avgGrowth / 100)
+    
+    // Calcular tendencia promedio de crecimiento
+    const recentData = data.slice(-6)
+    const avgGrowth = recentData.length >= 3 ? 
+      recentData.slice(-3).reduce((sum, d) => sum + d.growth, 0) / 3 : 0
+    
+    // Proyectar 3 meses con crecimiento compuesto
+    const month1 = nextMonth
+    const month2 = month1 * (1 + (avgGrowth / 100))
+    const month3 = month2 * (1 + (avgGrowth / 100))
+    
+    return month1 + month2 + month3
   },
 
   generateRecommendations: (monthlyData: MonthlyData[], kpiData: KPIData) => {
     const recommendations = []
+    const recentData = monthlyData.slice(-3)
 
+    // Análisis de margen de ganancia
     if (kpiData.profitMargin < 15) {
       recommendations.push({
         type: 'pricing',
         priority: 'high',
-        action: 'Analizar incremento de precios del 8-12%',
-        impact: 'Potencial aumento de margen del 3-5%'
+        action: 'Incrementar precios estratégicamente en productos/servicios de alto valor',
+        impact: `Potencial aumento de ganancia: +8% mensual`
+      })
+    } else if (kpiData.profitMargin > 40) {
+      recommendations.push({
+        type: 'expansion',
+        priority: 'medium',
+        action: 'Márgenes excelentes. Considera invertir en marketing o expansión',
+        impact: 'Oportunidad de crecimiento acelerado'
       })
     }
 
-    if (kpiData.averageGrowth < 0) {
+    // Análisis de tendencia de crecimiento
+    if (kpiData.averageGrowth < -5) {
       recommendations.push({
         type: 'marketing',
         priority: 'high',
-        action: 'Implementar estrategia de retención de clientes',
-        impact: 'Recuperación estimada del 15-20% en ingresos'
+        action: 'URGENTE: Activar campaña de captación y retención de clientes',
+        impact: 'Recuperación estimada del 20-30% en próximos 3 meses'
+      })
+    } else if (kpiData.averageGrowth > 15) {
+      recommendations.push({
+        type: 'scaling',
+        priority: 'high',
+        action: 'Crecimiento acelerado. Preparar infraestructura para escalar',
+        impact: 'Capitalizar momentum de crecimiento'
       })
     }
 
+    // Análisis de consistencia
     if (kpiData.consistencyScore < 50) {
       recommendations.push({
         type: 'operations',
-        priority: 'medium',
-        action: 'Estabilizar procesos operativos',
-        impact: 'Mejora en predictibilidad de ingresos'
+        priority: 'high',
+        action: 'Implementar procesos estandarizados y proyecciones mensuales',
+        impact: 'Reducir volatilidad del 40-60% y mejorar planificación'
       })
     }
 
-    return recommendations
+    // Análisis de gastos vs ingresos
+    const expenseRatio = kpiData.totalExpenseAmount / kpiData.totalRevenue
+    if (expenseRatio > 0.8) {
+      recommendations.push({
+        type: 'cost-control',
+        priority: 'high',
+        action: 'Revisar y reducir gastos operativos. Ratio gastos/ingresos muy alto',
+        impact: `Ahorro potencial: 15% mensual`
+      })
+    } else if (expenseRatio < 0.4) {
+      recommendations.push({
+        type: 'investment',
+        priority: 'medium',
+        action: 'Margen operativo saludable. Considera invertir en crecimiento',
+        impact: 'Oportunidad de inversión estratégica'
+      })
+    }
+
+    // Análisis del valor promedio de facturas
+    if (kpiData.avgInvoiceValue > 0 && recentData.length >= 2) {
+      const avgValueTrend = (recentData[recentData.length - 1].avgInvoiceValue - recentData[0].avgInvoiceValue) / recentData[0].avgInvoiceValue
+      if (avgValueTrend < -0.1) {
+        recommendations.push({
+          type: 'upselling',
+          priority: 'medium',
+          action: 'Valor promedio de factura disminuyendo. Implementar estrategia de upselling',
+          impact: 'Incremento estimado del 12-18% en ingresos por cliente'
+        })
+      }
+    }
+
+    // Análisis de salud del negocio
+    if (kpiData.businessHealthScore < 40) {
+      recommendations.push({
+        type: 'restructuring',
+        priority: 'high',
+        action: 'Score de salud bajo. Revisar modelo de negocio y estrategia general',
+        impact: 'Crítico para sostenibilidad a largo plazo'
+      })
+    } else if (kpiData.businessHealthScore > 75) {
+      recommendations.push({
+        type: 'optimization',
+        priority: 'medium',
+        action: 'Negocio saludable. Optimizar procesos para maximizar eficiencia',
+        impact: 'Incremento potencial del 10-15% en rentabilidad'
+      })
+    }
+
+    // Análisis estacional
+    if (kpiData.seasonalityIndex > 50) {
+      recommendations.push({
+        type: 'planning',
+        priority: 'medium',
+        action: 'Fuerte componente estacional detectado. Planificar inventario y recursos',
+        impact: 'Mejor preparación para picos y valles de demanda'
+      })
+    }
+
+    return recommendations.slice(0, 6) // Mostrar top 6 recomendaciones
   },
 
   identifyRisks: (monthlyData: MonthlyData[], kpiData: KPIData) => {
     const risks = []
+    const recentData = monthlyData.slice(-3)
     
+    // Riesgo de flujo de efectivo negativo
     if (kpiData.netProfit < 0) {
       risks.push({
         level: 'high',
         type: 'cashflow',
-        description: 'Flujo de efectivo negativo detectado',
-        recommendation: 'Revisar gastos y acelerar cobros inmediatamente'
+        description: `Pérdida neta detectada en el período`,
+        recommendation: 'Acción inmediata: Reducir gastos 20-30% y acelerar cobros pendientes'
       })
     }
 
-    if (kpiData.profitMargin < 5) {
+    // Riesgo de margen muy bajo
+    if (kpiData.profitMargin < 5 && kpiData.totalRevenue > 0) {
+      risks.push({
+        level: 'high',
+        type: 'profitability',
+        description: `Margen crítico del ${kpiData.profitMargin.toFixed(1)}%. Negocio insostenible`,
+        recommendation: 'Revisar inmediatamente estructura de costos y precios. Objetivo: 15-20% mínimo'
+      })
+    } else if (kpiData.profitMargin < 10) {
       risks.push({
         level: 'medium',
         type: 'profitability',
-        description: 'Margen de ganancia muy bajo',
-        recommendation: 'Optimizar estructura de costos'
+        description: `Margen bajo del ${kpiData.profitMargin.toFixed(1)}%. Riesgo financiero`,
+        recommendation: 'Optimizar costos operativos y revisar estrategia de precios'
       })
     }
 
-    return risks
+    // Riesgo de tendencia negativa sostenida
+    if (recentData.length >= 3) {
+      const allNegativeGrowth = recentData.every(d => d.growth < 0)
+      if (allNegativeGrowth) {
+        risks.push({
+          level: 'high',
+          type: 'declining-revenue',
+          description: '3 meses consecutivos de decrecimiento. Tendencia alarmante',
+          recommendation: 'Análisis urgente de causas: pérdida de clientes, competencia, o mercado'
+        })
+      }
+    }
+
+    // Riesgo de volatilidad alta
+    if (kpiData.consistencyScore < 30) {
+      risks.push({
+        level: 'medium',
+        type: 'volatility',
+        description: 'Alta volatilidad en ingresos dificulta planificación',
+        recommendation: 'Buscar contratos recurrentes o servicios de suscripción para estabilizar'
+      })
+    }
+
+    // Riesgo de dependencia excesiva
+    if (kpiData.totalInvoices > 0) {
+      const avgInvoiceRatio = kpiData.avgInvoiceValue / (kpiData.totalRevenue / kpiData.totalInvoices || 1)
+      if (avgInvoiceRatio > 0.5) {
+        risks.push({
+          level: 'medium',
+          type: 'concentration',
+          description: 'Posible alta concentración en pocos clientes grandes',
+          recommendation: 'Diversificar base de clientes para reducir riesgo de concentración'
+        })
+      }
+    }
+
+    // Riesgo de gastos crecientes
+    if (kpiData.expenseGrowthTrend > kpiData.revenueGrowthTrend + 10) {
+      risks.push({
+        level: 'high',
+        type: 'cost-inflation',
+        description: 'Gastos creciendo más rápido que ingresos',
+        recommendation: 'Controlar inmediatamente gastos operativos. Riesgo de margen decreciente'
+      })
+    }
+
+    // Riesgo de estancamiento
+    if (Math.abs(kpiData.averageGrowth) < 2 && kpiData.profitMargin < 20) {
+      risks.push({
+        level: 'medium',
+        type: 'stagnation',
+        description: 'Estancamiento con márgenes ajustados. Sin crecimiento sostenible',
+        recommendation: 'Implementar estrategia de crecimiento: nuevos productos, mercados o canales'
+      })
+    }
+
+    // Riesgo de salud general baja
+    if (kpiData.businessHealthScore < 35) {
+      risks.push({
+        level: 'high',
+        type: 'business-health',
+        description: `Score de salud crítico: ${kpiData.businessHealthScore}/100`,
+        recommendation: 'Evaluación integral urgente. Considerar asesoría financiera externa'
+      })
+    }
+
+    return risks.slice(0, 5) // Top 5 riesgos más importantes
   },
 
   identifyOpportunities: (monthlyData: MonthlyData[], kpiData: KPIData) => {
     const opportunities = []
+    const recentData = monthlyData.slice(-3)
 
+    // Oportunidad de expansión por salud fuerte
     if (kpiData.businessHealthScore > 75) {
       opportunities.push({
         area: 'expansion',
-        potential: 'Alto potencial de crecimiento',
-        action: 'Considerar expansión de servicios o mercados'
+        potential: `Negocio muy saludable (${kpiData.businessHealthScore}/100). Momento ideal para crecer`,
+        action: 'Explorar nuevos mercados, productos o servicios complementarios'
       })
     }
 
-    if (kpiData.avgInvoiceValue > 0) {
+    // Oportunidad de crecimiento sostenido
+    if (kpiData.averageGrowth > 10 && kpiData.consistencyScore > 60) {
+      opportunities.push({
+        area: 'scaling',
+        potential: `Crecimiento consistente del ${kpiData.averageGrowth.toFixed(1)}% mensual`,
+        action: 'Escalar operaciones, contratar personal clave o automatizar procesos'
+      })
+    }
+
+    // Oportunidad de optimización de precios
+    if (kpiData.avgInvoiceValue > 0 && kpiData.profitMargin > 20) {
       opportunities.push({
         area: 'pricing',
-        potential: 'Optimización de precios detectada',
-        action: 'Revisar estrategia de precios comparativa'
+        potential: 'Márgenes saludables permiten ajuste de precios. Potencial: +5% en ingresos',
+        action: 'Testear incremento de precios 3-5% en productos premium'
       })
     }
 
-    return opportunities
+    // Oportunidad de eficiencia operativa
+    const expenseRatio = kpiData.totalExpenseAmount / kpiData.totalRevenue
+    if (expenseRatio > 0.6 && expenseRatio < 0.8) {
+      opportunities.push({
+        area: 'efficiency',
+        potential: 'Margen de mejora en eficiencia operativa',
+        action: 'Optimizar procesos, negociar con proveedores o implementar tecnología'
+      })
+    }
+
+    // Oportunidad de diversificación
+    if (kpiData.totalProducts > 0 && kpiData.avgInvoiceValue > 0) {
+      opportunities.push({
+        area: 'diversification',
+        potential: 'Base de productos existente permite cross-selling',
+        action: 'Crear paquetes o bundles de productos/servicios complementarios'
+      })
+    }
+
+    // Oportunidad de retención
+    if (kpiData.totalClients > 20 && recentData.length >= 2) {
+      const clientGrowth = recentData[recentData.length - 1].totalInvoices - recentData[0].totalInvoices
+      if (clientGrowth > 0) {
+        opportunities.push({
+          area: 'retention',
+          potential: `Base de ${kpiData.totalClients} clientes con ${clientGrowth} nuevos recientes`,
+          action: 'Implementar programa de lealtad o beneficios para clientes recurrentes'
+        })
+      }
+    }
+
+    // Oportunidad de estacionalidad
+    if (kpiData.seasonalityIndex > 30) {
+      opportunities.push({
+        area: 'seasonal-planning',
+        potential: 'Patrones estacionales claros identificados',
+        action: 'Preparar campañas y promociones alineadas con temporadas altas'
+      })
+    }
+
+    // Oportunidad de inversión
+    if (kpiData.netProfit > kpiData.totalRevenue * 0.2 && kpiData.consistencyScore > 70) {
+      opportunities.push({
+        area: 'investment',
+        potential: 'Rentabilidad y estabilidad permiten inversión estratégica',
+        action: 'Considerar inversión en marketing, tecnología o nuevo talento'
+      })
+    }
+
+    // Oportunidad de innovación
+    if (kpiData.averageGrowth > 5 && kpiData.averageGrowth < 15) {
+      opportunities.push({
+        area: 'innovation',
+        potential: 'Crecimiento moderado estable. Momento de innovar',
+        action: 'Investigar nuevas tendencias del mercado o tecnologías disruptivas'
+      })
+    }
+
+    return opportunities.slice(0, 6) // Top 6 oportunidades
   }
 }
 
@@ -1212,22 +1489,35 @@ export default function MonthlyReportsPage() {
                     <Brain className="h-5 w-5" />
                     <span>Predicciones IA</span>
                   </CardTitle>
+                  <CardDescription className="text-blue-700 font-medium">
+                    Proyecciones basadas en análisis de tendencias y patrones históricos
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-2xl lg:text-3xl font-bold text-blue-900">
+                  <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+                    <div className="text-3xl font-bold text-blue-900">
                       {formatCurrency(aiInsights.predictions.nextMonthRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700">Próximo Mes</div>
-                    <div className="text-xs text-blue-600 mt-1">
-                      Confianza: {aiInsights.predictions.confidenceLevel}%
+                    <div className="text-sm text-blue-700 font-semibold mt-1">Próximo Mes Estimado</div>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <div className="text-xs text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                        Confianza: {aiInsights.predictions.confidenceLevel}%
+                      </div>
+                      {aiInsights.predictions.confidenceLevel >= 80 && (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      )}
                     </div>
                   </div>
-                  <div className="text-center pt-2 border-t">
-                    <div className="text-xl font-bold text-blue-800">
+                  <div className="text-center p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-300">
+                    <div className="text-2xl font-bold text-blue-800">
                       {formatCurrency(aiInsights.predictions.nextQuarterRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700">Próximo Trimestre</div>
+                    <div className="text-sm text-blue-700 font-semibold mt-1">Proyección Trimestral (3 meses)</div>
+                    <div className="text-xs text-blue-600 mt-2">
+                      {aiInsights.predictions.nextQuarterRevenue > kpiData.totalRevenue * 1.1 ? '📈 Tendencia positiva' : 
+                       aiInsights.predictions.nextQuarterRevenue < kpiData.totalRevenue * 0.9 ? '📉 Requiere atención' :
+                       '➡️ Estable'}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1241,19 +1531,21 @@ export default function MonthlyReportsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {aiInsights.recommendations.slice(0, 3).map((rec, index) => (
-                      <div key={index} className="p-3 bg-white rounded-lg border border-emerald-200">
+                    {aiInsights.recommendations.slice(0, 4).map((rec, index) => (
+                      <div key={index} className="p-3 bg-white rounded-lg border border-emerald-200 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                           <Badge 
                             variant={rec.priority === 'high' ? 'destructive' : 'secondary'}
-                            className="text-xs"
+                            className="text-xs font-semibold"
                           >
-                            {rec.priority === 'high' ? 'Alta' : 'Media'}
+                            {rec.priority === 'high' ? '🔥 Alta Prioridad' : '⚡ Media'}
                           </Badge>
-                          <span className="text-xs text-emerald-600 font-medium capitalize">{rec.type}</span>
+                          <span className="text-xs text-emerald-600 font-medium capitalize bg-emerald-50 px-2 py-1 rounded">
+                            {rec.type.replace(/-/g, ' ')}
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-700 mb-1">{rec.action}</p>
-                        <p className="text-xs text-emerald-600">{rec.impact}</p>
+                        <p className="text-sm font-semibold text-gray-800 mb-1">{rec.action}</p>
+                        <p className="text-xs text-emerald-600 font-medium">💡 {rec.impact}</p>
                       </div>
                     ))}
                   </div>
@@ -1270,25 +1562,28 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {aiInsights.risks.length > 0 ? (
-                      aiInsights.risks.slice(0, 3).map((risk, index) => (
-                        <div key={index} className="p-3 bg-white rounded-lg border border-amber-200">
+                      aiInsights.risks.slice(0, 4).map((risk, index) => (
+                        <div key={index} className="p-3 bg-white rounded-lg border border-amber-200 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-2">
                             <Badge 
                               variant={risk.level === 'high' ? 'destructive' : 'secondary'}
-                              className="text-xs"
+                              className="text-xs font-semibold"
                             >
-                              {risk.level === 'high' ? 'Alto' : 'Medio'}
+                              {risk.level === 'high' ? '⚠️ Riesgo Alto' : '⚡ Riesgo Medio'}
                             </Badge>
-                            <span className="text-xs text-amber-600 font-medium capitalize">{risk.type}</span>
+                            <span className="text-xs text-amber-600 font-medium capitalize bg-amber-50 px-2 py-1 rounded">
+                              {risk.type.replace(/-/g, ' ')}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-700 mb-1">{risk.description}</p>
-                          <p className="text-xs text-amber-600">{risk.recommendation}</p>
+                          <p className="text-sm font-semibold text-gray-800 mb-1">{risk.description}</p>
+                          <p className="text-xs text-amber-700 font-medium">🎯 {risk.recommendation}</p>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4">
-                        <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                        <p className="text-sm text-emerald-600">No se detectaron riesgos críticos</p>
+                      <div className="text-center py-6">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+                        <p className="text-sm font-semibold text-emerald-600 mb-1">¡Excelente!</p>
+                        <p className="text-xs text-emerald-500">No se detectaron riesgos críticos en tu negocio</p>
                       </div>
                     )}
                   </div>
@@ -1304,19 +1599,24 @@ export default function MonthlyReportsPage() {
                     <Target className="h-5 w-5 text-purple-600" />
                     <span>Oportunidades de Crecimiento Detectadas por IA</span>
                   </CardTitle>
+                  <CardDescription>
+                    Acciones estratégicas recomendadas para maximizar tu potencial
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {aiInsights.opportunities.map((opp, index) => (
-                      <div key={index} className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-purple-800 capitalize">{opp.area}</span>
-                          <Badge variant="outline" className="text-purple-600 border-purple-300">
-                            Oportunidad
+                      <div key={index} className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-bold text-purple-800 capitalize text-sm bg-white px-3 py-1 rounded-full">
+                            {opp.area.replace(/-/g, ' ')}
+                          </span>
+                          <Badge variant="outline" className="text-purple-600 border-purple-300 font-semibold">
+                            💎 Oportunidad
                           </Badge>
                         </div>
-                        <p className="text-sm text-purple-700 mb-2">{opp.potential}</p>
-                        <p className="text-xs text-purple-600">{opp.action}</p>
+                        <p className="text-sm font-semibold text-purple-800 mb-2">{opp.potential}</p>
+                        <p className="text-xs text-purple-700 font-medium">🚀 {opp.action}</p>
                       </div>
                     ))}
                   </div>

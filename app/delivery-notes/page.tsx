@@ -8,11 +8,16 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Plus, Search, FileText, Edit, Trash2, Download } from "lucide-react"
 import Link from "next/link"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DeliveryNotesPage() {
   const [deliveryNotes, setDeliveryNotes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchDeliveryNotes()
@@ -68,14 +73,33 @@ export default function DeliveryNotesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este conduce?")) return
+    setDeleteConfirm({ show: true, id })
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+
+    setIsDeleting(true)
     try {
-      const { error } = await supabase.from("delivery_notes").delete().eq("id", id)
+      const { error } = await supabase.from("delivery_notes").delete().eq("id", deleteConfirm.id)
       if (error) throw error
+      
+      toast({
+        title: "Conduce eliminado",
+        description: "El conduce ha sido eliminado exitosamente",
+      })
+      
+      setDeleteConfirm({ show: false, id: null })
       fetchDeliveryNotes()
     } catch (error) {
       console.error("Error deleting delivery note:", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el conduce",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -214,6 +238,18 @@ export default function DeliveryNotesPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirm.show}
+        onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+        title="Eliminar Conduce"
+        description="¿Estás seguro de que deseas eliminar este conduce? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

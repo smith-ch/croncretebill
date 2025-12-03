@@ -13,8 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft } from "lucide-react"
+import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
+import { useToast } from "@/hooks/use-toast"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
@@ -32,10 +33,12 @@ export default function NewInvoicePage() {
   const router = useRouter()
   const { formatCurrency } = useCurrency()
   const { permissions, validateInvoiceAmount } = useUserPermissions()
+  const { toast } = useToast()
   
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
   const [invoiceNumber, setInvoiceNumber] = useState("")
   const [clients, setClients] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
@@ -118,6 +121,7 @@ export default function NewInvoicePage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setValidationErrors({})
 
     const formData = new FormData(e.currentTarget)
 
@@ -130,9 +134,10 @@ export default function NewInvoicePage() {
       }
 
       // Validate required fields
-      const clientId = selectedClient === "no-client" ? null : selectedClient // Hacer cliente opcional
+      const clientId = selectedClient === "no-client" ? null : selectedClient
       const invoiceDate = formData.get("invoice_date") as string
       const dueDate = formData.get("due_date") as string
+      const errors: {[key: string]: string} = {}
 
       console.log('DEBUG - Form validation:', {
         clientId,
@@ -144,27 +149,56 @@ export default function NewInvoicePage() {
         ncf
       })
 
-      // Cliente ya no es requerido - comentar validación
-      // if (!clientId) {
-      //   throw new Error("Cliente es requerido")
-      // }
+      // Validar fecha de factura
       if (!invoiceDate) {
-        throw new Error("Fecha de factura es requerida")
+        errors.invoiceDate = "La fecha de factura es requerida"
+        toast({
+          variant: "destructive",
+          title: "Error en fecha de factura",
+          description: "Por favor selecciona una fecha de factura válida",
+        })
       }
+
+      // Validar fecha de vencimiento
       if (!dueDate) {
-        throw new Error("Fecha de vencimiento es requerida")
+        errors.dueDate = "La fecha de vencimiento es requerida"
+        toast({
+          variant: "destructive",
+          title: "Error en fecha de vencimiento",
+          description: "Por favor selecciona una fecha de vencimiento válida",
+        })
+      }
+
+      // Validar que la fecha de vencimiento sea posterior a la fecha de factura
+      if (invoiceDate && dueDate && new Date(dueDate) < new Date(invoiceDate)) {
+        errors.dueDate = "La fecha de vencimiento debe ser posterior a la fecha de factura"
+        toast({
+          variant: "destructive",
+          title: "Error en fechas",
+          description: "La fecha de vencimiento debe ser posterior a la fecha de emisión",
+        })
       }
 
       // Validate NCF if ITBIS is included
       if (includeItbis && !ncf.trim()) {
-        throw new Error("NCF es requerido cuando se incluye ITBIS")
+        errors.ncf = "NCF es requerido cuando se incluye ITBIS"
+        toast({
+          variant: "destructive",
+          title: "NCF requerido",
+          description: "Debes incluir un NCF válido cuando agregas ITBIS a la factura",
+        })
       }
 
       // Validate NCF format if provided
       if (includeItbis && ncf.trim()) {
         const ncfPattern = /^[BE][0-9]{10}$/
         if (!ncfPattern.test(ncf.trim())) {
-          throw new Error("NCF debe tener 11 caracteres: letra (B o E) seguida de 10 dígitos")
+          errors.ncf = "NCF debe tener el formato correcto: B o E seguido de 10 dígitos"
+          toast({
+            variant: "destructive",
+            title: "Formato de NCF inválido",
+            description: "El NCF debe comenzar con B o E y tener 10 dígitos (ejemplo: B0100000001)",
+          })
         }
       }
 
@@ -182,7 +216,44 @@ export default function NewInvoicePage() {
       })
 
       if (validItems.length === 0) {
+        errors.items = "Debes agregar al menos un producto o servicio"
+        toast({
+          variant: "destructive",
+          title: "Sin productos o servicios",
+          description: "Debes seleccionar al menos un producto o servicio válido para crear la factura",
+        })
         throw new Error("Debe seleccionar al menos un producto o servicio válido para crear la factura")
+      }
+
+      // Validar cantidades y precios de items
+      let hasInvalidItems = false
+      validItems.forEach((item, index) => {
+        if (item.quantity <= 0) {
+          errors[`item_${index}_quantity`] = "La cantidad debe ser mayor a 0"
+          hasInvalidItems = true
+        }
+        if (item.unit_price < 0) {
+          errors[`item_${index}_price`] = "El precio no puede ser negativo"
+          hasInvalidItems = true
+        }
+      })
+
+      if (hasInvalidItems) {
+        toast({
+          variant: "destructive",
+          title: "Errores en items",
+          description: "Algunos productos o servicios tienen cantidades o precios inválidos",
+        })
+        setValidationErrors(errors)
+        setLoading(false)
+        return
+      }
+
+      // Si hay errores de validación, detener aquí
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors)
+        setLoading(false)
+        return
       }
 
       // Process valid items
@@ -220,6 +291,11 @@ export default function NewInvoicePage() {
             )
             .join('\n')
           
+          toast({
+            variant: "destructive",
+            title: "Stock insuficiente",
+            description: stockErrors,
+          })
           throw new Error(`Stock insuficiente:\n${stockErrors}`)
         }
       }
@@ -230,15 +306,36 @@ export default function NewInvoicePage() {
       let discountAmount = 0
       if (discountValue > 0) {
         if (discountType === "percentage") {
+          if (discountValue > 100) {
+            toast({
+              variant: "destructive",
+              title: "Descuento inválido",
+              description: "El descuento porcentual no puede ser mayor al 100%",
+            })
+            throw new Error("El descuento porcentual no puede ser mayor al 100%")
+          }
           discountAmount = subtotal * (discountValue / 100)
         } else {
-          discountAmount = Math.min(discountValue, subtotal) // Don't allow discount greater than subtotal
+          if (discountValue > subtotal) {
+            toast({
+              variant: "destructive",
+              title: "Descuento inválido",
+              description: `El descuento fijo no puede ser mayor al subtotal (${formatCurrency(subtotal)})`,
+            })
+            throw new Error("El descuento no puede ser mayor al subtotal")
+          }
+          discountAmount = Math.min(discountValue, subtotal)
         }
       }
 
       // Validate discount doesn't make total negative
       const discountedSubtotal = Math.max(subtotal - discountAmount, 0)
       if (discountedSubtotal < 0) {
+        toast({
+          variant: "destructive",
+          title: "Descuento inválido",
+          description: "El descuento no puede ser mayor al subtotal",
+        })
         throw new Error("El descuento no puede ser mayor al subtotal")
       }
 
@@ -247,6 +344,11 @@ export default function NewInvoicePage() {
 
       // Validar límite de monto si aplica
       if (!validateInvoiceAmount(total)) {
+        toast({
+          variant: "destructive",
+          title: "Monto excede el límite",
+          description: `El monto total ${formatCurrency(total)} excede tu límite autorizado de ${formatCurrency(permissions.maxInvoiceAmount || 0)}`,
+        })
         throw new Error(`El monto total ${formatCurrency(total)} excede tu límite autorizado de ${formatCurrency(permissions.maxInvoiceAmount || 0)}`)
       }
 
@@ -300,14 +402,32 @@ export default function NewInvoicePage() {
 
       if (!response.ok) {
         const errorData = await response.json()
+        toast({
+          variant: "destructive",
+          title: "Error al crear factura",
+          description: errorData.error || "Ocurrió un error al crear la factura. Por favor intenta de nuevo.",
+        })
         throw new Error(errorData.error || "Error al crear la factura")
       }
 
       await response.json()
       
+      toast({
+        title: "✅ Factura creada exitosamente",
+        description: `Factura #${invoiceNumber} creada correctamente`,
+      })
+      
       router.push("/invoices")
     } catch (error: any) {
       setError(error.message || "Error al crear la factura")
+      // Solo mostrar toast si no se ha mostrado uno específico
+      if (!error.message.includes("NCF") && !error.message.includes("Stock") && !error.message.includes("descuento")) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message || "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+        })
+      }
     } finally {
       setLoading(false)
     }
