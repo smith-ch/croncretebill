@@ -220,8 +220,8 @@ export default function InvoicesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6 overflow-x-hidden">
+        <div className="max-w-7xl mx-auto space-y-6 overflow-x-hidden">
           {/* Header skeleton */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="h-10 w-48 bg-gray-200 rounded-lg skeleton"></div>

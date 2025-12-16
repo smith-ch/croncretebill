@@ -818,8 +818,8 @@ export default function UnifiedInventoryPage() {
   // Check if user has permission to manage inventory
   if (!permissions.canManageInventory) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6 overflow-x-hidden">
+        <div className="max-w-7xl mx-auto overflow-x-hidden">
           <Card className="border-2 border-red-200 bg-red-50">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
@@ -1055,9 +1055,9 @@ export default function UnifiedInventoryPage() {
   }
 
   return (
-    <div className="container mx-auto p-3 lg:p-6 space-y-4 lg:space-y-6">
+    <div className="container mx-auto p-3 lg:p-6 space-y-4 lg:space-y-6 overflow-x-hidden">
       {/* Header - Mobile Optimized */}
-      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 overflow-x-hidden">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Inventario Unificado</h1>
           <p className="text-sm lg:text-base text-gray-600">Gestión completa de inventario, stock, movimientos y almacenes</p>

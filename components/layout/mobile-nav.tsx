@@ -290,15 +290,6 @@ export function MobileNav() {
       {/* Mobile Header - Enhanced Design */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pwa-header bg-gradient-to-r from-white to-blue-50 backdrop-blur-md border-b border-slate-200 shadow-lg">
         <div className="flex items-center justify-between px-4 h-16">
-          <Link href="/dashboard" className="flex items-center space-x-2 group">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
-              <span className="text-white font-bold text-sm">CB</span>
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-900 transition-all duration-300">
-              ConcreteBill
-            </span>
-          </Link>
-          
           <Button
             variant="ghost"
             size="sm"
@@ -311,6 +302,17 @@ export function MobileNav() {
               <Menu className="h-5 w-5 text-slate-700" />
             )}
           </Button>
+          
+          <Link href="/dashboard" className="flex items-center space-x-2 group">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
+              <span className="text-white font-bold text-sm">CB</span>
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-900 transition-all duration-300">
+              ConcreteBill
+            </span>
+          </Link>
+          
+          <div className="w-10" />
         </div>
 
         {/* Mobile Menu Overlay - Enhanced Design with Animations */}
