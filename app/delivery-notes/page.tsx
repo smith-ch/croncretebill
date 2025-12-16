@@ -128,12 +128,52 @@ export default function DeliveryNotesPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex justify-between items-center">
+            <div className="space-y-2">
+              <div className="h-8 w-64 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-4 w-80 bg-gray-200 rounded skeleton"></div>
+            </div>
+            <div className="h-10 w-40 bg-gray-200 rounded-lg skeleton"></div>
+          </div>
+
+          {/* Search card skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="h-10 w-full max-w-sm bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery notes skeleton */}
+          <div className="space-y-4">
+            {[1,2,3,4,5].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-5 w-32 bg-gray-200 rounded"></div>
+                        <div className="h-5 w-24 bg-gray-200 rounded-full"></div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-4 w-48 bg-gray-200 rounded"></div>
+                        <div className="h-4 w-40 bg-gray-200 rounded"></div>
+                        <div className="h-4 w-56 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="mr-4">
+                      <div className="h-6 w-24 bg-gray-300 rounded"></div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -185,10 +225,11 @@ export default function DeliveryNotesPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredDeliveryNotes.map((note) => (
+              {filteredDeliveryNotes.map((note, index) => (
                 <div
                   key={note.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center justify-between p-4 border-0 shadow-lg rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 card-hover bg-white animate-slide-up"
+                  style={{animationDelay: `${index * 0.05}s`}}
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -215,19 +256,20 @@ export default function DeliveryNotesPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="ghost" size="sm" asChild className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target" title="Editar conduce">
                       <Link href={`/delivery-notes/${note.id}/edit`}>
                         <Edit className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => downloadDeliveryNotePDF(note.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => downloadDeliveryNotePDF(note.id)} className="hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target" title="Descargar PDF">
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                       onClick={() => handleDelete(note.id)}
+                      title="Eliminar conduce"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

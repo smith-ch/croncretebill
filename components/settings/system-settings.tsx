@@ -222,74 +222,49 @@ export function SystemSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Configuración del Sistema</h2>
-          <p className="text-slate-600">Personaliza la apariencia y comportamiento de la aplicación</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Configuración del Sistema</h2>
+          <p className="text-slate-600 dark:text-slate-400">Personaliza la apariencia y comportamiento de la aplicación</p>
         </div>
-        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
           <Settings className="h-3 w-3 mr-1" />
           Configuración de Sistema
         </Badge>
       </div>
 
-      {/* Theme and Appearance */}
-      <Card variant="glass" className="border-0 shadow-xl">
+      {/* Theme and Appearance - TEMPORALMENTE DESHABILITADO */}
+      <Card variant="glass" className="border-0 shadow-xl opacity-60 pointer-events-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5 text-purple-600" />
             Apariencia y Tema
+            <Badge variant="outline" className="ml-auto bg-yellow-100 text-yellow-800 border-yellow-300">
+              Temporalmente deshabilitado
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-slate-700">Tema de la Aplicación</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'light', label: 'Claro', icon: Sun },
-                { value: 'dark', label: 'Oscuro', icon: Moon },
-                { value: 'system', label: 'Sistema', icon: Monitor },
-              ].map((theme) => {
-                const Icon = theme.icon
-                return (
-                  <button
-                    key={theme.value}
-                    onClick={() => handleThemeChange(theme.value as 'light' | 'dark' | 'system')}
-                    className={`
-                      relative p-4 rounded-xl border-2 transition-all duration-200
-                      ${settings.theme === theme.value 
-                        ? 'border-purple-500 bg-purple-50 text-purple-700' 
-                        : 'border-slate-200 hover:border-purple-300 hover:bg-slate-50'
-                      }
-                    `}
-                  >
-                    <Icon className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-sm font-medium">{theme.label}</p>
-                    {settings.theme === theme.value && (
-                      <div className="absolute top-2 right-2">
-                        <CheckCircle className="h-4 w-4 text-purple-600" />
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              <strong>Nota:</strong> El selector de tema está temporalmente deshabilitado mientras se mejora la implementación del modo oscuro. La aplicación funcionará solo en modo claro por ahora.
+            </p>
           </div>
         </CardContent>
       </Card>
 
       {/* Language and Region */}
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card variant="elevated" className="border-0 shadow-xl">
+        <Card variant="elevated" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Languages className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+              <Languages className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Idioma y Región
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-slate-700">Idioma de la Interfaz</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Idioma de la Interfaz</Label>
               <Select value={settings.language} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="bg-white border-slate-300">
+                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -306,9 +281,9 @@ export function SystemSettings() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-700">Zona Horaria</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Zona Horaria</Label>
               <Select value={settings.timezone} onValueChange={(value) => updateSetting('timezone', value)}>
-                <SelectTrigger className="bg-white border-slate-300">
+                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -321,18 +296,18 @@ export function SystemSettings() {
           </CardContent>
         </Card>
 
-        <Card variant="elevated" className="border-0 shadow-xl">
+        <Card variant="elevated" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-green-600" />
+            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+              <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
               Formato de Fecha y Hora
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-slate-700">Formato de Fecha</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Formato de Fecha</Label>
               <Select value={settings.dateFormat} onValueChange={(value) => updateSetting('dateFormat', value)}>
-                <SelectTrigger className="bg-white border-slate-300">
+                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -346,7 +321,7 @@ export function SystemSettings() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-slate-700">Formato de Hora</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Formato de Hora</Label>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { value: '12h', label: '12 horas (2:30 PM)' },
@@ -358,8 +333,8 @@ export function SystemSettings() {
                     className={`
                       p-3 rounded-lg border-2 text-sm transition-all duration-200
                       ${settings.timeFormat === format.value 
-                        ? 'border-green-500 bg-green-50 text-green-700' 
-                        : 'border-slate-200 hover:border-green-300 hover:bg-slate-50'
+                        ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:border-green-400 dark:text-green-300' 
+                        : 'border-slate-200 hover:border-green-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:border-green-600 dark:hover:bg-slate-800/80'
                       }
                     `}
                   >
@@ -373,10 +348,10 @@ export function SystemSettings() {
       </div>
 
       {/* Notifications */}
-      <Card variant="glass" className="border-0 shadow-xl">
+      <Card variant="glass" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-orange-600" />
+          <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+            <Bell className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             Notificaciones
           </CardTitle>
         </CardHeader>
@@ -385,8 +360,8 @@ export function SystemSettings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-700">Notificaciones Generales</Label>
-                  <p className="text-sm text-slate-500">Activar o desactivar todas las notificaciones</p>
+                  <Label className="text-slate-700 dark:text-slate-300">Notificaciones Generales</Label>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Activar o desactivar todas las notificaciones</p>
                 </div>
                 <Switch
                   checked={settings.notifications_enabled}
@@ -396,8 +371,8 @@ export function SystemSettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-700">Notificaciones por Email</Label>
-                  <p className="text-sm text-slate-500">Recibir notificaciones importantes por correo</p>
+                  <Label className="text-slate-700 dark:text-slate-300">Notificaciones por Email</Label>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Recibir notificaciones importantes por correo</p>
                 </div>
                 <Switch
                   checked={settings.email_notifications}
@@ -410,10 +385,10 @@ export function SystemSettings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 flex items-center gap-2">
-                  <Volume2 className="h-4 w-4 text-slate-500" />
+                  <Volume2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                   <div>
-                    <Label className="text-slate-700">Sonidos</Label>
-                    <p className="text-sm text-slate-500">Reproducir sonidos para notificaciones</p>
+                    <Label className="text-slate-700 dark:text-slate-300">Sonidos</Label>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Reproducir sonidos para notificaciones</p>
                   </div>
                 </div>
                 <Switch
@@ -425,10 +400,10 @@ export function SystemSettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-1 flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-slate-500" />
+                  <Smartphone className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                   <div>
-                    <Label className="text-slate-700">Notificaciones de Escritorio</Label>
-                    <p className="text-sm text-slate-500">Mostrar notificaciones en el sistema</p>
+                    <Label className="text-slate-700 dark:text-slate-300">Notificaciones de Escritorio</Label>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Mostrar notificaciones en el sistema</p>
                   </div>
                 </div>
                 <Switch
@@ -443,18 +418,18 @@ export function SystemSettings() {
       </Card>
 
       {/* Security Settings */}
-      <Card variant="elevated" className="border-0 shadow-xl">
+      <Card variant="elevated" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600" />
+          <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+            <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
             Configuraciones de Seguridad
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-slate-700">Autenticación de Dos Factores</Label>
-              <p className="text-sm text-slate-500">Agregar una capa extra de seguridad (próximamente)</p>
+              <Label className="text-slate-700 dark:text-slate-300">Autenticación de Dos Factores</Label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Agregar una capa extra de seguridad (próximamente)</p>
             </div>
             <Switch
               checked={settings.two_factor_enabled}
@@ -465,8 +440,8 @@ export function SystemSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-slate-700">Alertas de Inicio de Sesión</Label>
-              <p className="text-sm text-slate-500">Notificar cuando se inicie sesión</p>
+              <Label className="text-slate-700 dark:text-slate-300">Alertas de Inicio de Sesión</Label>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Notificar cuando se inicie sesión</p>
             </div>
             <Switch
               checked={settings.login_alerts}
@@ -475,12 +450,12 @@ export function SystemSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-700">Tiempo de Sesión (minutos)</Label>
+            <Label className="text-slate-700 dark:text-slate-300">Tiempo de Sesión (minutos)</Label>
             <Select 
               value={settings.session_timeout.toString()} 
               onValueChange={(value) => updateSetting('session_timeout', parseInt(value))}
             >
-              <SelectTrigger className="bg-white border-slate-300">
+              <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -497,16 +472,16 @@ export function SystemSettings() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        <Alert className="border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/20">
+          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        <Alert className="border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-900/20">
+          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
 

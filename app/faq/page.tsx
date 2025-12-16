@@ -58,6 +58,27 @@ const systemFAQs = [
       "ITBIS es el Impuesto sobre la Transferencia de Bienes Industrializados y Servicios (18% en República Dominicana).\n\nDebes incluirlo cuando:\n- Tu empresa está registrada para facturar con ITBIS\n- El cliente requiere factura fiscal\n- Es obligatorio proporcionar un NCF (Número de Comprobante Fiscal) cuando incluyes ITBIS",
   },
   {
+    id: "4a",
+    category: "Facturas",
+    question: "¿Cómo personalizar la apariencia de mis facturas?",
+    answer:
+      "Para personalizar tus facturas ve a Configuración → Empresa → Personalización de Facturas. Puedes ajustar:\n\n🎨 Colores:\n- Color Principal: Para títulos, encabezados y bordes principales\n- Color Secundario: Para fondos y secciones destacadas\n\n📄 Formato:\n- Estándar: Diseño clásico profesional\n- Moderno: Estilo contemporáneo con degradados y sombras\n- Compacto: Tamaño reducido para ahorrar espacio\n- Detallado: Texto grande y espacios amplios\n\n💬 Mensaje Personalizado:\n- Agrega un mensaje al pie de página\n- Ideal para información de contacto o agradecimientos\n\n🖼️ Logo:\n- Activa/desactiva la visualización del logo en facturas\n\nTodos los cambios se aplican inmediatamente al descargar facturas.",
+  },
+  {
+    id: "4b",
+    category: "Facturas",
+    question: "¿Cuáles son las diferencias entre los formatos de factura?",
+    answer:
+      "Los 4 formatos disponibles tienen características únicas:\n\n📄 ESTÁNDAR:\n- Diseño clásico y profesional\n- Bordes tradicionales\n- Tamaño de fuente regular (12px)\n- Espaciado normal\n- Ideal para uso general\n\n✨ MODERNO:\n- Fondo con degradado elegante\n- Tarjetas con sombras\n- Bordes redondeados\n- Texto con mayúsculas y espaciado\n- Estilo contemporáneo premium\n\n📋 COMPACTO:\n- Tamaño de fuente reducido (10-11px)\n- Espaciado optimizado\n- Bordes delgados\n- Ideal para ahorrar papel\n- Información condensada pero legible\n\n📖 DETALLADO:\n- Texto grande (12-14px)\n- Espacios amplios\n- Bordes gruesos\n- Mejor legibilidad\n- Headers con degradados\n\nSelecciona el formato según tus necesidades en Configuración → Empresa.",
+  },
+  {
+    id: "4c",
+    category: "Facturas",
+    question: "¿Dónde aparecen los colores personalizados en las facturas?",
+    answer:
+      "Los colores personalizados se aplican en múltiples elementos:\n\n🎨 Color Principal se usa en:\n- Borde del encabezado de la empresa\n- Título de la factura (\"FACTURA\" o \"Factura de Impuestos\")\n- Encabezados de las tablas (FECHA, DESCRIPCIÓN, etc.)\n- Fondo de la sección NCF\n- Títulos de secciones (FACTURAR A, PROYECTO, etc.)\n- Encabezados de tabla de impuestos\n- Borde de la sección de notas\n- Borde del pie de página\n\n🖌️ Color Secundario se usa en:\n- Fondo de la sección NCF\n- Fondo de la sección de notas\n- Fondos de secciones destacadas\n\nPuedes previsualizar los cambios descargando una factura de prueba después de guardar la configuración.",
+  },
+  {
     id: "5",
     category: "Clientes",
     question: "¿Cómo agregar un nuevo cliente?",

@@ -858,154 +858,159 @@ export default function ThermalReceiptsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-3 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Principal Mejorado */}
-        <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 backdrop-blur-sm rounded-3xl border border-white/20 shadow-2xl p-8 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-4 lg:space-y-6">
+        {/* Header Principal Reorganizado */}
+        <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-white/20 shadow-xl p-4 lg:p-6 relative overflow-hidden">
           {/* Background Pattern */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 rounded-3xl"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 rounded-2xl lg:rounded-3xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 lg:w-64 lg:h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full -translate-y-16 translate-x-16 lg:-translate-y-32 lg:translate-x-32"></div>
           
-          <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-              <div className="space-y-6">
-                {/* Title Section */}
-                <div className="flex items-start space-x-6">
-                  <div className="relative">
-                    <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-5 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition-all duration-500 hover:scale-110">
-                      <Receipt className="h-10 w-10 text-white" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-2 shadow-lg">
-                      <Sparkles className="h-4 w-4 text-white" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <h1 className="text-3xl lg:text-5xl font-black bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 bg-clip-text text-transparent leading-tight">
+          <div className="relative z-10 space-y-4">
+            {/* Title Section */}
+            <div className="flex items-start gap-3 lg:gap-4">
+              <div className="relative flex-shrink-0">
+                <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-3 lg:p-4 rounded-2xl lg:rounded-3xl shadow-lg">
+                  <Receipt className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1 lg:p-1.5 shadow-md">
+                  <Sparkles className="h-2.5 w-2.5 lg:h-3 lg:w-3 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl lg:text-3xl font-black bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 bg-clip-text text-transparent leading-tight">
                       Recibos Térmicos
                     </h1>
-                    <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
-                      <p className="text-gray-600 text-base lg:text-lg font-medium">Sistema profesional de facturación</p>
-                      <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full self-start lg:self-auto">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                        <span className="text-blue-700 text-sm font-semibold">80mm</span>
-                      </div>
-                    </div>
-                    
-                    {/* Quick Stats for existing users */}
-                    {receipts.length > 0 && (
-                      <div className="flex items-center space-x-6 pt-2">
-                        <div className="flex items-center space-x-2">
-                          <BarChart3 className="h-4 w-4 text-blue-600" />
-                          <span className="text-blue-700 font-semibold">{receipts.length} recibos</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                          <span className="text-green-700 font-semibold">{formatCurrency(receipts.reduce((sum, r) => sum + r.total_amount, 0))}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-purple-600" />
-                          <span className="text-purple-700 font-semibold">{todayReceipts.length} hoy</span>
-                        </div>
-                      </div>
-                    )}
+                    <p className="text-xs lg:text-sm text-gray-600 mt-1">Sistema profesional de facturación</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-blue-100 px-2 lg:px-3 py-1 rounded-full flex-shrink-0">
+                    <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    <span className="text-blue-700 text-xs lg:text-sm font-semibold">80mm</span>
                   </div>
                 </div>
               </div>
             </div>
-              
-            {/* Company Status Section */}
-            <div className="space-y-4">
-              {profile ? (
-                <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200/50 shadow-md">
-                  <CardContent className="p-4">
-                    <div className="flex flex-wrap items-center gap-6 text-sm">
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <div className="bg-blue-100 p-2 rounded-lg">
-                          <Building2 className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <span className="font-semibold text-gray-800">{profile.company_name || "Sin nombre"}</span>
-                          <p className="text-xs text-gray-500">Empresa configurada</p>
-                        </div>
+
+            {/* Quick Stats - Reorganizado para móvil */}
+            {receipts.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 lg:gap-3">
+                <div className="bg-blue-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-blue-100">
+                  <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
+                    <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4 text-blue-600 flex-shrink-0" />
+                    <span className="text-[10px] lg:text-xs text-blue-600 font-medium">Recibos</span>
+                  </div>
+                  <p className="text-sm lg:text-lg font-bold text-blue-700 truncate">{receipts.length}</p>
+                </div>
+                <div className="bg-green-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-green-100">
+                  <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
+                    <DollarSign className="h-3 w-3 lg:h-4 lg:w-4 text-green-600 flex-shrink-0" />
+                    <span className="text-[10px] lg:text-xs text-green-600 font-medium">Total</span>
+                  </div>
+                  <p className="text-xs lg:text-base font-bold text-green-700 truncate">{formatCurrency(receipts.reduce((sum, r) => sum + r.total_amount, 0))}</p>
+                </div>
+                <div className="bg-purple-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-purple-100">
+                  <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
+                    <Clock className="h-3 w-3 lg:h-4 lg:w-4 text-purple-600 flex-shrink-0" />
+                    <span className="text-[10px] lg:text-xs text-purple-600 font-medium">Hoy</span>
+                  </div>
+                  <p className="text-sm lg:text-lg font-bold text-purple-700 truncate">{todayReceipts.length}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Company Info - Reorganizado */}
+            {profile ? (
+              <Card className="bg-gradient-to-r from-green-50/80 to-blue-50/80 backdrop-blur-sm border-green-200/50 shadow-sm">
+                <CardContent className="p-3 lg:p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                        <Building2 className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-blue-600" />
                       </div>
-                      {profile.company_phone && (
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <div className="bg-green-100 p-2 rounded-lg">
-                            <Phone className="h-4 w-4 text-green-600" />
-                          </div>
-                          <div>
-                            <span className="font-medium">{profile.company_phone}</span>
-                            <p className="text-xs text-gray-500">Teléfono</p>
-                          </div>
-                        </div>
-                      )}
-                      {profile.tax_id && (
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <div className="bg-orange-100 p-2 rounded-lg">
-                            <FileText className="h-4 w-4 text-orange-600" />
-                          </div>
-                          <div>
-                            <span className="font-medium">RNC: {profile.tax_id}</span>
-                            <p className="text-xs text-gray-500">Registro Nacional</p>
-                          </div>
-                        </div>
-                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-gray-500">Empresa</p>
+                        <p className="font-semibold text-sm lg:text-base text-gray-800 truncate">{profile.company_name || "Sin nombre"}</p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-orange-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-5">
-                      <div className="relative">
-                        <div className="bg-gradient-to-br from-orange-500 to-red-500 p-4 rounded-2xl shadow-lg">
-                          <AlertCircle className="h-7 w-7 text-white" />
+                    {profile.company_phone && (
+                      <div className="flex items-center gap-2">
+                        <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
+                          <Phone className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-green-600" />
                         </div>
-                        <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-1 animate-pulse">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-500">Teléfono</p>
+                          <p className="font-medium text-sm lg:text-base text-gray-800 truncate">{profile.company_phone}</p>
                         </div>
                       </div>
-                      <div className="flex-1 space-y-3">
+                    )}
+                    {profile.tax_id && (
+                      <div className="flex items-center gap-2">
+                        <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
+                          <FileText className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-orange-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-500">RNC</p>
+                          <p className="font-medium text-sm lg:text-base text-gray-800 truncate">{profile.tax_id}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              ) : (
+                <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-orange-200/50 shadow-lg">
+                  <CardContent className="p-4 lg:p-5">
+                    <div className="flex items-start gap-3 lg:gap-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="bg-gradient-to-br from-orange-500 to-red-500 p-2.5 lg:p-3 rounded-xl shadow-md">
+                          <AlertCircle className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-3">
                         <div>
-                          <h3 className="text-xl font-bold text-orange-900 mb-1">¡Bienvenido! Configuración Inicial</h3>
-                          <p className="text-orange-700 leading-relaxed">
-                            Para comenzar a usar el sistema de recibos térmicos, necesitas configurar 
-                            la información básica de tu empresa en la configuración.
+                          <h3 className="text-base lg:text-lg font-bold text-orange-900 mb-1">Configuración Inicial Requerida</h3>
+                          <p className="text-xs lg:text-sm text-orange-700 leading-relaxed">
+                            Configura la información básica de tu empresa para comenzar a usar el sistema.
                           </p>
                         </div>
                         
-                        <div className="bg-orange-100/50 rounded-lg p-4 border border-orange-200">
-                          <h4 className="font-semibold text-orange-800 mb-2 flex items-center">
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Qué necesitas configurar:
+                        <div className="bg-orange-100/50 rounded-lg p-3 border border-orange-200">
+                          <h4 className="font-semibold text-xs lg:text-sm text-orange-800 mb-2 flex items-center">
+                            <CheckCircle2 className="h-3.5 w-3.5 lg:h-4 lg:w-4 mr-1.5" />
+                            Datos necesarios:
                           </h4>
-                          <ul className="text-sm text-orange-700 space-y-1 ml-6">
-                            <li>• Nombre de tu empresa</li>
-                            <li>• RNC o número de identificación fiscal</li>
-                            <li>• Dirección comercial</li>
-                            <li>• Teléfono de contacto</li>
+                          <ul className="text-xs text-orange-700 space-y-0.5 ml-4 lg:ml-5">
+                            <li>• Nombre de empresa</li>
+                            <li>• RNC o identificación fiscal</li>
+                            <li>• Dirección y teléfono</li>
                             <li>• Moneda predeterminada</li>
                           </ul>
                         </div>
                         
-                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <div className="flex flex-col sm:flex-row gap-2 pt-1">
                           <Button asChild
-                            className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1"
+                            size="sm"
+                            className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-md flex-1"
                           >
                             <Link href="/settings" className="flex items-center justify-center">
-                              <Building2 className="mr-2 h-4 w-4" />
-                              Configurar Empresa
+                              <Building2 className="mr-2 h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                              <span className="text-xs lg:text-sm">Configurar Empresa</span>
                             </Link>
                           </Button>
                           <Button 
+                            size="sm"
                             variant="outline"
                             className="border-orange-300 text-orange-700 hover:bg-orange-50 flex-1"
                             onClick={() => {
-                              // Scroll to the new receipt section
                               document.querySelector('[data-section="new-receipt"]')?.scrollIntoView({ behavior: 'smooth' })
                             }}
                           >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver Demo
+                            <Eye className="mr-2 h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                            <span className="text-xs lg:text-sm">Ver Demo</span>
                           </Button>
                         </div>
                       </div>
@@ -1013,18 +1018,17 @@ export default function ThermalReceiptsPage() {
                   </CardContent>
                 </Card>
               )}
-            </div>
-            
-            {/* Botón CTA Mejorado */}
-            <div className="flex flex-col sm:flex-row gap-4" data-section="new-receipt">
+
+            {/* Botón CTA Principal */}
+            <div className="flex flex-col sm:flex-row gap-2 lg:gap-3" data-section="new-receipt">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl transform hover:scale-105 transition-all duration-200 px-8 py-3 text-lg font-semibold relative overflow-hidden group">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-4 lg:px-8 py-2.5 lg:py-3 text-sm lg:text-base font-semibold relative overflow-hidden group w-full">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10 flex items-center">
-                      <Plus className="mr-3 h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
-                      Nueva Factura Térmica
-                      <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
+                    <div className="relative z-10 flex items-center justify-center">
+                      <Plus className="mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5 group-hover:rotate-90 transition-transform duration-300" />
+                      <span>Nueva Factura Térmica</span>
+                      <Sparkles className="ml-2 h-3.5 w-3.5 lg:h-4 lg:w-4 animate-pulse" />
                     </div>
                   </Button>
                 </DialogTrigger>
@@ -1036,12 +1040,12 @@ export default function ThermalReceiptsPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[75vh]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 h-[75vh]">
               {/* Columna izquierda - Formulario */}
               <div className="col-span-1 lg:col-span-2 overflow-y-auto pr-0 lg:pr-4">
-                <form className="space-y-6">
+                <form className="space-y-4 lg:space-y-6">
               {/* Client Information */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                 <div className="space-y-2">
                   <Label>Tipo de Cliente</Label>
                   <Select 
@@ -1103,7 +1107,7 @@ export default function ThermalReceiptsPage() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                 <div>
                   <Label htmlFor="paymentMethod">Método de Pago</Label>
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -1143,13 +1147,13 @@ export default function ThermalReceiptsPage() {
 
                 <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-1 lg:grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
-                      <div className="col-span-1 lg:col-span-2">
+                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                      <div className="col-span-1 sm:col-span-2 lg:col-span-2">
                         <Input
                           placeholder="Nombre del producto/servicio"
                           value={item.item_name}
                           onChange={(e) => updateItem(index, "item_name", e.target.value)}
-                          className="border-blue-200"
+                          className="border-blue-200 text-sm lg:text-base"
                         />
                         <Select onValueChange={(value) => {
                           const [type, id] = value.split('|')
@@ -1541,7 +1545,7 @@ export default function ThermalReceiptsPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
@@ -1690,7 +1694,7 @@ export default function ThermalReceiptsPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-8 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="space-y-2">
               <Label htmlFor="search" className="text-gray-700 font-semibold flex items-center">
                 <Search className="h-4 w-4 mr-2 text-blue-600" />

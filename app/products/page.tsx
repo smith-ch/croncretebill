@@ -134,15 +134,54 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="space-y-2">
+              <div className="h-10 w-64 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-4 w-80 bg-gray-200 rounded skeleton"></div>
             </div>
+            <div className="flex gap-2 w-full lg:w-auto">
+              <div className="h-10 flex-1 lg:w-40 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-10 flex-1 lg:w-40 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-10 flex-1 lg:w-40 bg-gray-200 rounded-lg skeleton"></div>
+            </div>
+          </div>
+
+          {/* Search and filter skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="h-10 flex-1 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full lg:w-48 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Product cards skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-6 w-40 bg-gray-200 rounded"></div>
+                      <div className="flex gap-2">
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="h-4 w-24 bg-gray-200 rounded-full"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-gray-200 rounded"></div>
+                      <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="h-8 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
@@ -244,10 +283,11 @@ export default function ProductsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
-                    className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white border-0 shadow-md hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50"
+                    className="group card-hover transition-all duration-300 bg-white border-0 shadow-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50 animate-scale-in"
+                    style={{animationDelay: `${index * 0.05}s`}}
                   >
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-3">
@@ -276,8 +316,9 @@ export default function ProductsPage() {
                               setEditingProduct(product)
                               setShowForm(true)
                             }}
-                            className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
+                            className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                             aria-label={`Editar producto ${product.name}`}
+                            title="Editar producto"
                             disabled={!canEdit('products')}
                           >
                             <Edit className="h-4 w-4" />
@@ -287,8 +328,9 @@ export default function ProductsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(product.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               aria-label={`Eliminar producto ${product.name}`}
+                              title="Eliminar producto"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

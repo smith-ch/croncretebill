@@ -14,99 +14,50 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system')
+  // FORZAR MODO CLARO TEMPORALMENTE - Dark mode deshabilitado
+  const [theme, setThemeState] = useState<Theme>('light')
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light')
 
-  // Function to get system theme
+  // Function to get system theme (DESHABILITADO)
   const getSystemTheme = (): 'light' | 'dark' => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return 'light'
+    return 'light' // FORZAR LIGHT MODE
   }
 
-  // Function to apply theme to document
+  // Function to apply theme to document (DESHABILITADO)
   const applyTheme = useCallback((themeToApply: Theme) => {
     if (typeof window === 'undefined') { return }
 
     const root = window.document.documentElement
     root.classList.remove('light', 'dark')
-
-    let finalTheme: 'light' | 'dark'
-    if (themeToApply === 'system') {
-      finalTheme = getSystemTheme()
-    } else {
-      finalTheme = themeToApply
-    }
-
-    root.classList.add(finalTheme)
-    setActualTheme(finalTheme)
+    
+    // FORZAR SIEMPRE LIGHT MODE
+    root.classList.add('light')
+    setActualTheme('light')
   }, [])
 
-  // Function to set theme and save to database
+  // Function to set theme and save to database (DESHABILITADO - FORZAR LIGHT)
   const setTheme = async (newTheme: Theme) => {
-    setThemeState(newTheme)
-    applyTheme(newTheme)
-
-    // Save to localStorage immediately
-    localStorage.setItem('theme', newTheme)
-
-    // Save to database
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const existingSettings = user.user_metadata?.system_settings || {}
-        await supabase.auth.updateUser({
-          data: {
-            system_settings: {
-              ...existingSettings,
-              theme: newTheme
-            }
-          }
-        })
-      }
-    } catch (error) {
-      console.error('Error saving theme to database:', error)
-    }
+    // FORZAR SIEMPRE LIGHT MODE - Ignorar el tema seleccionado
+    setThemeState('light')
+    applyTheme('light')
+    localStorage.setItem('theme', 'light')
+    
+    // No guardar en DB por ahora
   }
 
-  // Load theme on mount
+  // Load theme on mount (FORZAR LIGHT)
   useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        // First try to get from localStorage for immediate application
-        const savedTheme = localStorage.getItem('theme') as Theme
-        if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-          setThemeState(savedTheme)
-          applyTheme(savedTheme)
-        }
-
-        // Then load from database for authenticated users
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user?.user_metadata?.system_settings?.theme) {
-          const dbTheme = user.user_metadata.system_settings.theme as Theme
-          setThemeState(dbTheme)
-          applyTheme(dbTheme)
-          localStorage.setItem('theme', dbTheme)
-        }
-      } catch (error) {
-        console.error('Error loading theme:', error)
-      }
+    // FORZAR SIEMPRE LIGHT MODE
+    setThemeState('light')
+    applyTheme('light')
+    localStorage.setItem('theme', 'light')
+    
+    if (typeof window !== 'undefined') {
+      const root = window.document.documentElement
+      root.classList.remove('dark')
+      root.classList.add('light')
     }
-
-    loadTheme()
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (theme === 'system') {
-        applyTheme('system')
-      }
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme, applyTheme])
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>

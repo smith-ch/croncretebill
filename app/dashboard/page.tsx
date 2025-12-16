@@ -636,47 +636,99 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-8">
-            {/* Header Skeleton */}
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-300 rounded-3xl"></div>
-                <div className="space-y-2">
-                  <div className="h-8 bg-gray-300 rounded w-48"></div>
-                  <div className="h-4 bg-gray-200 rounded w-64"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-6">
+        <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+          {/* Header Skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-wrap justify-between items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-xl skeleton"></div>
+                  <div className="space-y-2">
+                    <div className="h-6 sm:h-8 bg-gray-300 rounded w-32 sm:w-48"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-40 sm:w-64 hidden sm:block"></div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-8 sm:h-10 bg-gray-300 rounded w-24 sm:w-32"></div>
+                  <div className="h-8 sm:h-10 bg-gray-200 rounded w-20 sm:w-28"></div>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <div className="h-10 bg-gray-300 rounded w-32"></div>
-                <div className="h-10 bg-gray-200 rounded w-28"></div>
+            </CardContent>
+          </Card>
+          
+          {/* Meta Card Skeleton */}
+          <Card className="border-0 shadow-xl skeleton animate-scale-in">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div className="h-6 bg-gray-300 rounded w-48"></div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1,2,3,4].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-300 rounded w-32"></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="h-3 bg-gray-200 rounded w-full"></div>
+                <div className="h-8 bg-gray-300 rounded w-full"></div>
               </div>
-            </div>
-            
-            {/* Meta Card Skeleton */}
-            <div className="h-48 bg-gray-200 rounded-2xl"></div>
-            
-            {/* Stats Cards Skeleton */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-xl shadow-sm"></div>
+            </CardContent>
+          </Card>
+          
+          {/* Stats Cards Skeleton */}
+          <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-2 lg:grid-cols-4">
+            {[1,2,3,4,5,6,7,8].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.05}s`}}>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-4 bg-gray-200 rounded w-20"></div>
+                      <div className="h-8 w-8 bg-gray-300 rounded-lg"></div>
+                    </div>
+                    <div className="h-7 sm:h-8 bg-gray-300 rounded w-24"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {/* Content Grid Skeleton */}
+          <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
+            <div className="space-y-4 sm:space-y-6">
+              {[1,2,3].map((i) => (
+                <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="h-5 bg-gray-300 rounded w-32"></div>
+                      <div className="space-y-2">
+                        {[1,2,3].map((j) => (
+                          <div key={j} className="flex justify-between items-center">
+                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                            <div className="h-4 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-            
-            {/* Content Grid Skeleton */}
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="space-y-6">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-40 bg-gray-200 rounded-xl"></div>
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+              <Card className="border-0 shadow-xl skeleton animate-scale-in" style={{animationDelay: '0.3s'}}>
+                <CardContent className="p-6">
+                  <div className="h-80 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+              <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+                {[1,2].map((i) => (
+                  <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${0.4 + i * 0.1}s`}}>
+                    <CardContent className="p-6">
+                      <div className="h-64 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </div>
-              <div className="lg:col-span-2 space-y-6">
-                <div className="h-96 bg-gray-200 rounded-xl"></div>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="h-64 bg-gray-200 rounded-xl"></div>
-                  <div className="h-64 bg-gray-200 rounded-xl"></div>
-                </div>
               </div>
             </div>
           </div>
@@ -795,7 +847,7 @@ export default function DashboardPage() {
         {/* Layout principal - Reorganizado y optimizado para móvil */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3 mb-3 sm:mb-4">
           {/* Meta Mensual - Stack completo en mobile, 1 columna en desktop */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 card-hover animate-scale-in">
             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -879,7 +931,7 @@ export default function DashboardPage() {
           </Card>
 
           {/* Facturas Pendientes - Mobile Optimized */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-amber-500 rounded-lg">
@@ -912,7 +964,7 @@ export default function DashboardPage() {
           </Card>
 
           {/* Rendimiento Semanal - Mobile Optimized */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
             <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-300/20 to-green-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
             <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -1132,28 +1184,28 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Alertas Importantes */}
+            {/* Alertas Importantes Mejoradas */}
             {(stats.overdueInvoices > 0 || stats.pendingInvoices > 5) && (
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-1 w-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
-                  <h3 className="text-xl font-bold text-red-700">Alertas Importantes</h3>
-                  <AlertCircle className="h-5 w-5 text-red-500" />
+              <div className="mb-6 lg:mb-8 animate-in slide-in-from-left duration-500">
+                <div className="flex items-center gap-2 lg:gap-3 mb-4">
+                  <div className="h-1 w-8 lg:w-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-full animate-pulse"></div>
+                  <h3 className="text-lg lg:text-xl font-bold text-red-700">Alertas Importantes</h3>
+                  <AlertCircle className="h-4 w-4 lg:h-5 lg:w-5 text-red-500 animate-pulse" />
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 lg:gap-4 md:grid-cols-2">
                   {stats.overdueInvoices > 0 && (
-                    <Card className="border-l-4 border-l-red-500 bg-red-50/50 backdrop-blur-sm shadow-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-red-100 rounded-full">
-                            <AlertCircle className="h-6 w-6 text-red-600" />
+                    <Card className="border-l-4 border-l-red-500 bg-red-50/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                      <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4">
+                          <div className="p-2 lg:p-3 bg-red-100 rounded-full flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 lg:h-6 lg:w-6 text-red-600" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-red-900 text-lg">{stats.overdueInvoices} facturas vencidas</p>
-                            <p className="text-red-700">Requieren atención inmediata</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-red-900 text-base lg:text-lg">{stats.overdueInvoices} facturas vencidas</p>
+                            <p className="text-sm lg:text-base text-red-700">Requieren atención inmediata</p>
                           </div>
-                          <Link href="/invoices">
-                            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                          <Link href="/invoices" className="w-full sm:w-auto">
+                            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto hover:scale-105 transition-transform">
                               Ver Facturas
                             </Button>
                           </Link>
@@ -1162,18 +1214,18 @@ export default function DashboardPage() {
                     </Card>
                   )}
                   {stats.pendingInvoices > 5 && (
-                    <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 backdrop-blur-sm shadow-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-amber-100 rounded-full">
-                            <Clock className="h-6 w-6 text-amber-600" />
+                    <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                      <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4">
+                          <div className="p-2 lg:p-3 bg-amber-100 rounded-full flex-shrink-0">
+                            <Clock className="h-5 w-5 lg:h-6 lg:w-6 text-amber-600" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-amber-900 text-lg">{formatNumber(stats.pendingInvoices)} facturas pendientes</p>
-                            <p className="text-amber-700">Considera hacer seguimiento</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-amber-900 text-base lg:text-lg">{formatNumber(stats.pendingInvoices)} facturas pendientes</p>
+                            <p className="text-sm lg:text-base text-amber-700">Considera hacer seguimiento</p>
                           </div>
-                          <Link href="/invoices">
-                            <Button size="sm" variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-50">
+                          <Link href="/invoices" className="w-full sm:w-auto">
+                            <Button size="sm" variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-50 w-full sm:w-auto hover:scale-105 transition-transform">
                               Revisar
                             </Button>
                           </Link>

@@ -287,12 +287,64 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="space-y-2">
+              <div className="h-10 w-64 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-4 w-96 bg-gray-200 rounded skeleton"></div>
+            </div>
+            <div className="h-10 w-full sm:w-40 bg-gray-200 rounded-lg skeleton"></div>
+          </div>
+
+          {/* Stats cards skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.05}s`}}>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-32 bg-gray-300 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Filters skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="h-10 flex-1 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full lg:w-48 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full lg:w-48 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Project cards skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1,2,3,4,5,6].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="h-6 w-48 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-gray-200 rounded"></div>
+                      <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="flex gap-2">
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -512,7 +564,7 @@ export default function ProjectsPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   {viewMode === "grid" ? (
-                    <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
@@ -535,7 +587,8 @@ export default function ProjectsPage() {
                                 setEditingProject(project)
                                 setShowForm(true)
                               }}
-                              className="hover:bg-blue-50"
+                              className="hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              title="Editar proyecto"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -544,7 +597,8 @@ export default function ProjectsPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(project.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                                title="Eliminar proyecto"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

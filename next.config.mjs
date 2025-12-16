@@ -38,7 +38,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 export default withPWA({
   dest: 'public',
-  disable: false, // PWA enabled with optimizations
+  disable: false, // PWA enabled
   register: true,
   skipWaiting: true,
   buildExcludes: [/middleware-manifest\.json$/],

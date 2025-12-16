@@ -716,20 +716,20 @@ export default function ExpensesPage() {
 
             {selectedExpenses.length > 0 && canDelete('expenses') && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                    <span className="text-blue-800 font-medium">
+                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <span className="text-blue-800 font-medium text-sm sm:text-base">
                       {selectedExpenses.length} gasto{selectedExpenses.length > 1 ? "s" : ""} seleccionado
                       {selectedExpenses.length > 1 ? "s" : ""}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedExpenses([])}
-                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-100 flex-1 sm:flex-none"
                     >
                       Cancelar
                     </Button>
@@ -737,10 +737,11 @@ export default function ExpensesPage() {
                       variant="destructive"
                       size="sm"
                       onClick={handleBulkDelete}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 flex-1 sm:flex-none"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar Seleccionados
+                      <span className="hidden sm:inline">Eliminar Seleccionados</span>
+                      <span className="sm:hidden">Eliminar</span>
                     </Button>
                   </div>
                 </div>
@@ -787,9 +788,9 @@ export default function ExpensesPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group flex items-center justify-between p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md"
+                    className="group flex flex-col lg:flex-row lg:items-center justify-between p-4 lg:p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md gap-4"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-start lg:items-center gap-3 lg:gap-4 flex-1 min-w-0">
                       <Checkbox
                         checked={selectedExpenses.includes(expense.id)}
                         onCheckedChange={(checked) => {
@@ -799,36 +800,38 @@ export default function ExpensesPage() {
                             setSelectedExpenses(selectedExpenses.filter((id) => id !== expense.id))
                           }
                         }}
-                        className="border-slate-300"
+                        className="border-slate-300 mt-1 lg:mt-0 flex-shrink-0"
                       />
 
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3 mb-2">
+                          <h4 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
                             {expense.description}
                           </h4>
-                          <Badge variant="outline" className={getCategoryColor("blue")}>
-                            {expense.category}
-                          </Badge>
-                          {expense.receipt_number && (
-                            <Badge variant="outline" className="text-xs border-slate-300">
-                              <FileText className="h-3 w-3 mr-1" />
-                              {expense.receipt_number}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className={getCategoryColor("blue")}>
+                              {expense.category}
                             </Badge>
-                          )}
+                            {expense.receipt_number && (
+                              <Badge variant="outline" className="text-xs border-slate-300">
+                                <FileText className="h-3 w-3 mr-1" />
+                                {expense.receipt_number}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-600">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-600">
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(expense.expense_date).toLocaleDateString()}
+                            <Calendar className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{new Date(expense.expense_date).toLocaleDateString()}</span>
                           </span>
-                          <span className="font-semibold text-red-600 text-lg">{formatCurrency(expense.amount)}</span>
+                          <span className="font-semibold text-red-600 text-base lg:text-lg">{formatCurrency(expense.amount)}</span>
                         </div>
-                        {expense.notes && <p className="text-sm text-slate-500 mt-2">{expense.notes}</p>}
+                        {expense.notes && <p className="text-sm text-slate-500 mt-2 line-clamp-2 lg:line-clamp-none">{expense.notes}</p>}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end lg:self-auto">
                       <Button
                         variant="ghost"
                         size="sm"

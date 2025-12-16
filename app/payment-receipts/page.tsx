@@ -766,10 +766,66 @@ export default function PaymentReceiptsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <CheckCircle className="h-12 w-12 text-emerald-600 animate-pulse" />
-          <p className="text-lg font-medium text-slate-900">Cargando comprobantes de pago...</p>
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-2">
+              <div className="h-8 w-80 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-4 w-96 bg-gray-200 rounded skeleton"></div>
+            </div>
+          </div>
+
+          {/* Stats cards skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[1,2,3,4].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.05}s`}}>
+                <CardContent className="p-3">
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-32 bg-gray-300 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Tabs and filters skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="h-10 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-10 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-10 w-32 bg-gray-200 rounded"></div>
+                </div>
+                <div className="h-10 w-full bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Receipt cards skeleton */}
+          <div className="space-y-3">
+            {[1,2,3,4,5].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-300 rounded-lg flex-shrink-0"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-48 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-40 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -791,7 +847,7 @@ export default function PaymentReceiptsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 card-hover animate-scale-in">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -904,10 +960,11 @@ export default function PaymentReceiptsPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {paymentReceipts.map((receipt) => (
+                  {paymentReceipts.map((receipt, index) => (
                     <div
                       key={receipt.id}
-                      className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-3 lg:gap-0"
+                      className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 bg-white border-0 shadow-md rounded-xl hover:bg-gradient-to-r hover:from-emerald-50 hover:to-slate-50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up"
+                      style={{animationDelay: `${index * 0.05}s`}}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <div className="p-2 bg-emerald-100 rounded-lg flex-shrink-0">

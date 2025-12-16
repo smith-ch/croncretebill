@@ -1104,37 +1104,39 @@ export default function AgendaPage() {
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
                   <Card key={item.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">{item.title}</h3>
-                            <Badge className={getStatusColor(item.status)}>
-                              {item.status === "pending" ? "Pendiente" :
-                               item.status === "completed" ? "Completado" : "Vencido"}
-                            </Badge>
-                            <Badge className={getPriorityColor(item.priority)}>
-                              {item.priority === "high" ? "Alta" :
-                               item.priority === "medium" ? "Media" : "Baja"}
-                            </Badge>
+                    <CardContent className="p-4 lg:p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                        <div className="space-y-2 flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <h3 className="font-semibold text-base lg:text-lg truncate">{item.title}</h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge className={getStatusColor(item.status)}>
+                                {item.status === "pending" ? "Pendiente" :
+                                 item.status === "completed" ? "Completado" : "Vencido"}
+                              </Badge>
+                              <Badge className={getPriorityColor(item.priority)}>
+                                {item.priority === "high" ? "Alta" :
+                                 item.priority === "medium" ? "Media" : "Baja"}
+                              </Badge>
+                            </div>
                           </div>
                           {item.description && (
-                            <p className="text-slate-600">{item.description}</p>
+                            <p className="text-slate-600 text-sm lg:text-base line-clamp-2 lg:line-clamp-none">{item.description}</p>
                           )}
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-500">
                             <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(item.due_date).toLocaleDateString('es-ES')}
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{new Date(item.due_date).toLocaleDateString('es-ES')}</span>
                             </div>
                             {item.amount && item.amount > 0 && (
                               <div className="flex items-center gap-1">
-                                <DollarSign className="h-4 w-4" />
-                                {formatCurrency(item.amount)}
+                                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{formatCurrency(item.amount)}</span>
                               </div>
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-shrink-0 self-end lg:self-auto">
                           <Button size="sm" variant="outline" onClick={() => editItem(item)}>
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -1173,28 +1175,28 @@ export default function AgendaPage() {
                 {fixedExpenses.length > 0 ? (
                   fixedExpenses.map((expense) => (
                     <Card key={expense.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-lg">{expense.name}</h3>
+                      <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                          <div className="space-y-2 flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                              <h3 className="font-semibold text-base lg:text-lg truncate">{expense.name}</h3>
                               <Badge variant="outline">
                                 {expense.frequency === "monthly" ? "Mensual" :
                                  expense.frequency === "quarterly" ? "Trimestral" : "Anual"}
                               </Badge>
                             </div>
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-500">
                             <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              Próximo: {new Date(expense.next_payment).toLocaleDateString('es-ES')}
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">Próximo: {new Date(expense.next_payment).toLocaleDateString('es-ES')}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <DollarSign className="h-4 w-4" />
-                              {formatCurrency(expense.amount)}
+                              <DollarSign className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{formatCurrency(expense.amount)}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-shrink-0 self-end lg:self-auto">
                           <Button size="sm" variant="outline" onClick={() => editFixedExpense(expense)}>
                             <Edit className="h-4 w-4" />
                           </Button>

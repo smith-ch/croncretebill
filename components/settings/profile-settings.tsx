@@ -89,11 +89,56 @@ export function ProfileSettings() {
     setError(null)
     setSuccess(null)
 
+    // Validaciones
+    if (!profile.first_name || profile.first_name.trim() === "") {
+      setError("El nombre es obligatorio")
+      setLoading(false)
+      return
+    }
+
+    if (!profile.last_name || profile.last_name.trim() === "") {
+      setError("El apellido es obligatorio")
+      setLoading(false)
+      return
+    }
+
+    if (!profile.email || profile.email.trim() === "") {
+      setError("El email es obligatorio")
+      setLoading(false)
+      return
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if (!emailRegex.test(profile.email)) {
+      setError("Por favor ingrese un correo electrónico válido")
+      setLoading(false)
+      return
+    }
+
+    if (profile.phone && profile.phone.trim() !== "") {
+      const phoneClean = profile.phone.replace(/\D/g, '')
+      if (phoneClean.length < 10 || phoneClean.length > 15) {
+        setError("El teléfono debe tener entre 10 y 15 dígitos")
+        setLoading(false)
+        return
+      }
+    }
+
+    if (profile.website && profile.website.trim() !== "") {
+      const urlRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/
+      if (!urlRegex.test(profile.website)) {
+        setError("Por favor ingrese una URL válida (ejemplo: https://www.ejemplo.com)")
+        setLoading(false)
+        return
+      }
+    }
+
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       
       if (authError || !user) {
         setError("Error de autenticación")
+        setLoading(false)
         return
       }
 
@@ -200,7 +245,7 @@ export function ProfileSettings() {
         <CardContent className="p-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative group">
-              <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
+              <Avatar className="h-32 w-32 border-4 border-white dark:border-slate-600 shadow-xl">
                 <AvatarImage src={avatarPreview || profile.avatar_url} />
                 <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                   {getInitials(profile.first_name || "U", profile.last_name || "S")}
@@ -226,26 +271,26 @@ export function ProfileSettings() {
 
             <div className="flex-1 text-center md:text-left space-y-4">
               <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   {profile.first_name} {profile.last_name}
                 </h2>
-                <p className="text-slate-600 text-lg">{profile.email}</p>
+                <p className="text-slate-600 dark:text-slate-300 text-lg">{profile.email}</p>
                 {profile.bio && (
-                  <p className="text-slate-500 mt-2 max-w-md">{profile.bio}</p>
+                  <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-md">{profile.bio}</p>
                 )}
               </div>
               
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
                   <User className="h-3 w-3 mr-1" />
                   Administrador
                 </Badge>
-                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
                   <Star className="h-3 w-3 mr-1" />
                   Plan Pro
                 </Badge>
                 {profile.location && (
-                  <Badge variant="outline" className="bg-white/80">
+                  <Badge variant="outline" className="bg-white/80 dark:bg-slate-800/80 dark:border-slate-600 dark:text-slate-100">
                     <MapPin className="h-3 w-3 mr-1" />
                     {profile.location}
                   </Badge>
@@ -289,47 +334,47 @@ export function ProfileSettings() {
 
       {/* Profile Information */}
       <div className="grid gap-8 md:grid-cols-2">
-        <Card variant="glass" className="border-0 shadow-xl">
+        <Card variant="glass" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Información Personal
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="first_name" className="text-slate-700">Nombre</Label>
+                <Label htmlFor="first_name" className="text-slate-700 dark:text-slate-300">Nombre</Label>
                 <Input
                   id="first_name"
                   value={profile.first_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn(!editing && "bg-slate-50")}
+                  className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name" className="text-slate-700">Apellido</Label>
+                <Label htmlFor="last_name" className="text-slate-700 dark:text-slate-300">Apellido</Label>
                 <Input
                   id="last_name"
                   value={profile.last_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn(!editing && "bg-slate-50")}
+                  className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-slate-700">Biografía</Label>
+              <Label htmlFor="bio" className="text-slate-700 dark:text-slate-300">Biografía</Label>
               <Textarea
                 id="bio"
                 value={profile.bio}
                 onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
                 disabled={!editing}
-                className={cn(!editing && "bg-slate-50")}
+                className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:bg-slate-800 dark:placeholder:text-slate-500")}
                 placeholder="Cuéntanos algo sobre ti..."
                 rows={3}
               />
@@ -337,18 +382,18 @@ export function ProfileSettings() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="border-0 shadow-xl">
+        <Card variant="glass" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+              <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Información de Contacto
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
                   id="email"
                   type="email"
@@ -356,15 +401,15 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50")}
+                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-slate-700">Teléfono</Label>
+              <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300">Teléfono</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
                   id="phone"
                   type="tel"
@@ -372,32 +417,32 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50")}
+                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-slate-700">Ubicación</Label>
+              <Label htmlFor="location" className="text-slate-700 dark:text-slate-300">Ubicación</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
                   id="location"
                   value={profile.location}
                   onChange={(e) => setProfile(prev => ({ ...prev, location: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50")}
+                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="Santo Domingo, República Dominicana"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website" className="text-slate-700">Sitio Web</Label>
+              <Label htmlFor="website" className="text-slate-700 dark:text-slate-300">Sitio Web</Label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
                   id="website"
                   type="url"
@@ -405,7 +450,7 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50")}
+                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="https://www.ejemplo.com"
                 />
               </div>
@@ -415,18 +460,18 @@ export function ProfileSettings() {
       </div>
 
       {/* Preferences */}
-      <Card variant="elevated" className="border-0 shadow-xl">
+      <Card variant="elevated" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 dark:text-slate-200">
+            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Preferencias de Notificación
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="space-y-1">
-              <h4 className="font-medium text-slate-900">Notificaciones por Email</h4>
-              <p className="text-sm text-slate-600">Recibir notificaciones importantes por correo electrónico</p>
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">Notificaciones por Email</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Recibir notificaciones importantes por correo electrónico</p>
             </div>
             <Switch
               checked={profile.email_notifications}
@@ -435,10 +480,10 @@ export function ProfileSettings() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="space-y-1">
-              <h4 className="font-medium text-slate-900">Emails de Marketing</h4>
-              <p className="text-sm text-slate-600">Recibir noticias, actualizaciones y ofertas especiales</p>
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">Emails de Marketing</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Recibir noticias, actualizaciones y ofertas especiales</p>
             </div>
             <Switch
               checked={profile.marketing_emails}
@@ -451,16 +496,16 @@ export function ProfileSettings() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
     </div>

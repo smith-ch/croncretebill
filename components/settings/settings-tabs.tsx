@@ -60,24 +60,24 @@ export function SettingsTabs({
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed lg:relative inset-y-0 left-0 z-50 w-80 lg:w-64 xl:w-80 bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 shadow-xl transform transition-transform duration-300 lg:transform-none",
+        "fixed lg:relative inset-y-0 left-0 z-50 w-80 lg:w-64 xl:w-80 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 border-r border-slate-200 dark:border-slate-700 shadow-xl transform transition-transform duration-300 lg:transform-none",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
-        <div className="p-4 lg:p-6 border-b border-slate-200 bg-gradient-to-r from-white to-slate-50">
+        <div className="p-4 lg:p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
           <div className="flex items-center justify-between gap-3 mb-3 lg:mb-4">
             <div className="flex items-center gap-3">
               <div className="p-1.5 lg:p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-md">
                 <Settings className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                <h2 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   Configuración
                 </h2>
-                <p className="text-xs lg:text-sm text-slate-600">Personaliza tu experiencia</p>
+                <p className="text-xs lg:text-sm text-slate-600 dark:text-slate-400">Personaliza tu experiencia</p>
               </div>
             </div>
             <button 
-              className="lg:hidden p-2 hover:bg-slate-200 rounded-lg"
+              className="lg:hidden p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg"
               onClick={() => setIsSidebarOpen(false)}
             >
               ✕
@@ -86,12 +86,12 @@ export function SettingsTabs({
           
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
             <Input
               placeholder="Buscar configuración..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-slate-300 bg-white/80 backdrop-blur-sm text-sm"
+              className="pl-10 border-slate-300 bg-white/80 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 backdrop-blur-sm text-sm"
               variant="modern"
             />
           </div>
@@ -112,8 +112,8 @@ export function SettingsTabs({
                 className={cn(
                   "w-full text-left p-3 lg:p-4 rounded-xl transition-all duration-300 group relative overflow-hidden",
                   isActive 
-                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 shadow-md border border-blue-200" 
-                    : "hover:bg-white/80 hover:shadow-md text-slate-700 border border-transparent hover:border-slate-200"
+                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200 dark:from-blue-900/30 dark:to-purple-900/30 dark:text-blue-300 dark:border-blue-700 shadow-md" 
+                    : "hover:bg-white/80 hover:shadow-md text-slate-700 border border-transparent hover:border-slate-200 dark:hover:bg-slate-800/50 dark:text-slate-300 dark:hover:border-slate-700"
                 )}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -133,7 +133,7 @@ export function SettingsTabs({
                     "p-1.5 lg:p-2 rounded-lg transition-all duration-300 flex-shrink-0",
                     isActive 
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
-                      : "bg-slate-200 text-slate-600 group-hover:bg-slate-300"
+                      : "bg-slate-200 text-slate-600 group-hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:group-hover:bg-slate-600"
                   )}>
                     <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
                   </div>
@@ -151,7 +151,7 @@ export function SettingsTabs({
                         isActive ? "rotate-90 text-blue-600" : "text-slate-400 group-hover:translate-x-1"
                       )} />
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 lg:mt-1 line-clamp-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 lg:mt-1 line-clamp-2">
                       {tab.description}
                     </p>
                   </div>
@@ -171,7 +171,7 @@ export function SettingsTabs({
       </button>
 
       {/* Content */}
-      <div className="flex-1 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden w-full lg:w-auto">
+      <div className="flex-1 bg-gradient-to-br from-slate-50 to-blue-50 dark:bg-slate-900 overflow-hidden w-full lg:w-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -214,10 +214,10 @@ export function SettingsSection({
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent truncate">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent truncate">
               {title}
             </h1>
-            <p className="text-slate-600 text-sm sm:text-base lg:text-lg mt-1">{description}</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base lg:text-lg mt-1">{description}</p>
           </div>
         </div>
         {children}
