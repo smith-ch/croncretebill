@@ -164,7 +164,7 @@ export function SettingsTabs({
 
       {/* Mobile Menu Button */}
       <button
-        className="lg:hidden fixed bottom-4 right-4 z-30 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl"
+        className="lg:hidden fixed bottom-4 left-4 z-30 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl"
         onClick={() => setIsSidebarOpen(true)}
       >
         <Settings className="h-6 w-6" />
