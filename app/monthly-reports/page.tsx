@@ -951,31 +951,34 @@ export default function MonthlyReportsPage() {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Resumen</span>
+          <TabsList className="grid w-full grid-cols-3 gap-1">
+            <TabsTrigger value="overview" className="flex items-center space-x-1 lg:space-x-2 text-xs lg:text-sm">
+              <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Resumen</span>
+              <span className="sm:hidden">Home</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2">
-              <PieChartIcon className="h-4 w-4" />
-              <span>Análisis</span>
+            <TabsTrigger value="analytics" className="flex items-center space-x-1 lg:space-x-2 text-xs lg:text-sm">
+              <PieChartIcon className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">Análisis</span>
+              <span className="sm:hidden">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="ai-insights" className="flex items-center space-x-2">
-              <Brain className="h-4 w-4" />
-              <span>IA Insights</span>
+            <TabsTrigger value="ai-insights" className="flex items-center space-x-1 lg:space-x-2 text-xs lg:text-sm">
+              <Brain className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline">IA Insights</span>
+              <span className="sm:hidden">IA</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-4 lg:space-y-6">
             {/* KPI Cards Optimizadas - Dos Filas Compactas */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3">
               {/* Revenue Card */}
               <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-3">
+                <CardContent className="p-3 lg:p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs text-blue-600 font-medium uppercase">Ingresos</p>
-                      <p className="text-lg font-bold text-blue-900">{formatCurrency(kpiData.totalRevenue)}</p>
+                      <p className="text-[10px] lg:text-xs text-blue-600 font-medium uppercase">Ingresos</p>
+                      <p className="text-base lg:text-lg font-bold text-blue-900 truncate">{formatCurrency(kpiData.totalRevenue)}</p>
                       <div className="flex items-center space-x-1">
                         {kpiData.revenueGrowthTrend >= 0 ? (
                           <ArrowUpRight className="h-3 w-3 text-emerald-600" />
@@ -1191,7 +1194,7 @@ export default function MonthlyReportsPage() {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 text-sm">
                         <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
                           <p className="text-blue-700 font-medium">Ingresos</p>
                           <p className="font-bold text-blue-900">{formatCurrency(month.totalRevenue)}</p>
@@ -1316,7 +1319,7 @@ export default function MonthlyReportsPage() {
                       <Users className="h-4 w-4 mr-2" />
                       Métricas del Negocio
                     </h4>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:gap-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-green-700">Clientes:</span>
                         <span className="font-bold text-green-900">{kpiData.totalClients}</span>
@@ -1414,7 +1417,7 @@ export default function MonthlyReportsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                       <div className="text-center p-4 bg-blue-50 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">{kpiData.businessHealthScore}</div>
                         <div className="text-sm text-blue-700">Score de Salud</div>
@@ -1482,7 +1485,7 @@ export default function MonthlyReportsPage() {
 
           <TabsContent value="ai-insights" className="space-y-6">
             {/* AI Predictions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-blue-800">
@@ -1604,7 +1607,7 @@ export default function MonthlyReportsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                     {aiInsights.opportunities.map((opp, index) => (
                       <div key={index} className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:shadow-md transition-all">
                         <div className="flex items-center justify-between mb-3">
@@ -1633,7 +1636,7 @@ export default function MonthlyReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
                   <div className="text-center p-4 bg-indigo-50 rounded-lg">
                     <div className="text-2xl font-bold text-indigo-600">{aiInsights.marketPosition}</div>
                     <div className="text-sm text-indigo-700">Clasificación IA</div>

@@ -25,6 +25,7 @@ import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useToast } from "@/hooks/use-toast"
+import { InvoicePDFPreview } from "@/components/invoices/invoice-pdf-preview"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -139,7 +140,9 @@ export default function InvoicesPage() {
   }
 
   const confirmAction = async () => {
-    if (!deleteConfirm.id) return
+    if (!deleteConfirm.id) {
+      return
+    }
 
     setIsProcessing(true)
     try {
@@ -149,7 +152,9 @@ export default function InvoicesPage() {
           .update({ status: "pagada" })
           .eq("id", deleteConfirm.id)
 
-        if (error) throw error
+        if (error) {
+          throw error
+        }
         
         toast({
           title: "Factura actualizada",
@@ -157,7 +162,9 @@ export default function InvoicesPage() {
         })
       } else {
         const { error } = await supabase.from("invoices").delete().eq("id", deleteConfirm.id)
-        if (error) throw error
+        if (error) {
+          throw error
+        }
         
         toast({
           title: "Factura eliminada",
@@ -198,7 +205,11 @@ export default function InvoicesPage() {
       document.body.removeChild(a)
     } catch (error) {
       console.error("Error downloading PDF:", error)
-      alert("Error al descargar el PDF: " + (error instanceof Error ? error.message : "Error desconocido"))
+      toast({
+        title: "Error",
+        description: "Error al descargar el PDF: " + (error instanceof Error ? error.message : "Error desconocido"),
+        variant: "destructive",
+      })
     }
   }
 
@@ -209,15 +220,58 @@ export default function InvoicesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="h-10 w-48 bg-gray-200 rounded-lg skeleton"></div>
+            <div className="h-10 w-full sm:w-40 bg-gray-200 rounded-lg skeleton"></div>
+          </div>
+          
+          {/* Stats cards skeleton */}
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton">
+                <CardContent className="p-4">
+                  <div className="h-4 w-24 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-8 w-32 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Filters skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="h-10 flex-1 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full lg:w-48 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full lg:w-48 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Invoice cards skeleton */}
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Card key={i} className="skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="h-4 w-48 bg-gray-200 rounded"></div>
+                    <div className="h-4 w-full bg-gray-200 rounded"></div>
+                    <div className="flex gap-2 flex-wrap">
+                      <div className="h-9 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-9 w-24 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
@@ -246,56 +300,56 @@ export default function InvoicesPage() {
         </div>
 
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 card-hover animate-scale-in">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Total Facturas</p>
                   <p className="text-xl sm:text-2xl font-bold text-blue-900">{totalInvoices}</p>
                 </div>
-                <div className="hidden sm:block p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex-shrink-0 ml-2">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide mb-1">Monto Total</p>
                   <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(totalAmount)}</p>
                 </div>
-                <div className="hidden sm:block p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex-shrink-0 ml-2">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <DollarSign className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-green-700 uppercase tracking-wide mb-1">Pagadas</p>
                   <p className="text-xl sm:text-2xl font-bold text-green-900">{paidInvoices}</p>
                 </div>
-                <div className="hidden sm:block p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex-shrink-0 ml-2">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <Eye className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 card-hover animate-scale-in" style={{animationDelay: '0.3s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-1">Pendientes</p>
                   <p className="text-xl sm:text-2xl font-bold text-amber-900">{pendingInvoices}</p>
                 </div>
-                <div className="hidden sm:block p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex-shrink-0 ml-2">
+                <div className="hidden sm:block p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <Calendar className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -381,10 +435,11 @@ export default function InvoicesPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredInvoices.map((invoice) => (
+                {filteredInvoices.map((invoice, index) => (
                   <div
                     key={invoice.id}
-                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md gap-3 lg:gap-0"
+                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up"
+                    style={{animationDelay: `${index * 0.05}s`}}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
@@ -436,18 +491,24 @@ export default function InvoicesPage() {
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="hover:bg-blue-100 hover:text-blue-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            title="Editar factura"
                           >
                             <Link href={`/invoices/${invoice.id}/edit`}>
                               <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Link>
                           </Button>
                         )}
+                        <InvoicePDFPreview 
+                          invoiceId={invoice.id}
+                          invoiceNumber={invoice.invoice_number}
+                        />
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => downloadInvoicePDF(invoice.id)}
-                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
+                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                          title="Descargar PDF"
                         >
                           <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
@@ -456,7 +517,7 @@ export default function InvoicesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
-                            className="hover:bg-green-100 hover:text-green-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-green-100 hover:text-green-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                             title="Marcar como pagada"
                           >
                             <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -466,8 +527,9 @@ export default function InvoicesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="hover:bg-red-100 hover:text-red-700 transition-colors h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-red-100 hover:text-red-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                             onClick={() => handleDelete(invoice.id)}
+                            title="Eliminar factura"
                           >
                             <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>

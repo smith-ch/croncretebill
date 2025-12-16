@@ -131,12 +131,45 @@ export default function DriversPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex justify-between items-center">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-gray-200 rounded-lg skeleton"></div>
+              <div className="h-4 w-64 bg-gray-200 rounded skeleton"></div>
+            </div>
+            <div className="h-10 w-40 bg-gray-200 rounded-lg skeleton"></div>
+          </div>
+
+          {/* Search skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="h-10 w-full bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+
+          {/* Driver cards skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1,2,3,4,5,6].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-6 w-40 bg-gray-200 rounded"></div>
+                      <div className="flex gap-2">
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-gray-200 rounded"></div>
+                      <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                      <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -256,7 +289,7 @@ export default function DriversPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="hover:shadow-md transition-shadow">
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{driver.name}</h3>
@@ -268,6 +301,8 @@ export default function DriversPage() {
                               setEditingDriver(driver)
                               setShowForm(true)
                             }}
+                            className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            title="Editar conductor"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -275,7 +310,8 @@ export default function DriversPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(driver.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            title="Eliminar conductor"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

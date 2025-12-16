@@ -16,6 +16,11 @@ import { RouteProtection } from "@/components/auth/route-protection"
 import { PWAUpdateNotification } from "@/components/pwa/pwa-update-notification"
 import { MobileNav } from "@/components/layout/mobile-nav"
 import { RoutePreloader } from "@/hooks/use-route-preloader"
+import { MiniChat } from "@/components/support/mini-chat"
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { KeyboardShortcutsHelper } from "@/components/layout/keyboard-shortcuts-helper"
+import { NavigationProgress } from "@/components/layout/navigation-progress"
+import { NetworkStatusIndicator } from "@/components/pwa/network-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,6 +36,9 @@ export default function ClientLayout({
   useAutoLogout({
     timeoutMinutes: 45 // Más tiempo para mejor UX
   })
+
+  // Activar atajos de teclado cuando el usuario está logueado
+  useKeyboardShortcuts()
 
   useEffect(() => {
     // Get initial session
@@ -88,6 +96,8 @@ export default function ClientLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
           <NotificationProvider>
+            {/* Barra de progreso de navegación */}
+            <NavigationProgress />
             <div className="pwa-container flex h-screen bg-gray-50 dark:bg-gray-900">
               {/* Desktop Sidebar - Hidden on mobile */}
               <div className="hidden lg:block">
@@ -123,6 +133,12 @@ export default function ClientLayout({
             <PWAUpdateNotification />
             {/* Pre-carga de rutas comunes */}
             <RoutePreloader />
+            {/* Mini Chat de Ayuda */}
+            <MiniChat />
+            {/* Helper de Atajos de Teclado */}
+            <KeyboardShortcutsHelper />
+            {/* Indicador de Estado de Red */}
+            <NetworkStatusIndicator />
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

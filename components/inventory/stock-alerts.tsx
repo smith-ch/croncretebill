@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { supabase } from "@/lib/supabase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,21 @@ import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Package, X, Bell, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
+
+// Cache global para evitar múltiples llamadas simultáneas
+let stockAlertsCache: {
+  data: any[] | null
+  timestamp: number
+  loading: boolean
+  promise: Promise<any> | null
+} = {
+  data: null,
+  timestamp: 0,
+  loading: false,
+  promise: null,
+}
+
+const CACHE_DURATION = 30000 // 30 segundos
 
 interface LowStockAlert {
   id: string
@@ -35,53 +50,94 @@ interface StockAlertsProps {
   maxItems?: number
 }
 
+// Función compartida para obtener alertas con deduplicación
+const fetchStockAlertsShared = async (userId: string): Promise<any[]> => {
+  const now = Date.now()
+  
+  // Si hay datos en caché y no han expirado, devolverlos
+  if (stockAlertsCache.data && (now - stockAlertsCache.timestamp) < CACHE_DURATION) {
+    return stockAlertsCache.data
+  }
+
+  // Si ya hay una petición en curso, esperar a que termine
+  if (stockAlertsCache.loading && stockAlertsCache.promise) {
+    return stockAlertsCache.promise
+  }
+
+  // Iniciar nueva petición
+  stockAlertsCache.loading = true
+  stockAlertsCache.promise = (async () => {
+    try {
+      const response = await fetch(`/api/inventory/reports?user_id=${userId}&type=low-stock`)
+      if (response.ok) {
+        const data = await response.json()
+        const alerts = data.low_stock_items || []
+        
+        // Actualizar caché
+        stockAlertsCache.data = alerts
+        stockAlertsCache.timestamp = Date.now()
+        stockAlertsCache.loading = false
+        stockAlertsCache.promise = null
+        
+        return alerts
+      }
+      return []
+    } catch (error) {
+      console.error("Error fetching low stock alerts:", error)
+      stockAlertsCache.loading = false
+      stockAlertsCache.promise = null
+      return []
+    }
+  })()
+
+  return stockAlertsCache.promise
+}
+
 export function StockAlerts({ onDismiss, showTitle = true, maxItems = 5 }: StockAlertsProps) {
   const [alerts, setAlerts] = useState<LowStockAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState<string[]>([])
   const { formatCurrency } = useCurrency()
 
-  useEffect(() => {
-    fetchLowStockAlerts()
-  }, [])
-
-  const fetchLowStockAlerts = async () => {
+  const fetchLowStockAlerts = useCallback(async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
+        setLoading(false)
         return
       }
 
       setLoading(true)
-
-      const response = await fetch(`/api/inventory/reports?user_id=${user.id}&type=low-stock`)
-      if (response.ok) {
-        const data = await response.json()
-        setAlerts(data.low_stock_items || [])
-      }
+      const data = await fetchStockAlertsShared(user.id)
+      setAlerts(data)
     } catch (error) {
       console.error("Error fetching low stock alerts:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleDismissAlert = (alertId: string) => {
+  useEffect(() => {
+    fetchLowStockAlerts()
+  }, [fetchLowStockAlerts])
+
+  const handleDismissAlert = useCallback((alertId: string) => {
     setDismissed(prev => [...prev, alertId])
-  }
+  }, [])
 
-  const handleDismissAll = () => {
+  const handleDismissAll = useCallback(() => {
     setDismissed(alerts.map(alert => alert.id))
     if (onDismiss) {
       onDismiss()
     }
-  }
+  }, [alerts, onDismiss])
 
-  const visibleAlerts = alerts
-    .filter(alert => !dismissed.includes(alert.id))
-    .slice(0, maxItems)
+  const visibleAlerts = useMemo(
+    () => alerts.filter(alert => !dismissed.includes(alert.id)).slice(0, maxItems),
+    [alerts, dismissed, maxItems]
+  )
 
   if (loading) {
     return (
@@ -207,35 +263,45 @@ export function StockAlerts({ onDismiss, showTitle = true, maxItems = 5 }: Stock
   )
 }
 
-// Hook para usar las alertas en cualquier componente
+// Hook optimizado para usar las alertas en cualquier componente
 export function useStockAlerts() {
   const [alertCount, setAlertCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
     const fetchAlertCount = async () => {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser()
-        if (!user) {
+        
+        if (!user || !mounted) {
+          if (mounted) setLoading(false)
           return
         }
 
-        const response = await fetch(`/api/inventory/reports?user_id=${user.id}&type=low-stock`)
-        if (response.ok) {
-          const data = await response.json()
-          setAlertCount(data.low_stock_items?.length || 0)
+        // Usar la función compartida con caché
+        const alerts = await fetchStockAlertsShared(user.id)
+        
+        if (mounted) {
+          setAlertCount(alerts.length || 0)
+          setLoading(false)
         }
       } catch (error) {
         console.error("Error fetching alert count:", error)
-      } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
 
     fetchAlertCount()
-  }, [])
+
+    // Cleanup para prevenir actualizaciones en componentes desmontados
+    return () => {
+      mounted = false
+    }
+  }, []) // Array de dependencias vacío - solo se ejecuta una vez al montar
 
   return { alertCount, loading }
 }

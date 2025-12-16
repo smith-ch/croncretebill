@@ -99,6 +99,20 @@ function generateInvoiceHTML(
 
   const isItbisInvoice = invoice.include_itbis
   const invoiceTitle = isItbisInvoice ? "Factura de impuestos" : "FACTURA"
+  
+  // Personalización
+  const primaryColor = companySettings?.invoice_primary_color || '#4a90e2'
+  const secondaryColor = companySettings?.invoice_secondary_color || '#f8f9fa'
+  const showLogo = companySettings?.invoice_show_logo !== false
+  const footerMessage = companySettings?.invoice_footer_message || 'Gracias por su preferencia'
+  const invoiceFormat = companySettings?.invoice_format || 'standard'
+  
+  // Tamaños según formato
+  const isCompact = invoiceFormat === 'compact'
+  const fontSize = isCompact ? '10px' : '12px'
+  const headerPadding = isCompact ? '10px' : '20px'
+  const titleSize = isCompact ? '14px' : '20px'
+  const sectionMargin = isCompact ? '12px' : '20px'
 
   return `
     <!DOCTYPE html>
@@ -116,16 +130,16 @@ function generateInvoiceHTML(
             
             body {
                 font-family: 'Arial', sans-serif;
-                line-height: 1.4;
+                line-height: ${isCompact ? '1.2' : '1.4'};
                 color: #333;
                 background: white;
-                font-size: 12px;
+                font-size: ${fontSize};
             }
             
             .invoice-container {
                 max-width: 800px;
                 margin: 0 auto;
-                padding: 20px;
+                padding: ${isCompact ? '12px' : '20px'};
                 background: white;
             }
             
@@ -133,9 +147,9 @@ function generateInvoiceHTML(
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
-                margin-bottom: 30px;
-                border-bottom: 2px solid #e5e7eb;
-                padding-bottom: 20px;
+                margin-bottom: ${sectionMargin};
+                border-bottom: 2px solid ${primaryColor};
+                padding-bottom: ${headerPadding};
             }
             
             .company-info {
@@ -151,16 +165,20 @@ function generateInvoiceHTML(
             }
             
             .company-name {
-                font-size: 18px;
+                font-size: ${isCompact ? '14px' : '18px'};
                 font-weight: bold;
-                color: #333;
-                margin-bottom: 5px;
+                color: ${primaryColor};
+                margin-bottom: ${isCompact ? '3px' : '5px'};
             }
             
             .company-details {
-                font-size: 11px;
+                font-size: ${isCompact ? '9px' : '11px'};
                 color: #666;
-                line-height: 1.3;
+                line-height: ${isCompact ? '1.2' : '1.3'};
+            }
+            
+            .company-details div {
+                margin-bottom: ${isCompact ? '1px' : '2px'};
             }
             
             .company-logo-section {
@@ -179,25 +197,27 @@ function generateInvoiceHTML(
             
             .invoice-title-section {
                 text-align: center;
-                margin: 20px 0;
+                margin: ${isCompact ? '10px 0' : '20px 0'};
             }
             
             .invoice-title {
-                font-size: 20px;
-                color: #4a90e2;
-                margin-bottom: 15px;
+                font-size: ${titleSize};
+                color: ${primaryColor};
+                margin-bottom: ${isCompact ? '8px' : '15px'};
                 font-weight: bold;
             }
             
             .invoice-details {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 30px;
+                margin-bottom: ${isCompact ? '12px' : '30px'};
+                padding: ${isCompact ? '8px' : '0'};
+                ${isCompact ? 'border: 1px solid #e5e7eb; border-radius: 4px;' : ''}
             }
             
             .invoice-left {
                 flex: 1;
-                margin-right: 40px;
+                margin-right: ${isCompact ? '15px' : '40px'};
             }
             
             .invoice-right {
@@ -206,53 +226,58 @@ function generateInvoiceHTML(
             }
             
             .detail-section h4 {
-                font-size: 12px;
-                color: #333;
-                margin-bottom: 8px;
+                font-size: ${isCompact ? '9px' : '12px'};
+                color: ${primaryColor};
+                margin-bottom: ${isCompact ? '3px' : '8px'};
                 font-weight: bold;
+                text-transform: uppercase;
             }
             
             .detail-section p {
-                font-size: 11px;
-                margin-bottom: 3px;
-                color: #666;
+                font-size: ${isCompact ? '9px' : '11px'};
+                margin-bottom: ${isCompact ? '2px' : '3px'};
+                color: #333;
+                font-weight: ${isCompact ? 'normal' : '500'};
             }
             
             .ncf-section {
-                background: #f8f9fa;
-                padding: 10px;
+                background: ${secondaryColor};
+                padding: ${isCompact ? '6px' : '10px'};
                 border-radius: 4px;
-                margin-bottom: 20px;
+                margin-bottom: ${isCompact ? '10px' : '20px'};
                 text-align: center;
+                border: 1px solid ${primaryColor};
             }
             
             .ncf-section strong {
-                color: #333;
-                font-size: 13px;
+                color: ${primaryColor};
+                font-size: ${isCompact ? '10px' : '13px'};
+                font-weight: 700;
             }
             
             .items-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 20px;
-                font-size: 11px;
+                margin-bottom: ${isCompact ? '10px' : '20px'};
+                font-size: ${isCompact ? '9px' : '11px'};
             }
             
             .items-table th {
-                background: #4a90e2;
+                background: ${primaryColor};
                 color: white;
-                padding: 8px 6px;
+                padding: ${isCompact ? '5px 3px' : '8px 6px'};
                 text-align: center;
                 font-weight: 600;
-                font-size: 10px;
+                font-size: ${isCompact ? '8px' : '10px'};
                 border: 1px solid #ddd;
+                ${isCompact ? 'text-transform: uppercase; letter-spacing: 0.5px;' : ''}
             }
             
             .items-table td {
-                padding: 6px;
+                padding: ${isCompact ? '4px 2px' : '6px'};
                 border: 1px solid #ddd;
                 text-align: center;
-                font-size: 10px;
+                font-size: ${isCompact ? '9px' : '10px'};
             }
             
             .items-table tr:nth-child(even) {
@@ -274,20 +299,20 @@ function generateInvoiceHTML(
             .totals-section {
                 display: flex;
                 justify-content: flex-end;
-                margin-bottom: 30px;
+                margin-bottom: ${isCompact ? '12px' : '30px'};
             }
             
             .totals {
-                width: 300px;
+                width: ${isCompact ? '250px' : '300px'};
                 border: 1px solid #ddd;
             }
             
             .totals-row {
                 display: flex;
                 justify-content: space-between;
-                padding: 8px 12px;
+                padding: ${isCompact ? '5px 8px' : '8px 12px'};
                 border-bottom: 1px solid #ddd;
-                font-size: 12px;
+                font-size: ${isCompact ? '9px' : '12px'};
             }
             
             .totals-row:last-child {
@@ -296,28 +321,31 @@ function generateInvoiceHTML(
             
             .totals-row.total {
                 font-weight: bold;
-                font-size: 14px;
-                background: #f8f9fa;
+                font-size: ${isCompact ? '11px' : '14px'};
+                background: ${primaryColor};
+                color: white;
             }
             
             .pending-balance {
                 text-align: right;
-                margin: 20px 0;
-                font-size: 16px;
+                margin: ${isCompact ? '10px 0' : '20px 0'};
+                font-size: ${isCompact ? '12px' : '16px'};
                 font-weight: bold;
-                color: #333;
+                color: ${primaryColor};
             }
             
             .tax-summary {
-                margin-top: 30px;
-                border-top: 2px solid #e5e7eb;
-                padding-top: 20px;
+                margin-top: ${isCompact ? '12px' : '30px'};
+                border-top: 2px solid ${primaryColor};
+                padding-top: ${isCompact ? '10px' : '20px'};
             }
             
             .tax-summary h4 {
-                color: #4a90e2;
-                margin-bottom: 15px;
-                font-size: 14px;
+                color: ${primaryColor};
+                margin-bottom: ${isCompact ? '8px' : '15px'};
+                font-size: ${isCompact ? '10px' : '14px'};
+                font-weight: bold;
+                text-transform: uppercase;
             }
             
             .tax-table {
@@ -327,41 +355,44 @@ function generateInvoiceHTML(
             }
             
             .tax-table th {
-                background: #4a90e2;
+                background: ${primaryColor};
                 color: white;
-                padding: 8px;
+                padding: ${isCompact ? '5px' : '8px'};
                 text-align: center;
                 font-weight: 600;
                 border: 1px solid #ddd;
+                font-size: ${isCompact ? '9px' : '11px'};
             }
             
             .tax-table td {
-                padding: 8px;
+                padding: ${isCompact ? '5px' : '8px'};
                 border: 1px solid #ddd;
                 text-align: center;
+                font-size: ${isCompact ? '9px' : '11px'};
             }
             
             .notes {
-                margin-top: 20px;
-                padding: 15px;
-                background: #f9fafb;
-                border-left: 4px solid #4a90e2;
-                font-size: 11px;
+                margin-top: ${isCompact ? '10px' : '20px'};
+                padding: ${isCompact ? '8px' : '15px'};
+                background: ${secondaryColor};
+                border-left: 4px solid ${primaryColor};
+                font-size: ${isCompact ? '9px' : '11px'};
             }
             
             .notes h4 {
-                color: #4a90e2;
-                margin-bottom: 8px;
-                font-size: 12px;
+                color: ${primaryColor};
+                margin-bottom: ${isCompact ? '4px' : '8px'};
+                font-size: ${isCompact ? '10px' : '12px'};
+                font-weight: bold;
             }
             
             .footer {
-                margin-top: 40px;
+                margin-top: ${isCompact ? '15px' : '40px'};
                 text-align: center;
-                font-size: 10px;
+                font-size: ${isCompact ? '8px' : '10px'};
                 color: #666;
-                border-top: 1px solid #e5e7eb;
-                padding-top: 15px;
+                border-top: 2px solid ${primaryColor};
+                padding-top: ${isCompact ? '8px' : '15px'};
             }
             
             .page-info {
@@ -396,7 +427,7 @@ function generateInvoiceHTML(
                     </div>
                 </div>
                 <div class="company-logo-section">
-                    ${companySettings?.company_logo ? `<img src="${companySettings.company_logo}" alt="Logo" class="company-logo-large">` : ""}
+                    ${showLogo && companySettings?.company_logo ? `<img src="${companySettings.company_logo}" alt="Logo" class="company-logo-large">` : ""}
                 </div>
             </div>
             
@@ -560,7 +591,7 @@ function generateInvoiceHTML(
             }
             
             <div class="footer">
-                <p>Gracias por su preferencia</p>
+                <p>${footerMessage}</p>
                 <p>Esta factura fue generada electrónicamente</p>
             </div>
             

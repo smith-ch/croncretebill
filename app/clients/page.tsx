@@ -100,12 +100,49 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-gray-200 rounded-xl skeleton"></div>
+                <div>
+                  <div className="h-8 w-48 bg-gray-200 rounded skeleton mb-2"></div>
+                  <div className="h-4 w-64 bg-gray-200 rounded skeleton"></div>
+                </div>
+              </div>
+            </div>
+            <div className="h-10 w-full sm:w-40 bg-gray-200 rounded-lg skeleton"></div>
+          </div>
+          
+          {/* Search skeleton */}
+          <Card className="border-0 shadow-lg skeleton">
+            <CardContent className="p-6">
+              <div className="h-10 w-full bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+
+          {/* Client cards skeleton */}
           <div className="grid gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="h-6 w-48 bg-gray-200 rounded"></div>
+                      <div className="flex gap-2">
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-gray-200 rounded"></div>
+                      <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -196,10 +233,10 @@ export default function ClientsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-white to-purple-50/30 overflow-hidden group animate-slide-up" style={{animationDelay: `${index * 0.05}s`}}>
+                    <CardContent className="p-4 lg:p-6">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{client.name}</h3>
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-purple-700 transition-colors truncate">{client.name}</h3>
                         <div className="flex gap-1">
                           {canEdit('clients') && (
                             <Button
@@ -209,6 +246,8 @@ export default function ClientsPage() {
                                 setEditingClient(client)
                                 setShowForm(true)
                               }}
+                              className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              title="Editar cliente"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -218,7 +257,8 @@ export default function ClientsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(client.id)}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              title="Eliminar cliente"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

@@ -178,31 +178,32 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Servicios
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Gestiona tu catálogo de servicios</p>
+          <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">Gestiona tu catálogo de servicios</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             onClick={() => router.push('/services/multiple-prices')}
             variant="outline"
-            className="border-blue-200 hover:bg-blue-50"
+            className="border-blue-200 hover:bg-blue-50 w-full sm:w-auto"
           >
             <DollarSign className="h-4 w-4 mr-2" />
-            Precios Múltiples
+            <span className="hidden sm:inline">Precios Múltiples</span>
+            <span className="sm:hidden">Precios</span>
           </Button>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo Servicio
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-full max-w[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
+            <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
               <ServiceForm
                 service={editingService}
                 onSuccess={() => {
@@ -217,15 +218,15 @@ export default function ServicesPage() {
       </div>
 
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 lg:p-6">
           <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
               <Input
-                placeholder="Buscar por nombre, código o descripción..."
+                placeholder="Buscar servicios..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30"
+                className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30 text-sm lg:text-base"
               />
             </div>
           </div>
@@ -252,16 +253,16 @@ export default function ServicesPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               {filteredServices.map((service) => (
                 <Card
                   key={service.id}
-                  className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white border-0 shadow-md"
+                  className="hover:shadow-lg transition-all duration-300 lg:hover:scale-105 bg-white border-0 shadow-md"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
+                  <CardContent className="p-3 lg:p-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">{service.name}</h3>
+                        <h3 className="font-semibold text-sm lg:text-base text-gray-900 dark:text-white truncate">{service.name}</h3>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {service.service_code && (
                             <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
@@ -275,7 +276,7 @@ export default function ServicesPage() {
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-1 ml-2">
+                      <div className="flex gap-1 flex-shrink-0 self-end sm:self-auto">
                         <Button
                           variant="ghost"
                           size="sm"
