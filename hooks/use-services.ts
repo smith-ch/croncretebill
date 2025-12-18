@@ -27,7 +27,8 @@ export function useServices() {
   return useQuery({
     queryKey: ['services'],
     queryFn: async (): Promise<Service[]> => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (!user) {
         throw new Error('Usuario no autenticado')
@@ -56,7 +57,8 @@ export function useService(id: string) {
         return null
       }
       
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (!user) {
         throw new Error('Usuario no autenticado')
@@ -188,7 +190,8 @@ export function useSearchServices(searchTerm: string) {
   return useQuery({
     queryKey: ['services', 'search', searchTerm],
     queryFn: async (): Promise<Service[]> => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (!user) {
         throw new Error('Usuario no autenticado')

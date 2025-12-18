@@ -30,8 +30,9 @@ export default function BudgetsPage() {
   const fetchBudgets = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) return
 
       const { data, error } = await supabase
@@ -61,8 +62,9 @@ export default function BudgetsPage() {
   const fetchCompanySettings = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) return
 
       const { data, error } = await supabase.from("company_settings").select("*").eq("user_id", user.id).single()

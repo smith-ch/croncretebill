@@ -131,8 +131,9 @@ export default function EditInvoicePage() {
   const fetchInvoiceData = useCallback(async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -281,8 +282,9 @@ export default function EditInvoicePage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error("Usuario no autenticado")
       }

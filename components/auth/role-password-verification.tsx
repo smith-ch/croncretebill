@@ -37,7 +37,8 @@ export function RolePasswordVerification({ onVerified, children, action = 'switc
 
   const fetchRolePassword = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -82,7 +83,8 @@ export function RolePasswordVerification({ onVerified, children, action = 'switc
     setError('')
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no encontrado')
       }

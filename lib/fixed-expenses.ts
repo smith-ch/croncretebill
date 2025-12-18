@@ -22,7 +22,8 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
 
 export async function createFixedExpense(expense: Omit<FixedExpense, 'id' | 'created_at' | 'updated_at'>): Promise<FixedExpense | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     
     if (!user) {
       throw new Error('User not authenticated')

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { offlineCache } from '@/lib/offline-cache'
 
 export interface Category {
   id: string
@@ -38,51 +39,74 @@ export function useCategories(type?: 'product' | 'service' | 'both'): UseCategor
       setLoading(true)
       setError(null)
 
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
-        setError('Usuario no autenticado')
+        setLoading(false)
         return
       }
 
-      let query = (supabase as any)
-        .from('categories')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('name', { ascending: true })
+      try {
+        let query = (supabase as any)
+          .from('categories')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('name', { ascending: true })
 
-      // Filter by type if specified
-      if (type && type !== 'both') {
-        query = query.or(`type.eq.${type},type.eq.both`)
-      }
-
-      const { data, error: fetchError } = await query
-
-      if (fetchError) {
-        if (fetchError.code === '42P01') {
-          // Table doesn't exist
-          setError('La tabla de categorías no existe. Por favor, ejecute las migraciones de base de datos.')
-          setCategories([])
-          return
+        // Filter by type if specified
+        if (type && type !== 'both') {
+          query = query.or(`type.eq.${type},type.eq.both`)
         }
-        throw fetchError
-      }
 
-      setCategories(data || [])
-      
-      // If no categories exist, try to create defaults
-      if ((!data || data.length === 0) && typeof window !== 'undefined') {
-        // Only try to create defaults in browser environment and if no filter is applied
-        if (!type || type === 'both') {
-          try {
-            const { createDefaultCategories } = await import('../lib/categories-init')
-            await createDefaultCategories(user.id)
-            // Refetch after creating defaults
-            const { data: newData } = await query
-            setCategories(newData || [])
-          } catch (defaultError) {
-            console.log('Could not create default categories:', defaultError)
+        const { data, error: fetchError } = await query
+
+        if (fetchError) {
+          if (fetchError.code === '42P01') {
+            // Table doesn't exist - try cache
+            const cached = await offlineCache.getAll<Category>('categories', user.id)
+            setCategories(cached || [])
+            setError('Usando categorías guardadas')
+            setLoading(false)
+            return
           }
+          throw fetchError
+        }
+
+        setCategories(data || [])
+        
+        // Save to cache
+        if (data) {
+          for (const category of data) {
+            await offlineCache.set('categories', category.id, category, user.id, 'VERY_LONG')
+          }
+        }
+        
+        // If no categories exist, try to create defaults
+        if ((!data || data.length === 0) && typeof window !== 'undefined') {
+          // Only try to create defaults in browser environment and if no filter is applied
+          if (!type || type === 'both') {
+            try {
+              const { createDefaultCategories } = await import('../lib/categories-init')
+              await createDefaultCategories(user.id)
+              // Refetch after creating defaults
+              const { data: newData } = await query
+              setCategories(newData || [])
+            } catch (defaultError) {
+              console.log('Could not create default categories:', defaultError)
+            }
+          }
+        }
+      } catch (fetchError) {
+        // Network error - use cache
+        console.log('Fetch failed, loading from cache:', fetchError)
+        const cached = await offlineCache.getAll<Category>('categories', user.id)
+        if (cached && cached.length > 0) {
+          setCategories(cached)
+          setError('Usando categorías offline')
+        } else {
+          setError('No hay categorías disponibles offline')
+          setCategories([])
         }
       }
     } catch (err) {
@@ -95,7 +119,8 @@ export function useCategories(type?: 'product' | 'service' | 'both'): UseCategor
 
   const createCategory = async (categoryData: Omit<Category, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Category | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no autenticado')
       }

@@ -20,6 +20,8 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useAuth } from "@/hooks/use-auth"
+import { useCompanyData } from "@/hooks/use-company-data"
 import { cn } from "@/lib/utils"
 
 interface CompanyData {
@@ -60,100 +62,97 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
+  
+  // Use optimized hooks instead of direct calls (must be at top level)
+  const { user: authUser, loading: authLoading } = useAuth()
+  const { company: companyData, user: userData, loading: companyLoading } = useCompanyData()
 
   useEffect(() => {
-    fetchData()
-    // Actualizar cada 5 minutos
-    const interval = setInterval(() => {
-      fetchData()
-    }, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
-      if (authError || !user) {
-        setLoading(false)
-        return
-      }
-
-      // Obtener configuración de empresa
-      const { data: companyData } = await supabase
-        .from('company_settings')
-        .select('company_name, company_email, company_phone, company_address, tax_id, business_type')
-        .eq('user_id', user.id)
-        .single()
-
-      if (companyData) {
-        setCompany(companyData)
-      }
-
-      // Obtener datos del perfil
+    // Actualizar datos de company y profile cuando estén disponibles
+    if (companyData) {
+      setCompany(companyData)
+    }
+    if (userData) {
       const userProfile: ProfileData = {
-        first_name: user.user_metadata?.first_name || "",
-        last_name: user.user_metadata?.last_name || "",
-        email: user.email || "",
-        avatar_url: user.user_metadata?.avatar_url || ""
+        first_name: userData.first_name || "",
+        last_name: userData.last_name || "",
+        email: userData.email || "",
+        avatar_url: userData.avatar_url || ""
       }
       setProfile(userProfile)
-
-      // Obtener estadísticas del dashboard
-      const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
-
-      // Ingresos mensuales
-      const { data: invoices } = await supabase
-        .from('invoices')
-        .select('total, status')
-        .gte('issue_date', startOfMonth.toISOString())
-        .lte('issue_date', endOfMonth.toISOString())
-
-      const monthlyRevenue = (invoices as any)?.reduce((sum: number, inv: any) => 
-        inv.status === 'paid' ? sum + inv.total : sum, 0) || 0
-      
-      const monthlyInvoices = invoices?.length || 0
-      const pendingInvoices = (invoices as any)?.filter((inv: any) => inv.status === 'pending').length || 0
-
-      // Facturas vencidas
-      const { data: overdueInvs } = await supabase
-        .from('invoices')
-        .select('id')
-        .eq('status', 'pending')
-        .lt('due_date', new Date().toISOString())
-
-      const overdueInvoices = overdueInvs?.length || 0
-
-      // Total clientes
-      const { count: clientCount } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-
-      // Meta mensual (obtener de settings)
-      const { data: settings } = await supabase
-        .from('company_settings')
-        .select('monthly_target')
-        .eq('user_id', user.id)
-        .single()
-
-      setStats({
-        monthlyRevenue,
-        totalClients: clientCount || 0,
-        monthlyInvoices,
-        pendingInvoices,
-        overdueInvoices,
-        monthlyTarget: (settings as any)?.monthly_target || 100000
-      })
-
-      setLastUpdate(new Date())
-    } catch (error) {
-      console.error('Error fetching sidebar data:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [companyData, userData])
+
+  useEffect(() => {
+    if (!authUser) {
+      setLoading(false)
+      return
+    }
+
+    const fetchData = async () => {
+      try {
+        // Obtener estadísticas del dashboard
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+        // Ingresos mensuales
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('total, status')
+          .eq('user_id', authUser.id)
+          .gte('issue_date', startOfMonth.toISOString())
+          .lte('issue_date', endOfMonth.toISOString())
+
+        const monthlyRevenue = (invoices as any)?.reduce((sum: number, inv: any) => 
+          inv.status === 'paid' ? sum + inv.total : sum, 0) || 0
+        
+        const monthlyInvoices = invoices?.length || 0
+        const pendingInvoices = (invoices as any)?.filter((inv: any) => inv.status === 'pending').length || 0
+
+        // Facturas vencidas
+        const { data: overdueInvs } = await supabase
+          .from('invoices')
+          .select('id')
+          .eq('user_id', authUser.id)
+          .eq('status', 'pending')
+          .lt('due_date', new Date().toISOString())
+
+        const overdueInvoices = overdueInvs?.length || 0
+
+        // Total clientes
+        const { count: clientCount } = await supabase
+          .from('clients')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', authUser.id)
+
+        // Meta mensual (obtener de localStorage)
+        const savedTarget = localStorage.getItem('monthly_target')
+        const monthlyTarget = savedTarget ? parseFloat(savedTarget) : 100000
+
+        setStats({
+          monthlyRevenue,
+          totalClients: clientCount || 0,
+          monthlyInvoices,
+          pendingInvoices,
+          overdueInvoices,
+          monthlyTarget
+        })
+
+        setLastUpdate(new Date())
+      } catch (error) {
+        console.error('Error fetching sidebar data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+    
+    // Actualizar cada 5 minutos
+    const interval = setInterval(fetchData, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [authUser])
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()

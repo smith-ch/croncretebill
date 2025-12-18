@@ -76,8 +76,9 @@ export default function NewInvoicePage() {
   const fetchInitialData = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         setError("Usuario no autenticado")
         return
@@ -127,8 +128,9 @@ export default function NewInvoicePage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error("Usuario no autenticado")
       }

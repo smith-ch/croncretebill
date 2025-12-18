@@ -50,7 +50,8 @@ export function CompanyProfileWidget() {
 
   const fetchCompanyAndProfile = async () => {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (authError || !user) {
         console.error('Auth error:', authError)
@@ -58,10 +59,10 @@ export function CompanyProfileWidget() {
         return
       }
 
-      // Obtener configuración de empresa
+      // Obtener configuración de empresa - solo campos necesarios
       const { data: companyData, error: companyError } = await supabase
         .from('company_settings')
-        .select('*')
+        .select('company_name, company_email, company_phone, company_address, company_logo, tax_id, business_type, foundation_year, employee_count')
         .eq('user_id', user.id)
         .single()
 

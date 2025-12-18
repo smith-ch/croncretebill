@@ -16,6 +16,8 @@ import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
+import { useOnlineStatus } from "@/hooks/use-online-status"
+import { offlineCache } from "@/lib/offline-cache"
 
 interface Service {
   id: string
@@ -50,6 +52,7 @@ export default function ServicesPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, canAccessModule } = useUserPermissions()
   const { toast } = useToast()
+  const isOnline = useOnlineStatus()
   // const { categories } = useCategories('service')
 
   useEffect(() => {
@@ -84,27 +87,49 @@ export default function ServicesPage() {
 
   const fetchServices = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) {
-        return
+      // Obtener usuario de la sesión local (funciona offline)
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
+      if (!user) { return }
+
+      try {
+        // Intentar cargar desde el servidor
+        const { data, error } = await supabase
+          .from("services")
+          .select(`
+            *,
+            categories!services_category_id_fkey (
+              name,
+              color
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+
+        if (error) throw error
+        
+        // Guardar en cache para uso offline
+        if (data) {
+          for (const service of data) {
+            await offlineCache.set('services', user.id, service, 'VERY_LONG')
+          }
+        }
+        
+        setServices(data || [])
+      } catch (error) {
+        // Si falla (sin internet o error), cargar desde cache
+        console.log("🔧 Loading services from cache (offline mode)")
+        const cachedServices = await offlineCache.getAll<Service>('services', user.id)
+        setServices(cachedServices)
+        
+        if (cachedServices.length === 0) {
+          toast({
+            title: "🔧 Modo offline",
+            description: "No hay servicios en cache. Los servicios se cargarán cuando vuelva la conexión.",
+            variant: "default"
+          })
+        }
       }
-
-      const { data, error } = await supabase
-        .from("services")
-        .select(`
-          *,
-          categories!services_category_id_fkey (
-            name,
-            color
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-
-      if (error) {throw error}
-      setServices(data || [])
     } catch (error) {
       console.error("Error fetching services:", error)
     } finally {
@@ -264,6 +289,11 @@ export default function ServicesPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm lg:text-base text-gray-900 dark:text-white truncate">{service.name}</h3>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {service.id.startsWith('temp_') && (
+                            <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+                              ⏳ Pendiente
+                            </Badge>
+                          )}
                           {service.service_code && (
                             <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
                               {service.service_code}

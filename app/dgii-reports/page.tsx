@@ -401,7 +401,8 @@ export default function DGIIReportsPage() {
   const fetchDGIIData = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -520,7 +521,8 @@ export default function DGIIReportsPage() {
   const fetchAnnualDGIIData = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -672,7 +674,8 @@ export default function DGIIReportsPage() {
   // Función para obtener configuración de empresa
   const getCompanyName = async (): Promise<string> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return "MI EMPRESA, SRL"
       }
@@ -931,7 +934,8 @@ export default function DGIIReportsPage() {
   const generatePaymentMethodsReport = async () => {
     try {
       // Obtener todas las facturas del usuario
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1059,7 +1063,8 @@ export default function DGIIReportsPage() {
 
     try {
       // Obtener todas las facturas del año seleccionado
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1232,7 +1237,8 @@ export default function DGIIReportsPage() {
 
     try {
       // Obtener todas las facturas fiscales del año seleccionado
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1378,7 +1384,8 @@ export default function DGIIReportsPage() {
   const generateFiscalInvoicesReport = async () => {
     try {
       // Obtener todas las facturas fiscales (con NCF) del usuario
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1882,7 +1889,8 @@ export default function DGIIReportsPage() {
   const saveManualExpense = async () => {
     setSavingExpense(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         alert("Error: Usuario no autenticado")
         return
@@ -1950,7 +1958,8 @@ export default function DGIIReportsPage() {
   const saveManualInvoice = async () => {
     setSavingInvoice(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         alert("Error: Usuario no autenticado")
         return

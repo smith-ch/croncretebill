@@ -22,7 +22,8 @@ export type UpdateAgendaEvent = Partial<CreateAgendaEvent>
  */
 export async function getAgendaEvents(): Promise<AgendaEvent[]> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -50,7 +51,8 @@ export async function getAgendaEvents(): Promise<AgendaEvent[]> {
  */
 export async function createAgendaEvent(event: CreateAgendaEvent): Promise<AgendaEvent> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -85,7 +87,8 @@ export async function createAgendaEvent(event: CreateAgendaEvent): Promise<Agend
  */
 export async function updateAgendaEvent(id: string, updates: UpdateAgendaEvent): Promise<AgendaEvent> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -119,7 +122,8 @@ export async function updateAgendaEvent(id: string, updates: UpdateAgendaEvent):
  */
 export async function deleteAgendaEvent(id: string): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) {
       throw new Error('User not authenticated')
     }
@@ -154,7 +158,8 @@ export async function markAgendaEventCompleted(id: string): Promise<AgendaEvent>
  */
 export async function updateOverdueEvents(): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) {
       throw new Error('User not authenticated')
     }

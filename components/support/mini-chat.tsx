@@ -155,7 +155,8 @@ export function MiniChat() {
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { session } } = await supabase.auth.getSession()
+        const user = session?.user
         if (user) {
           const firstName = user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuario'
           setUserName(firstName)

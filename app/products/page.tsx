@@ -16,6 +16,8 @@ import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
+import { useOnlineStatus } from "@/hooks/use-online-status"
+import { offlineCache } from "@/lib/offline-cache"
 
 interface Product {
   id: string
@@ -48,6 +50,7 @@ export default function ProductsPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, permissions } = useUserPermissions()
   const { toast } = useToast()
+  const isOnline = useOnlineStatus()
   // const { categories } = useCategories('product')
 
   useEffect(() => {
@@ -56,25 +59,49 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // Obtener usuario de la sesión local (funciona offline)
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) { return }
 
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          *,
-          categories!products_category_id_fkey (
-            name,
-            color
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+      try {
+        // Intentar cargar desde el servidor
+        const { data, error } = await supabase
+          .from("products")
+          .select(`
+            *,
+            categories!products_category_id_fkey (
+              name,
+              color
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
 
-      if (error) { throw error }
-      setProducts(data || [])
+        if (error) throw error
+        
+        // Guardar en cache para uso offline
+        if (data) {
+          for (const product of data) {
+            await offlineCache.set('products', user.id, product, 'VERY_LONG')
+          }
+        }
+        
+        setProducts(data || [])
+      } catch (error) {
+        // Si falla (sin internet o error), cargar desde cache
+        console.log("📦 Loading products from cache (offline mode)")
+        const cachedProducts = await offlineCache.getAll<Product>('products', user.id)
+        setProducts(cachedProducts)
+        
+        if (cachedProducts.length === 0) {
+          toast({
+            title: "📦 Modo offline",
+            description: "No hay productos en cache. Los productos se cargarán cuando vuelva la conexión.",
+            variant: "default"
+          })
+        }
+      }
     } catch (error) {
       console.error("Error fetching products:", error)
     } finally {
@@ -295,8 +322,11 @@ export default function ProductsPage() {
                           <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
                             {product.name}
                           </h3>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            {product.product_code && (
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">                            {product.id.startsWith('temp_') && (
+                              <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+                                ⏳ Pendiente
+                              </Badge>
+                            )}                            {product.product_code && (
                               <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
                                 {product.product_code}
                               </Badge>

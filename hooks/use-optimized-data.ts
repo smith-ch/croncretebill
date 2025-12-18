@@ -7,7 +7,8 @@ import { useOptimizedLoading } from '@/hooks/use-optimized-loading'
 export function useDashboardData() {
   return useOptimizedLoading(
     async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('No user')
       }
@@ -66,7 +67,8 @@ export function useDashboardData() {
 export function useOptimizedList(table: string, columns: string = '*', filters?: Record<string, any>) {
   return useOptimizedLoading(
     async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('No user')
       }

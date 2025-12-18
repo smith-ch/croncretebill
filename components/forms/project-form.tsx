@@ -34,8 +34,9 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const fetchClients = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -108,8 +109,9 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error("Usuario no autenticado")
       }

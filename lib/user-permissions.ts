@@ -9,17 +9,17 @@ export async function ensureUserProfile(userId?: string) {
     // Obtener el usuario actual si no se proporciona ID
     let user
     if (userId) {
-      const { data: userData } = await supabase.auth.getUser()
-      if (userData.user?.id !== userId) {
+      const { data: userData } = await supabase.auth.getSession()
+      if (userData.session?.user?.id !== userId) {
         throw new Error("ID de usuario no coincide con el usuario autenticado")
       }
-      user = userData.user
+      user = userData.session?.user
     } else {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData.user) {
+      const { data: userData, error: userError } = await supabase.auth.getSession()
+      if (userError || !userData.session?.user) {
         throw new Error("Usuario no autenticado")
       }
-      user = userData.user
+      user = userData.session?.user
     }
 
     // Verificar si existe el perfil
@@ -78,8 +78,9 @@ export async function ensureUserProfile(userId?: string) {
  */
 export async function diagnosePermissionIssues() {
   try {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
+    if (!user) {
       return {
         success: false,
         message: "Usuario no autenticado",

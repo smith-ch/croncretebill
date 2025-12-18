@@ -49,7 +49,8 @@ export function useServicePrices(serviceId: string) {
 
   const createPrice = async (priceData: Omit<ServicePrice, 'id' | 'service_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) throw new Error('User not authenticated')
 
       const { data, error } = await supabase

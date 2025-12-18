@@ -102,8 +102,9 @@ export function StockAlerts({ onDismiss, showTitle = true, maxItems = 5 }: Stock
   const fetchLowStockAlerts = useCallback(async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         setLoading(false)
         return
@@ -274,8 +275,9 @@ export function useStockAlerts() {
     const fetchAlertCount = async () => {
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser()
+          data: { session },
+        } = await supabase.auth.getSession()
+        const user = session?.user
         
         if (!user || !mounted) {
           if (mounted) setLoading(false)
