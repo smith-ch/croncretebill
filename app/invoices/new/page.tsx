@@ -305,6 +305,8 @@ export default function NewInvoicePage() {
       const subtotal = processedItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
 
       // Calculate discount amount
+      console.log("🔍 [Nueva Factura] Validación de descuento - isOwner:", permissions.isOwner, "| discountType:", discountType, "| discountValue:", discountValue)
+      
       let discountAmount = 0
       if (discountValue > 0) {
         if (discountType === "percentage") {
@@ -316,8 +318,34 @@ export default function NewInvoicePage() {
             })
             throw new Error("El descuento porcentual no puede ser mayor al 100%")
           }
+          
+          // Validación para empleados: máximo 20% de descuento
+          console.log("📊 Verificando descuento porcentual para empleado...")
+          if (!permissions.isOwner && discountValue > 20) {
+            console.log("❌ Descuento rechazado - empleado intentó aplicar", discountValue + "%")
+            toast({
+              variant: "destructive",
+              title: "Descuento no permitido",
+              description: "Los empleados solo pueden aplicar descuentos de hasta el 20%",
+            })
+            throw new Error("Los empleados solo pueden aplicar descuentos de hasta el 20%")
+          }
+          
           discountAmount = subtotal * (discountValue / 100)
         } else {
+          // Para descuento fijo, calcular el porcentaje equivalente
+          const discountPercentage = (discountValue / subtotal) * 100
+          
+          // Validación para empleados: máximo 20% del subtotal
+          if (!permissions.isOwner && discountPercentage > 20) {
+            toast({
+              variant: "destructive",
+              title: "Descuento no permitido",
+              description: `Los empleados solo pueden aplicar descuentos de hasta el 20% del subtotal (máximo ${formatCurrency(subtotal * 0.20)})`,
+            })
+            throw new Error("Los empleados solo pueden aplicar descuentos de hasta el 20%")
+          }
+          
           if (discountValue > subtotal) {
             toast({
               variant: "destructive",

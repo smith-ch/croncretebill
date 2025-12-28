@@ -26,6 +26,7 @@ import {
   PieChart,
   Eye,
   RefreshCw,
+  DollarSign,
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -67,6 +68,7 @@ interface DashboardStats {
   totalInvoices: number
   totalRevenue: number
   pendingRevenue: number
+  todayRevenue: number
   totalClients: number
   totalProducts: number
   totalProjects: number
@@ -113,6 +115,7 @@ export default function DashboardPage() {
     totalInvoices: 0,
     totalRevenue: 0,
     pendingRevenue: 0,
+    todayRevenue: 0,
     totalClients: 0,
     totalProducts: 0,
     totalProjects: 0,
@@ -461,6 +464,24 @@ export default function DashboardPage() {
           ?.filter((exp) => new Date(exp.created_at) >= weekAgo)
           .reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
+      // Calcular venta de hoy (inicio y fin del día actual)
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+      
+      const todayPaidInvoices = paidInvoices.filter((inv) => {
+        const invDate = new Date(inv.issue_date || inv.created_at)
+        return invDate >= todayStart && invDate <= todayEnd
+      })
+      
+      const todayThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => {
+        const receiptDate = new Date(receipt.created_at)
+        return receiptDate >= todayStart && receiptDate <= todayEnd
+      }) || [])
+      
+      const todayInvoiceRevenue = todayPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      const todayThermalRevenue = todayThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
+      const todayRevenue = todayInvoiceRevenue + todayThermalRevenue
+
       const monthlyInvoices = invoices?.filter((inv) => {
         const invDate = new Date(inv.issue_date || inv.created_at)
         return invDate >= currentMonthStart && invDate <= currentMonthEnd
@@ -599,6 +620,7 @@ export default function DashboardPage() {
         totalInvoices,
         totalRevenue,
         pendingRevenue,
+        todayRevenue,
         totalClients: clientsCount || 0,
         totalProducts: productsCount || 0,
         totalProjects: projectsCount || 0,
@@ -741,9 +763,180 @@ export default function DashboardPage() {
 
   const monthlyProgress = Math.min((stats.monthlyRevenue / stats.monthlyTarget) * 100, 100)
 
+  // Verificar directamente el localStorage para el modo empleado
+  const isEmployeeMode = typeof window !== 'undefined' && localStorage.getItem('employee-view-mode') === 'true'
+  const wasOriginallyOwner = typeof window !== 'undefined' && localStorage.getItem('was-originally-owner') === 'true'
+  
+  // Lógica: Mostrar vista empleado SOLO si el modo empleado está activado
+  const showEmployeeView = isEmployeeMode
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-4">
       <div className="max-w-[1600px] mx-auto space-y-3 sm:space-y-4 lg:space-y-6">
+        
+        {/* Vista solo para empleados - cuando NO puede ver finanzas O está en modo empleado */}
+        {showEmployeeView ? (
+          <div className="space-y-6">
+            {/* Header Simple para Empleado con Botones */}
+            <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl shadow-md">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-emerald-800 to-green-600 bg-clip-text text-transparent">
+                      Venta de Hoy
+                    </h1>
+                    <p className="text-sm text-gray-600">Panel de ventas</p>
+                  </div>
+                </div>
+
+                {/* Botones de Acción para Empleado */}
+                <div className="flex items-center gap-2">
+                  <Link href="/invoices/new">
+                    <Button 
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-300 text-white"
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nueva Factura
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/thermal-receipts/new">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <Receipt className="h-4 w-4 mr-2" />
+                      Recibo Térmico
+                    </Button>
+                  </Link>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      fetchStats()
+                    }}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Actualizar
+                  </Button>
+
+                  {/* Divisor */}
+                  <div className="h-8 w-px bg-gray-300 mx-1"></div>
+
+                  {/* RoleSwitcher */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <RoleSwitcher />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Solo Tarjeta de Venta de Hoy */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/10"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-300/20 to-green-400/30 rounded-full -translate-y-16 translate-x-16"></div>
+              <CardHeader className="flex flex-row items-center justify-between pb-4 relative">
+                <div className="flex-1">
+                  <CardTitle className="text-lg font-bold text-emerald-700 uppercase tracking-wide mb-2">Ingresos del Día</CardTitle>
+                  <p className="text-sm text-emerald-600">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg">
+                  <DollarSign className="h-8 w-8 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="flex flex-col">
+                  <span className="text-5xl font-bold text-emerald-900 mb-4">{formatCurrency(stats.todayRevenue)}</span>
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-emerald-600" />
+                    <span className="text-sm text-emerald-700">Total de ventas generadas hoy</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actividad Reciente para Empleados */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-1 w-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                <h2 className="text-xl font-bold text-gray-800">Actividad Reciente</h2>
+              </div>
+              <Card className="shadow-lg border-0 bg-white relative overflow-hidden">
+                <CardContent className="p-4 relative">
+                  {stats.recentActivity.length > 0 ? (
+                    <div className="space-y-2">
+                      {stats.recentActivity.slice(0, 10).map((activity, index) => (
+                        <div
+                          key={activity.id}
+                          className={`flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors ${
+                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-50' : ''
+                          }`}
+                        >
+                          <div
+                            className={`p-1.5 rounded-md flex-shrink-0 ${
+                              activity.type === "invoice" 
+                                ? "bg-blue-500 text-white" 
+                                : activity.type === "thermal_receipt"
+                                ? "bg-green-500 text-white"
+                                : "bg-red-500 text-white"
+                            }`}
+                          >
+                            {activity.type === "invoice" ? (
+                              <FileText className="h-4 w-4" />
+                            ) : activity.type === "thermal_receipt" ? (
+                              <Receipt className="h-4 w-4" />
+                            ) : (
+                              <Receipt className="h-4 w-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <p className="font-semibold text-gray-900 text-sm truncate">
+                              {activity.type === "invoice" 
+                                ? `Factura #${activity.number}` 
+                                : activity.type === "thermal_receipt"
+                                ? `Recibo TRM-${activity.number}`
+                                : activity.description?.substring(0, 25)}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {activity.client_name || (activity.type === "thermal_receipt" ? "Venta directa" : "Gasto")}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p
+                              className={`font-bold text-sm ${
+                                activity.type === "expense" ? "text-red-600" : "text-emerald-600"
+                              }`}
+                            >
+                              {formatCurrency(activity.total)}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(activity.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm font-semibold">Sin actividad reciente</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          /* Vista completa para usuarios con permisos */
+          <>
         {/* Barra de Acciones Flotante - Sticky - Mobile Optimized */}
         <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 p-2 sm:p-3">
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
@@ -1163,9 +1356,7 @@ export default function DashboardPage() {
           </Card>
         )}
 
-
-
-        {/* Contenido Principal Organizado por Vista */}
+        {/* Contenido Principal Organizado por Vista - Solo para usuarios con permisos */}
         {viewMode === 'overview' ? (
           /* Vista Resumen - Lo más importante de un vistazo */
           <>
@@ -1835,6 +2026,8 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   )
