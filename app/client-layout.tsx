@@ -21,6 +21,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { KeyboardShortcutsHelper } from "@/components/layout/keyboard-shortcuts-helper"
 import { NavigationProgress } from "@/components/layout/navigation-progress"
 import { NetworkStatusIndicator } from "@/components/pwa/network-status"
+import { OfflineIndicator } from "@/components/offline-indicator"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -139,6 +140,10 @@ export default function ClientLayout({
             <KeyboardShortcutsHelper />
             {/* Indicador de Estado de Red */}
             <NetworkStatusIndicator />
+            {/* Indicador de Modo Offline */}
+            <div className="fixed top-4 right-4 z-50">
+              <OfflineIndicator />
+            </div>
             <Toaster />
             <SonnerToaster />
           </NotificationProvider>

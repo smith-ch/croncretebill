@@ -31,47 +31,47 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Optimized query - use inner join to filter by user's products directly
+    // This eliminates the need for a separate query to get user products
     let stockQuery = supabaseAdmin
       .from('product_warehouse_stock')
       .select(`
-        *,
-        product:products(
+        id,
+        product_id,
+        warehouse_id,
+        current_stock,
+        available_stock,
+        reserved_stock,
+        location,
+        last_count_date,
+        product:products!inner(
           id, 
           name, 
           unit, 
           unit_price, 
           cost_price, 
           current_stock,
-          stock_quantity,
           reorder_point, 
           max_stock,
           category,
           barcode,
-          is_trackable
+          is_trackable,
+          user_id
         ),
-        warehouse:warehouses(id, name)
+        warehouse:warehouses!inner(
+          id,
+          name,
+          user_id
+        )
       `)
+      .eq('product.user_id', userId)
       .eq('warehouse.user_id', userId)
-      .order('product(name)')
 
     if (warehouseId) {
       stockQuery = stockQuery.eq('warehouse_id', warehouseId)
     }
 
-    // Filter by user's products
-    const { data: userProducts } = await supabaseAdmin
-      .from('products')
-      .select('id')
-      .eq('user_id', userId)
-
-    if (!userProducts || userProducts.length === 0) {
-      return NextResponse.json({ stock: [] })
-    }
-
-    const productIds = userProducts.map(p => p.id)
-    stockQuery = stockQuery.in('product_id', productIds)
-
-    const { data: stock, error } = await stockQuery
+    const { data: stock, error } = await stockQuery.order('product(name)')
 
     if (error) {
       throw error

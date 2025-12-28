@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CategorySelector } from "@/components/ui/category-selector"
-import { Loader2 } from "lucide-react"
+import { Loader2, WifiOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useOnlineStatus } from "@/hooks/use-online-status"
+import { offlineCache } from "@/lib/offline-cache"
+import { syncQueue } from "@/lib/sync-queue"
 
 interface ProductFormProps {
   product?: any
@@ -25,6 +28,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
   const [error, setError] = useState<string | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(product?.category_id || "")
   const { toast } = useToast()
+  const isOnline = useOnlineStatus()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -114,10 +118,18 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      // Obtener usuario de la sesión local (funciona offline)
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (!user) {
-        throw new Error("Usuario no autenticado")
+        toast({
+          variant: "destructive",
+          title: "❌ Sesión expirada",
+          description: "Por favor, inicia sesión nuevamente",
+        })
+        setLoading(false)
+        return
       }
 
       // Verificar que el usuario tiene un ID válido
@@ -141,30 +153,71 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
           description: `${productData.name} ha sido actualizado correctamente`,
         })
       } else {
-        // Create new product
-        const { data: newProduct, error } = await supabase
-          .from("products")
-          .insert({
+        // Create new product (works both online and offline)
+        let newProductId: string
+
+        if (isOnline) {
+          // Online: Direct insert
+          const { data: newProduct, error } = await supabase
+            .from("products")
+            .insert({
+              ...productData,
+              user_id: user.id,
+              current_stock: productData.stock_quantity,
+            })
+            .select()
+            .single()
+
+          if (error) {
+            throw error
+          }
+          
+          newProductId = newProduct.id
+
+          toast({
+            title: "✅ Producto creado exitosamente",
+            description: `${productData.name} ha sido agregado al catálogo`,
+          })
+        } else {
+          // Offline: Create temp ID and queue for sync
+          newProductId = `temp_product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          
+          const tempProduct = {
             ...productData,
+            id: newProductId,
             user_id: user.id,
             current_stock: productData.stock_quantity,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+          
+          // Save to cache for immediate use
+          await offlineCache.set('products', newProductId, tempProduct, 'VERY_LONG')
+          
+          // Add to sync queue
+          syncQueue.add({
+            type: 'create',
+            entity: 'product',
+            data: {
+              ...productData,
+              user_id: user.id,
+              current_stock: productData.stock_quantity,
+            },
+            userId: user.id,
+            tempId: newProductId
           })
-          .select()
-          .single()
 
-        if (error) {
-          throw error
+          toast({
+            title: "📦 Producto guardado offline",
+            description: `${productData.name} se sincronizará cuando vuelva la conexión`,
+          })
         }
 
-        toast({
-          title: "✅ Producto creado exitosamente",
-          description: `${productData.name} ha sido agregado al catálogo`,
-        })
-
-        // Create stock movement for initial stock if quantity > 0
-        if (newProduct && productData.stock_quantity > 0) {
+        // Create stock movement for initial stock if quantity > 0 (only when online)
+        if (isOnline && newProductId && productData.stock_quantity > 0) {
           // Get or create default warehouse
-          let { data: warehouse, error: warehouseError } = await supabase
+          let warehouse: any = null
+          const { data: warehouseData, error: warehouseError } = await supabase
             .from("warehouses")
             .select("*")
             .eq("user_id", user.id)
@@ -191,6 +244,8 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             } else {
               warehouse = newWarehouse
             }
+          } else {
+            warehouse = warehouseData
           }
 
           if (warehouse) {
@@ -198,7 +253,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             await supabase
               .from("product_warehouse_stock")
               .insert({
-                product_id: newProduct.id,
+                product_id: newProductId,
                 warehouse_id: warehouse.id,
                 current_stock: productData.stock_quantity,
                 available_stock: productData.stock_quantity
@@ -209,7 +264,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
               .from("stock_movements")
               .insert({
                 user_id: user.id,
-                product_id: newProduct.id,
+                product_id: newProductId,
                 warehouse_id: warehouse.id,
                 movement_type: 'entrada',
                 quantity_change: productData.stock_quantity,
@@ -257,6 +312,16 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
 
   const renderFormContent = () => (
     <>
+      {/* Connection Status Indicator */}
+      {!isOnline && (
+        <Alert className="mb-4 bg-orange-50 border-orange-200">
+          <WifiOff className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800">
+            Sin conexión. El producto se guardará localmente y se sincronizará automáticamente cuando vuelva la conexión.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* Basic Information */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Información Básica</h3>

@@ -142,22 +142,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.lang = newLanguage
     }
 
-    // Save to database
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const existingSettings = user.user_metadata?.system_settings || {}
-        await supabase.auth.updateUser({
-          data: {
-            system_settings: {
-              ...existingSettings,
-              language: newLanguage
+    // Save to database (skip if offline)
+    if (navigator.onLine) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const user = session?.user
+        if (user) {
+          const existingSettings = user.user_metadata?.system_settings || {}
+          await supabase.auth.updateUser({
+            data: {
+              system_settings: {
+                ...existingSettings,
+                language: newLanguage
+              }
             }
-          }
-        })
+          })
+        }
+      } catch (error) {
+        console.log('[Language] Skipping database save - offline or error')
       }
-    } catch (error) {
-      console.error('Error saving language to database:', error)
     }
   }
 
@@ -174,14 +177,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Then load from database for authenticated users
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user?.user_metadata?.system_settings?.language) {
-          const dbLanguage = user.user_metadata.system_settings.language as Language
-          setLanguageState(dbLanguage)
-          localStorage.setItem('language', dbLanguage)
-          if (typeof document !== 'undefined') {
-            document.documentElement.lang = dbLanguage
+        // Then load from database for authenticated users (if online)
+        if (navigator.onLine) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession()
+            const user = session?.user
+            if (user?.user_metadata?.system_settings?.language) {
+              const dbLanguage = user.user_metadata.system_settings.language as Language
+              setLanguageState(dbLanguage)
+              localStorage.setItem('language', dbLanguage)
+              if (typeof document !== 'undefined') {
+                document.documentElement.lang = dbLanguage
+              }
+            }
+          } catch (error) {
+            console.log('[Language] Using cached language - offline or error')
           }
         }
       } catch (error) {

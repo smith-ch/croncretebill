@@ -38,7 +38,8 @@ export function PasswordVerification({ onVerified, children }: PasswordVerificat
 
     try {
       // Obtener el usuario actual
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user?.email) {
         throw new Error('No se pudo obtener el usuario actual')
       }

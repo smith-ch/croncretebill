@@ -75,55 +75,65 @@ export function useAutoLogout(options: UseAutoLogoutOptions = {}) {
   }, [timeoutMinutes, logout, showWarning])
 
   useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        return
-      }
+    let cleanupFunctions: (() => void)[] = []
+    let checkInterval: NodeJS.Timeout | null = null
+    
+    const activities = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
 
-      // Activities to track
-      const activities = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
-
-      // Add event listeners
-      activities.forEach(activity => {
-        document.addEventListener(activity, resetTimer, true)
-      })
-
-      // Check for page visibility changes
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          checkActivity()
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) {
+          return
         }
-      }
-      document.addEventListener('visibilitychange', handleVisibilityChange)
 
-      // Initial timer setup
-      resetTimer()
-
-      // Periodic check (every minute)
-      const checkInterval = setInterval(checkActivity, 60 * 1000)
-
-      // Cleanup function
-      return () => {
+        // Add event listeners
         activities.forEach(activity => {
-          document.removeEventListener(activity, resetTimer, true)
+          document.addEventListener(activity, resetTimer, true)
         })
-        document.removeEventListener('visibilitychange', handleVisibilityChange)
-        
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current)
+
+        // Check for page visibility changes
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            checkActivity()
+          }
         }
-        if (warningTimeoutRef.current) {
-          clearTimeout(warningTimeoutRef.current)
-        }
-        clearInterval(checkInterval)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        cleanupFunctions.push(() => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange)
+        })
+
+        // Initial timer setup
+        resetTimer()
+
+        // Periodic check (every minute)
+        checkInterval = setInterval(checkActivity, 60 * 1000)
+      } catch (error) {
+        // Silently fail if we can't check auth
+        console.log('[AutoLogout] Cannot check auth, skipping')
       }
     }
 
-    const cleanup = checkAuth()
+    init()
+
+    // Cleanup function
     return () => {
-      cleanup?.then(cleanupFn => cleanupFn?.())
+      activities.forEach(activity => {
+        document.removeEventListener(activity, resetTimer, true)
+      })
+      
+      cleanupFunctions.forEach(fn => fn())
+      
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current)
+      }
+      if (checkInterval) {
+        clearInterval(checkInterval)
+      }
     }
   }, [resetTimer, checkActivity, timeoutMinutes])
 

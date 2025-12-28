@@ -401,7 +401,8 @@ export default function DGIIReportsPage() {
   const fetchDGIIData = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -426,6 +427,30 @@ export default function DGIIReportsPage() {
         .gte("expense_date", startDate)
         .lte("expense_date", endDate)
         .order("expense_date", { ascending: true })
+
+      // Obtener gastos fijos que tengan próximo pago en el mes seleccionado
+      const { data: fixedExpenses, error: fixedExpensesError } = await supabase
+        .from("fixed_expenses")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("next_payment", startDate)
+        .lte("next_payment", endDate)
+        .order("next_payment", { ascending: true })
+
+      // Convertir gastos fijos al formato de gastos normales para incluirlos en el reporte
+      const convertedFixedExpenses = fixedExpenses?.map((fe: any) => ({
+        id: `fixed_${fe.id}`,
+        description: fe.name,
+        amount: fe.amount,
+        expense_date: fe.next_payment,
+        receipt_number: `GASTO_FIJO_${fe.id}`,
+        notes: `Gasto Fijo - ${fe.frequency}`,
+        created_at: fe.created_at,
+        is_fixed_expense: true
+      })) || []
+
+      // Combinar gastos regulares y fijos
+      const allExpenses = [...(expenses || []), ...convertedFixedExpenses]
 
       // Obtener datos de ventas con información completa del cliente DGII
       const { data: invoices, error: invoicesError } = await supabase
@@ -460,11 +485,15 @@ export default function DGIIReportsPage() {
         .lte("created_at", endDate + " 23:59:59")
         .order("created_at", { ascending: true })
 
-      console.log(`Encontrados: ${expenses?.length || 0} gastos, ${invoices?.length || 0} facturas`)
+      console.log(`Encontrados: ${expenses?.length || 0} gastos, ${convertedFixedExpenses.length} gastos fijos, ${invoices?.length || 0} facturas`)
 
       if (expensesError) {
         console.error("Error en gastos:", expensesError)
         throw new Error("Error al obtener gastos: " + expensesError.message)
+      }
+      if (fixedExpensesError) {
+        console.error("Error en gastos fijos:", fixedExpensesError)
+        // No lanzar error, solo continuar sin gastos fijos
       }
       if (invoicesError) {
         console.error("Error en facturas:", invoicesError)
@@ -472,7 +501,7 @@ export default function DGIIReportsPage() {
       }
 
       // Calcular totales con mejor precisión
-      const totalCompras = expenses?.reduce((sum, exp: Expense) => {
+      const totalCompras = allExpenses.reduce((sum, exp: any) => {
         const amount = parseFloat(exp.amount.toString()) || 0
         return sum + amount
       }, 0) || 0
@@ -483,7 +512,7 @@ export default function DGIIReportsPage() {
       }, 0) || 0
 
       // Calcular ITBIS más preciso
-      const itbisCompras = expenses?.reduce((sum, exp: Expense) => {
+      const itbisCompras = allExpenses.reduce((sum, exp: any) => {
         // Si tiene ITBIS explícito, usarlo; sino calcular 18%
         const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount.toString()) : (parseFloat(exp.amount.toString()) || 0) * 0.18
         return sum + itbis
@@ -497,7 +526,7 @@ export default function DGIIReportsPage() {
       console.log("Totales calculados:", { totalCompras, totalVentas, itbisCompras, itbisVentas })
 
       setDgiiData({
-        compras: expenses || [],
+        compras: allExpenses || [],
         ventas: invoices || [],
         totalCompras,
         totalVentas,
@@ -520,7 +549,8 @@ export default function DGIIReportsPage() {
   const fetchAnnualDGIIData = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -543,6 +573,30 @@ export default function DGIIReportsPage() {
         .gte("expense_date", startDate)
         .lte("expense_date", endDate)
         .order("expense_date", { ascending: true })
+
+      // Obtener gastos fijos del año completo
+      const { data: fixedExpenses, error: fixedExpensesError } = await supabase
+        .from("fixed_expenses")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("next_payment", startDate)
+        .lte("next_payment", endDate)
+        .order("next_payment", { ascending: true })
+
+      // Convertir gastos fijos al formato de gastos normales
+      const convertedFixedExpenses = fixedExpenses?.map((fe: any) => ({
+        id: `fixed_${fe.id}`,
+        description: fe.name,
+        amount: fe.amount,
+        expense_date: fe.next_payment,
+        receipt_number: `GASTO_FIJO_${fe.id}`,
+        notes: `Gasto Fijo - ${fe.frequency}`,
+        created_at: fe.created_at,
+        is_fixed_expense: true
+      })) || []
+
+      // Combinar gastos regulares y fijos
+      const allExpenses = [...(expenses || []), ...convertedFixedExpenses]
 
       // Obtener datos de ventas del año completo
       const { data: invoices, error: invoicesError } = await supabase
@@ -577,11 +631,15 @@ export default function DGIIReportsPage() {
         .lte("created_at", endDate)
         .order("created_at", { ascending: true })
 
-      console.log(`Encontrados: ${expenses?.length || 0} gastos anuales, ${invoices?.length || 0} facturas anuales`)
+      console.log(`Encontrados: ${expenses?.length || 0} gastos anuales, ${convertedFixedExpenses.length} gastos fijos anuales, ${invoices?.length || 0} facturas anuales`)
 
       if (expensesError) {
         console.error("Error en gastos anuales:", expensesError)
         throw new Error("Error al obtener gastos anuales: " + expensesError.message)
+      }
+      if (fixedExpensesError) {
+        console.error("Error en gastos fijos anuales:", fixedExpensesError)
+        // No lanzar error, solo continuar sin gastos fijos
       }
       if (invoicesError) {
         console.error("Error en facturas anuales:", invoicesError)
@@ -589,7 +647,7 @@ export default function DGIIReportsPage() {
       }
 
       // Calcular totales anuales
-      const totalCompras = expenses?.reduce((sum, exp: Expense) => {
+      const totalCompras = allExpenses.reduce((sum, exp: any) => {
         const amount = parseFloat(exp.amount.toString()) || 0
         return sum + amount
       }, 0) || 0
@@ -599,7 +657,7 @@ export default function DGIIReportsPage() {
         return sum + total
       }, 0) || 0
 
-      const itbisCompras = expenses?.reduce((sum, exp: Expense) => {
+      const itbisCompras = allExpenses.reduce((sum, exp: any) => {
         const itbis = exp.itbis_amount ? parseFloat(exp.itbis_amount.toString()) : (parseFloat(exp.amount.toString()) || 0) * 0.18
         return sum + itbis
       }, 0) || 0
@@ -612,7 +670,7 @@ export default function DGIIReportsPage() {
       console.log("Totales anuales calculados:", { totalCompras, totalVentas, itbisCompras, itbisVentas })
 
       setDgiiData({
-        compras: expenses || [],
+        compras: allExpenses || [],
         ventas: invoices || [],
         totalCompras,
         totalVentas,
@@ -672,7 +730,8 @@ export default function DGIIReportsPage() {
   // Función para obtener configuración de empresa
   const getCompanyName = async (): Promise<string> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return "MI EMPRESA, SRL"
       }
@@ -931,7 +990,8 @@ export default function DGIIReportsPage() {
   const generatePaymentMethodsReport = async () => {
     try {
       // Obtener todas las facturas del usuario
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1059,7 +1119,8 @@ export default function DGIIReportsPage() {
 
     try {
       // Obtener todas las facturas del año seleccionado
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1232,7 +1293,8 @@ export default function DGIIReportsPage() {
 
     try {
       // Obtener todas las facturas fiscales del año seleccionado
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1378,7 +1440,8 @@ export default function DGIIReportsPage() {
   const generateFiscalInvoicesReport = async () => {
     try {
       // Obtener todas las facturas fiscales (con NCF) del usuario
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -1882,7 +1945,8 @@ export default function DGIIReportsPage() {
   const saveManualExpense = async () => {
     setSavingExpense(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         alert("Error: Usuario no autenticado")
         return
@@ -1950,7 +2014,8 @@ export default function DGIIReportsPage() {
   const saveManualInvoice = async () => {
     setSavingInvoice(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         alert("Error: Usuario no autenticado")
         return

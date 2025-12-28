@@ -67,7 +67,8 @@ export function SecuritySettingsComponent() {
     setSuccess(null)
 
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (authError || !user) {
         setError("Error de autenticación")
@@ -196,7 +197,8 @@ export function SecuritySettingsComponent() {
 
   const fetchSecuritySettings = async () => {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+      const user = session?.user
       
       if (authError || !user) {
         setError("Error de autenticación")

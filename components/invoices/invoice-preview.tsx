@@ -227,7 +227,7 @@ export function InvoicePreview({
 
         {/* NCF Section */}
         {includeItbis && (
-          <div className="bg-slate-50 p-3 rounded text-center">
+          <div className="bg-white p-3 rounded text-center border">
             <p className="text-sm font-bold text-slate-800">
               NCF: {ncf || "Sin NCF especificado"}
             </p>
@@ -341,7 +341,7 @@ export function InvoicePreview({
 
         {/* Notes */}
         {notes && (
-          <div className="border-t pt-4">
+          <div className="bg-white border p-4 rounded">
             <h4 className="text-sm font-bold text-slate-800 mb-2">Notas:</h4>
             <p className="text-xs text-slate-600 whitespace-pre-wrap">{notes}</p>
           </div>

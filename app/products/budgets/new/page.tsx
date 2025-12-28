@@ -69,8 +69,9 @@ export default function NewBudgetPage() {
   const fetchInitialData = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) return
 
       // Fetch clients
@@ -201,8 +202,9 @@ export default function NewBudgetPage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) throw new Error("Usuario no autenticado")
 
       const { subtotal, itbisAmount, total } = calculateTotals()

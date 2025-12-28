@@ -65,14 +65,12 @@ async function getInventorySummary(userId: string, _warehouseId?: string | null)
     throw new Error("Database not configured")
   }
 
-  // Get user's products
-  const productsQuery = supabaseAdmin
+  // Get user's products - optimized with specific fields only
+  const { data: products, error: productsError } = await supabaseAdmin
     .from('products')
     .select('id, name, unit, current_stock, reorder_point, cost_price, unit_price')
     .eq('user_id', userId)
     .eq('is_trackable', true)
-
-  const { data: products, error: productsError } = await productsQuery
 
   if (productsError) {
     throw productsError
@@ -140,11 +138,16 @@ async function getInventoryValuation(userId: string, warehouseId?: string | null
     throw new Error("Database not configured")
   }
 
+  // Optimized query - use inner join to filter directly, eliminating separate query
   let query = supabaseAdmin
     .from('product_warehouse_stock')
     .select(`
-      *,
-      product:products(
+      id,
+      product_id,
+      warehouse_id,
+      current_stock,
+      available_stock,
+      product:products!inner(
         id, 
         name, 
         unit, 
@@ -155,19 +158,7 @@ async function getInventoryValuation(userId: string, warehouseId?: string | null
       ),
       warehouse:warehouses(id, name)
     `)
-
-  // Filter by user's products
-  const { data: userProducts } = await supabaseAdmin
-    .from('products')
-    .select('id')
-    .eq('user_id', userId)
-
-  if (!userProducts || userProducts.length === 0) {
-    return NextResponse.json({ valuation: [] })
-  }
-
-  const productIds = userProducts.map(p => p.id)
-  query = query.in('product_id', productIds)
+    .eq('product.user_id', userId)
 
   if (warehouseId) {
     query = query.eq('warehouse_id', warehouseId)

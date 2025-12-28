@@ -4,7 +4,9 @@
 console.log('Initializing optimized PWA service worker...')
 
 // Only register service worker in production or when explicitly enabled
-const shouldRegisterSW = process.env.NODE_ENV === 'production' || 
+// Check hostname instead of process.env (which doesn't exist in browser)
+const shouldRegisterSW = window.location.hostname !== 'localhost' && 
+                        window.location.hostname !== '127.0.0.1' ||
                         localStorage.getItem('enable-sw-dev') === 'true'
 
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator && shouldRegisterSW) {

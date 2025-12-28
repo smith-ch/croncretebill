@@ -32,7 +32,8 @@ export function RoleSecuritySettings() {
 
   const fetchSecurityInfo = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -107,7 +108,8 @@ export function RoleSecuritySettings() {
     setMessage(null)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user?.email) {
         throw new Error('Usuario no encontrado')
       }

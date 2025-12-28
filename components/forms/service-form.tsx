@@ -11,8 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CategorySelector } from "@/components/ui/category-selector"
-import { Loader2, Info } from "lucide-react"
+import { Loader2, Info, WifiOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useOnlineStatus } from "@/hooks/use-online-status"
+import { offlineCache } from "@/lib/offline-cache"
+import { syncQueue } from "@/lib/sync-queue"
 
 interface ServiceFormProps {
   service?: any
@@ -27,6 +30,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
   const [isCustomPricing, setIsCustomPricing] = useState(service?.price === null || service?.price === undefined)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(service?.category_id || "")
   const { toast } = useToast()
+  const isOnline = useOnlineStatus()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -95,11 +99,18 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
     }
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // Obtener usuario de la sesión local (funciona offline)
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
+      
       if (!user) {
-        throw new Error("Usuario no autenticado")
+        toast({
+          variant: "destructive",
+          title: "❌ Sesión expirada",
+          description: "Por favor, inicia sesión nuevamente",
+        })
+        setLoading(false)
+        return
       }
 
       if (service) {
@@ -116,20 +127,55 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
           description: `${serviceData.name} ha sido actualizado correctamente`,
         })
       } else {
-        const { error } = await supabase
-          .from("services")
-          .insert({
-            ...serviceData,
-            user_id: user.id,
+        // Create new service (works both online and offline)
+        if (isOnline) {
+          // Online: Direct insert
+          const { error } = await supabase
+            .from("services")
+            .insert({
+              ...serviceData,
+              user_id: user.id,
+            })
+          if (error) {
+            throw error
+          }
+          
+          toast({
+            title: "✅ Servicio creado exitosamente",
+            description: `${serviceData.name} ha sido agregado`,
           })
-        if (error) {
-          throw error
+        } else {
+          // Offline: Create temp ID and queue for sync
+          const serviceId = `temp_service_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          
+          const tempService = {
+            ...serviceData,
+            id: serviceId,
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+          
+          // Save to cache for immediate use
+          await offlineCache.set('services', serviceId, tempService, 'VERY_LONG')
+          
+          // Add to sync queue
+          syncQueue.add({
+            type: 'create',
+            entity: 'service',
+            data: {
+              ...serviceData,
+              user_id: user.id,
+            },
+            userId: user.id,
+            tempId: serviceId
+          })
+
+          toast({
+            title: "📦 Servicio guardado offline",
+            description: `${serviceData.name} se sincronizará cuando vuelva la conexión`,
+          })
         }
-        
-        toast({
-          title: "✅ Servicio creado exitosamente",
-          description: `${serviceData.name} ha sido agregado`,
-        })
       }
 
       if (onSuccess) {
@@ -157,6 +203,16 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Connection Status Indicator */}
+          {!isOnline && (
+            <Alert className="bg-orange-50 border-orange-200">
+              <WifiOff className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800">
+                Sin conexión. El servicio se guardará localmente y se sincronizará automáticamente cuando vuelva la conexión.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Información Básica</h3>

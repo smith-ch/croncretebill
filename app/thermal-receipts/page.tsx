@@ -326,14 +326,15 @@ export default function ThermalReceiptsPage() {
   
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
-  const { canDelete } = useUserPermissions()
+  const { canDelete, isOwner } = useUserPermissions()
   const { toast } = useToast()
 
   // Use proper permissions system for delete operations
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -598,7 +599,8 @@ export default function ThermalReceiptsPage() {
   const handleSaveReceipt = async () => {
     try {
       setSaving(true)
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -608,6 +610,34 @@ export default function ThermalReceiptsPage() {
       if (total_amount <= 0) {
         notifyError("Debe agregar al menos un producto con precio válido")
         return
+      }
+
+      // Validar descuentos para empleados (máximo 20%)
+      console.log("🔍 Validación de descuento - isOwner:", isOwner, "| generalDiscountPercentage:", generalDiscountPercentage, "| generalDiscountAmount:", generalDiscountAmount)
+      
+      if (!isOwner) {
+        // Validar descuento por porcentaje
+        if (generalDiscountPercentage > 20) {
+          console.log("❌ Descuento por porcentaje rechazado:", generalDiscountPercentage)
+          notifyError("Los empleados solo pueden aplicar descuentos de hasta el 20%")
+          setSaving(false)
+          return
+        }
+        
+        // Validar descuento por monto fijo
+        if (generalDiscountAmount > 0) {
+          const discountPercentage = (generalDiscountAmount / subtotal) * 100
+          console.log("💰 Descuento fijo equivalente:", discountPercentage.toFixed(2) + "%")
+          if (discountPercentage > 20) {
+            console.log("❌ Descuento fijo rechazado - supera 20%")
+            notifyError(`Descuento no permitido. El descuento supera el 20% permitido. Descuento máximo: ${formatCurrency(subtotal * 0.20)}`)
+            setSaving(false)
+            return
+          }
+        }
+        console.log("✅ Descuento aprobado para empleado")
+      } else {
+        console.log("👑 Usuario es propietario - sin límite de descuento")
       }
 
       // Validar stock disponible antes de guardar

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import { getCompanyAndProfile } from "@/lib/optimized-queries"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -9,17 +10,36 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const invoiceId = params.id
 
-    // Get invoice with related data including services
+    // Get invoice with related data including services (optimized select)
     const { data: invoice, error: invoiceError } = await supabaseAdmin
       .from("invoices")
       .select(`
-        *,
+        id,
+        user_id,
+        invoice_number,
+        invoice_date,
+        due_date,
+        subtotal,
+        tax_amount,
+        total,
+        status,
+        notes,
+        include_itbis,
+        ncf,
+        payment_method,
         clients (name, email, phone, address, rnc),
         projects (name),
         drivers (name),
         vehicles (model, plate),
         invoice_items:invoice_items_invoice_id_fkey (
-          *,
+          id,
+          description,
+          quantity,
+          unit_price,
+          total,
+          unit,
+          itbis_rate,
+          itbis_amount,
           products (name, unit),
           services (name, unit)
         )
@@ -31,17 +51,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 })
     }
 
-    // Get company settings including currency and colors
-    const { data: companySettings } = await supabaseAdmin
-      .from("company_settings")
-      .select("*")
-      .eq("user_id", (invoice as any).user_id)
-      .single()
-
-    const currencySymbol = (companySettings as any)?.currency_symbol || "RD$"
-
-    // Get user profile for company info
-    const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", (invoice as any).user_id).single()
+    // Get company settings and profile in one optimized call with caching
+    const { companySettings, profile, currencySymbol } = await getCompanyAndProfile((invoice as any).user_id)
 
     // Generate HTML for PDF
     const html = generateInvoiceHTML(

@@ -61,8 +61,9 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
   const fetchBudgetData = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         setError("Usuario no autenticado")
         return
@@ -137,8 +138,9 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
   const fetchInitialData = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) return
 
       const [clientsRes, projectsRes, productsRes, servicesRes] = await Promise.all([
@@ -236,8 +238,9 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) throw new Error("Usuario no autenticado")
 
       const { subtotal, itbisAmount, total } = calculateTotals()

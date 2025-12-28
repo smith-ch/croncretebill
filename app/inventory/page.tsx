@@ -82,8 +82,9 @@ export default function UnifiedInventoryPage() {
   const fetchProducts = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -108,8 +109,9 @@ export default function UnifiedInventoryPage() {
   const ensureDefaultWarehouse = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         console.log('No user in ensureDefaultWarehouse')
         return
@@ -169,8 +171,9 @@ export default function UnifiedInventoryPage() {
   const fetchWarehouses = useCallback(async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         console.log('No user found')
         return
@@ -276,8 +279,9 @@ export default function UnifiedInventoryPage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no autenticado')
       }
@@ -412,8 +416,9 @@ export default function UnifiedInventoryPage() {
   const updateStockDirectly = async (stockItemId: string, newStock: number) => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no autenticado')
       }
@@ -549,8 +554,9 @@ export default function UnifiedInventoryPage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no autenticado')
       }
@@ -609,8 +615,9 @@ export default function UnifiedInventoryPage() {
     setIsDeleting(true)
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         throw new Error('Usuario no autenticado')
       }
@@ -670,8 +677,9 @@ export default function UnifiedInventoryPage() {
   const syncProductsWithWarehouse = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -845,8 +853,9 @@ export default function UnifiedInventoryPage() {
   const fetchSummary = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -882,8 +891,9 @@ export default function UnifiedInventoryPage() {
   const fetchStockItems = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
@@ -945,8 +955,9 @@ export default function UnifiedInventoryPage() {
   const fetchMovements = async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         return
       }
