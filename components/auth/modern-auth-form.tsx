@@ -17,7 +17,8 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  KeyRound
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -27,6 +28,8 @@ export function ModernAuthForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("signin")
   const [mounted, setMounted] = useState(false)
+  const [showResetPassword, setShowResetPassword] = useState(false)
+  const [resetEmail, setResetEmail] = useState("")
 
   useEffect(() => {
     setMounted(true)
@@ -84,6 +87,7 @@ export function ModernAuthForm() {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
             company_name: companyName,
@@ -98,7 +102,7 @@ export function ModernAuthForm() {
 
       setMessage({
         type: "success",
-        text: "¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.",
+        text: "¡Cuenta creada exitosamente! Por favor, revisa tu correo electrónico y haz clic en el enlace de verificación para activar tu cuenta.",
       })
     } catch (error: any) {
       setMessage({
@@ -132,6 +136,101 @@ export function ModernAuthForm() {
       setMessage({
         type: "error",
         text: error.message || "Error al iniciar sesión",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    setMessage(null)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      })
+      if (error) {
+        throw error
+      }
+    } catch (error: any) {
+      setMessage({
+        type: "error",
+        text: error.message || "Error al iniciar sesión con Google",
+      })
+      setLoading(false)
+    }
+  }
+
+  const handleFacebookSignIn = async () => {
+    setLoading(true)
+    setMessage(null)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          scopes: 'email',
+        }
+      })
+      if (error) {
+        throw error
+      }
+    } catch (error: any) {
+      setMessage({
+        type: "error",
+        text: error.message || "Error al iniciar sesión con Facebook",
+      })
+      setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    if (!resetEmail || !resetEmail.includes('@')) {
+      setMessage({
+        type: "error",
+        text: "Por favor ingresa un correo electrónico válido",
+      })
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+
+      if (error) {
+        console.error('Reset password error:', error)
+        throw error
+      }
+
+      console.log('Reset password success:', data)
+      
+      setMessage({
+        type: "success",
+        text: "¡Correo enviado! Revisa tu bandeja de entrada y haz clic en el enlace para restablecer tu contraseña.",
+      })
+      setResetEmail("")
+      setTimeout(() => {
+        setShowResetPassword(false)
+        setMessage(null)
+      }, 5000)
+    } catch (error: any) {
+      console.error('Reset password catch error:', error)
+      setMessage({
+        type: "error",
+        text: error.message || "Error al enviar el correo. Verifica que el email sea correcto.",
       })
     } finally {
       setLoading(false)
@@ -538,6 +637,79 @@ export function ModernAuthForm() {
                         </div>
                       </Button>
                     </motion.div>
+
+                    {/* Forgot Password Link */}
+                    <motion.div 
+                      className="text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setShowResetPassword(true)}
+                        className="text-sm text-white/70 hover:text-white/90 underline-offset-4 hover:underline transition-colors flex items-center gap-2 justify-center mx-auto"
+                      >
+                        <KeyRound className="h-4 w-4" />
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    </motion.div>
+
+                    {/* Social Login Divider */}
+                    <motion.div 
+                      className="relative my-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/20"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 text-white/60 bg-transparent">O continuar con</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Social Login Buttons */}
+                    <motion.div 
+                      className="grid grid-cols-2 gap-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      {/* Google Button */}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          type="button"
+                          onClick={handleGoogleSignIn}
+                          disabled={loading}
+                          className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                        >
+                          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
+                            <path fill="#34A853" d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"/>
+                            <path fill="#4A90E2" d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5272727 23.1818182,9.81818182 L12,9.81818182 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"/>
+                            <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z"/>
+                          </svg>
+                          Google
+                        </Button>
+                      </motion.div>
+
+                      {/* Facebook Button */}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          type="button"
+                          onClick={handleFacebookSignIn}
+                          disabled={loading}
+                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border-0 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                        >
+                          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          Facebook
+                        </Button>
+                      </motion.div>
+                    </motion.div>
                   </motion.form>
                 </TabsContent>
 
@@ -666,6 +838,62 @@ export function ModernAuthForm() {
                         </div>
                       </Button>
                     </motion.div>
+
+                    {/* Social Login Divider */}
+                    <motion.div 
+                      className="relative my-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/20"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 text-white/60 bg-transparent">O regístrate con</span>
+                      </div>
+                    </motion.div>
+
+                    {/* Social Login Buttons */}
+                    <motion.div 
+                      className="grid grid-cols-2 gap-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      {/* Google Button */}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          type="button"
+                          onClick={handleGoogleSignIn}
+                          disabled={loading}
+                          className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                        >
+                          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
+                            <path fill="#34A853" d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"/>
+                            <path fill="#4A90E2" d="M19.834192,20.9995801 C22.0291676,18.9520994 23.4545455,15.903663 23.4545455,12 C23.4545455,11.2909091 23.3454545,10.5272727 23.1818182,9.81818182 L12,9.81818182 L12,14.4545455 L18.4363636,14.4545455 C18.1187732,16.013626 17.2662994,17.2212117 16.0407269,18.0125889 L19.834192,20.9995801 Z"/>
+                            <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7301709 1.23746264,17.3349879 L5.27698177,14.2678769 Z"/>
+                          </svg>
+                          Google
+                        </Button>
+                      </motion.div>
+
+                      {/* Facebook Button */}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          type="button"
+                          onClick={handleFacebookSignIn}
+                          disabled={loading}
+                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border-0 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                        >
+                          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          Facebook
+                        </Button>
+                      </motion.div>
+                    </motion.div>
                   </motion.form>
                 </TabsContent>
               </Tabs>
@@ -685,6 +913,130 @@ export function ModernAuthForm() {
           </p>
         </motion.div>
       </motion.div>
+
+      {/* Reset Password Modal */}
+      <AnimatePresence>
+        {showResetPassword && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowResetPassword(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
+              {/* Modal */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md"
+              >
+                <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
+                  <CardHeader className="text-center pb-4">
+                    <motion.div
+                      className="flex items-center justify-center mb-4"
+                      animate={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <KeyRound className="h-8 w-8 text-white" />
+                      </div>
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Restablecer Contraseña
+                    </h3>
+                    <p className="text-white/70 text-sm">
+                      Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña
+                    </p>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {message && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-4"
+                      >
+                        <div 
+                          className={`p-4 rounded-xl border backdrop-blur-sm ${
+                            message.type === "error" 
+                              ? "border-red-300/30 bg-red-500/10" 
+                              : "border-green-300/30 bg-green-500/10"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {message.type === "error" ? (
+                              <AlertCircle className="h-5 w-5 text-red-400" />
+                            ) : (
+                              <CheckCircle className="h-5 w-5 text-green-400" />
+                            )}
+                            <span className={`text-sm font-medium ${
+                              message.type === "error" ? "text-red-200" : "text-green-200"
+                            }`}>
+                              {message.text}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <form onSubmit={handleResetPassword} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Correo Electrónico
+                        </Label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                          <Input
+                            id="reset-email"
+                            type="email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            required
+                            className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                            placeholder="tu@email.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setShowResetPassword(false)
+                            setMessage(null)
+                            setResetEmail("")
+                          }}
+                          className="flex-1 h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium transition-all duration-300 shadow-xl border-0 rounded-xl"
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                              Enviando...
+                            </>
+                          ) : (
+                            "Enviar"
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
