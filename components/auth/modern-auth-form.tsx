@@ -1145,8 +1145,9 @@ export function ModernAuthForm() {
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
                     <li>✓ API personalizada</li>
-                    <li>✓ Integraciones bancarias</li>
                     <li>✓ Soporte prioritario 24/7</li>
+                    <li>✓ Gestión avanzada de usuarios</li>
+                    
                   </ul>
                 </motion.div>
               </div>
