@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { Inter } from "next/font/google"
+import { usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { ModernAuthForm } from "@/components/auth/modern-auth-form"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -32,6 +33,7 @@ export default function ClientLayout({
 }) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const pathname = usePathname()
 
   // Configurar auto-logout cuando hay un usuario logueado (solo si hay usuario)
   useAutoLogout({
@@ -74,7 +76,11 @@ export default function ClientLayout({
     )
   }
 
-  if (!user) {
+  // Rutas públicas que no requieren autenticación
+  const publicRoutes = ['/reset-password']
+  const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route))
+
+  if (!user && !isPublicRoute) {
     return (
       <html lang="es">
         <body className={inter.className}>
@@ -82,6 +88,25 @@ export default function ClientLayout({
             <NotificationProvider>
               <div className="pwa-container">
                 <ModernAuthForm />
+              </div>
+              <Toaster />
+              <SonnerToaster />
+            </NotificationProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    )
+  }
+
+  // Si es ruta pública, renderizar sin sidebar ni protección
+  if (isPublicRoute) {
+    return (
+      <html lang="es">
+        <body className={inter.className}>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <NotificationProvider>
+              <div className="pwa-container">
+                {children}
               </div>
               <Toaster />
               <SonnerToaster />
