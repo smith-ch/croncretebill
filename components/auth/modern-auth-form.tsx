@@ -1140,7 +1140,7 @@ export function ModernAuthForm() {
                     <span className="text-green-400 text-[10px] font-medium bg-green-400/20 px-1.5 py-0.5 rounded">Full</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$XXX</span>
+                    <span className="text-lg font-bold text-white">$XX</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
