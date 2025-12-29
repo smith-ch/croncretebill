@@ -316,13 +316,16 @@ export function ModernAuthForm() {
         ))}
       </div>
 
-      {/* Main Content */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-md relative z-10"
-      >
+      {/* Main Content - Two Column Layout */}
+      <div className="w-full max-w-7xl relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        
+        {/* Left Column - Login Form */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full"
+        >
         <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl shadow-black/25 hover:shadow-black/40 transition-all duration-700 hover:border-white/30">
           <CardHeader className="text-center pb-2">
             <motion.div 
@@ -1037,6 +1040,144 @@ export function ModernAuthForm() {
           </>
         )}
       </AnimatePresence>
+
+        {/* Right Column - Pricing Info */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="hidden lg:block"
+        >
+          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl h-full flex flex-col">
+            <CardHeader className="text-center pb-2 pt-4">
+              <motion.div
+                animate={{
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="mb-2"
+              >
+                <div className="w-14 h-14 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl">
+                  <Sparkles className="h-7 w-7 text-white" />
+                </div>
+              </motion.div>
+              <h2 className="text-xl font-bold text-white mb-1">
+                ¡Próximamente!
+              </h2>
+              <p className="text-white/80 text-xs">
+                Servicio por suscripción
+              </p>
+            </CardHeader>
+
+            <CardContent className="p-4 space-y-2.5 flex-1 overflow-y-auto">
+              {/* Mensaje Principal */}
+              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg p-2.5 backdrop-blur-sm">
+                <p className="text-white/90 text-xs leading-relaxed">
+                  🎉 <strong>Regístrate ahora</strong> y obtén acceso <strong className="text-green-400">GRATIS</strong> durante el periodo de prueba.
+                </p>
+              </div>
+
+              {/* Planes de Suscripción */}
+              <div className="space-y-2">
+                <h3 className="text-white font-semibold text-sm mb-2 flex items-center gap-1.5">
+                  <div className="w-0.5 h-4 bg-gradient-to-b from-blue-400 to-purple-500 rounded-full"></div>
+                  Planes Disponibles
+                </h3>
+
+                {/* Plan Básico */}
+                <motion.div
+                  whileHover={{ scale: 1.01, x: 3 }}
+                  className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-white font-semibold text-sm">Plan Básico</h4>
+                    <span className="text-blue-400 text-[10px] font-medium bg-blue-400/20 px-1.5 py-0.5 rounded">Ideal</span>
+                  </div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-lg font-bold text-white">$X</span>
+                    <span className="text-white/60 text-[10px]">/mes</span>
+                  </div>
+                  <ul className="space-y-0.5 text-white/70 text-[10px]">
+                    <li>✓ Hasta 50 facturas/mes</li>
+                    <li>✓ Recibos térmicos</li>
+                    <li>✓ Reportes básicos</li>
+                  </ul>
+                </motion.div>
+
+                {/* Plan Profesional - Destacado */}
+                <motion.div
+                  whileHover={{ scale: 1.02, x: 3 }}
+                  className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 rounded-lg p-2.5 backdrop-blur-sm relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">
+                    Popular
+                  </div>
+                  <div className="flex items-center justify-between mb-1 mt-1">
+                    <h4 className="text-white font-semibold text-sm">Plan Profesional</h4>
+                  </div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-xl font-bold text-white">$XX</span>
+                    <span className="text-white/60 text-[10px]">/mes</span>
+                  </div>
+                  <ul className="space-y-0.5 text-white/80 text-[10px]">
+                    <li>✓ Facturación ilimitada</li>
+                    <li>✓ Multi-moneda avanzado</li>
+                    <li>✓ Reportes personalizados</li>
+                  </ul>
+                </motion.div>
+
+                {/* Plan Empresarial */}
+                <motion.div
+                  whileHover={{ scale: 1.01, x: 3 }}
+                  className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-white font-semibold text-sm">Plan Empresarial</h4>
+                    <span className="text-green-400 text-[10px] font-medium bg-green-400/20 px-1.5 py-0.5 rounded">Full</span>
+                  </div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-lg font-bold text-white">$XX</span>
+                    <span className="text-white/60 text-[10px]">/mes</span>
+                  </div>
+                  <ul className="space-y-0.5 text-white/70 text-[10px]">
+                    <li>✓ API personalizada</li>
+                    <li>✓ Soporte prioritario 24/7</li>
+                    <li>✓ Gestión avanzada de usuarios</li>
+                    
+                  </ul>
+                </motion.div>
+              </div>
+
+              {/* Beneficios */}
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-400/20 rounded-lg p-2.5 backdrop-blur-sm">
+                <h4 className="text-green-400 font-semibold text-xs mb-1.5 flex items-center gap-1.5">
+                  <CheckCircle className="h-3 w-3" />
+                  Incluido en todos:
+                </h4>
+                <ul className="space-y-0.5 text-white/80 text-[10px]">
+                  <li>✓ Facturación electrónica NCF</li>
+                  <li>✓ Gestión de inventario</li>
+                  <li>✓ Reportes DGII (606/607)</li>
+                  <li>✓ Respaldos automáticos</li>
+                  <li>✓ App móvil incluida</li>
+                  <li>✓ Cotizaciones y presupuestos</li>
+                </ul>
+              </div>
+
+              {/* Call to Action */}
+              <div className="text-center pt-1">
+                <p className="text-white/60 text-[10px]">
+                  💡 Precios por anunciarse
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   )
 }
