@@ -96,6 +96,7 @@ interface LivePreviewProps {
   generalDiscountPercentage: number
   generalDiscountAmount: number
   includeItbis: boolean
+  ncf: string
 }
 
 const LivePreview: React.FC<LivePreviewProps> = React.memo(({ 
@@ -107,7 +108,8 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
   profile,
   generalDiscountPercentage,
   generalDiscountAmount,
-  includeItbis
+  includeItbis,
+  ncf
 }) => {
   const { formatCurrency } = useCurrency()
 
@@ -169,6 +171,9 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
         <div className="font-bold">RECIBO TÉRMICO</div>
         <div>No. {receiptNumber}</div>
         <div>{currentDate.toLocaleDateString('es-DO')}, {currentDate.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+        {includeItbis && ncf && (
+          <div className="mt-1 text-xs">NCF: {ncf}</div>
+        )}
       </div>
 
       {/* Cliente */}
@@ -313,6 +318,7 @@ export default function ThermalReceiptsPage() {
   const [amountReceived, setAmountReceived] = useState(0)
   const [notes, setNotes] = useState("")
   const [includeItbis, setIncludeItbis] = useState(true)
+  const [ncf, setNcf] = useState("")
   const [items, setItems] = useState<ThermalReceiptItem[]>([
     { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }
   ])
@@ -666,6 +672,7 @@ export default function ThermalReceiptsPage() {
         .from("thermal_receipts")
         .insert({
           user_id: user.id,
+          client_id: selectedClientId || null,
           client_name: clientName || "Cliente General",
           subtotal,
           tax_amount,
@@ -677,7 +684,8 @@ export default function ThermalReceiptsPage() {
           verification_code,
           digital_receipt_url: qr_url,
           notes,
-          include_itbis: includeItbis
+          include_itbis: includeItbis,
+          ncf: includeItbis && ncf ? ncf : null
         } as any)
         .select()
         .single()
@@ -718,6 +726,7 @@ export default function ThermalReceiptsPage() {
       setAmountReceived(0)
       setNotes("")
       setIncludeItbis(true)
+      setNcf("")
       setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
       setGeneralDiscountPercentage(0)
       setGeneralDiscountAmount(0)
@@ -1165,6 +1174,23 @@ export default function ThermalReceiptsPage() {
                 </Label>
               </div>
 
+              {/* NCF Field (Comprobante Fiscal) */}
+              {includeItbis && (
+                <div>
+                  <Label htmlFor="ncf">Comprobante Fiscal (NCF)</Label>
+                  <Input
+                    id="ncf"
+                    value={ncf}
+                    onChange={(e) => setNcf(e.target.value.toUpperCase())}
+                    placeholder="B0100000000"
+                    className="uppercase"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Requerido para reportes fiscales 607
+                  </p>
+                </div>
+              )}
+
               {/* Items */}
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -1465,6 +1491,7 @@ export default function ThermalReceiptsPage() {
                     setAmountReceived(0)
                     setNotes("")
                     setIncludeItbis(true)
+                    setNcf("")
                     setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
                     setGeneralDiscountPercentage(0)
                     setGeneralDiscountAmount(0)
@@ -1511,6 +1538,7 @@ export default function ThermalReceiptsPage() {
               generalDiscountPercentage={generalDiscountPercentage}
               generalDiscountAmount={generalDiscountAmount}
               includeItbis={includeItbis}
+              ncf={ncf}
             />
           </div>
         </div>

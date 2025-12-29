@@ -485,7 +485,65 @@ export default function DGIIReportsPage() {
         .lte("created_at", endDate + " 23:59:59")
         .order("created_at", { ascending: true })
 
-      console.log(`Encontrados: ${expenses?.length || 0} gastos, ${convertedFixedExpenses.length} gastos fijos, ${invoices?.length || 0} facturas`)
+      // Obtener recibos térmicos con ITBIS y NCF para incluir en el 607
+      const { data: thermalReceipts, error: thermalReceiptsError } = await supabase
+        .from("thermal_receipts")
+        .select(`
+          id,
+          created_at,
+          total_amount,
+          subtotal,
+          tax_amount,
+          ncf,
+          user_id,
+          payment_method,
+          include_itbis,
+          client_name,
+          client_id,
+          clients(
+            id,
+            name,
+            email,
+            phone,
+            rnc,
+            id_number,
+            tipo_id
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("include_itbis", true)
+        .not("ncf", "is", null)
+        .gte("created_at", startDate + " 00:00:00")
+        .lte("created_at", endDate + " 23:59:59")
+        .order("created_at", { ascending: true })
+
+      // Convertir recibos térmicos al formato de factura para el reporte 607
+      const convertedThermalReceipts = thermalReceipts?.map((tr: any) => ({
+        id: `thermal_${tr.id}`,
+        invoice_number: `TRM-${tr.id}`,
+        created_at: tr.created_at,
+        total: tr.total_amount,
+        subtotal: tr.subtotal,
+        tax_amount: tr.tax_amount,
+        ncf: tr.ncf,
+        user_id: tr.user_id,
+        payment_method: tr.payment_method,
+        clients: tr.clients || {
+          id: 'general',
+          name: tr.client_name || 'Cliente General',
+          email: '',
+          phone: '',
+          rnc: '',
+          id_number: '',
+          tipo_id: '1'
+        },
+        is_thermal_receipt: true
+      })) || []
+
+      // Combinar facturas y recibos térmicos
+      const allSales = [...(invoices || []), ...convertedThermalReceipts]
+
+      console.log(`Encontrados: ${expenses?.length || 0} gastos, ${convertedFixedExpenses.length} gastos fijos, ${invoices?.length || 0} facturas, ${thermalReceipts?.length || 0} recibos térmicos`)
 
       if (expensesError) {
         console.error("Error en gastos:", expensesError)
@@ -499,6 +557,10 @@ export default function DGIIReportsPage() {
         console.error("Error en facturas:", invoicesError)
         throw new Error("Error al obtener facturas: " + invoicesError.message)
       }
+      if (thermalReceiptsError) {
+        console.error("Error en recibos térmicos:", thermalReceiptsError)
+        // No lanzar error, solo log
+      }
 
       // Calcular totales con mejor precisión
       const totalCompras = allExpenses.reduce((sum, exp: any) => {
@@ -506,7 +568,7 @@ export default function DGIIReportsPage() {
         return sum + amount
       }, 0) || 0
 
-      const totalVentas = invoices?.reduce((sum, inv: Invoice) => {
+      const totalVentas = allSales?.reduce((sum, inv: any) => {
         const total = parseFloat(inv.total.toString()) || 0
         return sum + total
       }, 0) || 0
@@ -518,7 +580,7 @@ export default function DGIIReportsPage() {
         return sum + itbis
       }, 0) || 0
 
-      const itbisVentas = invoices?.reduce((sum, inv: Invoice) => {
+      const itbisVentas = allSales?.reduce((sum, inv: any) => {
         const itbis = parseFloat(inv.tax_amount.toString()) || 0
         return sum + itbis
       }, 0) || 0
@@ -527,7 +589,7 @@ export default function DGIIReportsPage() {
 
       setDgiiData({
         compras: allExpenses || [],
-        ventas: invoices || [],
+        ventas: allSales || [],
         totalCompras,
         totalVentas,
         itbisCompras,

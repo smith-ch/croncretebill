@@ -14,6 +14,8 @@ interface ThermalReceiptData {
   verification_code: string
   notes?: string
   created_at: string
+  ncf?: string
+  include_itbis?: boolean
   items: Array<{
     item_name: string
     quantity: number
@@ -132,6 +134,11 @@ const calculateReceiptHeight = (receiptData: ThermalReceiptData, companyData?: C
   
   // Información del recibo
   height += 3 + 3 + 2.5 + 3 // título + número + fecha + espacio
+  
+  // NCF si existe
+  if (receiptData.include_itbis && receiptData.ncf) {
+    height += 2.5 // NCF
+  }
   
   // Cliente (si no es general)
   if (receiptData.client_name && receiptData.client_name !== 'Cliente General') {
@@ -258,6 +265,14 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
     doc.setFontSize(7);
     doc.text(`No. ${receiptData.receipt_number}`, centerX, currentY, { align: 'center' });
     currentY += 2.5;
+
+    // Mostrar NCF si existe y tiene ITBIS
+    if (receiptData.include_itbis && receiptData.ncf) {
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(6);
+      doc.text(`NCF: ${receiptData.ncf}`, centerX, currentY, { align: 'center' });
+      currentY += 2.5;
+    }
 
     const date = new Date(receiptData.created_at);
     const dateStr = date.toLocaleDateString('es-DO');
@@ -448,6 +463,15 @@ export const generateThermalReceiptPDF = async (receiptData: ThermalReceiptData,
       doc.setFontSize(7);
       doc.text(`No. ${receiptData.receipt_number}`, centerX, currentY, { align: 'center' });
       currentY += 2.5;
+
+      // Mostrar NCF si existe y tiene ITBIS
+      if (receiptData.include_itbis && receiptData.ncf) {
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(6);
+        doc.text(`NCF: ${receiptData.ncf}`, centerX, currentY, { align: 'center' });
+        currentY += 2.5;
+      }
+
       const date = new Date(receiptData.created_at);
       const dateStr = date.toLocaleDateString('es-DO');
       const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
