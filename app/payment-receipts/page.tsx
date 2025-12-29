@@ -151,6 +151,8 @@ export default function PaymentReceiptsPage() {
   const [generating, setGenerating] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentReceipt | null>(null)
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [selectedExpense, setSelectedExpense] = useState<any | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, receipt: PaymentReceipt | null}>({show: false, receipt: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const [stats, setStats] = useState<PaymentStats>({
@@ -167,6 +169,15 @@ export default function PaymentReceiptsPage() {
     amount_paid: 0,
     change_amount: 0,
     bank_reference: "",
+    notes: "",
+    issued_by: ""
+  })
+  
+  // Expense receipt form
+  const [expenseReceiptData, setExpenseReceiptData] = useState({
+    expense_id: "",
+    payment_method: "cash",
+    amount_paid: 0,
     notes: "",
     issued_by: ""
   })
@@ -212,7 +223,8 @@ export default function PaymentReceiptsPage() {
       const [
         companyResult,
         receiptsResult,
-        invoicesResult
+        invoicesResult,
+        expensesResult
       ] = await Promise.all([
         // Fetch company settings
         supabase
@@ -263,7 +275,14 @@ export default function PaymentReceiptsPage() {
           `)
           .eq("user_id", user.id)
           .eq("status", "pagada")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: false }),
+        
+        // Fetch expenses
+        supabase
+          .from("expenses")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("expense_date", { ascending: false })
       ])
 
       // Handle company settings
@@ -271,6 +290,14 @@ export default function PaymentReceiptsPage() {
         console.warn("Company settings error:", companyResult.error)
       } else {
         setCompanySettings(companyResult.data)
+      }
+
+      // Handle expenses
+      if (expensesResult.error) {
+        console.warn("Expenses error:", expensesResult.error)
+        setExpenses([])
+      } else {
+        setExpenses(expensesResult.data || [])
       }
 
       // Handle payment receipts
@@ -554,6 +581,128 @@ export default function PaymentReceiptsPage() {
     } catch (error) {
       console.error("Error generating receipt:", error)
       notifyError("Error al generar el comprobante")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleGenerateExpenseReceipt = async () => {
+    if (!selectedExpense) {
+      toast({
+        variant: "destructive",
+        title: "❌ Gasto no seleccionado",
+        description: "Debe seleccionar un gasto para generar el comprobante",
+      })
+      notifyError("Debe seleccionar un gasto")
+      return
+    }
+
+    const amountPaid = expenseReceiptData.amount_paid || selectedExpense.amount
+    if (amountPaid <= 0) {
+      toast({
+        variant: "destructive",
+        title: "❌ Monto inválido",
+        description: "El monto pagado debe ser mayor a 0",
+      })
+      return
+    }
+
+    try {
+      setGenerating(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Error de autenticación",
+          description: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+        })
+        return
+      }
+
+      // Crear un "recibo de gasto" - usaremos la misma tabla payment_receipts pero con invoice_id NULL
+      const { data: receiptData, error } = await supabase
+        .from("payment_receipts")
+        .insert({
+          user_id: user.id,
+          invoice_id: null, // No es una factura, es un gasto
+          payment_method: expenseReceiptData.payment_method,
+          amount_paid: amountPaid,
+          change_amount: 0,
+          bank_reference: null,
+          notes: `Comprobante de Gasto: ${selectedExpense.description}\\n${expenseReceiptData.notes || ''}`,
+          issued_by: expenseReceiptData.issued_by || "Sistema",
+          receipt_type: "simple"
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      // Reset form
+      setExpenseReceiptData({
+        expense_id: "",
+        payment_method: "cash",
+        amount_paid: 0,
+        notes: "",
+        issued_by: ""
+      })
+      setSelectedExpense(null)
+
+      toast({
+        title: "✅ Comprobante de gasto generado",
+        description: `Comprobante para el gasto: ${selectedExpense.description}`,
+      })
+      notifySuccess("Comprobante de gasto generado exitosamente")
+      await fetchData()
+
+      // Generate PDF para el gasto
+      const fullReceipt = { 
+        ...receiptData, 
+        invoice: {
+          id: selectedExpense.id,
+          invoice_number: `GASTO-${selectedExpense.expense_date}`,
+          total_amount: selectedExpense.amount,
+          client_name: selectedExpense.provider_name || 'Proveedor',
+          client: {
+            id: '',
+            name: selectedExpense.provider_name || 'Proveedor',
+            email: null,
+            rnc: selectedExpense.provider_rnc || null,
+            phone: null,
+            address: null
+          },
+          invoice_items: [{
+            id: selectedExpense.id,
+            quantity: 1,
+            unit_price: selectedExpense.amount,
+            total: selectedExpense.amount,
+            products: {
+              id: '',
+              name: selectedExpense.description,
+              description: selectedExpense.notes || null
+            }
+          }]
+        }
+      }
+      
+      const companyData = {
+        name: companySettings?.company_name || 'TU EMPRESA',
+        phone: companySettings?.company_phone || '',
+        rnc: companySettings?.tax_id || '',
+        address: companySettings?.company_address || '',
+        email: companySettings?.company_email || '',
+        website: companySettings?.company_website || '',
+        logo_url: companySettings?.company_logo || ''
+      }
+      
+      await generatePaymentReceiptPDF(fullReceipt, companyData)
+
+    } catch (error) {
+      console.error("Error generating expense receipt:", error)
+      notifyError("Error al generar el comprobante de gasto")
     } finally {
       setGenerating(false)
     }
@@ -909,7 +1058,7 @@ export default function PaymentReceiptsPage() {
       </div>
 
       <Tabs defaultValue="receipts-list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-slate-100">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-100">
           <TabsTrigger 
             value="receipts-list"
             className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
@@ -922,7 +1071,14 @@ export default function PaymentReceiptsPage() {
             className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
           >
             <FileText className="h-4 w-4 mr-2" />
-            Generar Manual
+            Comprobante de Factura
+          </TabsTrigger>
+          <TabsTrigger 
+            value="expense-receipt"
+            className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            Comprobante de Gasto
           </TabsTrigger>
         </TabsList>
 
@@ -1419,6 +1575,194 @@ export default function PaymentReceiptsPage() {
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Generar Comprobante
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Generar Comprobante de Gasto */}
+        <TabsContent value="expense-receipt" className="space-y-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-red-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-red-600" />
+                Generar Comprobante de Gasto
+              </CardTitle>
+              <CardDescription>
+                Crear comprobante de pago para un gasto registrado
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="expense-select">Seleccionar Gasto</Label>
+                    <Select
+                      value={selectedExpense?.id || ""}
+                      onValueChange={(value) => {
+                        const expense = expenses.find(exp => exp.id === value)
+                        setSelectedExpense(expense || null)
+                        if (expense) {
+                          setExpenseReceiptData(prev => ({
+                            ...prev,
+                            expense_id: expense.id,
+                            amount_paid: expense.amount
+                          }))
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Seleccione un gasto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {expenses.length === 0 ? (
+                          <SelectItem disabled value="no-expenses">
+                            No hay gastos registrados
+                          </SelectItem>
+                        ) : (
+                          expenses.map(expense => (
+                            <SelectItem key={expense.id} value={expense.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span className="truncate">{expense.description}</span>
+                                <span className="ml-4 font-medium">{formatCurrency(expense.amount)}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="expense-payment-method">Método de Pago</Label>
+                    <Select
+                      value={expenseReceiptData.payment_method}
+                      onValueChange={(value) => setExpenseReceiptData(prev => ({ ...prev, payment_method: value }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            Efectivo
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="card">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-blue-600" />
+                            Tarjeta
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="transfer">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-purple-600" />
+                            Transferencia
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="check">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-orange-600" />
+                            Cheque
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="expense-amount-paid">Monto Pagado</Label>
+                    <Input
+                      id="expense-amount-paid"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={expenseReceiptData.amount_paid}
+                      onChange={(e) => setExpenseReceiptData(prev => ({ 
+                        ...prev, 
+                        amount_paid: parseFloat(e.target.value) || 0 
+                      }))}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="expense-issued-by">Emitido Por</Label>
+                    <Input
+                      id="expense-issued-by"
+                      placeholder="Nombre de quien emite el comprobante"
+                      value={expenseReceiptData.issued_by}
+                      onChange={(e) => setExpenseReceiptData(prev => ({ 
+                        ...prev, 
+                        issued_by: e.target.value 
+                      }))}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="expense-notes">Notas</Label>
+                    <Textarea
+                      id="expense-notes"
+                      placeholder="Notas adicionales del comprobante"
+                      value={expenseReceiptData.notes}
+                      onChange={(e) => setExpenseReceiptData(prev => ({ 
+                        ...prev, 
+                        notes: e.target.value 
+                      }))}
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
+
+                  {selectedExpense && (
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h3 className="font-semibold mb-2 text-red-900">Resumen del Gasto</h3>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-red-700">Descripción:</span>
+                          <span className="text-red-900 font-medium">{selectedExpense.description}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-red-700">Fecha:</span>
+                          <span className="text-red-900">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-red-700">Categoría:</span>
+                          <span className="text-red-900">{selectedExpense.category || 'Sin categoría'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-red-700">Monto:</span>
+                          <span className="font-medium text-red-900">{formatCurrency(selectedExpense.amount)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleGenerateExpenseReceipt}
+                  disabled={generating || !selectedExpense}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  size="lg"
+                >
+                  {generating ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2 animate-pulse" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Generar Comprobante de Gasto
                     </>
                   )}
                 </Button>
