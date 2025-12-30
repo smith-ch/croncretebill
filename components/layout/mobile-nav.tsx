@@ -514,8 +514,25 @@ export function MobileNav() {
                             : "text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100"
                         )}
                       >
-                        <item.icon className="h-5 w-5 mr-3 transition-transform duration-300 hover:scale-110" />
-                        <span className="font-semibold">{item.name}</span>
+                        <div className="relative">
+                          <item.icon className="h-5 w-5 mr-3 transition-transform duration-300 hover:scale-110" />
+                          {item.name === "Sistema - Info" && (
+                            <div className="absolute -top-1 -right-1">
+                              <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg"></span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-semibold flex items-center gap-2">
+                          {item.name}
+                          {item.name === "Sistema - Info" && (
+                            <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
+                              NUEVO
+                            </Badge>
+                          )}
+                        </span>
                         {item.name === "Inventario" && alertCount > 0 && (
                           <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0.5 animate-pulse">
                             {alertCount > 9 ? '9+' : alertCount}

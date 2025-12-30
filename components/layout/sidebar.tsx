@@ -361,8 +361,27 @@ export function Sidebar() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                   title={isCollapsed ? item.name : undefined}
                 >
-                  <item.icon className={cn("h-5 w-5 transition-transform duration-300 hover:scale-110", !isCollapsed && "mr-3")} />
-                  {!isCollapsed && <span className="font-medium">{item.name}</span>}
+                  <div className="relative">
+                    <item.icon className={cn("h-5 w-5 transition-transform duration-300 hover:scale-110", !isCollapsed && "mr-3")} />
+                    {item.name === "Sistema - Info" && (
+                      <div className="absolute -top-1 -right-1">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-red-500 to-red-500 shadow-lg"></span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {!isCollapsed && (
+                    <span className="font-medium flex items-center gap-2">
+                      {item.name}
+                      {item.name === "Sistema - Info" && (
+                        <Badge className="bg-gradient-to-r from-red-500 to-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
+                          AVISO
+                        </Badge>
+                      )}
+                    </span>
+                  )}
                 </Button>
               </Link>
             )

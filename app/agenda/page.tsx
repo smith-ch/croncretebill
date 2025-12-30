@@ -51,6 +51,7 @@ import {
   deleteAgendaEvent,
   markAgendaEventCompleted,
   updateOverdueEvents,
+  generateFixedExpenseEvents,
   AgendaEvent,
   CreateAgendaEvent
 } from "@/lib/agenda-events"
@@ -168,6 +169,9 @@ export default function AgendaPage() {
 
       // Update overdue events first
       await updateOverdueEvents()
+
+      // Generate agenda events from fixed expenses (12 months ahead)
+      await generateFixedExpenseEvents(12)
 
       // Fetch agenda events from database
       const agendaEventsData = await getAgendaEvents()
@@ -515,14 +519,47 @@ export default function AgendaPage() {
         setFixedExpenses(prev => 
           prev.map(exp => exp.id === expenseId ? updatedExpense : exp)
         )
+        
+        // Recargar agenda para mostrar el nuevo evento
+        const agendaEventsData = await getAgendaEvents()
+        const agendaEventItems: AgendaItem[] = agendaEventsData.map((event: AgendaEvent) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          due_date: event.due_date,
+          type: event.type === 'task' ? 'task' : event.type,
+          amount: event.amount,
+          status: event.status,
+          priority: event.priority,
+          created_at: event.created_at,
+        }))
+        
+        // Mantener las facturas en la lista
+        const invoiceItems = agendaItems.filter(item => item.id.startsWith('invoice-'))
+        setAgendaItems([...agendaEventItems, ...invoiceItems])
+        
+        toast({
+          title: "✅ Gasto marcado como pagado",
+          description: "Se ha generado el próximo evento automáticamente",
+        })
       }
     } catch (error) {
       console.error('Error marking expense as paid:', error)
+      toast({
+        variant: "destructive",
+        title: "Error al marcar como pagado",
+        description: "Ocurrió un error. Por favor intenta de nuevo.",
+      })
     }
   }
 
   const addFixedExpense = async () => {
     if (!newFixedExpense.name || !newFixedExpense.amount) {
+      toast({
+        variant: "destructive",
+        title: "❌ Campos requeridos",
+        description: "El nombre y monto son obligatorios",
+      })
       return
     }
 
@@ -544,6 +581,11 @@ export default function AgendaPage() {
               expense.id === editingExpense.id ? updatedExpense : expense
             )
           )
+          
+          toast({
+            title: "✅ Gasto fijo actualizado",
+            description: "Los eventos se generarán automáticamente",
+          })
         }
         setEditingExpense(null)
       } else {
@@ -560,8 +602,31 @@ export default function AgendaPage() {
 
         if (newExpense) {
           setFixedExpenses(prev => [...prev, newExpense])
+          
+          toast({
+            title: "✅ Gasto fijo creado",
+            description: "Los eventos se generarán automáticamente cada mes",
+          })
         }
       }
+      
+      // Recargar agenda
+      const agendaEventsData = await getAgendaEvents()
+      const agendaEventItems: AgendaItem[] = agendaEventsData.map((event: AgendaEvent) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        due_date: event.due_date,
+        type: event.type === 'task' ? 'task' : event.type,
+        amount: event.amount,
+        status: event.status,
+        priority: event.priority,
+        created_at: event.created_at,
+      }))
+      
+      // Mantener las facturas en la lista
+      const invoiceItems = agendaItems.filter(item => item.id.startsWith('invoice-'))
+      setAgendaItems([...agendaEventItems, ...invoiceItems])
 
       setNewFixedExpense({
         name: "",
@@ -573,6 +638,11 @@ export default function AgendaPage() {
       setShowFixedExpenseDialog(false)
     } catch (error) {
       console.error('Error saving fixed expense:', error)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar gasto fijo",
+        description: "Ocurrió un error. Por favor intenta de nuevo.",
+      })
     }
   }
 

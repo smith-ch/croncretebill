@@ -12,7 +12,8 @@ import {
   Settings,
   Users,
   ChevronRight,
-  Search
+  Search,
+  Sparkles
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { generateChatResponse, isGrokAvailable } from "@/lib/grok-ai"
 
 interface FAQ {
   id: string
@@ -143,6 +145,8 @@ export function MiniChat() {
   const [messages, setMessages] = React.useState<Message[]>([])
   const [inputValue, setInputValue] = React.useState("")
   const [isTyping, setIsTyping] = React.useState(false)
+  const [grokEnabled, setGrokEnabled] = React.useState(false)
+  const [isUsingGrok, setIsUsingGrok] = React.useState(false)
   const [quickSuggestions] = React.useState([
     "¿Cómo crear una factura?",
     "¿Cómo agregar un cliente?",
@@ -153,6 +157,9 @@ export function MiniChat() {
 
   // Obtener información del usuario al montar
   React.useEffect(() => {
+    // Verificar si Grok está disponible
+    setGrokEnabled(isGrokAvailable())
+    
     const loadUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -298,7 +305,7 @@ export function MiniChat() {
     return { faq: bestMatch, confidence, context: confidence > 60 ? 'high_confidence' : 'low_confidence' }
   }
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return
 
     const userMessage: Message = {
@@ -316,12 +323,13 @@ export function MiniChat() {
     // Simular tiempo de respuesta más natural (500-1200ms)
     const responseDelay = 500 + Math.random() * 700
     
-    setTimeout(() => {
+    setTimeout(async () => {
       const { faq, confidence, context } = findBestMatch(userQuestion)
       
       let botResponse: Message
 
-      if (faq && confidence > 60) {
+      // Si tenemos alta confianza con FAQs, usarlas directamente
+      if (faq && confidence > 70) {
         // Respuesta con alta confianza
         let responseText = faq.answer
         
@@ -347,7 +355,74 @@ export function MiniChat() {
           timestamp: new Date(),
           relatedFAQ: faq
         }
-      } else if (faq && confidence > 40) {
+        
+        setIsTyping(false)
+        setMessages(prev => [...prev, botResponse])
+      } 
+      // Si confianza media, intentar con Grok si está disponible
+      else if (grokEnabled && confidence < 70) {
+        setIsUsingGrok(true)
+        try {
+          console.log('🤖 Llamando a Groq AI con pregunta:', userQuestion)
+          
+          // Obtener historial reciente de conversación para contexto
+          const recentHistory = messages.slice(-4).map(msg => ({
+            role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
+            content: msg.text
+          }))
+
+          console.log('📝 Historial enviado a Groq:', recentHistory)
+
+          const grokResponse = await generateChatResponse(userQuestion, recentHistory)
+          
+          console.log('✅ Respuesta de Groq recibida:', grokResponse)
+          
+          botResponse = {
+            id: (Date.now() + 1).toString(),
+            text: `${grokResponse}\n\n✨ _Respuesta generada por Groq AI (Llama 3.3)_`,
+            sender: 'bot',
+            timestamp: new Date()
+          }
+        } catch (error) {
+          console.error('❌ Error detallado con Groq AI:', error)
+          if (error instanceof Error) {
+            console.error('Error name:', error.name)
+            console.error('Error message:', error.message)
+            console.error('Error stack:', error.stack)
+          }
+          
+          // Fallback a respuesta FAQ con confianza media si Grok falla
+          if (faq && confidence > 40) {
+            botResponse = {
+              id: (Date.now() + 1).toString(),
+              text: `No estoy 100% seguro, pero ¿te refieres a esto?\n\n${faq.answer}\n\nSi no es lo que buscabas, intenta reformular tu pregunta o explora las FAQs.`,
+              sender: 'bot',
+              timestamp: new Date(),
+              relatedFAQ: faq
+            }
+          } else {
+            // Respuesta por defecto si todo falla
+            const suggestions = getSuggestedQuestions(userQuestion)
+            let suggestionText = suggestions.length > 0 
+              ? `\n\n¿Quizás te interesa alguna de estas preguntas?\n${suggestions.map(s => `• ${s}`).join('\n')}`
+              : ''
+
+            botResponse = {
+              id: (Date.now() + 1).toString(),
+              text: `Disculpa, tuve problemas técnicos al consultar la IA. 😔${suggestionText}\n\nPuedes:\n• Ver las preguntas frecuentes (botón arriba)\n• Reformular tu pregunta\n• Preguntar sobre: facturas, clientes, productos, gastos, reportes\n\n¿En qué más puedo ayudarte?`,
+              sender: 'bot',
+              timestamp: new Date()
+            }
+          }
+        } finally {
+          setIsUsingGrok(false)
+        }
+        
+        setIsTyping(false)
+        setMessages(prev => [...prev, botResponse])
+      }
+      // Fallback tradicional si Grok no está disponible
+      else if (faq && confidence > 40) {
         // Respuesta con confianza media - preguntar si es lo correcto
         botResponse = {
           id: (Date.now() + 1).toString(),
@@ -356,6 +431,9 @@ export function MiniChat() {
           timestamp: new Date(),
           relatedFAQ: faq
         }
+        
+        setIsTyping(false)
+        setMessages(prev => [...prev, botResponse])
       } else {
         // Respuesta por defecto con sugerencias inteligentes
         const suggestions = getSuggestedQuestions(userQuestion)
@@ -369,10 +447,10 @@ export function MiniChat() {
           sender: 'bot',
           timestamp: new Date()
         }
+        
+        setIsTyping(false)
+        setMessages(prev => [...prev, botResponse])
       }
-
-      setIsTyping(false)
-      setMessages(prev => [...prev, botResponse])
     }, responseDelay)
   }
 
@@ -435,6 +513,56 @@ export function MiniChat() {
 
   const switchToFAQs = () => {
     setShowChat(false)
+  }
+
+  // Función para renderizar texto con formato markdown simple
+  const renderFormattedText = (text: string) => {
+    // Dividir por líneas para mantener la estructura
+    const lines = text.split('\n')
+    
+    return lines.map((line, index) => {
+      // Encabezados con **texto**
+      if (line.includes('**')) {
+        const parts = line.split(/(\*\*.*?\*\*)/)
+        return (
+          <p key={index} className="mb-2">
+            {parts.map((part, i) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>
+              }
+              return <span key={i}>{part}</span>
+            })}
+          </p>
+        )
+      }
+      
+      // Listas con * o +
+      if (line.trim().startsWith('*') || line.trim().startsWith('+') || line.trim().startsWith('-')) {
+        const content = line.trim().substring(1).trim()
+        return (
+          <li key={index} className="ml-4 mb-1 text-sm leading-relaxed">
+            {content}
+          </li>
+        )
+      }
+      
+      // Paso numerado
+      if (/^\d+\./.test(line.trim())) {
+        return (
+          <li key={index} className="ml-4 mb-1 text-sm leading-relaxed list-decimal">
+            {line.trim().replace(/^\d+\.\s*/, '')}
+          </li>
+        )
+      }
+      
+      // Líneas vacías
+      if (line.trim() === '') {
+        return <div key={index} className="h-2" />
+      }
+      
+      // Texto normal
+      return <p key={index} className="mb-1 text-sm leading-relaxed">{line}</p>
+    })
   }
 
   return (
@@ -560,13 +688,19 @@ export function MiniChat() {
                         >
                           <div
                             className={cn(
-                              "max-w-[80%] rounded-lg px-4 py-2 shadow-sm",
+                              "max-w-[80%] rounded-lg px-4 py-3 shadow-sm",
                               message.sender === 'user'
                                 ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
                                 : "bg-white text-slate-900 border border-slate-200"
                             )}
                           >
-                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
+                            {message.sender === 'bot' ? (
+                              <div className="text-sm leading-relaxed">
+                                {renderFormattedText(message.text)}
+                              </div>
+                            ) : (
+                              <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
+                            )}
                             {message.relatedFAQ && (
                               <button
                                 onClick={() => handleFAQClick(message.relatedFAQ!)}
@@ -644,9 +778,28 @@ export function MiniChat() {
                         </Button>
                       </div>
                       <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-slate-500">
-                          {isTyping ? '🤖 Escribiendo...' : 'Presiona Enter para enviar'}
+                        <p className="text-xs text-slate-500 flex items-center gap-1">
+                          {isTyping ? (
+                            <>
+                              {isUsingGrok ? (
+                                <>
+                                  <Sparkles className="h-3 w-3 text-purple-500 animate-pulse" />
+                                  Consultando Groq AI...
+                                </>
+                              ) : (
+                                '🤖 Escribiendo...'
+                              )}
+                            </>
+                          ) : (
+                            'Presiona Enter para enviar'
+                          )}
                         </p>
+                        {grokEnabled && (
+                          <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-purple-500" />
+                            Groq AI
+                          </Badge>
+                        )}
                         {messages.length > 2 && (
                           <button
                             onClick={() => setMessages(messages.slice(0, 1))}

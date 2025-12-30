@@ -8,7 +8,6 @@ import {
   Building2, 
   Code, 
   Mail, 
-  Phone, 
   Globe, 
   CheckCircle,
   Star,
@@ -17,12 +16,11 @@ import {
   ArrowLeft,
   Receipt,
   User,
-  XCircle,
-  Download,
-  RefreshCw,
-  Smartphone,
-  Calendar,
-  Award
+  Award,
+  AlertTriangle,
+  Sparkles,
+  CreditCard,
+  Calendar
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -207,14 +205,6 @@ export default function SystemInfoPage() {
               
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">Teléfono</p>
-                    <p className="text-sm text-slate-600">+1 829-987-4447</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-red-600" />
                   <div>
                     <p className="font-medium">Email</p>
@@ -234,106 +224,251 @@ export default function SystemInfoPage() {
           </CardContent>
         </Card>
 
-        {/* PWA Install Button */}
-        {canInstall && (
-          <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Download className="h-8 w-8 text-green-600" />
-                  <div>
-                    <h3 className="font-semibold text-green-800 dark:text-green-200">
-                      ¡PWA Lista para Instalar!
-                    </h3>
-                    <p className="text-sm text-green-600 dark:text-green-300">
-                      Puedes instalar ConcreteBill como aplicación
-                    </p>
+        {/* Aviso de Modelo de Suscripción */}
+        <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50 dark:bg-orange-900/20 relative overflow-hidden">
+          {/* Icono flotante animado */}
+          <div className="absolute top-4 right-4 animate-bounce">
+            <div className="relative">
+              <div className="absolute inset-0 bg-orange-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
+              <div className="relative w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl">
+                <Sparkles className="h-6 w-6 text-white animate-pulse" />
+              </div>
+            </div>
+          </div>
+          
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row items-start gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg relative">
+                  <div className="absolute inset-0 bg-orange-500 rounded-full animate-ping opacity-20"></div>
+                  <AlertTriangle className="h-10 w-10 text-white relative z-10" />
+                </div>
+              </div>
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <h3 className="text-2xl font-bold text-orange-900 dark:text-orange-200">
+                    ⚠️ Próximamente: Sistema por Suscripción
+                  </h3>
+                  <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-lg w-fit">
+                    🆕 Novedad Importante
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-orange-800 dark:text-orange-300 leading-relaxed text-base">
+                    <strong>ConcreteBill pasará a ser un servicio de pago por suscripción.</strong> Estamos trabajando para ofrecerte 
+                    diferentes planes que se adapten a las necesidades específicas de tu negocio, desde pequeños emprendimientos 
+                    hasta grandes empresas.
+                  </p>
+                  
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-green-900 dark:text-green-200 mb-1">
+                          ✨ ¡Buenas Noticias para Usuarios Actuales!
+                        </p>
+                        <p className="text-green-800 dark:text-green-300 text-sm">
+                          Todos los usuarios registrados antes del lanzamiento oficial del modelo de suscripción 
+                          recibirán <strong>acceso gratuito extendido</strong> y <strong>descuentos exclusivos permanentes</strong> 
+                          como agradecimiento por su confianza.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <Button onClick={handleInstall} className="bg-green-600 hover:bg-green-700">
-                  <Download className="h-4 w-4 mr-2" />
-                  Instalar App
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* PWA Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-6 h-6 text-purple-600" />
-                Estado PWA
-              </div>
-              <Button onClick={forceReload} variant="outline" size="sm">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Recargar
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {checks.map((check, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    {check.status ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-red-600" />
-                    )}
-                    <div>
-                      <h4 className="font-medium">{check.name}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {check.description}
+                
+                {/* Planes de Suscripción Preview */}
+                <div className="bg-white/70 dark:bg-gray-800/70 rounded-xl p-5 space-y-4 border border-orange-200">
+                  <h4 className="font-bold text-orange-900 dark:text-orange-200 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Planes de Suscripción Disponibles:
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Plan Básico */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">B</span>
+                        </div>
+                        <h5 className="font-bold text-blue-900 dark:text-blue-200">Plan Básico</h5>
+                      </div>
+                      <ul className="space-y-1 text-xs text-blue-800 dark:text-blue-300">
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          50 facturas/mes
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          1 usuario
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Recibos térmicos
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Soporte por email
+                        </li>
+                      </ul>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-semibold">
+                        Ideal para emprendedores
+                      </p>
+                    </div>
+                    
+                    {/* Plan Profesional */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border-2 border-purple-400 relative">
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                        ⭐ Popular
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">P</span>
+                        </div>
+                        <h5 className="font-bold text-purple-900 dark:text-purple-200">Plan Profesional</h5>
+                      </div>
+                      <ul className="space-y-1 text-xs text-purple-800 dark:text-purple-300">
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Facturas ilimitadas
+                        </li>
+                        
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Multi-moneda
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Reportes DGII avanzados
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Soporte prioritario
+                        </li>
+                      </ul>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 font-semibold">
+                        Perfecto para negocios en crecimiento
+                      </p>
+                    </div>
+                    
+                    {/* Plan Empresarial */}
+                    <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg p-4 border border-amber-300">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">E</span>
+                        </div>
+                        <h5 className="font-bold text-amber-900 dark:text-amber-200">Plan Empresarial</h5>
+                      </div>
+                      <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Todo ilimitado
+                        </li>
+                        
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          API personalizada
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Múltiples sucursales
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Soporte 24/7
+                        </li>
+                      </ul>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-semibold">
+                        Para grandes empresas
                       </p>
                     </div>
                   </div>
-                  <Badge variant={check.status ? "default" : "destructive"}>
-                    {check.status ? "✓ Pasó" : "✗ Falló"}
-                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Installation Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="w-6 h-6 text-green-600" />
-              Instrucciones de Instalación PWA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                Chrome/Edge (Escritorio):
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300 ml-6">
-                Busca el ícono de instalación en la barra de direcciones o ve a Menú → Instalar ConcreteBill
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                Safari (iOS):
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300 ml-6">
-                Toca el botón Compartir → Añadir a pantalla de inicio
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                Chrome (Android):
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300 ml-6">
-                Toca el menú (⋮) → Añadir a pantalla de inicio
-              </p>
+                
+                {/* Beneficios Adicionales */}
+                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 space-y-3">
+                  <h4 className="font-bold text-orange-900 dark:text-orange-200 flex items-center gap-2">
+                    <Star className="h-5 w-5 text-yellow-500" />
+                    Beneficios en Todos los Planes:
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        Facturación electrónica NCF
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        Gestión de inventario
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        App móvil incluida
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        Respaldos automáticos
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        Actualizaciones gratis
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-orange-900 dark:text-orange-200">
+                        Sin contratos anuales
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Línea de tiempo */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-l-4 border-blue-500 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-blue-900 dark:text-blue-200 mb-2">
+                        📅 Línea de Tiempo:
+                      </p>
+                      <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold min-w-[80px]">Ahora:</span>
+                          <span>Acceso gratuito para todos los usuarios registrados</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold min-w-[80px]">Próximo:</span>
+                          <span>Anuncio oficial de precios y características detalladas</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold min-w-[80px]">Después:</span>
+                          <span>Periodo de transición de 30 días con notificaciones previas</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold min-w-[80px]">Futuro:</span>
+                          <span>Activación del modelo de suscripción con beneficios para usuarios early adopters</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3 border border-orange-300">
+                  💡 <strong>Importante:</strong> <em>Los precios finales y características completas de cada plan se anunciarán próximamente. 
+                  Sigue utilizando el sistema normalmente, te notificaremos con anticipación sobre cualquier cambio. 
+                  Tu inversión de tiempo actual en el sistema será recompensada con beneficios exclusivos.</em>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -476,10 +611,6 @@ export default function SystemInfoPage() {
                 <div className="flex items-center gap-3 text-slate-600">
                   <Mail className="w-4 h-4" />
                   <span className="text-sm">smithrodriguezz345@gmail.com</span>
-                </div>
-                <div className="flex items-center gap-3 text-slate-600">
-                  <Phone className="w-4 h-4" />
-                  <span className="text-sm">+1 829-987-4447</span>
                 </div>
                 <div className="flex items-center gap-3 text-slate-600">
                   <Github className="w-4 h-4" />

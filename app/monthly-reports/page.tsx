@@ -20,6 +20,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { generateFinancialInsights, isGrokAvailable } from "@/lib/grok-ai"
 import {
   TrendingUp,
   FileText,
@@ -515,6 +516,8 @@ export default function MonthlyReportsPage() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPeriod] = useState("12")
+  const [grokInsightsAvailable, setGrokInsightsAvailable] = useState(false)
+  const [loadingGrokInsights, setLoadingGrokInsights] = useState(false)
   const [aiInsights, setAiInsights] = useState<AIInsights>({
     predictions: { nextMonthRevenue: 0, confidenceLevel: 0, nextQuarterRevenue: 0 },
     recommendations: [],
@@ -841,6 +844,12 @@ export default function MonthlyReportsPage() {
           seasonalityScore: Math.round(seasonalityIndex * 100) / 100,
           marketPosition: businessHealthScore >= 75 ? 'Líder' : businessHealthScore >= 50 ? 'Competitivo' : 'En desarrollo'
         })
+
+        // Intentar enriquecer insights con Grok AI si está disponible
+        if (isGrokAvailable()) {
+          setGrokInsightsAvailable(true)
+          enrichInsightsWithGrok(processedData, currentKpiData)
+        }
       }
     } catch (error) {
       console.error("Error fetching monthly data:", error)
@@ -848,6 +857,64 @@ export default function MonthlyReportsPage() {
       setLoading(false)
     }
   }, [selectedPeriod])
+
+  // Función para enriquecer insights usando Grok AI
+  const enrichInsightsWithGrok = async (data: MonthlyData[], kpi: KPIData) => {
+    setLoadingGrokInsights(true)
+    try {
+      const recentRevenues = data.slice(-6).map(d => d.totalRevenue)
+      const recentExpenses = data.slice(-6).map(d => d.expenseAmount)
+      const currentMonth = data[data.length - 1]?.monthName || 'Actual'
+      const previousMonth = data[data.length - 2]?.monthName || 'Anterior'
+
+      const grokInsights = await generateFinancialInsights({
+        monthlyRevenue: recentRevenues,
+        monthlyExpenses: recentExpenses,
+        profitMargin: kpi.profitMargin,
+        growthRate: kpi.averageGrowth,
+        totalClients: kpi.totalClients,
+        avgInvoiceValue: kpi.avgInvoiceValue,
+        currentMonth,
+        previousMonth
+      })
+
+      // Mezclar los insights de Grok con los calculados localmente
+      setAiInsights(prev => ({
+        ...prev,
+        recommendations: [
+          ...grokInsights.recommendations.map(rec => ({
+            type: 'grok-recommendation',
+            priority: 'high',
+            action: rec,
+            impact: 'Análisis por Grok AI'
+          })),
+          ...prev.recommendations.slice(0, 2) // Mantener algunas recomendaciones originales
+        ].slice(0, 6),
+        risks: [
+          ...grokInsights.risks.map(risk => ({
+            level: 'medium',
+            type: 'grok-analysis',
+            description: risk,
+            recommendation: 'Revisar análisis detallado'
+          })),
+          ...prev.risks.slice(0, 2)
+        ].slice(0, 5),
+        opportunities: [
+          ...grokInsights.opportunities.map(opp => ({
+            area: 'Estratégica',
+            potential: 'Alto',
+            action: opp
+          })),
+          ...prev.opportunities.slice(0, 2)
+        ].slice(0, 5)
+      }))
+    } catch (error) {
+      console.error('Error enriching with Grok AI:', error)
+      // No hacer nada, mantener insights originales
+    } finally {
+      setLoadingGrokInsights(false)
+    }
+  }
 
   useEffect(() => {
     fetchMonthlyData()
@@ -1486,6 +1553,33 @@ export default function MonthlyReportsPage() {
           </TabsContent>
 
           <TabsContent value="ai-insights" className="space-y-6">
+            {/* Grok AI Badge */}
+            {grokInsightsAvailable && (
+              <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Brain className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-purple-900 flex items-center gap-2">
+                      Insights Potenciados por Groq AI
+                      {loadingGrokInsights && (
+                        <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                      )}
+                    </h3>
+                    <p className="text-sm text-purple-700">
+                      {loadingGrokInsights 
+                        ? 'Generando análisis avanzado con Llama 3.3...' 
+                        : 'Análisis mejorado con inferencia ultra-rápida de Groq'}
+                    </p>
+                  </div>
+                </div>
+                <Badge className="bg-purple-600 text-white">
+                  ✨ Groq
+                </Badge>
+              </div>
+            )}
+
             {/* AI Predictions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
