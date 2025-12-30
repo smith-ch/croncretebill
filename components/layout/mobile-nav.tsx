@@ -559,6 +559,8 @@ export function MobileNav() {
                   onClick={async () => {
                     try {
                       const { supabase } = await import("@/lib/supabase")
+                      // Limpiar sessionStorage para que la bienvenida aparezca en el próximo login
+                      sessionStorage.removeItem('welcomeShown')
                       await supabase.auth.signOut()
                       setIsOpen(false)
                     } catch (error) {
