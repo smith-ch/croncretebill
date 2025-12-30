@@ -520,7 +520,7 @@ export function MobileNav() {
                             <div className="absolute -top-1 -right-1">
                               <span className="relative flex h-3 w-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-red-500 to-red-500 shadow-lg"></span>
                               </span>
                             </div>
                           )}
@@ -528,8 +528,8 @@ export function MobileNav() {
                         <span className="font-semibold flex items-center gap-2">
                           {item.name}
                           {item.name === "Sistema - Info" && (
-                            <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
-                              NUEVO
+                            <Badge className="bg-gradient-to-r from-red-500 to-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
+                              AVISO
                             </Badge>
                           )}
                         </span>
