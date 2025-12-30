@@ -205,6 +205,8 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     try {
+      // Limpiar sessionStorage para que la bienvenida aparezca en el próximo login
+      sessionStorage.removeItem('welcomeShown')
       await supabase.auth.signOut()
     } catch (error) {
       console.error("Error logging out:", error)

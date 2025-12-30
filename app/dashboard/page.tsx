@@ -170,9 +170,17 @@ export default function DashboardPage() {
     setIsClient(true)
   }, [])
 
-  // Welcome animation on login
+  // Welcome animation on login (solo primera vez en la sesión)
   useEffect(() => {
     const fetchUserAndShowWelcome = async () => {
+      // Verificar si ya se mostró en esta sesión
+      const welcomeShown = sessionStorage.getItem('welcomeShown')
+      
+      if (welcomeShown) {
+        // Ya se mostró en esta sesión, no mostrar de nuevo
+        return
+      }
+      
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         // Get user metadata for name
@@ -197,6 +205,9 @@ export default function DashboardPage() {
         }
         
         setShowWelcome(true)
+        
+        // Marcar que ya se mostró en esta sesión
+        sessionStorage.setItem('welcomeShown', 'true')
         
         // Hide welcome animation after 6 seconds
         setTimeout(() => {
