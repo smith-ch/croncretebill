@@ -157,6 +157,10 @@ export default function DashboardPage() {
     overdueInvoices: false,
     lowCashFlow: false
   })
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [userName, setUserName] = useState('')
+  const [dailyQuote, setDailyQuote] = useState('Hoy es un gran día para alcanzar tus metas.')
+  const [quoteLoading, setQuoteLoading] = useState(true)
   const { formatCurrency, formatNumber } = useCurrency()
   const { permissions } = useUserPermissions()
   const businessNotifications = useBusinessNotifications()
@@ -164,6 +168,44 @@ export default function DashboardPage() {
   // Check if we're on the client side
   useEffect(() => {
     setIsClient(true)
+  }, [])
+
+  // Welcome animation on login
+  useEffect(() => {
+    const fetchUserAndShowWelcome = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        // Get user metadata for name
+        const name = session.user.user_metadata?.full_name || 
+                     session.user.user_metadata?.name || 
+                     session.user.email?.split('@')[0] || 
+                     'Usuario'
+        
+        setUserName(name)
+        
+        // Fetch daily quote from Groq AI
+        try {
+          const response = await fetch('/api/daily-quote')
+          if (response.ok) {
+            const data = await response.json()
+            setDailyQuote(data.quote)
+          }
+        } catch (error) {
+          console.error('Error fetching daily quote:', error)
+        } finally {
+          setQuoteLoading(false)
+        }
+        
+        setShowWelcome(true)
+        
+        // Hide welcome animation after 6 seconds
+        setTimeout(() => {
+          setShowWelcome(false)
+        }, 6000)
+      }
+    }
+    
+    fetchUserAndShowWelcome()
   }, [])
 
   useEffect(() => {
@@ -772,6 +814,107 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-4">
+      {/* Enhanced Welcome Animation */}
+      {showWelcome && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          {/* Backdrop con efecto */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10 backdrop-blur-sm animate-in fade-in duration-700"></div>
+          
+          {/* Partículas flotantes decorativas */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping" style={{animationDelay: '0ms'}}></div>
+            <div className="absolute top-1/3 right-1/4 w-3 h-3 bg-purple-400 rounded-full animate-ping" style={{animationDelay: '200ms'}}></div>
+            <div className="absolute bottom-1/3 left-1/3 w-2 h-2 bg-pink-400 rounded-full animate-ping" style={{animationDelay: '400ms'}}></div>
+            <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-indigo-400 rounded-full animate-ping" style={{animationDelay: '600ms'}}></div>
+          </div>
+          
+          {/* Card principal mejorada */}
+          <div className="relative animate-in fade-in zoom-in duration-700 slide-in-from-bottom-8">
+            {/* Glow effect exterior */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
+            
+            {/* Card content */}
+            <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gradient-to-r from-blue-200 via-purple-200 to-pink-200 p-8 max-w-xl mx-4 overflow-hidden">
+              {/* Efecto de brillo animado en el fondo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shimmer"></div>
+              
+              {/* Header con avatar animado */}
+              <div className="relative flex items-center gap-5 mb-6">
+                <div className="relative">
+                  {/* Anillos orbitales */}
+                  <div className="absolute inset-0 -m-2">
+                    <div className="w-20 h-20 border-2 border-blue-300/30 rounded-full animate-spin" style={{animationDuration: '3s'}}></div>
+                  </div>
+                  <div className="absolute inset-0 -m-3">
+                    <div className="w-24 h-24 border-2 border-purple-300/20 rounded-full animate-spin" style={{animationDuration: '4s', animationDirection: 'reverse'}}></div>
+                  </div>
+                  
+                  {/* Avatar central */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full blur-xl opacity-40 animate-pulse"></div>
+                  <div className="relative w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300">
+                    <span className="text-4xl animate-wave filter drop-shadow-lg">👋</span>
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-in slide-in-from-left duration-700">
+                      ¡Bienvenido de nuevo!
+                    </h2>
+                    <span className="text-2xl animate-bounce">✨</span>
+                  </div>
+                  <p className="text-xl text-gray-800 font-semibold animate-in slide-in-from-left duration-700" style={{animationDelay: '100ms'}}>
+                    {userName}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Separador decorativo */}
+              <div className="h-px bg-gradient-to-r from-transparent via-purple-300 to-transparent mb-6"></div>
+              
+              {/* Frase del día con IA */}
+              <div className="relative animate-in fade-in slide-in-from-bottom duration-700" style={{animationDelay: '300ms'}}>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-400 rounded-lg blur-md opacity-50 animate-pulse"></div>
+                      <div className="relative bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 rounded-lg shadow-lg">
+                        <span className="text-xl">💡</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-amber-600 mb-1 flex items-center gap-1">
+                      FRASE DEL DÍA
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-[10px] font-bold text-purple-700">
+                        <span className="animate-pulse">✨</span> Powered by Groq AI
+                      </span>
+                    </p>
+                    {quoteLoading ? (
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-700 leading-relaxed italic font-medium">
+                        "{dailyQuote}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Footer decorativo */}
+              <div className="mt-6 flex justify-center gap-2 animate-in fade-in duration-700" style={{animationDelay: '500ms'}}>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '100ms'}}></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '200ms'}}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-[1600px] mx-auto space-y-3 sm:space-y-4 lg:space-y-6">
         
         {/* Vista solo para empleados - cuando NO puede ver finanzas O está en modo empleado */}
@@ -1676,191 +1819,9 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Sección de Gestión y Actividad - Optimizada */}
-        <div className="grid gap-4 xl:grid-cols-4">
-          <div className="xl:col-span-1 space-y-4">
-            {/* Panel de Control Rápido */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
-                <h2 className="text-lg font-bold text-gray-800">Panel de Control</h2>
-              </div>
-              <div className="space-y-3">
-                {/* Acción Principal */}
-                <Link href="/invoices/new">
-                  <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <Plus className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-lg">Nueva Factura</h3>
-                          <p className="text-blue-100 text-sm">Crear factura profesional</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-
-                {/* Gestionar Gastos - Solo para owners */}
-                {(permissions.isOwner || permissions.wasOriginallyOwner) && (
-                  <Link href="/expenses">
-                    <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-red-500 to-pink-600 text-white border-0 cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-white/20 rounded-lg">
-                            <Receipt className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-lg">Nuevo Gasto</h3>
-                            <p className="text-red-100 text-sm">Registrar gasto</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                )}
-                
-
-                
-                {/* Widget de Estadísticas Rápidas */}
-                <Card className="border-0 shadow-lg bg-white">
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-gray-800 mb-3 text-sm">Resumen Semanal</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Ingresos:</span>
-                        <span className="font-semibold text-green-600 text-sm">{formatCurrency(stats.weeklyRevenue)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Gastos:</span>
-                        <span className="font-semibold text-red-600 text-sm">{formatCurrency(stats.weeklyExpenseAmount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-1 border-t">
-                        <span className="text-xs text-gray-600">Neto:</span>
-                        <span className="font-bold text-blue-600 text-sm">{formatCurrency(stats.weeklyRevenue - stats.weeklyExpenseAmount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Facturas:</span>
-                        <span className="font-semibold text-purple-600 text-sm">{formatNumber(stats.weeklyInvoices)}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Widget de Estado del Negocio */}
-                <Card className="border-0 shadow-lg bg-white">
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-gray-800 mb-3 text-sm">Estado del Negocio</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Total Clientes:</span>
-                        <span className="font-semibold text-blue-600 text-sm">{formatNumber(stats.totalClients)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Total Productos:</span>
-                        <span className="font-semibold text-green-600 text-sm">{formatNumber(stats.totalProducts)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">Proyectos:</span>
-                        <span className="font-semibold text-purple-600 text-sm">{formatNumber(stats.totalProjects)}</span>
-                      </div>
-                      {stats.overdueInvoices > 0 && (
-                        <div className="flex justify-between items-center pt-1 border-t">
-                          <span className="text-xs text-red-600">Vencidas:</span>
-                          <span className="font-bold text-red-600 text-sm">{stats.overdueInvoices}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-
-
-                {/* Enlaces rápidos compactos */}
-                {permissions.canViewFinances && (
-                  <Link href="/monthly-reports">
-                    <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 cursor-pointer">
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-1 bg-white/20 rounded-lg">
-                            <BarChart3 className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm">Ver Reportes</h3>
-                            <p className="text-emerald-100 text-xs">Análisis con IA</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Enhanced Alerts */}
-            {(stats.overdueInvoices > 0 || stats.pendingInvoices > 5) && (
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-2 w-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-full shadow-sm"></div>
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-                    Alertas Importantes
-                  </h3>
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                </div>
-                <div className="space-y-3">
-                  {stats.overdueInvoices > 0 && (
-                    <Card className="border-0 bg-gradient-to-r from-red-50 to-pink-50 shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-pink-500/5"></div>
-                      <CardContent className="p-5">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl shadow-lg">
-                            <AlertCircle className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-red-900 text-lg">{stats.overdueInvoices} facturas vencidas</p>
-                            <p className="text-red-700 font-medium">Requieren atención inmediata</p>
-                          </div>
-                          <Link href="/invoices">
-                            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white shadow-lg">
-                              Ver Facturas
-                            </Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  {stats.pendingInvoices > 5 && (
-                    <Card className="border-0 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-yellow-500/5"></div>
-                      <CardContent className="p-5">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl shadow-lg">
-                            <Clock className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-bold text-amber-900 text-lg">{formatNumber(stats.pendingInvoices)} facturas pendientes</p>
-                            <p className="text-amber-700 font-medium">Considera hacer seguimiento</p>
-                          </div>
-                          <Link href="/invoices">
-                            <Button size="sm" variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-50">
-                              Revisar
-                            </Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Agenda Widget - Solo en vista detallada */}
-            {viewMode === 'detailed' && <AgendaWidget />}
-          </div>
-
-          <div className="xl:col-span-3 space-y-4">
+        {/* Sección de Gestión y Actividad - Optimizada y Centralizada */}
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-4">
             {/* Actividad Reciente Compacta - Ultra Mobile Optimized */}
             <div>
               <div className="flex items-center gap-2 mb-3">
