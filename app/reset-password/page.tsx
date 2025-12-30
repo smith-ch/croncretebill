@@ -25,20 +25,50 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     setMounted(true)
     
-    // Verificar si hay un hash en la URL (token de reset)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const accessToken = hashParams.get('access_token')
-    const type = hashParams.get('type')
-    
-    if (type === 'recovery' && accessToken) {
-      setHasValidToken(true)
-      // Supabase maneja automáticamente la sesión con el token
-    } else {
-      setMessage({
-        type: "error",
-        text: "Enlace inválido o expirado. Por favor, solicita un nuevo enlace de restablecimiento de contraseña."
-      })
+    const checkToken = async () => {
+      try {
+        // Verificar si hay un hash en la URL (token de reset) - Método estándar de Supabase
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const type = hashParams.get('type')
+        
+        console.log('Hash params:', { accessToken: !!accessToken, type })
+        
+        if (type === 'recovery' && accessToken) {
+          // Token válido en el hash
+          console.log('Token válido encontrado en hash')
+          setHasValidToken(true)
+          return
+        }
+        
+        // Verificar si ya hay una sesión activa (después de procesar el hash automáticamente)
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('Session check:', { hasSession: !!session, error })
+        
+        if (session) {
+          console.log('Sesión activa encontrada')
+          setHasValidToken(true)
+          return
+        }
+        
+        // No hay token válido ni sesión
+        console.log('No se encontró token válido')
+        setMessage({
+          type: "error",
+          text: "Enlace inválido o expirado. Por favor, solicita un nuevo enlace de restablecimiento de contraseña."
+        })
+        
+      } catch (err) {
+        console.error('Error en verificación:', err)
+        setMessage({
+          type: "error",
+          text: "Error al verificar el enlace. Por favor, intenta nuevamente."
+        })
+      }
     }
+    
+    checkToken()
   }, [])
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
