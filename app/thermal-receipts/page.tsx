@@ -53,6 +53,7 @@ import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 import { downloadThermalReceiptPDF, printThermalReceiptPDF, previewThermalReceiptPDF } from "@/lib/thermal-receipt-utils"
 import { ProductPriceDropdown } from "@/components/products/product-price-dropdown"
 import { ServicePriceDropdown } from "@/components/services/service-price-dropdown"
@@ -334,14 +335,13 @@ export default function ThermalReceiptsPage() {
   const { notifySuccess, notifyError } = useNotificationHelpers()
   const { canDelete, isOwner } = useUserPermissions()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   // Use proper permissions system for delete operations
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
@@ -357,7 +357,7 @@ export default function ThermalReceiptsPage() {
         supabase
           .from("company_settings")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .single(),
         
         // Fetch thermal receipts with items in a single query
@@ -367,28 +367,28 @@ export default function ThermalReceiptsPage() {
             *,
             thermal_receipt_items (*)
           `)
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("created_at", { ascending: false }),
         
         // Fetch products
         supabase
           .from("products")
           .select("id, name, price, stock_quantity, product_code")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("name"),
         
         // Fetch services
         supabase
           .from("services")
           .select("id, name, price, service_code")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("name"),
         
         // Fetch clients
         supabase
           .from("clients")
           .select("id, name, contact_person, email, phone")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("name")
       ])
 
@@ -444,11 +444,13 @@ export default function ThermalReceiptsPage() {
     } finally {
       setLoading(false)
     }
-  }, [notifyError])
+  }, [notifyError, dataUserId])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (!userIdLoading && dataUserId) {
+      fetchData()
+    }
+  }, [fetchData, userIdLoading, dataUserId])
 
   const addItem = () => {
     setItems([...items, { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
@@ -671,7 +673,7 @@ export default function ThermalReceiptsPage() {
       const { data: receiptData, error: receiptError } = await supabase
         .from("thermal_receipts")
         .insert({
-          user_id: user.id,
+          user_id: dataUserId,
           client_id: selectedClientId || null,
           client_name: clientName || "Cliente General",
           subtotal,

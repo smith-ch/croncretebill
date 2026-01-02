@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { syncQueue } from "@/lib/sync-queue"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface ServiceFormProps {
   service?: any
@@ -31,6 +32,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(service?.category_id || "")
   const { toast } = useToast()
   const isOnline = useOnlineStatus()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -134,7 +136,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
             .from("services")
             .insert({
               ...serviceData,
-              user_id: user.id,
+              user_id: dataUserId,
             })
           if (error) {
             throw error
@@ -151,7 +153,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
           const tempService = {
             ...serviceData,
             id: serviceId,
-            user_id: user.id,
+            user_id: dataUserId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }
@@ -165,9 +167,9 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
             entity: 'service',
             data: {
               ...serviceData,
-              user_id: user.id,
+              user_id: dataUserId,
             },
-            userId: user.id,
+            userId: dataUserId,
             tempId: serviceId
           })
 

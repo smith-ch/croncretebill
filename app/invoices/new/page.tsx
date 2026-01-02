@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,6 +35,7 @@ export default function NewInvoicePage() {
   const { formatCurrency } = useCurrency()
   const { permissions, validateInvoiceAmount } = useUserPermissions()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
   
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
@@ -69,27 +71,25 @@ export default function NewInvoicePage() {
   const [paymentMethod, setPaymentMethod] = useState("credito")
 
   useEffect(() => {
-    fetchInitialData()
-    generateInvoiceNumber()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchInitialData()
+      generateInvoiceNumber()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchInitialData = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         setError("Usuario no autenticado")
         return
       }
 
       const [clientsRes, projectsRes, productsRes, servicesRes, companyRes] = await Promise.all([
-        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id).order("name"),
-        supabase.from("projects").select("id, name, client_id").eq("user_id", user.id).order("name"),
-        supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", user.id).order("name"),
-        supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", user.id).order("name"),
-        supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
+        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", dataUserId).order("name"),
+        supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId).order("name"),
+        supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", dataUserId).order("name"),
+        supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", dataUserId).order("name"),
+        supabase.from("company_settings").select("*").eq("user_id", dataUserId).single(),
       ])
 
       setClients(clientsRes.data || [])
@@ -410,7 +410,7 @@ export default function NewInvoicePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
+          user_id: dataUserId,
           invoice_number: invoiceNumber,
           client_id: clientId,
           project_id: selectedProject && selectedProject !== "none" ? selectedProject : null,

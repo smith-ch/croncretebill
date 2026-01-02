@@ -72,6 +72,7 @@ export function useUserPermissions() {
   const [initialized, setInitialized] = useState(false)
   const loadingRef = useRef(false) // Prevenir múltiples llamadas concurrentes
 
+  // *** EFECTO 1: Inicialización y listener de auth ***
   useEffect(() => {
     if (!initialized && !loadingRef.current) {
       setInitialized(true)
@@ -81,40 +82,66 @@ export function useUserPermissions() {
         loadingRef.current = false
       })
     }
+
+    // *** LISTENER DE AUTH STATE CHANGE - Detectar login/logout en tiempo real ***
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event, 'User:', session?.user?.email)
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Re-verificar permisos inmediatamente al login o refresh
+        console.log('🔄 Re-cargando permisos por cambio de auth...')
+        loadingRef.current = true
+        setLoading(true)
+        await loadUserPermissions().finally(() => {
+          loadingRef.current = false
+        })
+      } else if (event === 'SIGNED_OUT') {
+        // Limpiar permisos al logout
+        console.log('🚪 Limpiando permisos por logout')
+        setPermissions({
+          canCreateInvoices: false,
+          canViewFinances: false,
+          canManageInventory: false,
+          canManageClients: false,
+          maxInvoiceAmount: null,
+          role: 'guest',
+          isOwner: false,
+          wasOriginallyOwner: false,
+          isRealEmployee: false,
+          canEditInvoices: false,
+          canEditClients: false,
+          canEditProducts: false,
+          canEditServices: false,
+          canEditProjects: false,
+          canEditVehicles: false,
+          canEditThermalReceipts: false,
+          canEditAgendaEvents: false,
+          canEditExpenses: false,
+          canDeleteInvoices: false,
+          canDeleteClients: false,
+          canDeleteProducts: false,
+          canDeleteServices: false,
+          canDeleteProjects: false,
+          canDeleteVehicles: false,
+          canDeleteThermalReceipts: false,
+          canDeleteAgendaEvents: false,
+          canDeleteExpenses: false
+        })
+        // Limpiar localStorage
+        localStorage.removeItem('employee-view-mode')
+        localStorage.removeItem('is-real-employee')
+        localStorage.removeItem('was-originally-owner')
+      }
+    })
+
+    // Cleanup: desuscribir del listener
+    return () => {
+      subscription?.unsubscribe()
+    }
   }, [initialized])
 
   const loadUserPermissions = async () => {
-    // Verificar cache de permisos primero para carga rápida
-    const cacheKey = 'cached-permissions'
-    const cacheTimeKey = 'permissions-cache-time'
-    const cachedPermissions = localStorage.getItem(cacheKey)
-    
-    if (cachedPermissions) {
-      try {
-        const parsed = JSON.parse(cachedPermissions)
-        const cacheTime = localStorage.getItem(cacheTimeKey)
-        const now = Date.now()
-        // Cache válido por 5 minutos
-        if (cacheTime && (now - parseInt(cacheTime)) < 5 * 60 * 1000) {
-          // Solo log en desarrollo
-          if (process.env.NODE_ENV === 'development' && !(window as any).permissionsCacheLogged) {
-            console.log('Using cached permissions for faster load')
-            ;(window as any).permissionsCacheLogged = true
-          }
-          setPermissions(parsed)
-          setLoading(false)
-          return
-        } else {
-          // Cache expirado, limpiar
-          localStorage.removeItem(cacheKey)
-          localStorage.removeItem(cacheTimeKey)
-        }
-      } catch (e) {
-        console.warn('Invalid cached permissions, loading fresh')
-        localStorage.removeItem(cacheKey)
-        localStorage.removeItem(cacheTimeKey)
-      }
-    }
+    // NO usar cache para detección de empleado - siempre consultar DB primero
     
     // Verificar si hay override de emergencia
     const emergencyOverride = localStorage.getItem('emergency-override') === 'true'
@@ -200,20 +227,64 @@ export function useUserPermissions() {
         return
       }
 
-      // Verificar si es empleado real por email (método simple)
+      // *** PASO 1: SIEMPRE consultar base de datos PRIMERO para detección de empleado ***
       let isRealEmployee = false
+      let isOwner = false
       
-      if (user.email) {
-        isRealEmployee = isRealEmployeeByEmail(user.email)
+      if (user.id) {
+        // Consultar user_profiles para ver si tiene un parent_user_id (es empleado)
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('parent_user_id, is_active')
+          .eq('user_id', user.id)
+          .single()
         
-        if (isRealEmployee) {
-          // Si es empleado real, forzar modo empleado
-          localStorage.setItem('employee-view-mode', 'true')
+        if (profile) {
+          if (profile.parent_user_id !== null && profile.is_active) {
+            // Tiene parent_user_id = ES EMPLEADO
+            isRealEmployee = true
+            isOwner = false
+            // Si es empleado real, forzar modo empleado
+            localStorage.setItem('employee-view-mode', 'true')
+            localStorage.setItem('is-real-employee', 'true')
+            // Asegurar que NO se marque como owner
+            localStorage.removeItem('was-originally-owner')
+            console.log('✅ Empleado real detectado desde base de datos (parent_user_id:', profile.parent_user_id, ')')
+          } else if (profile.parent_user_id === null) {
+            // NO tiene parent_user_id = ES OWNER
+            isOwner = true
+            isRealEmployee = false
+            // Si el owner NO está en modo prueba empleado, limpiar el flag
+            const isInTestMode = localStorage.getItem('employee-view-mode') === 'true'
+            if (!isInTestMode) {
+              localStorage.removeItem('employee-view-mode')
+              localStorage.removeItem('is-real-employee')
+            }
+            localStorage.setItem('was-originally-owner', 'true')
+            console.log('✅ Owner detectado desde base de datos (parent_user_id: NULL)')
+          }
+        } else if (user.email) {
+          // Fallback: verificar por email en archivo local
+          isRealEmployee = isRealEmployeeByEmail(user.email)
+          if (isRealEmployee) {
+            localStorage.setItem('employee-view-mode', 'true')
+            localStorage.setItem('is-real-employee', 'true')
+            localStorage.removeItem('was-originally-owner')
+            console.log('✅ Empleado real detectado desde employee-config.ts')
+          }
         }
       }
 
-      // Verificar si está en modo empleado DESPUÉS de la verificación de email
-      const isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
+      // *** PASO 2: Determinar modo basado en detección de DB ***
+      // Si es empleado real, SIEMPRE modo empleado (ignorar localStorage si no coincide)
+      let isEmployeeMode = false
+      if (isRealEmployee) {
+        isEmployeeMode = true
+        localStorage.setItem('employee-view-mode', 'true')
+      } else if (isOwner) {
+        // Owner puede estar en modo prueba empleado
+        isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
+      }
 
       // Usar la función RPC para obtener permisos
       const { data: permissionsData, error } = await (supabase as any)

@@ -33,6 +33,8 @@ import {
   ClipboardList,
   Warehouse,
   Info,
+  UserCog,
+  Target,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -158,6 +160,28 @@ const navigation = [
     href: "/settings",
     icon: Settings,
     module: "settings",
+    children: [
+      {
+        name: "General",
+        href: "/settings",
+        icon: Settings,
+        module: "settings",
+      },
+      {
+        name: "Empleados",
+        href: "/settings/employee-config",
+        icon: UserCog,
+        module: "employees",
+        ownerOnly: true,
+      },
+      {
+        name: "Metas de Empleados",
+        href: "/settings/employee-goals",
+        icon: Target,
+        module: "employee-goals",
+        ownerOnly: true,
+      },
+    ],
   },
   {
     name: "Ayuda",
@@ -169,10 +193,10 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos"])
+  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos", "Configuración"])
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { alertCount } = useStockAlerts()
-  const { canAccessModule } = useUserPermissions()
+  const { canAccessModule, permissions } = useUserPermissions()
 
   // Filter navigation items based on permissions
   const filteredNavigation = navigation.filter(item => {
@@ -187,9 +211,13 @@ export function Sidebar() {
     if (!children) {
       return undefined
     }
-    return children.filter(child => 
-      !child.module || canAccessModule(child.module)
-    )
+    return children.filter(child => {
+      // Si el item es solo para owners, verificar que el usuario sea owner
+      if ((child as any).ownerOnly && !permissions.isOwner) {
+        return false
+      }
+      return !child.module || canAccessModule(child.module)
+    })
   }
 
   const toggleItem = (name: string) => {

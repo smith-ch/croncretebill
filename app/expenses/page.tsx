@@ -50,6 +50,7 @@ import { motion } from "framer-motion"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface Expense {
   id: string
@@ -91,11 +92,14 @@ export default function ExpensesPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   useEffect(() => {
-    fetchExpenses()
-    fetchCategories()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchExpenses()
+      fetchCategories()
+    }
+  }, [dataUserId, userIdLoading])
 
   // Check if user has permission to view finances/expenses
   if (!permissions.canViewFinances) {
@@ -125,18 +129,14 @@ export default function ExpensesPage() {
 
   const fetchExpenses = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
       const { data, error } = await supabase
         .from("expenses")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("expense_date", { ascending: false })
 
       if (error) {
@@ -152,15 +152,11 @@ export default function ExpensesPage() {
 
   const fetchCategories = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
-      const { data, error } = await supabase.from("expense_categories").select("*").eq("user_id", user.id).order("name")
+      const { data, error } = await supabase.from("expense_categories").select("*").eq("user_id", dataUserId).order("name")
 
       if (error) {
         throw error
@@ -260,7 +256,7 @@ export default function ExpensesPage() {
         // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expenses").insert({
           ...expenseData,
-          user_id: user.id,
+          user_id: dataUserId,
         })
         if (error) {
           throw error
@@ -337,7 +333,7 @@ export default function ExpensesPage() {
         // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("expense_categories").insert({
           ...categoryData,
-          user_id: user.id,
+          user_id: dataUserId,
         })
         if (error) {
           throw error

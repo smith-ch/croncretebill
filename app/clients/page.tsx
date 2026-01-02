@@ -11,6 +11,7 @@ import { ClientForm } from "@/components/forms/client-form"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ClientsPage() {
@@ -22,26 +23,25 @@ export default function ClientsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const { canDelete, canEdit } = useUserPermissions()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchClients()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchClients()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchClients = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
       const { data, error } = await supabase
         .from("clients")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false })
 
       if (error) { throw error }

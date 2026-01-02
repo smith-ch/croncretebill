@@ -18,6 +18,7 @@ import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface Product {
   id: string
@@ -51,18 +52,18 @@ export default function ProductsPage() {
   const { canDelete, canEdit, permissions } = useUserPermissions()
   const { toast } = useToast()
   const isOnline = useOnlineStatus()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
   // const { categories } = useCategories('product')
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchProducts()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchProducts = async () => {
     try {
-      // Obtener usuario de la sesión local (funciona offline)
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) { return }
+      if (!dataUserId) return
 
       try {
         // Intentar cargar desde el servidor
@@ -75,7 +76,7 @@ export default function ProductsPage() {
               color
             )
           `)
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("created_at", { ascending: false })
 
         if (error) throw error
@@ -83,7 +84,7 @@ export default function ProductsPage() {
         // Guardar en cache para uso offline
         if (data) {
           for (const product of data) {
-            await offlineCache.set('products', user.id, product, 'VERY_LONG')
+            await offlineCache.set('products', dataUserId, product, 'VERY_LONG')
           }
         }
         
@@ -91,7 +92,7 @@ export default function ProductsPage() {
       } catch (error) {
         // Si falla (sin internet o error), cargar desde cache
         console.log("📦 Loading products from cache (offline mode)")
-        const cachedProducts = await offlineCache.getAll<Product>('products', user.id)
+        const cachedProducts = await offlineCache.getAll('products', dataUserId)
         setProducts(cachedProducts)
         
         if (cachedProducts.length === 0) {

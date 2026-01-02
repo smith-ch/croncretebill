@@ -24,6 +24,7 @@ import {
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useDataUserId } from '@/hooks/use-data-user-id'
 import { useToast } from "@/hooks/use-toast"
 import { InvoicePDFPreview } from "@/components/invoices/invoice-pdf-preview"
 
@@ -38,20 +39,17 @@ export default function InvoicesPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit } = useUserPermissions()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   useEffect(() => {
-    fetchInvoices()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchInvoices()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchInvoices = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
-        return
-      }
+      if (!dataUserId) return
 
       const { data, error } = await supabase
         .from("invoices")
@@ -61,7 +59,7 @@ export default function InvoicesPage() {
           projects(name),
           drivers(name)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false })
 
       if (error) {

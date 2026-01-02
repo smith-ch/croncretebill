@@ -18,6 +18,7 @@ import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface Service {
   id: string
@@ -53,11 +54,14 @@ export default function ServicesPage() {
   const { canDelete, canEdit, canAccessModule } = useUserPermissions()
   const { toast } = useToast()
   const isOnline = useOnlineStatus()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
   // const { categories } = useCategories('service')
 
   useEffect(() => {
-    fetchServices()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchServices()
+    }
+  }, [dataUserId, userIdLoading])
 
   // Check if user has permission to access services
   if (!canAccessModule('services')) {
@@ -87,10 +91,7 @@ export default function ServicesPage() {
 
   const fetchServices = async () => {
     try {
-      // Obtener usuario de la sesión local (funciona offline)
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) { return }
+      if (!dataUserId) return
 
       try {
         // Intentar cargar desde el servidor
@@ -103,7 +104,7 @@ export default function ServicesPage() {
               color
             )
           `)
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("created_at", { ascending: false })
 
         if (error) throw error
@@ -111,7 +112,7 @@ export default function ServicesPage() {
         // Guardar en cache para uso offline
         if (data) {
           for (const service of data) {
-            await offlineCache.set('services', user.id, service, 'VERY_LONG')
+            await offlineCache.set('services', dataUserId, service, 'VERY_LONG')
           }
         }
         
@@ -119,7 +120,7 @@ export default function ServicesPage() {
       } catch (error) {
         // Si falla (sin internet o error), cargar desde cache
         console.log("🔧 Loading services from cache (offline mode)")
-        const cachedServices = await offlineCache.getAll<Service>('services', user.id)
+        const cachedServices = await offlineCache.getAll<Service>('services', dataUserId)
         setServices(cachedServices)
         
         if (cachedServices.length === 0) {
