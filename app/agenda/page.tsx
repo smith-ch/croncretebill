@@ -35,6 +35,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 import { FixedExpense } from "@/types"
 import { 
@@ -86,7 +87,15 @@ export default function AgendaPage() {
   const [autoRefresh, setAutoRefresh] = useState(false) // Cambiado a false para evitar refrescos automáticos no deseados
   const { formatCurrency } = useCurrency()
   const { canAccessModule, canDelete, permissions } = useUserPermissions()
+  const { hasAccessToAgenda, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
+  
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Agenda y Gastos Fijos', hasAccessToAgenda())
+    }
+  }, [planLoading, hasAccessToAgenda])
   
   // Form states
   const [newItem, setNewItem] = useState({

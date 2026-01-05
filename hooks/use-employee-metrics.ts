@@ -32,9 +32,13 @@ interface GoalWithProgress extends EmployeeGoal {
     clientes_percentage: number
     overall_percentage: number
   }
+  user_profiles?: {
+    display_name: string
+    email: string
+  }
 }
 
-export function useEmployeeMetrics(employeeId?: string, ownerId?: string) {
+export function useEmployeeMetrics(employeeId?: string) {
   const [loading, setLoading] = useState(true)
   const [currentGoal, setCurrentGoal] = useState<GoalWithProgress | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -93,7 +97,7 @@ export function useEmployeeMetrics(employeeId?: string, ownerId?: string) {
       const { mes, anio } = getCurrentPeriod()
 
       // Obtener la meta del periodo actual
-      const { data: goalData, error: goalError } = await supabase
+      const { data: goalData, error: goalError } = await (supabase as any)
         .from('employee_goals')
         .select('*')
         .eq('employee_id', targetEmployeeId)
@@ -115,7 +119,8 @@ export function useEmployeeMetrics(employeeId?: string, ownerId?: string) {
       }
 
       // Obtener las métricas actuales
-      const { data: metricsData, error: metricsError } = await supabase
+      // @ts-ignore - RPC types will be generated
+      const { data: metricsData, error: metricsError } = await (supabase as any)
         .rpc('get_employee_metrics', {
           p_employee_id: targetEmployeeId,
           p_owner_id: goalData.owner_id,
@@ -123,7 +128,9 @@ export function useEmployeeMetrics(employeeId?: string, ownerId?: string) {
           p_fecha_fin: goalData.fecha_fin
         })
 
-      if (metricsError) throw metricsError
+      if (metricsError) {
+        throw metricsError
+      }
 
       // Calcular progreso
       const goalWithProgress = calculateProgress(goalData, metricsData)
@@ -258,25 +265,66 @@ export function useAllEmployeeGoals(ownerId?: string) {
       const targetOwnerId = ownerId || session.user.id
       const { mes, anio } = { mes: new Date().getMonth() + 1, anio: new Date().getFullYear() }
 
-      // Obtener todas las metas activas del periodo actual
-      const { data: goalsData, error: goalsError } = await supabase
+      console.log('🔍 Loading goals for:', { targetOwnerId, mes, anio })
+
+      // Cargar metas sin la relación (que no existe en la BD)
+      const { data: goalsData, error: goalsError } = await (supabase as any)
         .from('employee_goals')
-        .select(`
-          *,
-          user_profiles!employee_goals_employee_id_fkey (
-            display_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('owner_id', targetOwnerId)
         .eq('periodo_mes', mes)
         .eq('periodo_anio', anio)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
-      if (goalsError) throw goalsError
+      console.log('📊 Goals query result:', { goalsData, goalsError, count: goalsData?.length })
+
+      if (goalsError) {
+        console.error('❌ Error loading goals:', goalsError)
+        throw goalsError
+      }
 
       if (!goalsData || goalsData.length === 0) {
+        console.log('⚠️ No goals found for this period')
+        setGoals([])
+        setLoading(false)
+        return
+      }
+
+      // Cargar user_profiles manualmente para cada empleado
+      const employeeIds = [...new Set(goalsData.map((g: any) => g.employee_id))]
+      console.log('👥 Loading profiles for employees:', employeeIds)
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name, email')
+        .in('user_id', employeeIds)
+      
+      if (profilesError) {
+        console.error('❌ Error loading profiles:', profilesError)
+      } else {
+        console.log('✅ Profiles loaded:', profiles)
+      }
+      
+      // Mapear profiles a goals
+      const goalsWithProfiles = goalsData.map((goal: any) => {
+        const profile = profiles?.find((p: any) => p.user_id === goal.employee_id)
+        return {
+          ...goal,
+          user_profiles: profile ? {
+            display_name: (profile as any).display_name,
+            email: (profile as any).email
+          } : {
+            display_name: 'Empleado',
+            email: 'Sin email'
+          }
+        }
+      })
+
+      console.log('📋 Goals with profiles:', goalsWithProfiles)
+
+      if (!goalsWithProfiles || goalsWithProfiles.length === 0) {
+        console.log('⚠️ No goals found after processing')
         setGoals([])
         setLoading(false)
         return
@@ -284,9 +332,11 @@ export function useAllEmployeeGoals(ownerId?: string) {
 
       // Obtener métricas para cada empleado
       const goalsWithProgress = await Promise.all(
-        goalsData.map(async (goal) => {
+        // @ts-ignore - employee_goals types will be generated
+        goalsWithProfiles.map(async (goal: any) => {
           try {
-            const { data: metricsData, error: metricsError } = await supabase
+            // @ts-ignore - RPC types will be generated
+            const { data: metricsData, error: metricsError } = await (supabase as any)
               .rpc('get_employee_metrics', {
                 p_employee_id: goal.employee_id,
                 p_owner_id: goal.owner_id,
@@ -294,7 +344,9 @@ export function useAllEmployeeGoals(ownerId?: string) {
                 p_fecha_fin: goal.fecha_fin
               })
 
-            if (metricsError) throw metricsError
+            if (metricsError) {
+              throw metricsError
+            }
 
             const ventas_percentage = goal.meta_ventas_total > 0 
               ? Math.round((metricsData.ventas_total / goal.meta_ventas_total) * 100) 

@@ -9,19 +9,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Calendar, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard, Send } from "lucide-react"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Calendar, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard, Send, Users, FileText, Package, UserCheck } from "lucide-react"
 
 interface Subscription {
   id: string
   status: string
   start_date: string
   end_date: string | null
-  max_users: number | null
-  max_invoices: number | null
-  max_products: number | null
-  max_clients: number | null
+  billing_cycle: string
+  current_max_users: number | null
+  current_max_invoices: number | null
+  current_max_products: number | null
+  current_max_clients: number | null
   notes: string | null
+  plan_id: string
   subscription_plans: {
+    id: string
     name: string
     display_name: string
     description: string
@@ -31,18 +35,47 @@ interface Subscription {
   } | null
 }
 
+interface AvailablePlan {
+  id: string
+  name: string
+  display_name: string
+  description: string
+  price_monthly: number
+  price_yearly: number
+  max_users: number
+  max_invoices: number
+  max_products: number
+  max_clients: number
+}
+
 export default function MySubscriptionPage() {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([])
+  
+  // Diálogos
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [showExtendDialog, setShowExtendDialog] = useState(false)
+  const [showCycleChangeDialog, setShowCycleChangeDialog] = useState(false)
+  const [showCustomDialog, setShowCustomDialog] = useState(false)
+  
+  // Estados de formularios
   const [paymentNote, setPaymentNote] = useState("")
+  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<string>("")
+  const [extendMonths, setExtendMonths] = useState<string>("1")
+  const [extendReason, setExtendReason] = useState("")
+  const [customRequest, setCustomRequest] = useState("")
+  
   const [sending, setSending] = useState(false)
   const { toast } = useToast()
+  const { limits, usage, remainingUsers, remainingInvoices, remainingProducts, remainingClients } = useSubscriptionLimits()
 
   useEffect(() => {
     loadSubscription()
+    loadAvailablePlans()
   }, [])
 
   const loadSubscription = async () => {
@@ -115,7 +148,193 @@ export default function MySubscriptionPage() {
       setLoading(false)
     }
   }
+  const loadAvailablePlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select(`
+          id,
+          name,
+          display_name,
+          description,
+          price_monthly,
+          price_yearly,
+          max_users,
+          max_invoices,
+          max_products,
+          max_clients
+        `)
+        .eq('is_active', true)
+        .order('price_monthly')
 
+      if (error) throw error
+      setAvailablePlans(data || [])
+    } catch (error) {
+      console.error('Error loading plans:', error)
+    }
+  }
+
+  const handleUpgradePlan = async () => {
+    if (!selectedUpgradePlan) {
+      toast({
+        title: "Selecciona un plan",
+        description: "Por favor elige el plan al que deseas actualizar",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setSending(true)
+      const plan = availablePlans.find(p => p.id === selectedUpgradePlan)
+
+      const { error } = await supabase
+        .from('subscription_requests')
+        .insert({
+          user_id: userId,
+          plan_id: selectedUpgradePlan,
+          message: `Solicitud de upgrade desde ${subscription?.subscription_plans?.display_name || 'plan actual'} a ${plan?.display_name}`,
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "✅ Solicitud enviada",
+        description: `Tu solicitud para actualizar a ${plan?.display_name} ha sido enviada al administrador.`,
+      })
+
+      setShowUpgradeDialog(false)
+      setSelectedUpgradePlan("")
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive",
+      })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleExtendSubscription = async () => {
+    if (!extendMonths || parseInt(extendMonths) < 1) {
+      toast({
+        title: "Meses inválidos",
+        description: "Indica cuántos meses deseas extender tu suscripción",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setSending(true)
+
+      const { error } = await supabase
+        .from('subscription_requests')
+        .insert({
+          user_id: userId,
+          plan_id: subscription?.plan_id,
+          message: `Solicitud de extensión por ${extendMonths} mes(es). ${extendReason ? 'Motivo: ' + extendReason : ''}`,
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "✅ Solicitud enviada",
+        description: `Tu solicitud para extender tu suscripción por ${extendMonths} mes(es) ha sido enviada.`,
+      })
+
+      setShowExtendDialog(false)
+      setExtendMonths("1")
+      setExtendReason("")
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive",
+      })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleCycleChange = async () => {
+    const newCycle = subscription?.billing_cycle === 'monthly' ? 'yearly' : 'monthly'
+    
+    try {
+      setSending(true)
+
+      const { error } = await supabase
+        .from('subscription_requests')
+        .insert({
+          user_id: userId,
+          plan_id: subscription?.plan_id,
+          message: `Solicitud de cambio de ciclo de facturación de ${subscription?.billing_cycle} a ${newCycle}`,
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "✅ Solicitud enviada",
+        description: `Tu solicitud para cambiar a pago ${newCycle === 'yearly' ? 'anual' : 'mensual'} ha sido enviada.`,
+      })
+
+      setShowCycleChangeDialog(false)
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive",
+      })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleCustomRequest = async () => {
+    if (!customRequest.trim()) {
+      toast({
+        title: "Campo requerido",
+        description: "Describe tu solicitud personalizada",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setSending(true)
+
+      const { error } = await supabase
+        .from('subscription_requests')
+        .insert({
+          user_id: userId,
+          plan_id: subscription?.plan_id,
+          message: `Solicitud personalizada: ${customRequest}`,
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "✅ Solicitud enviada",
+        description: "Tu solicitud personalizada ha sido enviada al administrador.",
+      })
+
+      setShowCustomDialog(false)
+      setCustomRequest("")
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive",
+      })
+    } finally {
+      setSending(false)
+    }
+  }
   const handlePaymentNotification = async () => {
     if (!paymentNote.trim()) {
       toast({
@@ -351,6 +570,174 @@ export default function MySubscriptionPage() {
           </div>
         </Card>
 
+        {/* Uso Actual vs Límites */}
+        {!limits.isLoading && (
+          <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Uso Actual de Recursos</h3>
+            <p className="text-sm text-gray-600 mb-6">Monitorea tu consumo mensual y límites disponibles</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Usuarios/Empleados */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Usuarios</p>
+                      <p className="text-xs text-gray-500">Empleados activos</p>
+                    </div>
+                  </div>
+                  <Badge variant={remainingUsers <= 0 ? "destructive" : remainingUsers <= 1 ? "secondary" : "outline"}>
+                    {usage.users}/{limits.maxUsers}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Disponibles</span>
+                    <span className={`font-semibold ${remainingUsers <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {remainingUsers}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        remainingUsers <= 0 ? 'bg-red-500' : 
+                        remainingUsers <= 1 ? 'bg-amber-500' : 
+                        'bg-blue-500'
+                      }`}
+                      style={{ width: `${Math.min((usage.users / limits.maxUsers) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Facturas */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <FileText className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Facturas</p>
+                      <p className="text-xs text-gray-500">Este mes</p>
+                    </div>
+                  </div>
+                  <Badge variant={remainingInvoices <= 0 ? "destructive" : remainingInvoices <= 2 ? "secondary" : "outline"}>
+                    {usage.invoices}/{limits.maxInvoices}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Disponibles</span>
+                    <span className={`font-semibold ${remainingInvoices <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {remainingInvoices}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        remainingInvoices <= 0 ? 'bg-red-500' : 
+                        remainingInvoices <= 2 ? 'bg-amber-500' : 
+                        'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min((usage.invoices / limits.maxInvoices) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Productos */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Package className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Productos</p>
+                      <p className="text-xs text-gray-500">Total en catálogo</p>
+                    </div>
+                  </div>
+                  <Badge variant={remainingProducts <= 0 ? "destructive" : remainingProducts <= 5 ? "secondary" : "outline"}>
+                    {usage.products}/{limits.maxProducts}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Disponibles</span>
+                    <span className={`font-semibold ${remainingProducts <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {remainingProducts}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        remainingProducts <= 0 ? 'bg-red-500' : 
+                        remainingProducts <= 5 ? 'bg-amber-500' : 
+                        'bg-purple-500'
+                      }`}
+                      style={{ width: `${Math.min((usage.products / limits.maxProducts) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Clientes */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <UserCheck className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Clientes</p>
+                      <p className="text-xs text-gray-500">Total registrados</p>
+                    </div>
+                  </div>
+                  <Badge variant={remainingClients <= 0 ? "destructive" : remainingClients <= 2 ? "secondary" : "outline"}>
+                    {usage.clients}/{limits.maxClients}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Disponibles</span>
+                    <span className={`font-semibold ${remainingClients <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {remainingClients}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        remainingClients <= 0 ? 'bg-red-500' : 
+                        remainingClients <= 2 ? 'bg-amber-500' : 
+                        'bg-orange-500'
+                      }`}
+                      style={{ width: `${Math.min((usage.clients / limits.maxClients) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {(remainingUsers <= 0 || remainingInvoices <= 0 || remainingProducts <= 0 || remainingClients <= 0) && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-red-900">Has alcanzado el límite en algunos recursos</p>
+                    <p className="text-sm text-red-700 mt-1">
+                      Considera actualizar tu plan para continuar usando el sistema sin restricciones.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
+
         {/* Características del Plan */}
         {subscription.subscription_plans?.features && Object.keys(subscription.subscription_plans.features).length > 0 && (
           <Card className="p-6">
@@ -429,6 +816,94 @@ export default function MySubscriptionPage() {
             </Button>
           </div>
         </Card>
+
+        {/* Opciones de Gestión de Suscripción */}
+        <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">
+            Gestiona tu Suscripción
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Solicitar Upgrade */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">⬆️</span>
+                </div>
+                <h4 className="font-semibold text-gray-900">Mejorar Plan</h4>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Actualiza a un plan superior con más recursos
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-purple-300 hover:bg-purple-50"
+                onClick={() => setShowUpgradeDialog(true)}
+              >
+                Ver Planes Superiores
+              </Button>
+            </div>
+
+            {/* Extender Suscripción */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Extender Tiempo</h4>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Añade más meses a tu suscripción actual
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-blue-300 hover:bg-blue-50"
+                onClick={() => setShowExtendDialog(true)}
+              >
+                Solicitar Extensión
+              </Button>
+            </div>
+
+            {/* Cambiar Ciclo */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">💰</span>
+                </div>
+                <h4 className="font-semibold text-gray-900">Cambiar Ciclo</h4>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                {subscription?.billing_cycle === 'monthly' ? 'Cambia a pago anual y ahorra' : 'Cambia a pago mensual'}
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-green-300 hover:bg-green-50"
+                onClick={() => setShowCycleChangeDialog(true)}
+              >
+                {subscription?.billing_cycle === 'monthly' ? 'Cambiar a Anual' : 'Cambiar a Mensual'}
+              </Button>
+            </div>
+
+            {/* Solicitud Personalizada */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
+                  <Send className="h-4 w-4 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Solicitud Especial</h4>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Necesitas algo específico? Contáctanos
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-amber-300 hover:bg-amber-50"
+                onClick={() => setShowCustomDialog(true)}
+              >
+                Enviar Solicitud
+              </Button>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Dialog de Notificación de Pago */}
@@ -481,6 +956,253 @@ export default function MySubscriptionPage() {
                   Enviar Notificación
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Upgrade de Plan */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Actualizar a un Plan Superior</DialogTitle>
+            <DialogDescription>
+              Selecciona el plan al que deseas actualizar. El administrador procesará tu solicitud.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Plan Actual:</strong> {subscription?.subscription_plans?.display_name || 'N/A'}
+              </p>
+            </div>
+
+            <div className="grid gap-3">
+              {availablePlans
+                .filter(plan => {
+                  const currentPrice = subscription?.subscription_plans?.price_monthly || 0
+                  return plan.price_monthly > currentPrice
+                })
+                .map(plan => (
+                  <button
+                    key={plan.id}
+                    onClick={() => setSelectedUpgradePlan(plan.id)}
+                    className={`text-left p-4 rounded-lg border-2 transition-all ${
+                      selectedUpgradePlan === plan.id
+                        ? 'border-purple-600 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-lg">{plan.display_name}</h4>
+                      <Badge variant={selectedUpgradePlan === plan.id ? "default" : "secondary"}>
+                        ${plan.price_monthly}/mes
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        {plan.max_users} usuarios
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        {plan.max_invoices} facturas/mes
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        {plan.max_products} productos
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        {plan.max_clients} clientes
+                      </div>
+                    </div>
+                  </button>
+                ))}
+            </div>
+
+            {availablePlans.filter(p => p.price_monthly > (subscription?.subscription_plans?.price_monthly || 0)).length === 0 && (
+              <p className="text-center text-gray-500 py-4">
+                Ya tienes el plan más alto disponible 🎉
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowUpgradeDialog(false)
+              setSelectedUpgradePlan("")
+            }} disabled={sending}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpgradePlan} disabled={sending || !selectedUpgradePlan}>
+              {sending ? "Enviando..." : "Solicitar Upgrade"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Extensión de Suscripción */}
+      <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Extender Suscripción</DialogTitle>
+            <DialogDescription>
+              Solicita extender tu suscripción por más meses
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="extend-months">Número de meses</Label>
+              <select
+                id="extend-months"
+                value={extendMonths}
+                onChange={(e) => setExtendMonths(e.target.value)}
+                className="w-full mt-2 p-2 border rounded-lg"
+              >
+                <option value="1">1 mes</option>
+                <option value="2">2 meses</option>
+                <option value="3">3 meses</option>
+                <option value="6">6 meses</option>
+                <option value="12">12 meses</option>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="extend-reason">Motivo (opcional)</Label>
+              <Textarea
+                id="extend-reason"
+                placeholder="¿Por qué deseas extender tu suscripción?"
+                value={extendReason}
+                onChange={(e) => setExtendReason(e.target.value)}
+                rows={3}
+                className="mt-2"
+              />
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💡 Tu suscripción actual expira el {subscription?.end_date ? new Date(subscription.end_date).toLocaleDateString() : 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowExtendDialog(false)
+              setExtendMonths("1")
+              setExtendReason("")
+            }} disabled={sending}>
+              Cancelar
+            </Button>
+            <Button onClick={handleExtendSubscription} disabled={sending}>
+              {sending ? "Enviando..." : "Solicitar Extensión"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Cambio de Ciclo */}
+      <Dialog open={showCycleChangeDialog} onOpenChange={setShowCycleChangeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar Ciclo de Facturación</DialogTitle>
+            <DialogDescription>
+              {subscription?.billing_cycle === 'monthly'
+                ? 'Cambia a facturación anual y ahorra hasta un 17%'
+                : 'Cambia a facturación mensual para mayor flexibilidad'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className={`p-4 rounded-lg border-2 ${
+                subscription?.billing_cycle === 'monthly' ? 'border-gray-300 bg-gray-50' : 'border-blue-600 bg-blue-50'
+              }`}>
+                <h4 className="font-bold mb-1">Actual</h4>
+                <p className="text-2xl font-bold mb-1">
+                  ${subscription?.subscription_plans?.price_monthly.toFixed(2)}
+                </p>
+                <p className="text-sm text-gray-600">por mes</p>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 ${
+                subscription?.billing_cycle === 'yearly' ? 'border-gray-300 bg-gray-50' : 'border-green-600 bg-green-50'
+              }`}>
+                <h4 className="font-bold mb-1">Nuevo</h4>
+                <p className="text-2xl font-bold mb-1">
+                  ${subscription?.billing_cycle === 'monthly'
+                    ? subscription?.subscription_plans?.price_yearly.toFixed(2)
+                    : subscription?.subscription_plans?.price_monthly.toFixed(2)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  por {subscription?.billing_cycle === 'monthly' ? 'año' : 'mes'}
+                </p>
+              </div>
+            </div>
+
+            {subscription?.billing_cycle === 'monthly' && (
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800">
+                  💰 Ahorro: ${((subscription.subscription_plans?.price_monthly * 12) - (subscription.subscription_plans?.price_yearly || 0)).toFixed(2)} al año
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCycleChangeDialog(false)} disabled={sending}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCycleChange} disabled={sending}>
+              {sending ? "Enviando..." : "Solicitar Cambio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Solicitud Personalizada */}
+      <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Solicitud Personalizada</DialogTitle>
+            <DialogDescription>
+              ¿Necesitas algo específico? Envía tu solicitud al administrador
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="custom-request">Tu Solicitud</Label>
+              <Textarea
+                id="custom-request"
+                placeholder="Ejemplo: Necesito aumentar el límite de productos a 1000, o quiero agregar una funcionalidad específica..."
+                value={customRequest}
+                onChange={(e) => setCustomRequest(e.target.value)}
+                rows={5}
+                className="mt-2"
+              />
+            </div>
+
+            <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+              <p className="text-sm text-amber-800">
+                💡 <strong>Tip:</strong> Sé lo más específico posible. El administrador revisará tu solicitud y se pondrá en contacto contigo.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowCustomDialog(false)
+              setCustomRequest("")
+            }} disabled={sending}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCustomRequest} disabled={sending || !customRequest.trim()}>
+              {sending ? "Enviando..." : "Enviar Solicitud"}
             </Button>
           </DialogFooter>
         </DialogContent>

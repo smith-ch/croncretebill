@@ -6,12 +6,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Target, TrendingUp, DollarSign, FileText, Users, Plus, Edit2, Trash2, Loader2, Calendar, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
+import { Target, DollarSign, FileText, Users, Plus, Edit2, Trash2, Loader2, Calendar, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useAllEmployeeGoals } from "@/hooks/use-employee-metrics"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { useCurrency } from "@/hooks/use-currency"
+import type { Database } from "@/types/database"
+
+type EmployeeGoalInsert = Database['public']['Tables']['employee_goals']['Insert']
+type EmployeeGoalUpdate = Database['public']['Tables']['employee_goals']['Update']
 
 interface Employee {
   id: string
@@ -34,8 +38,12 @@ export default function EmployeeGoalsPage() {
   const { toast } = useToast()
   const { formatCurrency } = useCurrency()
   
+  // Debug logging
+  useEffect(() => {
+    console.log('📋 Goals state:', { goals, goalsLoading, goalsCount: goals?.length })
+  }, [goals, goalsLoading])
+  
   const [employees, setEmployees] = useState<Employee[]>([])
-  const [loadingEmployees, setLoadingEmployees] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingGoal, setEditingGoal] = useState<string | null>(null)
@@ -52,13 +60,14 @@ export default function EmployeeGoalsPage() {
     if (permissions.isOwner) {
       loadEmployees()
     }
-  }, [permissions.isOwner])
+  }, [permissions.isOwner]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEmployees = async () => {
     try {
-      setLoadingEmployees(true)
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) return
+      if (!session?.user) {
+        return
+      }
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -67,7 +76,9 @@ export default function EmployeeGoalsPage() {
         .eq('is_active', true)
         .order('display_name')
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
       setEmployees(data || [])
     } catch (error: any) {
       console.error('Error loading employees:', error)
@@ -77,7 +88,7 @@ export default function EmployeeGoalsPage() {
         variant: "destructive"
       })
     } finally {
-      setLoadingEmployees(false)
+      // Loading is done
     }
   }
 
@@ -111,32 +122,29 @@ export default function EmployeeGoalsPage() {
     try {
       setSubmitting(true)
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) throw new Error('No hay sesión activa')
+      if (!session?.user) {
+        throw new Error('No hay sesión activa')
+      }
 
       const period = getCurrentPeriod()
       
-      const goalData = {
-        employee_id: goalForm.employee_id,
-        owner_id: session.user.id,
-        periodo_mes: period.mes,
-        periodo_anio: period.anio,
-        fecha_inicio: period.fecha_inicio,
-        fecha_fin: period.fecha_fin,
+      const goalData: EmployeeGoalUpdate = {
         meta_ventas_total: parseFloat(goalForm.meta_ventas_total) || 0,
         meta_facturas_cantidad: parseInt(goalForm.meta_facturas_cantidad) || 0,
         meta_clientes_nuevos: parseInt(goalForm.meta_clientes_nuevos) || 0,
-        notas: goalForm.notas || null,
-        is_active: true
+        notas: goalForm.notas || null
       }
 
       if (editingGoal) {
         // Actualizar meta existente
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('employee_goals')
           .update(goalData)
           .eq('id', editingGoal)
 
-        if (error) throw error
+        if (error) {
+          throw error
+        }
 
         toast({
           title: "Meta actualizada",
@@ -144,11 +152,27 @@ export default function EmployeeGoalsPage() {
         })
       } else {
         // Crear nueva meta
-        const { error } = await supabase
+        const insertData: EmployeeGoalInsert = {
+          employee_id: goalForm.employee_id,
+          owner_id: session.user.id,
+          periodo_mes: period.mes,
+          periodo_anio: period.anio,
+          fecha_inicio: period.fecha_inicio,
+          fecha_fin: period.fecha_fin,
+          meta_ventas_total: parseFloat(goalForm.meta_ventas_total) || 0,
+          meta_facturas_cantidad: parseInt(goalForm.meta_facturas_cantidad) || 0,
+          meta_clientes_nuevos: parseInt(goalForm.meta_clientes_nuevos) || 0,
+          notas: goalForm.notas || null,
+          is_active: true
+        }
+        
+        const { error } = await (supabase as any)
           .from('employee_goals')
-          .insert(goalData)
+          .insert(insertData)
 
-        if (error) throw error
+        if (error) {
+          throw error
+        }
 
         toast({
           title: "Meta creada",
@@ -166,6 +190,8 @@ export default function EmployeeGoalsPage() {
       })
       setShowForm(false)
       setEditingGoal(null)
+      
+      console.log('✅ Goal saved, refreshing goals list...')
       refreshGoals()
 
     } catch (error: any) {
@@ -193,15 +219,19 @@ export default function EmployeeGoalsPage() {
   }
 
   const handleDelete = async (goalId: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta meta?')) return
+    if (!confirm('¿Estás seguro de eliminar esta meta?')) {
+      return
+    }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('employee_goals')
         .delete()
         .eq('id', goalId)
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       toast({
         title: "Meta eliminada",
@@ -218,14 +248,22 @@ export default function EmployeeGoalsPage() {
   }
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "text-green-600 bg-green-50"
-    if (percentage >= 70) return "text-yellow-600 bg-yellow-50"
+    if (percentage >= 90) {
+      return "text-green-600 bg-green-50"
+    }
+    if (percentage >= 70) {
+      return "text-yellow-600 bg-yellow-50"
+    }
     return "text-red-600 bg-red-50"
   }
 
   const getProgressIcon = (percentage: number) => {
-    if (percentage >= 90) return <CheckCircle className="h-5 w-5 text-green-600" />
-    if (percentage >= 70) return <AlertTriangle className="h-5 w-5 text-yellow-600" />
+    if (percentage >= 90) {
+      return <CheckCircle className="h-5 w-5 text-green-600" />
+    }
+    if (percentage >= 70) {
+      return <AlertTriangle className="h-5 w-5 text-yellow-600" />
+    }
     return <XCircle className="h-5 w-5 text-red-600" />
   }
 

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ProductForm } from "@/components/forms/product-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Package, Edit, Trash2, Calculator } from "lucide-react"
+import { Plus, Search, Package, Edit, Trash2, Calculator, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { useDataUserId } from "@/hooks/use-data-user-id"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface Product {
   id: string
@@ -51,8 +53,8 @@ export default function ProductsPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, permissions } = useUserPermissions()
   const { toast } = useToast()
-  const isOnline = useOnlineStatus()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+  const { limits, canAddProducts, remainingProducts, refreshUsage } = useSubscriptionLimits()
   // const { categories } = useCategories('product')
 
   useEffect(() => {
@@ -89,6 +91,7 @@ export default function ProductsPage() {
         }
         
         setProducts(data || [])
+        refreshUsage()
       } catch (error) {
         // Si falla (sin internet o error), cargar desde cache
         console.log("📦 Loading products from cache (offline mode)")
@@ -248,11 +251,21 @@ export default function ProductsPage() {
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
                 <Button 
+                  onClick={(e) => {
+                    if (!canAddProducts()) {
+                      e.preventDefault()
+                      toast({
+                        title: "Límite alcanzado",
+                        description: `Has alcanzado el límite de ${limits.maxProducts} productos de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                        variant: "destructive",
+                      })
+                    }
+                  }}
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   disabled={!permissions.canManageInventory}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Producto
+                  {canAddProducts() ? "Nuevo Producto" : "Límite Alcanzado"}
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl overflow-y-auto max-h-[90vh] p-0">
@@ -270,6 +283,25 @@ export default function ProductsPage() {
             </Dialog>
           </div>
         </div>
+
+        {!limits.isLoading && remainingProducts <= 5 && (
+          <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+            <AlertCircle className={remainingProducts === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
+            <AlertDescription className={remainingProducts === 0 ? "text-red-800" : "text-amber-800"}>
+              {remainingProducts === 0 ? (
+                <span>
+                  <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos de tu {limits.planDisplayName}. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
+                </span>
+              ) : (
+                <span>
+                  <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s) de {limits.maxProducts} en tu {limits.planDisplayName}. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
@@ -301,12 +333,22 @@ export default function ProductsPage() {
                 <h3 className="text-lg font-medium text-slate-900 mb-2">No hay productos</h3>
                 <p className="text-slate-600 mb-4">Comienza agregando tu primer producto</p>
                 <Button
-                  onClick={() => setShowForm(true)}
+                  onClick={() => {
+                    if (canAddProducts()) {
+                      setShowForm(true)
+                    } else {
+                      toast({
+                        title: "Límite alcanzado",
+                        description: `Has alcanzado el límite de ${limits.maxProducts} productos de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                        variant: "destructive",
+                      })
+                    }
+                  }}
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                   disabled={!permissions.canManageInventory}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Producto
+                  {canAddProducts() ? "Nuevo Producto" : "Límite Alcanzado"}
                 </Button>
               </div>
             ) : (

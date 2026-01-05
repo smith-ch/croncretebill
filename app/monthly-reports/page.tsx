@@ -20,6 +20,7 @@ import {
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { generateFinancialInsights, isGrokAvailable } from "@/lib/grok-ai"
 import {
   TrendingUp,
@@ -513,6 +514,8 @@ const AIAnalytics = {
 }
 
 export default function MonthlyReportsPage() {
+  const { hasAccessToMonthlyReports, requireAccess, isLoading: planLoading } = usePlanAccess()
+  
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPeriod] = useState("12")
@@ -526,6 +529,13 @@ export default function MonthlyReportsPage() {
     seasonalityScore: 0,
     marketPosition: 'Analizando...'
   })
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Reportes Mensuales', hasAccessToMonthlyReports())
+    }
+  }, [planLoading, hasAccessToMonthlyReports])
   const [kpiData, setKpiData] = useState<KPIData>({
     totalRevenue: 0,
     totalInvoices: 0,

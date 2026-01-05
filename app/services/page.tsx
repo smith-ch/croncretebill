@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -11,11 +12,13 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator } from "lucide-react"
+import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, AlertCircle } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { useDataUserId } from "@/hooks/use-data-user-id"
@@ -53,8 +56,8 @@ export default function ServicesPage() {
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, canAccessModule } = useUserPermissions()
   const { toast } = useToast()
-  const isOnline = useOnlineStatus()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+  const { limits, canAddProducts, remainingProducts } = useSubscriptionLimits()
   // const { categories } = useCategories('service')
 
   useEffect(() => {
@@ -224,9 +227,21 @@ export default function ServicesPage() {
           </Button>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg w-full sm:w-auto">
+              <Button 
+                onClick={(e) => {
+                  if (!canAddProducts()) {
+                    e.preventDefault()
+                    toast({
+                      title: "Límite alcanzado",
+                      description: `Has alcanzado el límite de ${limits.maxProducts} productos/servicios de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                      variant: "destructive",
+                    })
+                  }
+                }}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg w-full sm:w-auto"
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Nuevo Servicio
+                {canAddProducts() ? "Nuevo Servicio" : "Límite Alcanzado"}
               </Button>
             </DialogTrigger>
             <DialogContent className="w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl p-4 overflow-y-auto max-h-[90vh]">
@@ -242,6 +257,25 @@ export default function ServicesPage() {
           </Dialog>
         </div>
       </div>
+
+      {!limits.isLoading && remainingProducts <= 5 && (
+        <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+          <AlertCircle className={remainingProducts === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
+          <AlertDescription className={remainingProducts === 0 ? "text-red-800" : "text-amber-800"}>
+            {remainingProducts === 0 ? (
+              <span>
+                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}. 
+                <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
+              </span>
+            ) : (
+              <span>
+                <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s)/servicio(s) de {limits.maxProducts} en tu {limits.planDisplayName}. 
+                <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 lg:p-6">

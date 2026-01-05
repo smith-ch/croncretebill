@@ -20,6 +20,7 @@ import {
   DollarSign,
   Eye,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
@@ -27,6 +28,8 @@ import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useDataUserId } from '@/hooks/use-data-user-id'
 import { useToast } from "@/hooks/use-toast"
 import { InvoicePDFPreview } from "@/components/invoices/invoice-pdf-preview"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -40,6 +43,7 @@ export default function InvoicesPage() {
   const { canDelete, canEdit } = useUserPermissions()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+  const { limits, canAddInvoices, remainingInvoices, refreshUsage } = useSubscriptionLimits()
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {
@@ -66,6 +70,7 @@ export default function InvoicesPage() {
         throw error
       }
       setInvoices(data || [])
+      refreshUsage()
     } catch (error) {
       console.error("Error fetching invoices:", error)
     } finally {
@@ -287,16 +292,51 @@ export default function InvoicesPage() {
             </h1>
             <p className="text-sm lg:text-base text-slate-600">Administra y controla todas tus facturas</p>
           </div>
-          <Button
-            asChild
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <Link href="/invoices/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Factura
-            </Link>
-          </Button>
+          {canAddInvoices() ? (
+            <Button
+              asChild
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Link href="/invoices/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Factura
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Límite alcanzado",
+                  description: `Has alcanzado el límite de ${limits.maxInvoices} facturas/mes de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                  variant: "destructive",
+                })
+              }}
+              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Límite Alcanzado
+            </Button>
+          )}
         </div>
+
+        {!limits.isLoading && remainingInvoices <= 2 && (
+          <Alert className={remainingInvoices === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+            <AlertCircle className={remainingInvoices === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
+            <AlertDescription className={remainingInvoices === 0 ? "text-red-800" : "text-amber-800"}>
+              {remainingInvoices === 0 ? (
+                <span>
+                  <strong>Límite alcanzado:</strong> Has usado todas las {limits.maxInvoices} facturas de tu {limits.planDisplayName} este mes. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
+                </span>
+              ) : (
+                <span>
+                  <strong>Atención:</strong> Te quedan solo {remainingInvoices} factura(s) de {limits.maxInvoices} en tu {limits.planDisplayName}. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 card-hover animate-scale-in">

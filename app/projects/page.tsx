@@ -14,6 +14,7 @@ import { ProjectForm } from "@/components/forms/project-form"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 import {
   Plus,
@@ -52,7 +53,15 @@ export default function ProjectsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
+  const { hasAccessToProjects, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Proyectos', hasAccessToProjects())
+    }
+  }, [planLoading, hasAccessToProjects])
 
   useEffect(() => {
     fetchProjects()

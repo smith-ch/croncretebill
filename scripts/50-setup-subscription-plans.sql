@@ -52,11 +52,11 @@ VALUES
     'Plan básico para pequeños negocios que están comenzando',
     499.00,
     4990.00,
-    1,
-    50,
-    50,
-    25,
-    '["Facturación básica", "1 Usuario", "50 Facturas/mes", "50 Productos", "25 Clientes", "Soporte por email"]'::jsonb
+    5,
+    250,
+    300,
+    100,
+    '["Facturación completa", "Hasta 5 Usuarios", "250 Facturas/mes (incluye recibos térmicos)", "300 Productos/Servicios", "100 Clientes", "Gestión de empleados y metas", "Acceso a reportes básicos", "Soporte por email"]'::jsonb
   ),
   (
     'professional',
@@ -64,11 +64,11 @@ VALUES
     'Plan ideal para negocios en crecimiento',
     999.00,
     9990.00,
-    3,
+    5,
+    1000,
+    1000,
     500,
-    500,
-    200,
-    '["Facturación avanzada", "Hasta 3 Usuarios", "500 Facturas/mes", "500 Productos", "200 Clientes", "Reportes avanzados", "Soporte prioritario"]'::jsonb
+    '["Facturación avanzada", "Hasta 5 Usuarios", "1,000 Facturas/mes (incluye recibos térmicos)", "1,000 Productos/Servicios", "500 Clientes", "Reportes DGII completos", "Reportes mensuales", "Acceso a todos los módulos", "Soporte prioritario"]'::jsonb
   ),
   (
     'business',
@@ -76,23 +76,23 @@ VALUES
     'Plan completo para empresas establecidas',
     1999.00,
     19990.00,
-    10,
-    2000,
-    2000,
-    1000,
-    '["Facturación ilimitada", "Hasta 10 Usuarios", "2000 Facturas/mes", "2000 Productos", "1000 Clientes", "Reportes personalizados", "API Access", "Soporte 24/7"]'::jsonb
+    15,
+    5000,
+    5000,
+    2500,
+    '["Facturación completa", "Hasta 15 Usuarios", "5,000 Facturas/mes (incluye recibos térmicos)", "5,000 Productos/Servicios", "2,500 Clientes", "Reportes DGII avanzados", "Reportes personalizados", "Gestión de proyectos", "Control de gastos", "API Access", "Soporte prioritario 24/7"]'::jsonb
   ),
   (
     'enterprise',
     'Plan Enterprise',
-    'Plan empresarial con límites expandidos',
+    'Plan empresarial con límites expandidos para grandes corporaciones',
     3999.00,
     39990.00,
-    50,
+    100,
+    20000,
+    20000,
     10000,
-    10000,
-    5000,
-    '["Sin límites de facturación", "Hasta 50 Usuarios", "10000 Facturas/mes", "10000 Productos", "5000 Clientes", "Multi-sucursales", "Integración completa", "Cuenta dedicada", "Soporte premium 24/7"]'::jsonb
+    '["Límites empresariales", "Hasta 100 Usuarios", "20,000 Facturas/mes (incluye recibos térmicos)", "20,000 Productos/Servicios", "10,000 Clientes", "Reportes DGII ilimitados", "Multi-sucursales", "Gestión completa de proyectos", "Control total de gastos y vehículos", "Integración API completa", "Cuenta dedicada", "Soporte premium 24/7", "Capacitación personalizada"]'::jsonb
   )
 ON CONFLICT (name) DO UPDATE SET
   display_name = EXCLUDED.display_name,

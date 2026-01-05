@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Download, Receipt, FileText, TrendingUp, AlertTriangle, Users, Plus, Eye } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import * as XLSX from 'xlsx'
 
 // Types
@@ -358,12 +359,20 @@ interface DGIIData {
 
 export default function DGIIReportsPage() {
   const { permissions } = useUserPermissions()
+  const { hasAccessToDGIIReports, requireAccess, isLoading: planLoading } = usePlanAccess()
   
   const [selectedMonth, setSelectedMonth] = useState(formatDateToYearMonth(new Date()))
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [loading, setLoading] = useState(false)
   const [dgiiData, setDgiiData] = useState<DGIIData | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Reportes DGII', hasAccessToDGIIReports())
+    }
+  }, [planLoading, hasAccessToDGIIReports])
 
   // Estados para creación manual
   const [manualExpense, setManualExpense] = useState({

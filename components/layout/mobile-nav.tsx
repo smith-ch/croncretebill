@@ -112,6 +112,24 @@ const mobileNavigation = [
     module: "payment-receipts",
   },
   {
+    name: "Empleados",
+    href: "/settings/employee-config",
+    icon: Users,
+    module: "employees",
+  },
+  {
+    name: "Metas de Empleados",
+    href: "/settings/employee-goals",
+    icon: Target,
+    module: "goals",
+  },
+  {
+    name: "Mi Suscripción",
+    href: "/subscriptions/my-subscription",
+    icon: CreditCard,
+    module: "subscription",
+  },
+  {
     name: "Reportes Mensuales",
     href: "/monthly-reports",
     icon: TrendingUp,

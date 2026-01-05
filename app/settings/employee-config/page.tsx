@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, UserCheck, UserX, Mail, Edit2, Shield, Eye, EyeOff, Loader2, CheckCircle, XCircle, Target } from "lucide-react"
+import { Trash2, Plus, UserCheck, UserX, Mail, Edit2, Shield, Eye, EyeOff, Loader2, CheckCircle, XCircle, Target, AlertCircle } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 
 interface Employee {
@@ -28,6 +30,7 @@ interface Employee {
 export default function EmployeeConfigPage() {
   const { permissions } = useUserPermissions()
   const { toast } = useToast()
+  const { limits, usage, canAddUsers, remainingUsers, refreshUsage } = useSubscriptionLimits()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -109,6 +112,7 @@ export default function EmployeeConfigPage() {
       }))
 
       setEmployees(employeesData)
+      refreshUsage()
     } catch (error: any) {
       console.error('Error loading employees:', error)
       // No mostrar error si no hay empleados todavía
@@ -410,8 +414,18 @@ export default function EmployeeConfigPage() {
           </div>
 
           <Button
-            onClick={handleCreateEmployee}
-            disabled={submitting || !newEmployee.email || !newEmployee.displayName || !newEmployee.password}
+            onClick={() => {
+              if (!canAddUsers()) {
+                toast({
+                  title: "Límite alcanzado",
+                  description: `Has alcanzado el límite de ${limits.maxUsers} usuarios de tu ${limits.planDisplayName}. Actualiza tu plan para agregar más empleados.`,
+                  variant: "destructive",
+                })
+              } else {
+                handleCreateEmployee()
+              }
+            }}
+            disabled={submitting || !newEmployee.email || !newEmployee.displayName || !newEmployee.password || !canAddUsers()}
             className="w-full"
           >
             {submitting ? (
@@ -422,12 +436,31 @@ export default function EmployeeConfigPage() {
             ) : (
               <>
                 <UserCheck className="h-4 w-4 mr-2" />
-                Crear Empleado
+                {canAddUsers() ? "Crear Empleado" : "Límite Alcanzado"}
               </>
             )}
           </Button>
         </CardContent>
       </Card>
+
+      {!limits.isLoading && remainingUsers <= 1 && (
+        <Alert className={remainingUsers === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+          <AlertCircle className={remainingUsers === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
+          <AlertDescription className={remainingUsers === 0 ? "text-red-800" : "text-amber-800"}>
+            {remainingUsers === 0 ? (
+              <span>
+                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxUsers} usuarios de tu {limits.planDisplayName}. 
+                <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
+              </span>
+            ) : (
+              <span>
+                <strong>Atención:</strong> Te queda solo {remainingUsers} usuario disponible en tu {limits.planDisplayName}. 
+                <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Lista de empleados */}
       <Card>
@@ -437,7 +470,7 @@ export default function EmployeeConfigPage() {
             <span>Empleados Actuales</span>
           </CardTitle>
           <CardDescription>
-            {employees.length} empleado{employees.length !== 1 ? 's' : ''} registrado{employees.length !== 1 ? 's' : ''}
+            {employees.length} empleado{employees.length !== 1 ? 's' : ''} registrado{employees.length !== 1 ? 's' : ''} de {limits.maxUsers} disponibles
           </CardDescription>
         </CardHeader>
         <CardContent>

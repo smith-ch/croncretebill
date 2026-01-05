@@ -350,6 +350,10 @@ export default function DashboardPage() {
       const expenseCount = expensesResult.data?.length || 0
       const totalExpenses = expensesResult.data?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
       const { data: existingRecord } = await supabase
         .from("monthly_stats")
         .select("id")

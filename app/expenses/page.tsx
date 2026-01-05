@@ -49,6 +49,7 @@ import {
 import { motion } from "framer-motion"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 import { useDataUserId } from "@/hooks/use-data-user-id"
 
@@ -91,8 +92,16 @@ export default function ExpensesPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
+  const { hasAccessToExpenses, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Gastos', hasAccessToExpenses())
+    }
+  }, [planLoading, hasAccessToExpenses])
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {

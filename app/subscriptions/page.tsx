@@ -70,6 +70,18 @@ interface UserSubscription {
   current_clients_count: number
 }
 
+interface SubscriptionRequest {
+  id: string
+  user_id: string
+  plan_id: string
+  message: string | null
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+  created_at: string
+  user_email?: string
+  plan_name?: string
+  plan_display_name?: string
+}
+
 interface SubscriptionHistory {
   id: string
   subscription_id: string
@@ -105,6 +117,7 @@ export default function SubscriptionsManagementPage() {
   const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([])
   const [history, setHistory] = useState<SubscriptionHistory[]>([])
   const [paymentNotifications, setPaymentNotifications] = useState<PaymentNotification[]>([])
+  const [subscriptionRequests, setSubscriptionRequests] = useState<SubscriptionRequest[]>([])
   const [allUsers, setAllUsers] = useState<{user_id: string, email: string, display_name: string}[]>([])
   const [selectedSubscription, setSelectedSubscription] = useState<UserSubscription | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null)
@@ -203,11 +216,14 @@ export default function SubscriptionsManagementPage() {
     try {
       const { data: allProfiles, error: profilesError } = await supabase
         .from('user_profiles')
-        .select('user_id, email, display_name')
+        .select('user_id, email, display_name, parent_user_id')
         .order('email')
 
       if (profilesError) throw profilesError
-      setAllUsers(allProfiles || [])
+      
+      // Filter out employees (those with parent_user_id set)
+      const nonEmployees = (allProfiles || []).filter(profile => !profile.parent_user_id)
+      setAllUsers(nonEmployees)
     } catch (error: any) {
       console.error('Error loading users:', error)
     }
@@ -289,6 +305,29 @@ export default function SubscriptionsManagementPage() {
       }))
       
       setPaymentNotifications(formattedNotifications)
+
+      // Cargar solicitudes de suscripción pendientes
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('subscription_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (requestsError) throw requestsError
+
+      // Obtener información de usuarios y planes para las solicitudes
+      const formattedRequests = await Promise.all((requestsData || []).map(async (request: any) => {
+        const profile = profiles?.find((p: any) => p.user_id === request.user_id)
+        const plan = plansData?.find(p => p.id === request.plan_id)
+        
+        return {
+          ...request,
+          user_email: profile?.email || 'Sin email',
+          plan_name: plan?.name || 'N/A',
+          plan_display_name: plan?.display_name || 'N/A'
+        }
+      }))
+
+      setSubscriptionRequests(formattedRequests)
 
     } catch (error: any) {
       console.error('Error loading data:', error)
@@ -631,6 +670,96 @@ export default function SubscriptionsManagementPage() {
     }
   }
 
+  async function handleApproveRequest(request: SubscriptionRequest) {
+    if (!confirm(`¿Aprobar solicitud de ${request.user_email} para ${request.plan_display_name}?`)) return
+
+    setSubmitting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      // Create subscription for user
+      const { error: subError } = await supabase.rpc('create_manual_subscription', {
+        p_user_email: request.user_email,
+        p_plan_name: request.plan_name,
+        p_start_date: new Date().toISOString(),
+        p_end_date: null,
+        p_status: 'active',
+        p_billing_cycle: 'monthly',
+        p_manager_email: user?.email || 'smithrodriguez345@gmail.com',
+        p_notes: `Solicitud aprobada: ${request.message || 'Sin notas'}`
+      })
+
+      if (subError) throw subError
+
+      // Update request status
+      const { error: updateError } = await supabase
+        .from('subscription_requests')
+        .update({
+          status: 'approved',
+          reviewed_by: user?.id,
+          reviewed_at: new Date().toISOString(),
+          admin_notes: 'Solicitud aprobada y suscripción creada'
+        })
+        .eq('id', request.id)
+
+      if (updateError) throw updateError
+
+      toast({
+        title: "✅ Solicitud Aprobada",
+        description: `Suscripción creada para ${request.user_email}`
+      })
+
+      await loadData()
+    } catch (error: any) {
+      console.error('Error approving request:', error)
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleRejectRequest(request: SubscriptionRequest) {
+    const reason = prompt('Razón del rechazo (opcional):')
+    if (reason === null) return // User cancelled
+
+    setSubmitting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      const { error } = await supabase
+        .from('subscription_requests')
+        .update({
+          status: 'rejected',
+          reviewed_by: user?.id,
+          reviewed_at: new Date().toISOString(),
+          admin_notes: reason || 'Solicitud rechazada'
+        })
+        .eq('id', request.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Solicitud Rechazada",
+        description: `Solicitud de ${request.user_email} rechazada`
+      })
+
+      await loadData()
+    } catch (error: any) {
+      console.error('Error rejecting request:', error)
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   function getStatusBadge(status: string) {
     const variants: Record<string, { variant: any; icon: any }> = {
       active: { variant: 'default', icon: CheckCircle },
@@ -676,6 +805,14 @@ export default function SubscriptionsManagementPage() {
       <Tabs defaultValue="subscriptions" className="space-y-6">
         <TabsList>
           <TabsTrigger value="subscriptions">Suscripciones</TabsTrigger>
+          <TabsTrigger value="requests" className="relative">
+            Solicitudes
+            {subscriptionRequests.filter(r => r.status === 'pending').length > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-600 rounded-full">
+                {subscriptionRequests.filter(r => r.status === 'pending').length}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="plans">Planes</TabsTrigger>
           <TabsTrigger value="notifications" className="relative">
             Notificaciones de Pago
@@ -862,6 +999,91 @@ export default function SubscriptionsManagementPage() {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="requests" className="space-y-4">
+          <h2 className="text-2xl font-bold">Solicitudes de Suscripción</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Plan Solicitado</TableHead>
+                    <TableHead>Mensaje</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptionRequests.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No hay solicitudes de suscripción
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    subscriptionRequests.map((request) => (
+                      <TableRow key={request.id} className={request.status !== 'pending' ? 'opacity-50' : ''}>
+                        <TableCell className="font-medium">{request.user_email}</TableCell>
+                        <TableCell>{request.plan_display_name}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={request.message || 'Sin mensaje'}>
+                          {request.message || <span className="text-muted-foreground italic">Sin mensaje</span>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            request.status === 'pending' ? 'default' :
+                            request.status === 'approved' ? 'default' :
+                            request.status === 'rejected' ? 'destructive' :
+                            'secondary'
+                          }>
+                            {request.status.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(request.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {request.status === 'pending' && (
+                            <div className="flex gap-1">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleApproveRequest(request)}
+                                disabled={submitting}
+                                title="Aprobar y crear suscripción"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Aprobar
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleRejectRequest(request)}
+                                disabled={submitting}
+                                title="Rechazar solicitud"
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Rechazar
+                              </Button>
+                            </div>
+                          )}
+                          {request.status !== 'pending' && (
+                            <span className="text-sm text-muted-foreground">
+                              {request.status === 'approved' ? '✅ Aprobada' :
+                               request.status === 'rejected' ? '❌ Rechazada' :
+                               '🚫 Cancelada'}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
