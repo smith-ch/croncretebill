@@ -124,13 +124,83 @@ export function ModernAuthForm() {
     const password = formData.get("password") as string
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
         throw error
+      }
+
+      // Verificar estado de suscripción
+      if (authData?.user) {
+        // 1. Verificar si el usuario es subscription_manager (siempre tiene acceso)
+        const { data: isManager, error: managerError } = await supabase
+          .rpc('is_subscription_manager', { p_user_id: authData.user.id })
+        
+        console.log('🔍 Login - Checking subscription_manager:', { userId: authData.user.id, isManager, managerError })
+        
+        if (managerError) {
+          console.error('Error verificando rol de manager:', managerError)
+        }
+        
+        if (isManager) {
+          console.log('✅ Usuario es subscription_manager - acceso permitido sin verificar suscripción')
+          // Manager tiene acceso total, no verificar suscripción
+        } else {
+          // 2. Verificar si el usuario es empleado (no necesita suscripción propia)
+          const { data: isEmployee, error: employeeError } = await supabase
+            .rpc('is_employee', { p_user_id: authData.user.id })
+          
+          console.log('🔍 Login - Checking employee status:', { userId: authData.user.id, isEmployee, employeeError })
+          
+          if (employeeError) {
+            console.error('Error verificando estado de empleado:', employeeError)
+          }
+          
+          if (isEmployee) {
+            console.log('✅ Usuario es empleado - acceso permitido sin verificar suscripción propia')
+            // Empleados no necesitan suscripción propia, operan bajo la del owner
+          } else {
+            // 3. Solo verificar suscripción si NO es manager NI empleado
+            console.log('🔍 Usuario es owner - verificando suscripción...')
+            const { data: subscription } = await supabase
+              .from('user_subscriptions')
+              .select('status, end_date, plan:plan_id(display_name)')
+              .eq('user_id', authData.user.id)
+              .single()
+
+            // Si no tiene suscripción o está inactiva
+            if (!subscription || subscription.status !== 'active') {
+              // Cerrar sesión inmediatamente
+              await supabase.auth.signOut()
+              
+              setMessage({
+                type: "error",
+                text: subscription 
+                  ? `Tu suscripción está ${subscription.status === 'expired' ? 'expirada' : 'inactiva'}. Contacta al administrador para renovarla.`
+                  : "No tienes una suscripción activa. Contacta al administrador para activar tu cuenta.",
+              })
+              setLoading(false)
+              return
+            }
+
+            // Si la suscripción expira pronto (menos de 7 días), mostrar advertencia
+            if (subscription.end_date) {
+              const daysUntilExpiry = Math.ceil(
+                (new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+              )
+              
+              if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+                setMessage({
+                  type: "info",
+                  text: `⚠️ Tu suscripción ${subscription.plan?.display_name || ''} expira en ${daysUntilExpiry} día(s). Contacta al administrador para renovarla.`,
+                })
+              }
+            }
+          }
+        }
       }
     } catch (error: any) {
       setMessage({
@@ -146,6 +216,7 @@ export function ModernAuthForm() {
     setLoading(true)
     setMessage(null)
     try {
+      // Nota: La verificación de suscripción para OAuth se maneja en el callback
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

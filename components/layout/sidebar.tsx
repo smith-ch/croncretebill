@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -181,6 +181,19 @@ const navigation = [
         module: "employee-goals",
         ownerOnly: true,
       },
+      {
+        name: "Mi Suscripción",
+        href: "/subscriptions/my-subscription",
+        icon: CreditCard,
+        module: "my-subscription",
+      },
+      {
+        name: "🔐 Suscripciones",
+        href: "/subscriptions",
+        icon: CreditCard,
+        module: "subscriptions",
+        subscriptionManagerOnly: true,
+      },
     ],
   },
   {
@@ -195,8 +208,31 @@ export function Sidebar() {
   const pathname = usePathname()
   const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos", "Configuración"])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isSubscriptionManager, setIsSubscriptionManager] = useState(false)
   const { alertCount } = useStockAlerts()
   const { canAccessModule, permissions } = useUserPermissions()
+
+  // Verificar si el usuario es subscription manager
+  useEffect(() => {
+    async function checkSubscriptionManager() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data, error } = await supabase.rpc('is_subscription_manager', {
+          p_user_id: user.id
+        })
+
+        if (!error && data) {
+          setIsSubscriptionManager(true)
+        }
+      } catch (error) {
+        console.error('Error checking subscription manager:', error)
+      }
+    }
+
+    checkSubscriptionManager()
+  }, [])
 
   // Filter navigation items based on permissions
   const filteredNavigation = navigation.filter(item => {
@@ -214,6 +250,10 @@ export function Sidebar() {
     return children.filter(child => {
       // Si el item es solo para owners, verificar que el usuario sea owner
       if ((child as any).ownerOnly && !permissions.isOwner) {
+        return false
+      }
+      // Si el item es solo para subscription managers, verificar
+      if ((child as any).subscriptionManagerOnly && !isSubscriptionManager) {
         return false
       }
       return !child.module || canAccessModule(child.module)
