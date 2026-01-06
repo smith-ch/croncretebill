@@ -218,6 +218,17 @@ export function useSubscriptionLimits() {
 
       if (productsError) console.error('Error counting products:', productsError)
 
+      // Count services (of the OWNER)
+      const { count: servicesCount, error: servicesError } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', ownerUserId)
+
+      if (servicesError) console.error('Error counting services:', servicesError)
+
+      // Total products = products + services
+      const totalProducts = (productsCount || 0) + (servicesCount || 0)
+
       // Count clients (of the OWNER)
       const { count: clientsCount, error: clientsError } = await supabase
         .from('clients')
@@ -229,7 +240,7 @@ export function useSubscriptionLimits() {
       const usageData = {
         users: usersCount || 0,
         invoices: totalInvoices,
-        products: productsCount || 0,
+        products: totalProducts,
         clients: clientsCount || 0,
       }
 
