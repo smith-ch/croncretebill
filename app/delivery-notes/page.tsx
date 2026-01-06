@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search, FileText, Edit, Trash2, Download } from "lucide-react"
 import Link from "next/link"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 
 export default function DeliveryNotesPage() {
@@ -17,7 +18,15 @@ export default function DeliveryNotesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
   const [isDeleting, setIsDeleting] = useState(false)
+  const { hasAccessToDeliveryNotes, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Notas de Entrega', hasAccessToDeliveryNotes())
+    }
+  }, [planLoading, hasAccessToDeliveryNotes])
 
   useEffect(() => {
     fetchDeliveryNotes()

@@ -5,6 +5,7 @@ import { StatsCards } from "@/components/dashboard/stats-cards"
 import { AgendaWidget } from "@/components/dashboard/agenda-widget"
 import { RevenueChart, ExpenseChart, ComparisonChart } from "@/components/dashboard/charts"
 import { FinancialHealthWidget, PerformanceComparisonWidget, QuickInsightsWidget } from "@/components/dashboard/interactive-widgets"
+import { EmployeeMetricsCard } from "@/components/dashboard/employee-metrics-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -33,7 +34,7 @@ import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useBusinessNotifications } from "@/components/notifications/notification-system"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
-import { RoleSwitcher } from "@/components/auth/role-switcher"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 // Definiciones de tipos para Supabase
 interface Invoice {
@@ -164,6 +165,7 @@ export default function DashboardPage() {
   const { formatCurrency, formatNumber } = useCurrency()
   const { permissions } = useUserPermissions()
   const businessNotifications = useBusinessNotifications()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   // Check if we're on the client side
   useEffect(() => {
@@ -220,19 +222,21 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    fetchStats()
-    loadMonthlyTarget()
-    updateMonthlyStats()
+    if (!userIdLoading && dataUserId) {
+      fetchStats()
+      loadMonthlyTarget()
+      updateMonthlyStats()
 
-    const interval = setInterval(
-      () => {
-        fetchStats()
-      },
-      5 * 60 * 1000,
-    )
+      const interval = setInterval(
+        () => {
+          fetchStats()
+        },
+        5 * 60 * 1000,
+      )
 
-    return () => clearInterval(interval)
-  }, [])
+      return () => clearInterval(interval)
+    }
+  }, [dataUserId, userIdLoading])
 
   // Smart notifications based on data changes (won't repeat once dismissed)
   useEffect(() => {
@@ -313,13 +317,7 @@ export default function DashboardPage() {
 
   const updateMonthlyStats = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
-        return
-      }
+      if (!dataUserId) return
 
       const now = new Date()
       const currentMonth = now.getMonth() + 1
@@ -332,7 +330,7 @@ export default function DashboardPage() {
         supabase
           .from("invoices")
           .select("total, status")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .neq("status", "cancelada")
           .neq("status", "borrador")
           .gte("created_at", startOfMonth.toISOString())
@@ -340,7 +338,7 @@ export default function DashboardPage() {
         supabase
           .from("expenses")
           .select("amount")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .gte("expense_date", startOfMonth.toISOString().split("T")[0])
           .lte("expense_date", endOfMonth.toISOString().split("T")[0]) as unknown as { data: { amount: number }[] | null },
       ])
@@ -351,6 +349,10 @@ export default function DashboardPage() {
         0
       const expenseCount = expensesResult.data?.length || 0
       const totalExpenses = expensesResult.data?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
       const { data: existingRecord } = await supabase
         .from("monthly_stats")
@@ -388,13 +390,7 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
-        return
-      }
+      if (!dataUserId) return
 
       // Cargar datos básicos primero
       setLoadingStates(prev => ({ ...prev, basicStats: true }))
@@ -410,7 +406,7 @@ export default function DashboardPage() {
       const { data: pendingInvoicesData } = await supabase
         .from("invoices")
         .select("id, invoice_number, total, due_date")
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .eq("status", "enviada")
 
       // Consulta para todas las facturas (para otras estadísticas)
@@ -426,7 +422,7 @@ export default function DashboardPage() {
           created_at,
           clients!inner(name)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false }) as unknown as { data: Invoice[] | null }
 
       const { data: expenses } = await supabase
@@ -439,7 +435,7 @@ export default function DashboardPage() {
           expense_date,
           created_at
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false }) as unknown as { data: Expense[] | null }
 
       const { data: thermalReceipts, error: thermalError } = await supabase
@@ -451,24 +447,24 @@ export default function DashboardPage() {
           status,
           created_at
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .eq("status", "active")
         .order("created_at", { ascending: false }) as unknown as { data: ThermalReceipt[] | null, error: any }
 
       const { count: clientsCount } = await supabase
         .from("clients")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
 
       const { count: productsCount } = await supabase
         .from("products")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
 
       const { count: projectsCount } = await supabase
         .from("projects")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
 
       const totalInvoices = invoices?.length || 0
       // Usar la consulta directa de facturas pendientes
@@ -981,17 +977,12 @@ export default function DashboardPage() {
                     Actualizar
                   </Button>
 
-                  {/* Divisor */}
-                  <div className="h-8 w-px bg-gray-300 mx-1"></div>
-
-                  {/* RoleSwitcher */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <RoleSwitcher />
-                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Tarjeta de Metas del Empleado */}
+            <EmployeeMetricsCard />
 
             {/* Solo Tarjeta de Venta de Hoy */}
             <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
@@ -1182,12 +1173,6 @@ export default function DashboardPage() {
                   <BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1" />
                   <span className="hidden sm:inline">Detallado</span>
                 </Button>
-              </div>
-              
-              {/* RoleSwitcher - Hidden on mobile */}
-              <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <Users className="h-4 w-4 text-gray-500" />
-                <RoleSwitcher />
               </div>
             </div>
           </div>

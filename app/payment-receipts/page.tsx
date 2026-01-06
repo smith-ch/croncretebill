@@ -32,6 +32,7 @@ import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { generatePaymentReceiptPDF } from "@/lib/payment-receipt-utils"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface PaymentReceipt {
   id: string
@@ -185,6 +186,7 @@ export default function PaymentReceiptsPage() {
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   // Memoize expensive calculations
   const mostUsedPaymentMethod = useMemo(() => {
@@ -213,9 +215,7 @@ export default function PaymentReceiptsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
@@ -230,7 +230,7 @@ export default function PaymentReceiptsPage() {
         supabase
           .from("company_settings")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .single(),
         
         // Fetch payment receipts with basic invoice and client info (no invoice_items to avoid relationship conflicts)
@@ -252,7 +252,7 @@ export default function PaymentReceiptsPage() {
               )
             )
           `)
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("created_at", { ascending: false }),
         
         // Fetch paid invoices with basic client info (no invoice_items to avoid relationship conflicts)
@@ -273,7 +273,7 @@ export default function PaymentReceiptsPage() {
               address
             )
           `)
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .eq("status", "pagada")
           .order("created_at", { ascending: false }),
         
@@ -281,7 +281,7 @@ export default function PaymentReceiptsPage() {
         supabase
           .from("expenses")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", dataUserId)
           .order("expense_date", { ascending: false })
       ])
 
@@ -356,7 +356,7 @@ export default function PaymentReceiptsPage() {
     } finally {
       setLoading(false)
     }
-  }, [notifyError])
+  }, [notifyError, dataUserId])
 
   // Helper function to format receipt number display
   const formatReceiptNumber = (receiptNumber: string): string => {
@@ -496,7 +496,7 @@ export default function PaymentReceiptsPage() {
       const { data: receiptData, error } = await supabase
         .from("payment_receipts")
         .insert({
-          user_id: user.id,
+          user_id: dataUserId,
           invoice_id: selectedInvoice.id,
           payment_method: manualReceiptData.payment_method,
           amount_paid: amountPaid,
@@ -609,13 +609,11 @@ export default function PaymentReceiptsPage() {
 
     try {
       setGenerating(true)
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         toast({
           variant: "destructive",
-          title: "Error de autenticación",
-          description: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+          title: "Error",
+          description: "No se pudo identificar el usuario.",
         })
         return
       }
@@ -624,7 +622,7 @@ export default function PaymentReceiptsPage() {
       const { data: receiptData, error } = await supabase
         .from("payment_receipts")
         .insert({
-          user_id: user.id,
+          user_id: dataUserId,
           invoice_id: null, // No es una factura, es un gasto
           payment_method: expenseReceiptData.payment_method,
           amount_paid: amountPaid,
@@ -887,8 +885,10 @@ export default function PaymentReceiptsPage() {
 
   // useEffect to load data and set up event listeners
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (!userIdLoading && dataUserId) {
+      fetchData()
+    }
+  }, [fetchData, userIdLoading, dataUserId])
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {

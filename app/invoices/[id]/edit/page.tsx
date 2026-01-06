@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
 
 // Type definitions
@@ -127,22 +128,19 @@ export default function EditInvoicePage() {
   const [paymentMethod, setPaymentMethod] = useState("credito")
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   const fetchInvoiceData = useCallback(async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
-      console.log("Current user ID:", user.id)
+      console.log("Current user ID:", dataUserId)
 
       const [productsRes, servicesRes] = await Promise.all([
-        supabase.from("products").select("id, name, unit, unit_price").eq("user_id", user.id),
-        supabase.from("services").select("id, name, unit, price").eq("user_id", user.id),
+        supabase.from("products").select("id, name, unit, unit_price").eq("user_id", dataUserId),
+        supabase.from("services").select("id, name, unit, price").eq("user_id", dataUserId),
       ])
 
       console.log("Products query result:", productsRes)
@@ -173,7 +171,7 @@ export default function EditInvoicePage() {
           invoice_items:invoice_items_invoice_id_fkey(*)
         `)
         .eq("id", params.id)
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .single()
 
       if (invoiceError) {
@@ -242,11 +240,13 @@ export default function EditInvoicePage() {
     } finally {
       setFetchLoading(false)
     }
-  }, [params.id])
+  }, [params.id, dataUserId])
 
   useEffect(() => {
-    fetchInvoiceData()
-  }, [fetchInvoiceData])
+    if (!userIdLoading && dataUserId) {
+      fetchInvoiceData()
+    }
+  }, [fetchInvoiceData, userIdLoading, dataUserId])
 
   // Block employee access to editing invoices
   if (!permissions.canEditInvoices) {

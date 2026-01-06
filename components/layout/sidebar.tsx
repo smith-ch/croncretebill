@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -33,6 +33,8 @@ import {
   ClipboardList,
   Warehouse,
   Info,
+  UserCog,
+  Target,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -158,6 +160,41 @@ const navigation = [
     href: "/settings",
     icon: Settings,
     module: "settings",
+    children: [
+      {
+        name: "General",
+        href: "/settings",
+        icon: Settings,
+        module: "settings",
+      },
+      {
+        name: "Empleados",
+        href: "/settings/employee-config",
+        icon: UserCog,
+        module: "employees",
+        ownerOnly: true,
+      },
+      {
+        name: "Metas de Empleados",
+        href: "/settings/employee-goals",
+        icon: Target,
+        module: "employee-goals",
+        ownerOnly: true,
+      },
+      {
+        name: "Mi Suscripción",
+        href: "/subscriptions/my-subscription",
+        icon: CreditCard,
+        module: "my-subscription",
+      },
+      {
+        name: "🔐 Suscripciones",
+        href: "/subscriptions",
+        icon: CreditCard,
+        module: "subscriptions",
+        subscriptionManagerOnly: true,
+      },
+    ],
   },
   {
     name: "Ayuda",
@@ -169,10 +206,40 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos"])
+  const [openItems, setOpenItems] = useState<string[]>(["Productos", "Recibos", "Configuración"])
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isSubscriptionManager, setIsSubscriptionManager] = useState(false)
   const { alertCount } = useStockAlerts()
-  const { canAccessModule } = useUserPermissions()
+  const { canAccessModule, permissions } = useUserPermissions()
+
+  // Verificar si el usuario es subscription manager o super admin
+  useEffect(() => {
+    async function checkSubscriptionManager() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Verificar subscription manager
+        const { data: isManager, error: managerError } = await supabase.rpc('is_subscription_manager', {
+          p_user_id: user.id
+        })
+
+        // Verificar super admin
+        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc('is_super_admin', {
+          p_user_id: user.id
+        })
+
+        // Permitir acceso si es subscription manager O super admin
+        if ((!managerError && isManager) || (!superAdminError && isSuperAdmin)) {
+          setIsSubscriptionManager(true)
+        }
+      } catch (error) {
+        console.error('Error checking subscription manager:', error)
+      }
+    }
+
+    checkSubscriptionManager()
+  }, [])
 
   // Filter navigation items based on permissions
   const filteredNavigation = navigation.filter(item => {
@@ -187,9 +254,17 @@ export function Sidebar() {
     if (!children) {
       return undefined
     }
-    return children.filter(child => 
-      !child.module || canAccessModule(child.module)
-    )
+    return children.filter(child => {
+      // Si el item es solo para owners, verificar que el usuario sea owner
+      if ((child as any).ownerOnly && !permissions.isOwner) {
+        return false
+      }
+      // Si el item es solo para subscription managers, verificar
+      if ((child as any).subscriptionManagerOnly && !isSubscriptionManager) {
+        return false
+      }
+      return !child.module || canAccessModule(child.module)
+    })
   }
 
   const toggleItem = (name: string) => {

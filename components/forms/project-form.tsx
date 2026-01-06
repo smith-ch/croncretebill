@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface ProjectFormProps {
   project?: any
@@ -26,22 +27,21 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<any[]>([])
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   useEffect(() => {
-    fetchClients()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchClients()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchClients = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
-      const { data, error } = await supabase.from("clients").select("id, name").eq("user_id", user.id)
+      const { data, error } = await supabase.from("clients").select("id, name").eq("user_id", dataUserId)
 
       if (error) {
         throw error
@@ -108,11 +108,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
     }
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         throw new Error("Usuario no autenticado")
       }
 
@@ -131,7 +127,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
         // Create new project
         const { error } = await supabase.from("projects").insert({
           ...projectData,
-          user_id: user.id,
+          user_id: dataUserId,
         })
         if (error) {
           throw error

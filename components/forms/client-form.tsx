@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface ClientFormProps {
   client?: any
@@ -23,6 +24,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -108,18 +110,8 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
     }
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      
-      if (!user) {
+      if (!dataUserId) {
         throw new Error("Usuario no autenticado")
-      }
-
-      // Verificar que el usuario tiene un ID válido
-      if (!user.id || user.id.length === 0) {
-        throw new Error("ID de usuario inválido")
       }
 
       if (client) {
@@ -137,7 +129,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
         // @ts-ignore - Supabase type issue
         const { error } = await supabase.from("clients").insert({
           ...clientData,
-          user_id: user.id,
+          user_id: dataUserId,
         })
         if (error) { throw error }
         

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Loader2, 
   Building2, 
@@ -22,18 +23,62 @@ import {
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+interface SubscriptionPlan {
+  id: string
+  name: string
+  display_name: string
+  description: string
+  price_monthly: number
+  price_yearly: number
+  max_users: number
+  max_invoices: number
+  max_products: number
+  max_clients: number
+}
+
 export function ModernAuthForm() {
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("signin")
   const [mounted, setMounted] = useState(false)
   const [showResetPassword, setShowResetPassword] = useState(false)
   const [resetEmail, setResetEmail] = useState("")
+  const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([])
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("")
 
   useEffect(() => {
     setMounted(true)
+    loadAvailablePlans()
   }, [])
+
+  const loadAvailablePlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true })
+      
+      if (error) {
+        throw error
+      }
+      
+      if (data && data.length > 0) {
+        const plans = data as SubscriptionPlan[]
+        setAvailablePlans(plans)
+        // Seleccionar el plan Professional por defecto
+        const professionalPlan = plans.find(p => p.name === 'professional')
+        if (professionalPlan) {
+          setSelectedPlanId(professionalPlan.id)
+        } else {
+          setSelectedPlanId(plans[0].id)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading plans:', error)
+    }
+  }
 
   const containerVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -82,8 +127,17 @@ export function ModernAuthForm() {
     const fullName = formData.get("fullName") as string
     const companyName = formData.get("companyName") as string
 
+    if (!selectedPlanId) {
+      setMessage({
+        type: "error",
+        text: "Por favor selecciona un plan de suscripción",
+      })
+      setLoading(false)
+      return
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -91,6 +145,7 @@ export function ModernAuthForm() {
           data: {
             full_name: fullName,
             company_name: companyName,
+            selected_plan_id: selectedPlanId,
           },
         },
       })
@@ -100,9 +155,58 @@ export function ModernAuthForm() {
         throw error
       }
 
+      // Crear suscripción automática si es plan gratuito
+      if (authData?.user) {
+        const selectedPlan = availablePlans.find(p => p.id === selectedPlanId)
+        
+        // Si es plan gratuito (free), crear suscripción activa inmediatamente
+        if (selectedPlan?.name === 'free') {
+          console.log('📦 Asignando plan gratuito automáticamente...')
+          
+          const { error: subError } = await supabase
+            .from('user_subscriptions')
+            .insert({
+              user_id: authData.user.id,
+              plan_id: selectedPlanId,
+              status: 'active',
+              start_date: new Date().toISOString(),
+              end_date: null, // Sin límite para plan gratuito
+              current_max_users: selectedPlan.max_users,
+              current_max_invoices: selectedPlan.max_invoices,
+              current_max_products: selectedPlan.max_products,
+              current_max_clients: selectedPlan.max_clients
+            } as any)
+          
+          if (subError) {
+            console.error('Error creando suscripción gratuita:', subError)
+          } else {
+            console.log('✅ Plan gratuito asignado exitosamente')
+          }
+        } else {
+          // Para planes de pago, crear solicitud de suscripción
+          const { error: requestError } = await supabase
+            .from('subscription_requests')
+            .insert({
+              user_id: authData.user.id,
+              new_plan_id: selectedPlanId,
+              message: `Nuevo registro - Solicita plan ${selectedPlan?.display_name || 'desconocido'}`,
+              status: 'pending'
+            } as any)
+          
+          if (requestError) {
+            console.error('Error creating subscription request:', requestError)
+          }
+        }
+      }
+
+      const selectedPlan = availablePlans.find(p => p.id === selectedPlanId)
+      const isFree = selectedPlan?.name === 'free'
+      
       setMessage({
         type: "success",
-        text: "¡Cuenta creada exitosamente! Por favor, revisa tu correo electrónico y haz clic en el enlace de verificación para activar tu cuenta.",
+        text: isFree 
+          ? "¡Cuenta creada exitosamente! Ya puedes iniciar sesión con tu plan gratuito."
+          : "¡Cuenta creada exitosamente! Por favor, revisa tu correo electrónico para verificar tu cuenta. El administrador revisará tu solicitud de suscripción.",
       })
     } catch (error: any) {
       setMessage({
@@ -124,13 +228,86 @@ export function ModernAuthForm() {
     const password = formData.get("password") as string
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
         throw error
+      }
+
+      // Verificar estado de suscripción
+      if (authData?.user) {
+        // 1. Verificar si el usuario es subscription_manager (siempre tiene acceso)
+        const { data: isManager, error: managerError } = await supabase
+          .rpc('is_subscription_manager', { p_user_id: authData.user.id } as any)
+        
+        console.log('🔍 Login - Checking subscription_manager:', { userId: authData.user.id, isManager, managerError })
+        
+        if (managerError) {
+          console.error('Error verificando rol de manager:', managerError)
+        }
+        
+        if (isManager) {
+          console.log('✅ Usuario es subscription_manager - acceso permitido sin verificar suscripción')
+          // Manager tiene acceso total, no verificar suscripción
+        } else {
+          // 2. Verificar si el usuario es empleado (no necesita suscripción propia)
+          const { data: isEmployee, error: employeeError } = await supabase
+            .rpc('is_employee', { p_user_id: authData.user.id } as any)
+          
+          console.log('🔍 Login - Checking employee status:', { userId: authData.user.id, isEmployee, employeeError })
+          
+          if (employeeError) {
+            console.error('Error verificando estado de empleado:', employeeError)
+          }
+          
+          if (isEmployee) {
+            console.log('✅ Usuario es empleado - acceso permitido sin verificar suscripción propia')
+            // Empleados no necesitan suscripción propia, operan bajo la del owner
+          } else {
+            // 3. Solo verificar suscripción si NO es manager NI empleado
+            console.log('🔍 Usuario es owner - verificando suscripción...')
+            const { data: subscription, error: subError } = await supabase
+              .from('user_subscriptions')
+              .select('status, end_date, plan:subscription_plans(display_name)')
+              .eq('user_id', authData.user.id)
+              .maybeSingle()
+
+            console.log('🔍 Subscription query result:', { subscription, subError })
+
+            const sub = subscription as any
+            // Si no tiene suscripción o está inactiva
+            if (!sub || sub.status !== 'active') {
+              // Cerrar sesión inmediatamente
+              await supabase.auth.signOut()
+              
+              setMessage({
+                type: "error",
+                text: sub 
+                  ? `Tu suscripción está ${sub.status === 'expired' ? 'expirada' : 'inactiva'}. Contacta al administrador para renovarla.`
+                  : "No tienes una suscripción activa. Contacta al administrador para activar tu cuenta.",
+              })
+              setLoading(false)
+              return
+            }
+
+            // Si la suscripción expira pronto (menos de 7 días), mostrar advertencia
+            if (sub.end_date) {
+              const daysUntilExpiry = Math.ceil(
+                (new Date(sub.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+              )
+              
+              if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+                setMessage({
+                  type: "info",
+                  text: `⚠️ Tu suscripción ${sub.plan?.display_name || ''} expira en ${daysUntilExpiry} día(s). Contacta al administrador para renovarla.`,
+                })
+              }
+            }
+          }
+        }
       }
     } catch (error: any) {
       setMessage({
@@ -146,6 +323,7 @@ export function ModernAuthForm() {
     setLoading(true)
     setMessage(null)
     try {
+      // Nota: La verificación de suscripción para OAuth se maneja en el callback
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -806,6 +984,37 @@ export function ModernAuthForm() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="plan-select" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Plan de Suscripción
+                      </Label>
+                      <Select value={selectedPlanId} onValueChange={setSelectedPlanId} required>
+                        <SelectTrigger className="h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl">
+                          <SelectValue placeholder="Selecciona un plan" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700">
+                          {availablePlans.map(plan => (
+                            <SelectItem 
+                              key={plan.id} 
+                              value={plan.id}
+                              className="text-white hover:bg-slate-700 focus:bg-slate-700 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className="font-semibold">{plan.display_name}</span>
+                                <span className="text-sm ml-4">${plan.price_monthly}/mes</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedPlanId && (
+                        <p className="text-xs text-white/60">
+                          {availablePlans.find(p => p.id === selectedPlanId)?.description}
+                        </p>
+                      )}
+                    </div>
+
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -1088,27 +1297,28 @@ export function ModernAuthForm() {
                   Planes Disponibles
                 </h3>
 
-                {/* Plan Básico */}
+                {/* Plan Starter */}
                 <motion.div
                   whileHover={{ scale: 1.01, x: 3 }}
                   className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Básico</h4>
+                    <h4 className="text-white font-semibold text-sm">Plan Starter</h4>
                     <span className="text-blue-400 text-[10px] font-medium bg-blue-400/20 px-1.5 py-0.5 rounded">Ideal</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$X</span>
+                    <span className="text-xl font-bold text-white">$19.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 50 facturas/mes</li>
-                    <li>✓ Recibos térmicos</li>
-                    <li>✓ Reportes básicos</li>
+                    <li>✓ Hasta 500 facturas/mes</li>
+                    <li>✓ Hasta 3 Usuarios</li>
+                    <li>✓ 300 Productos/Servicios</li>
+                    <li>✓ 100 Clientes</li>
                   </ul>
                 </motion.div>
 
-                {/* Plan Profesional - Destacado */}
+                {/* Plan Professional - Destacado */}
                 <motion.div
                   whileHover={{ scale: 1.02, x: 3 }}
                   className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 rounded-lg p-2.5 backdrop-blur-sm relative overflow-hidden"
@@ -1117,37 +1327,59 @@ export function ModernAuthForm() {
                     Popular
                   </div>
                   <div className="flex items-center justify-between mb-1 mt-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Profesional</h4>
+                    <h4 className="text-white font-semibold text-sm">Plan Professional</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-xl font-bold text-white">$XX</span>
+                    <span className="text-xl font-bold text-white">$39.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/80 text-[10px]">
-                    <li>✓ Facturación ilimitada</li>
-                    <li>✓ Multi-moneda avanzado</li>
-                    <li>✓ Reportes personalizados</li>
+                    <li>✓ Hasta 1,000 facturas/mes</li>
+                    <li>✓ Hasta 10 Usuarios</li>
+                    <li>✓ 1,000 Productos/Servicios</li>
+                    <li>✓ 500 Clientes</li>
                   </ul>
                 </motion.div>
 
-                {/* Plan Empresarial */}
+                {/* Plan Business */}
                 <motion.div
                   whileHover={{ scale: 1.01, x: 3 }}
                   className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Empresarial</h4>
+                    <h4 className="text-white font-semibold text-sm">Plan Business</h4>
                     <span className="text-green-400 text-[10px] font-medium bg-green-400/20 px-1.5 py-0.5 rounded">Full</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$XX</span>
+                    <span className="text-xl font-bold text-white">$59.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ API personalizada</li>
-                    <li>✓ Soporte prioritario 24/7</li>
-                    <li>✓ Gestión avanzada de usuarios</li>
-                    
+                    <li>✓ Hasta 5,000 facturas/mes</li>
+                    <li>✓ Hasta 20 Usuarios</li>
+                    <li>✓ 5,000 Productos/Servicios</li>
+                    <li>✓ API Access + Soporte 24/7</li>
+                  </ul>
+                </motion.div>
+
+                {/* Plan Enterprise */}
+                <motion.div
+                  whileHover={{ scale: 1.01, x: 3 }}
+                  className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg p-2.5 backdrop-blur-sm hover:bg-purple-500/10 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-white font-semibold text-sm">Plan Enterprise</h4>
+                    <span className="text-purple-400 text-[10px] font-medium bg-purple-400/20 px-1.5 py-0.5 rounded">Premium</span>
+                  </div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-xl font-bold text-white">$89.99</span>
+                    <span className="text-white/60 text-[10px]">/mes</span>
+                  </div>
+                  <ul className="space-y-0.5 text-white/70 text-[10px]">
+                    <li>✓ Hasta 10,000 facturas/mes</li>
+                    <li>✓ Hasta 50 Usuarios</li>
+                    <li>✓ 20,000 Productos/Servicios</li>
+                    <li>✓ Multi-sucursales + Premium</li>
                   </ul>
                 </motion.div>
               </div>

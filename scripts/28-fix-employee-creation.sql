@@ -144,6 +144,7 @@ BEGIN
     INSERT INTO public.user_profiles (
       user_id,
       parent_user_id,
+      root_owner_id,
       role_id,
       display_name,
       department,
@@ -158,6 +159,7 @@ BEGIN
     ) VALUES (
       NEW.id,
       invitation_record.invited_by,
+      invitation_record.invited_by, -- root_owner_id = el owner que invitó
       invitation_record.role_id,
       invitation_record.display_name,
       invitation_record.department,

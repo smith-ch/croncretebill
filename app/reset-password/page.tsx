@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-3 sm:p-4 md:p-6 relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10" 
@@ -181,31 +181,31 @@ export default function ResetPasswordPage() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-md relative z-10 mx-auto"
       >
         <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
-          <CardHeader className="text-center pb-4">
+          <CardHeader className="text-center pb-3 sm:pb-4 px-4 sm:px-6 pt-6 sm:pt-8">
             <motion.div
-              className="flex items-center justify-center mb-4"
+              className="flex items-center justify-center mb-3 sm:mb-4"
               animate={{ 
                 rotate: [0, -10, 10, 0],
                 scale: [1, 1.1, 1]
               }}
               transition={{ duration: 0.5 }}
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                <Lock className="h-8 w-8 text-white" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                <Lock className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
               </div>
             </motion.div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
               Nueva Contraseña
             </h1>
-            <p className="text-white/70 text-sm">
+            <p className="text-white/70 text-xs sm:text-sm px-2">
               Ingresa tu nueva contraseña para restablecer el acceso a tu cuenta
             </p>
           </CardHeader>
 
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <AnimatePresence mode="wait">
               {message && (
                 <motion.div
@@ -216,19 +216,19 @@ export default function ResetPasswordPage() {
                   className="mb-4"
                 >
                   <div 
-                    className={`p-4 rounded-xl border backdrop-blur-sm ${
+                    className={`p-3 sm:p-4 rounded-xl border backdrop-blur-sm ${
                       message.type === "error" 
                         ? "border-red-300/30 bg-red-500/10" 
                         : "border-green-300/30 bg-green-500/10"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-3">
                       {message.type === "error" ? (
-                        <AlertCircle className="h-5 w-5 text-red-400" />
+                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 flex-shrink-0 mt-0.5 sm:mt-0" />
                       ) : (
-                        <CheckCircle className="h-5 w-5 text-green-400" />
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 flex-shrink-0 mt-0.5 sm:mt-0" />
                       )}
-                      <span className={`text-sm font-medium ${
+                      <span className={`text-xs sm:text-sm font-medium leading-snug ${
                         message.type === "error" ? "text-red-200" : "text-green-200"
                       }`}>
                         {message.text}
@@ -240,77 +240,77 @@ export default function ResetPasswordPage() {
             </AnimatePresence>
 
             {hasValidToken ? (
-              <form onSubmit={handleResetPassword} className="space-y-6">
+              <form onSubmit={handleResetPassword} className="space-y-4 sm:space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-white/90 flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
+                  <Label htmlFor="password" className="text-xs sm:text-sm font-medium text-white/90 flex items-center gap-1.5 sm:gap-2">
+                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Nueva Contraseña
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                    <Lock className="absolute left-3 sm:left-4 top-3 sm:top-4 h-4 w-4 sm:h-5 sm:w-5 text-white/60 z-10" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="pl-12 pr-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                      className="pl-10 sm:pl-12 pr-10 sm:pr-12 h-12 sm:h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl text-sm sm:text-base"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-4 text-white/60 hover:text-white/90 transition-colors z-10"
+                      className="absolute right-3 sm:right-4 top-3 sm:top-4 text-white/60 hover:text-white/90 transition-colors z-10"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-white/90 flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
+                  <Label htmlFor="confirmPassword" className="text-xs sm:text-sm font-medium text-white/90 flex items-center gap-1.5 sm:gap-2">
+                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Confirmar Contraseña
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                    <Lock className="absolute left-3 sm:left-4 top-3 sm:top-4 h-4 w-4 sm:h-5 sm:w-5 text-white/60 z-10" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="pl-12 pr-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                      className="pl-10 sm:pl-12 pr-10 sm:pr-12 h-12 sm:h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl text-sm sm:text-base"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-4 text-white/60 hover:text-white/90 transition-colors z-10"
+                      className="absolute right-3 sm:right-4 top-3 sm:top-4 text-white/60 hover:text-white/90 transition-colors z-10"
                     >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                     </button>
                   </div>
                 </div>
 
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="pt-4"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="pt-2 sm:pt-4"
                 >
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-300 shadow-xl hover:shadow-2xl border-0 rounded-xl"
+                    className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-300 shadow-xl hover:shadow-2xl border-0 rounded-xl text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
                         Actualizando...
                       </>
                     ) : (
                       <>
-                        <Lock className="h-5 w-5 mr-2" />
+                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                         Actualizar Contraseña
                       </>
                     )}
@@ -318,12 +318,12 @@ export default function ResetPasswordPage() {
                 </motion.div>
               </form>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-6 sm:py-8">
                 <Link href="/">
                   <Button
-                    className="w-full h-14 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                    className="w-full h-12 sm:h-14 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl text-sm sm:text-base"
                   >
-                    <ArrowLeft className="h-5 w-5 mr-2" />
+                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Volver al Inicio de Sesión
                   </Button>
                 </Link>
@@ -336,9 +336,9 @@ export default function ResetPasswordPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center mt-6"
+          className="text-center mt-4 sm:mt-6 px-4"
         >
-          <p className="text-sm text-white/60">
+          <p className="text-xs sm:text-sm text-white/60">
             Powered by{" "}
             <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               ConcreteBill

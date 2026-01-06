@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, UserCheck, Edit, Trash2, Phone, CreditCard, Loader2 } from "lucide-react"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 
 export default function DriversPage() {
@@ -25,7 +26,15 @@ export default function DriversPage() {
   const [error, setError] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
+  const { hasAccessToDrivers, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Conductores', hasAccessToDrivers())
+    }
+  }, [planLoading, hasAccessToDrivers])
 
   useEffect(() => {
     fetchDrivers()

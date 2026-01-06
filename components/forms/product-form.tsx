@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { syncQueue } from "@/lib/sync-queue"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface ProductFormProps {
   product?: any
@@ -29,6 +30,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(product?.category_id || "")
   const { toast } = useToast()
   const isOnline = useOnlineStatus()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -118,11 +120,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
     }
 
     try {
-      // Obtener usuario de la sesión local (funciona offline)
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      
-      if (!user) {
+      if (!dataUserId) {
         toast({
           variant: "destructive",
           title: "❌ Sesión expirada",
@@ -130,11 +128,6 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
         })
         setLoading(false)
         return
-      }
-
-      // Verificar que el usuario tiene un ID válido
-      if (!user.id || user.id.length === 0) {
-        throw new Error("ID de usuario inválido")
       }
 
       if (product) {
@@ -162,7 +155,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             .from("products")
             .insert({
               ...productData,
-              user_id: user.id,
+              user_id: dataUserId,
               current_stock: productData.stock_quantity,
             })
             .select()
@@ -185,7 +178,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
           const tempProduct = {
             ...productData,
             id: newProductId,
-            user_id: user.id,
+            user_id: dataUserId,
             current_stock: productData.stock_quantity,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -200,10 +193,10 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             entity: 'product',
             data: {
               ...productData,
-              user_id: user.id,
+              user_id: dataUserId,
               current_stock: productData.stock_quantity,
             },
-            userId: user.id,
+            userId: dataUserId,
             tempId: newProductId
           })
 
@@ -220,7 +213,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
           const { data: warehouseData, error: warehouseError } = await supabase
             .from("warehouses")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("user_id", dataUserId)
             .eq("is_default", true)
             .single()
 
@@ -229,7 +222,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             const { data: newWarehouse, error: createWarehouseError } = await supabase
               .from("warehouses")
               .insert({
-                user_id: user.id,
+                user_id: dataUserId,
                 name: 'Almacén Principal',
                 description: 'Almacén principal del sistema',
                 location: 'Principal',
@@ -263,7 +256,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
             await supabase
               .from("stock_movements")
               .insert({
-                user_id: user.id,
+                user_id: dataUserId,
                 product_id: newProductId,
                 warehouse_id: warehouse.id,
                 movement_type: 'entrada',

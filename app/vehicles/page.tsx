@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Car, Edit, Trash2, Loader2 } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 
 export default function VehiclesPage() {
@@ -20,6 +21,7 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const { canDelete } = useUserPermissions()
+  const { hasAccessToVehicles, requireAccess, isLoading: planLoading } = usePlanAccess()
   const [editingVehicle, setEditingVehicle] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
@@ -27,6 +29,13 @@ export default function VehiclesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const { toast } = useToast()
+
+  // Check plan access
+  useEffect(() => {
+    if (!planLoading) {
+      requireAccess('Módulo de Vehículos', hasAccessToVehicles())
+    }
+  }, [planLoading, hasAccessToVehicles])
 
   useEffect(() => {
     fetchVehicles()

@@ -9,9 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/forms/client-form"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react"
+import { Plus, Search, Users, Edit, Trash2, Mail, Phone, AlertCircle } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 import { useToast } from "@/hooks/use-toast"
+import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import Link from "next/link"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -22,30 +26,31 @@ export default function ClientsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const { canDelete, canEdit } = useUserPermissions()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
   const { toast } = useToast()
+  const { limits, usage, canAddClients, remainingClients, refreshUsage } = useSubscriptionLimits()
 
   useEffect(() => {
-    fetchClients()
-  }, [])
+    if (!userIdLoading && dataUserId) {
+      fetchClients()
+    }
+  }, [dataUserId, userIdLoading])
 
   const fetchClients = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         return
       }
 
       const { data, error } = await supabase
         .from("clients")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false })
 
       if (error) { throw error }
       setClients(data || [])
+      refreshUsage()
     } catch (error) {
       console.error("Error fetching clients:", error)
     } finally {
@@ -174,9 +179,21 @@ export default function ClientsPage() {
           </div>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white border-0">
+              <Button 
+                onClick={(e) => {
+                  if (!canAddClients()) {
+                    e.preventDefault()
+                    toast({
+                      title: "Límite alcanzado",
+                      description: `Has alcanzado el límite de ${limits.maxClients} clientes de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                      variant: "destructive",
+                    })
+                  }
+                }}
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white border-0"
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Nuevo Cliente
+                {canAddClients() ? "Nuevo Cliente" : "Límite Alcanzado"}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
@@ -193,6 +210,25 @@ export default function ClientsPage() {
             </DialogContent>
           </Dialog>
         </motion.div>
+
+        {!limits.isLoading && remainingClients <= 2 && (
+          <Alert className={remainingClients === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+            <AlertCircle className={remainingClients === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
+            <AlertDescription className={remainingClients === 0 ? "text-red-800" : "text-amber-800"}>
+              {remainingClients === 0 ? (
+                <span>
+                  <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxClients} clientes de tu {limits.planDisplayName}. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
+                </span>
+              ) : (
+                <span>
+                  <strong>Atención:</strong> Te quedan solo {remainingClients} cliente(s) de {limits.maxClients} en tu {limits.planDisplayName}. 
+                  <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card variant="elevated" className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-white to-purple-50 border-b border-purple-100">
@@ -218,11 +254,21 @@ export default function ClientsPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">No hay clientes registrados</h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">Comienza a construir tu cartera de clientes agregando tu primer cliente</p>
                 <Button 
-                  onClick={() => setShowForm(true)}
+                  onClick={() => {
+                    if (canAddClients()) {
+                      setShowForm(true)
+                    } else {
+                      toast({
+                        title: "Límite alcanzado",
+                        description: `Has alcanzado el límite de ${limits.maxClients} clientes de tu ${limits.planDisplayName}. Actualiza tu plan para continuar.`,
+                        variant: "destructive",
+                      })
+                    }
+                  }}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Agregar Primer Cliente
+                  {canAddClients() ? "Agregar Primer Cliente" : "Límite Alcanzado"}
                 </Button>
               </div>
             ) : (

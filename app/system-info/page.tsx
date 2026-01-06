@@ -20,10 +20,24 @@ import {
   AlertTriangle,
   Sparkles,
   CreditCard,
-  Calendar
+  Calendar,
+  Send,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { toast } from '@/hooks/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 interface PWACheck {
   name: string
@@ -31,13 +45,29 @@ interface PWACheck {
   description: string
 }
 
+interface SubscriptionPlan {
+  id: string
+  name: string
+  display_name: string
+  description: string
+  price_monthly: number
+  price_yearly: number
+}
+
 export default function SystemInfoPage() {
   const router = useRouter()
   const [checks, setChecks] = useState<PWACheck[]>([])
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [canInstall, setCanInstall] = useState(false)
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
+  const [showRequestDialog, setShowRequestDialog] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null)
+  const [requestMessage, setRequestMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
+    loadPlansAndUser()
     const runChecks = async () => {
       const results: PWACheck[] = []
 
@@ -128,6 +158,79 @@ export default function SystemInfoPage() {
     })
 
   }, [])
+
+  async function loadPlansAndUser() {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
+      }
+
+      // Load subscription plans
+      const { data: plansData, error } = await supabase
+        .from('subscription_plans')
+        .select('id, name, display_name, description, price_monthly, price_yearly')
+        .eq('is_active', true)
+        .order('price_monthly')
+
+      if (error) throw error
+      setPlans(plansData || [])
+    } catch (error) {
+      console.error('Error loading plans:', error)
+    }
+  }
+
+  async function handleRequestSubscription(plan: SubscriptionPlan) {
+    if (!userId) {
+      toast({
+        title: "Inicia sesión",
+        description: "Debes estar registrado e iniciar sesión para solicitar una suscripción",
+        variant: "destructive"
+      })
+      router.push('/login')
+      return
+    }
+
+    setSelectedPlan(plan)
+    setShowRequestDialog(true)
+  }
+
+  async function submitSubscriptionRequest() {
+    if (!selectedPlan || !userId) return
+
+    setSubmitting(true)
+    try {
+      const { error } = await supabase
+        .from('subscription_requests')
+        .insert({
+          user_id: userId,
+          plan_id: selectedPlan.id,
+          message: requestMessage || null,
+          status: 'pending'
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "✅ Solicitud Enviada",
+        description: `Tu solicitud para el ${selectedPlan.display_name} ha sido enviada. El administrador la revisará pronto.`,
+      })
+
+      setShowRequestDialog(false)
+      setSelectedPlan(null)
+      setRequestMessage('')
+    } catch (error: any) {
+      console.error('Error creating request:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Error al enviar la solicitud",
+        variant: "destructive"
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const handleInstall = async () => {
     if (installPrompt) {
@@ -294,7 +397,7 @@ export default function SystemInfoPage() {
                         </div>
                         <h5 className="font-bold text-blue-900 dark:text-blue-200">Plan Básico</h5>
                       </div>
-                      <ul className="space-y-1 text-xs text-blue-800 dark:text-blue-300">
+                      <ul className="space-y-1 text-xs text-blue-800 dark:text-blue-300 mb-3">
                         <li className="flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" />
                           50 facturas/mes
@@ -312,9 +415,19 @@ export default function SystemInfoPage() {
                           Soporte por email
                         </li>
                       </ul>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-semibold">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mb-3 font-semibold">
                         Ideal para emprendedores
                       </p>
+                      {plans.find(p => p.name === 'starter') && (
+                        <Button
+                          size="sm"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => handleRequestSubscription(plans.find(p => p.name === 'starter')!)}
+                        >
+                          <Send className="h-3 w-3 mr-2" />
+                          Solicitar Plan
+                        </Button>
+                      )}
                     </div>
                     
                     {/* Plan Profesional */}
@@ -328,7 +441,7 @@ export default function SystemInfoPage() {
                         </div>
                         <h5 className="font-bold text-purple-900 dark:text-purple-200">Plan Profesional</h5>
                       </div>
-                      <ul className="space-y-1 text-xs text-purple-800 dark:text-purple-300">
+                      <ul className="space-y-1 text-xs text-purple-800 dark:text-purple-300 mb-3">
                         <li className="flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" />
                           Facturas ilimitadas
@@ -347,9 +460,19 @@ export default function SystemInfoPage() {
                           Soporte prioritario
                         </li>
                       </ul>
-                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 font-semibold">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mb-3 font-semibold">
                         Perfecto para negocios en crecimiento
                       </p>
+                      {plans.find(p => p.name === 'professional') && (
+                        <Button
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                          onClick={() => handleRequestSubscription(plans.find(p => p.name === 'professional')!)}
+                        >
+                          <Send className="h-3 w-3 mr-2" />
+                          Solicitar Plan
+                        </Button>
+                      )}
                     </div>
                     
                     {/* Plan Empresarial */}
@@ -360,7 +483,7 @@ export default function SystemInfoPage() {
                         </div>
                         <h5 className="font-bold text-amber-900 dark:text-amber-200">Plan Empresarial</h5>
                       </div>
-                      <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
+                      <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-300 mb-3">
                         <li className="flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" />
                           Todo ilimitado
@@ -379,9 +502,19 @@ export default function SystemInfoPage() {
                           Soporte 24/7
                         </li>
                       </ul>
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-semibold">
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mb-3 font-semibold">
                         Para grandes empresas
                       </p>
+                      {plans.find(p => p.name === 'enterprise') && (
+                        <Button
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white"
+                          onClick={() => handleRequestSubscription(plans.find(p => p.name === 'enterprise')!)}
+                        >
+                          <Send className="h-3 w-3 mr-2" />
+                          Solicitar Plan
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -676,6 +809,90 @@ export default function SystemInfoPage() {
           </Button>
         </div>
       </div>
+
+      {/* Dialog de Solicitud de Suscripción */}
+      <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Solicitar Suscripción</DialogTitle>
+            <DialogDescription>
+              {selectedPlan && (
+                <span>
+                  Estás solicitando el <strong>{selectedPlan.display_name}</strong>. 
+                  El administrador revisará tu solicitud y te otorgará acceso.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPlan && (
+            <div className="space-y-4">
+              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg space-y-2">
+                <h4 className="font-semibold text-lg">{selectedPlan.display_name}</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{selectedPlan.description}</p>
+                <div className="flex gap-4 text-sm">
+                  <span className="font-medium">
+                    ${selectedPlan.price_monthly.toFixed(2)}/mes
+                  </span>
+                  <span className="text-slate-500">o</span>
+                  <span className="font-medium">
+                    ${selectedPlan.price_yearly.toFixed(2)}/año
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Mensaje adicional (opcional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Cuéntanos por qué necesitas este plan o alguna información adicional..."
+                  value={requestMessage}
+                  onChange={(e) => setRequestMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm">
+                <p className="text-blue-800 dark:text-blue-200">
+                  ℹ️ Tu solicitud será revisada por el administrador <strong>smithrodriguez345@gmail.com</strong>. 
+                  Recibirás una notificación cuando se procese.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRequestDialog(false)
+                setSelectedPlan(null)
+                setRequestMessage('')
+              }}
+              disabled={submitting}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={submitSubscriptionRequest}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar Solicitud
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

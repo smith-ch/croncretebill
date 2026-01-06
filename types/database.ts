@@ -446,12 +446,74 @@ export interface Database {
           updated_at?: string
         }
       }
+      employee_goals: {
+        Row: {
+          id: string
+          employee_id: string
+          owner_id: string
+          periodo_mes: number
+          periodo_anio: number
+          fecha_inicio: string
+          fecha_fin: string
+          meta_ventas_total: number
+          meta_facturas_cantidad: number
+          meta_clientes_nuevos: number
+          notas: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          owner_id: string
+          periodo_mes: number
+          periodo_anio: number
+          fecha_inicio: string
+          fecha_fin: string
+          meta_ventas_total?: number
+          meta_facturas_cantidad?: number
+          meta_clientes_nuevos?: number
+          notas?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          owner_id?: string
+          periodo_mes?: number
+          periodo_anio?: number
+          fecha_inicio?: string
+          fecha_fin?: string
+          meta_ventas_total?: number
+          meta_facturas_cantidad?: number
+          meta_clientes_nuevos?: number
+          notas?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_employee_metrics: {
+        Args: {
+          p_employee_id: string
+          p_owner_id: string
+          p_fecha_inicio: string
+          p_fecha_fin: string
+        }
+        Returns: {
+          ventas_total: number
+          facturas_cantidad: number
+          clientes_nuevos: number
+        }
+      }
     }
     Enums: {
       [_ in never]: never
