@@ -76,6 +76,29 @@ export default function MySubscriptionPage() {
   useEffect(() => {
     loadSubscription()
     loadAvailablePlans()
+
+    // Suscribirse a cambios en tiempo real en la suscripción del usuario
+    const subscriptionChannel = supabase
+      .channel('my-subscription-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuchar todos los eventos
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        (payload) => {
+          console.log('🔄 Realtime: Mi suscripción cambió', payload)
+          // Recargar la suscripción cuando hay cambios
+          loadSubscription()
+        }
+      )
+      .subscribe()
+
+    // Cleanup al desmontar
+    return () => {
+      supabase.removeChannel(subscriptionChannel)
+    }
   }, [])
 
   const loadSubscription = async () => {

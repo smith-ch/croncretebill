@@ -141,6 +141,7 @@ export default function SubscriptionsManagementPage() {
   const [editStatus, setEditStatus] = useState('')
   const [editNotes, setEditNotes] = useState('')
   const [editReason, setEditReason] = useState('')
+  const [editEndDate, setEditEndDate] = useState('')
 
   // Edit Plan states
   const [editPlanName, setEditPlanName] = useState('')
@@ -462,7 +463,8 @@ export default function SubscriptionsManagementPage() {
           description: `Plan gratuito asignado con estado ${newStatus}`
         })
       } else {
-        // Usuario ya tiene suscripción, solo actualizar estado
+        // Usuario ya tiene suscripción, actualizar estado y fecha
+        // Primero actualizar el estado usando RPC
         const { data, error } = await supabase.rpc('update_subscription_status', {
           p_user_email: subscription.user_email,
           p_new_status: newStatus,
@@ -477,15 +479,63 @@ export default function SubscriptionsManagementPage() {
           throw new Error(result.message)
         }
 
+        // Actualizar la fecha de vencimiento directamente
+        const updateData: any = {
+          updated_at: new Date().toISOString(),
+          managed_by: user?.id
+        }
+
+        if (editEndDate && editEndDate.trim() !== '') {
+          // Si hay fecha, convertirla a ISO
+          updateData.end_date = new Date(editEndDate + 'T00:00:00').toISOString()
+          console.log('📅 Actualizando end_date a:', updateData.end_date)
+        } else {
+          // Si está vacía, establecer null (sin límite)
+          updateData.end_date = null
+          console.log('📅 Eliminando end_date (sin límite)')
+        }
+
+        // Actualizar notas si hay razón
+        if (editReason) {
+          updateData.notes = (subscription.notes || '') + `\n[${new Date().toLocaleString()}] ${editReason}`
+        }
+
+        console.log('🔄 Datos a actualizar:', updateData)
+        console.log('🆔 Subscription ID:', subscription.id)
+
+        // Verificar sesión actual
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('🔐 Token presente:', !!session?.access_token)
+        console.log('👤 Usuario:', session?.user?.email)
+        console.log('🎭 Metadata:', session?.user?.user_metadata)
+
+        const { data: updateResult, error: dateError } = await supabase
+          .from('user_subscriptions')
+          .update(updateData)
+          .eq('id', subscription.id)
+          .select()
+
+        console.log('✅ Resultado de actualización:', updateResult)
+
+        if (dateError) {
+          console.error('❌ Error actualizando fecha:', dateError)
+          throw dateError
+        }
+
+        if (!updateResult || updateResult.length === 0) {
+          console.warn('⚠️ No se actualizó ninguna fila. Verificar permisos RLS.')
+        }
+
         toast({
-          title: "✅ Estado Actualizado",
-          description: `Suscripción actualizada a ${newStatus}`
+          title: "✅ Suscripción Actualizada",
+          description: `Estado: ${newStatus}${editEndDate ? `, Vence: ${new Date(editEndDate).toLocaleDateString()}` : ', Sin límite de tiempo'}`
         })
       }
 
       setShowEditDialog(false)
       setSelectedSubscription(null)
       setEditReason('')
+      setEditEndDate('')
       
       await loadData()
     } catch (error: any) {
@@ -999,6 +1049,7 @@ export default function SubscriptionsManagementPage() {
                               setSelectedSubscription(sub)
                               setEditStatus(sub.status)
                               setEditNotes(sub.notes || '')
+                              setEditEndDate(sub.end_date ? new Date(sub.end_date).toISOString().split('T')[0] : '')
                               setShowEditDialog(true)
                             }}
                           >
@@ -1356,6 +1407,19 @@ export default function SubscriptionsManagementPage() {
                   <SelectItem value="expired">Expirada</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="editEndDate">Fecha de Vencimiento (Opcional)</Label>
+              <Input
+                id="editEndDate"
+                type="date"
+                value={editEndDate}
+                onChange={(e) => setEditEndDate(e.target.value)}
+                placeholder="Dejar vacío para sin límite"
+              />
+              <p className="text-xs text-muted-foreground">
+                Dejar vacío para suscripción sin límite de tiempo
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="editReason">Razón del Cambio</Label>
