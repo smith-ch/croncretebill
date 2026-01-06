@@ -179,14 +179,21 @@ export default function SubscriptionsManagementPage() {
         return
       }
 
-      // Verificar si es subscription manager
-      const { data, error } = await supabase.rpc('is_subscription_manager', {
+      // Verificar si es subscription manager o super admin
+      const { data: isManager, error: managerError } = await supabase.rpc('is_subscription_manager', {
         p_user_id: user.id
       })
 
-      if (error) throw error
+      const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc('is_super_admin', {
+        p_user_id: user.id
+      })
 
-      if (!data) {
+      if (managerError && superAdminError) {
+        throw new Error('Error verificando permisos')
+      }
+
+      // Permitir acceso si es subscription manager O super admin
+      if (!isManager && !isSuperAdmin) {
         toast({
           title: "Acceso Denegado",
           description: "No tienes permisos para acceder a esta página",
@@ -240,24 +247,41 @@ export default function SubscriptionsManagementPage() {
       if (plansError) throw plansError
       setPlans(plansData || [])
 
-      // Cargar solo usuarios CON suscripciones
-      const { data: subsData, error: subsError } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-
-      if (subsError) throw subsError
-      
-      // Obtener emails de los usuarios con suscripción
-      const { data: profiles, error: profilesError } = await supabase
+      // Paso 1: Obtener todos los owners (usuarios principales)
+      const { data: ownerProfiles, error: profilesError } = await supabase
         .from('user_profiles')
-        .select('user_id, email, display_name')
-        .in('user_id', subsData?.map((s: any) => s.user_id) || [])
+        .select('user_id, email, display_name, parent_user_id')
+        .is('parent_user_id', null)
 
       if (profilesError) throw profilesError
 
-      // Combinar suscripciones con información de usuario
+      console.log('👥 Total de OWNERS encontrados:', ownerProfiles?.length || 0)
+      console.log('👥 Owners:', ownerProfiles?.map(p => p.email))
+
+      if (!ownerProfiles || ownerProfiles.length === 0) {
+        setSubscriptions([])
+        return
+      }
+
+      // Paso 2: Obtener las IDs de todos los owners
+      const ownerIds = ownerProfiles.map(p => p.user_id)
+      console.log('🆔 Owner IDs:', ownerIds)
+
+      // Paso 3: Cargar TODAS las suscripciones de esos owners
+      const { data: subsData, error: subsError } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .in('user_id', ownerIds)
+        .order('created_at', { ascending: false })
+
+      if (subsError) throw subsError
+
+      console.log('📊 Total de SUSCRIPCIONES encontradas:', subsData?.length || 0)
+      console.log('📊 Suscripciones:', subsData?.map(s => ({ user_id: s.user_id, status: s.status })))
+
+      // Paso 4: Combinar datos de suscripciones con perfiles y planes
       const formattedSubs = (subsData || []).map((subscription: any) => {
-        const profile = profiles?.find((p: any) => p.user_id === subscription.user_id)
+        const profile = ownerProfiles.find(p => p.user_id === subscription.user_id)
         const plan = plansData?.find(p => p.id === subscription.plan_id)
         
         return {
@@ -267,6 +291,8 @@ export default function SubscriptionsManagementPage() {
           plan_display_name: plan?.display_name || 'N/A'
         }
       })
+      
+      console.log('✅ Suscripciones formateadas:', formattedSubs.length)
       
       setSubscriptions(formattedSubs)
 
@@ -280,33 +306,38 @@ export default function SubscriptionsManagementPage() {
       if (historyError) throw historyError
       setHistory(historyData || [])
 
-      // Cargar notificaciones de pago pendientes
+      // Cargar notificaciones de pago pendientes (solo de owners, no empleados)
       const { data: notificationsData, error: notificationsError } = await supabase
         .from('payment_notifications')
         .select(`
           *,
           subscription:subscription_id (
-            plan:plan_id (
-              name,
-              display_name
-            )
+            plan_id
           )
         `)
         .order('created_at', { ascending: false })
 
       if (notificationsError) throw notificationsError
       
-      const formattedNotifications = (notificationsData || []).map((notif: any) => ({
-        ...notif,
-        subscription: notif.subscription ? {
-          plan_name: notif.subscription.plan?.name || 'N/A',
-          plan_display_name: notif.subscription.plan?.display_name || 'N/A'
-        } : undefined
-      }))
+      // Filtrar notificaciones solo de owners (ya tenemos ownerIds definido arriba)
+      const formattedNotifications = (notificationsData || [])
+        .filter((notif: any) => ownerIds.includes(notif.user_id)) // Solo notificaciones de owners
+        .map((notif: any) => {
+          // Buscar el plan en la lista de planes que ya tenemos
+          const plan = plans.find(p => p.id === notif.subscription?.plan_id)
+          
+          return {
+            ...notif,
+            subscription: notif.subscription ? {
+              plan_name: plan?.name || 'N/A',
+              plan_display_name: plan?.display_name || 'N/A'
+            } : undefined
+          }
+        })
       
       setPaymentNotifications(formattedNotifications)
 
-      // Cargar solicitudes de suscripción pendientes
+      // Cargar solicitudes de suscripción pendientes (solo de owners, no empleados)
       const { data: requestsData, error: requestsError } = await supabase
         .from('subscription_requests')
         .select('*')
@@ -314,9 +345,9 @@ export default function SubscriptionsManagementPage() {
 
       if (requestsError) throw requestsError
 
-      // Obtener información de usuarios y planes para las solicitudes
+      // Obtener información de usuarios y planes para las solicitudes (solo owners)
       const formattedRequests = await Promise.all((requestsData || []).map(async (request: any) => {
-        const profile = profiles?.find((p: any) => p.user_id === request.user_id)
+        const profile = ownerProfiles?.find((p: any) => p.user_id === request.user_id)
         const plan = plansData?.find(p => p.id === request.plan_id)
         
         return {
@@ -327,7 +358,9 @@ export default function SubscriptionsManagementPage() {
         }
       }))
 
-      setSubscriptionRequests(formattedRequests)
+      // Filtrar solo solicitudes de owners (excluir empleados sin perfil owner)
+      const ownerRequests = formattedRequests.filter(req => req.user_email !== 'Sin email')
+      setSubscriptionRequests(ownerRequests)
 
     } catch (error: any) {
       console.error('Error loading data:', error)

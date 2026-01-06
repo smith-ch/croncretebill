@@ -331,6 +331,30 @@ export default function EmployeeConfigPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Alerta si no puede agregar empleados */}
+          {!canAddUsers && (
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <strong>Tu plan "{limits.planDisplayName}" no permite crear empleados.</strong>
+                <br />
+                Actualiza tu plan de suscripción para agregar empleados a tu equipo.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Mostrar límite alcanzado */}
+          {canAddUsers && remainingUsers <= 0 && (
+            <Alert className="bg-red-50 border-red-200">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                <strong>Has alcanzado el límite de {limits.maxUsers - 1} empleado(s).</strong>
+                <br />
+                Actualiza tu plan para agregar más empleados.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
@@ -340,6 +364,7 @@ export default function EmployeeConfigPage() {
                 placeholder="empleado@ejemplo.com"
                 value={newEmployee.email}
                 onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                disabled={!canAddUsers || remainingUsers <= 0}
               />
             </div>
             <div className="space-y-2">
@@ -417,8 +442,8 @@ export default function EmployeeConfigPage() {
             onClick={() => {
               if (!canAddUsers()) {
                 toast({
-                  title: "Límite alcanzado",
-                  description: `Has alcanzado el límite de ${limits.maxUsers} usuarios de tu ${limits.planDisplayName}. Actualiza tu plan para agregar más empleados.`,
+                  title: "Empleados no permitidos",
+                  description: `Tu plan "${limits.planDisplayName}" no permite crear empleados. Actualiza tu plan para agregar empleados a tu equipo.`,
                   variant: "destructive",
                 })
               } else {
@@ -436,7 +461,7 @@ export default function EmployeeConfigPage() {
             ) : (
               <>
                 <UserCheck className="h-4 w-4 mr-2" />
-                {canAddUsers() ? "Crear Empleado" : "Límite Alcanzado"}
+                {canAddUsers() ? "Crear Empleado" : "Plan no permite empleados"}
               </>
             )}
           </Button>

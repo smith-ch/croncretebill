@@ -155,26 +155,58 @@ export function ModernAuthForm() {
         throw error
       }
 
-      // Crear una solicitud de suscripción
+      // Crear suscripción automática si es plan gratuito
       if (authData?.user) {
         const selectedPlan = availablePlans.find(p => p.id === selectedPlanId)
-        const { error: requestError } = await supabase
-          .from('subscription_requests')
-          .insert({
-            user_id: authData.user.id,
-            new_plan_id: selectedPlanId,
-            message: `Nuevo registro - Solicita plan ${selectedPlan?.display_name || 'desconocido'}`,
-            status: 'pending'
-          } as any)
         
-        if (requestError) {
-          console.error('Error creating subscription request:', requestError)
+        // Si es plan gratuito (free), crear suscripción activa inmediatamente
+        if (selectedPlan?.name === 'free') {
+          console.log('📦 Asignando plan gratuito automáticamente...')
+          
+          const { error: subError } = await supabase
+            .from('user_subscriptions')
+            .insert({
+              user_id: authData.user.id,
+              plan_id: selectedPlanId,
+              status: 'active',
+              start_date: new Date().toISOString(),
+              end_date: null, // Sin límite para plan gratuito
+              current_max_users: selectedPlan.max_users,
+              current_max_invoices: selectedPlan.max_invoices,
+              current_max_products: selectedPlan.max_products,
+              current_max_clients: selectedPlan.max_clients
+            } as any)
+          
+          if (subError) {
+            console.error('Error creando suscripción gratuita:', subError)
+          } else {
+            console.log('✅ Plan gratuito asignado exitosamente')
+          }
+        } else {
+          // Para planes de pago, crear solicitud de suscripción
+          const { error: requestError } = await supabase
+            .from('subscription_requests')
+            .insert({
+              user_id: authData.user.id,
+              new_plan_id: selectedPlanId,
+              message: `Nuevo registro - Solicita plan ${selectedPlan?.display_name || 'desconocido'}`,
+              status: 'pending'
+            } as any)
+          
+          if (requestError) {
+            console.error('Error creating subscription request:', requestError)
+          }
         }
       }
 
+      const selectedPlan = availablePlans.find(p => p.id === selectedPlanId)
+      const isFree = selectedPlan?.name === 'free'
+      
       setMessage({
         type: "success",
-        text: "¡Cuenta creada exitosamente! Por favor, revisa tu correo electrónico para verificar tu cuenta. El administrador revisará tu solicitud de suscripción.",
+        text: isFree 
+          ? "¡Cuenta creada exitosamente! Ya puedes iniciar sesión con tu plan gratuito."
+          : "¡Cuenta creada exitosamente! Por favor, revisa tu correo electrónico para verificar tu cuenta. El administrador revisará tu solicitud de suscripción.",
       })
     } catch (error: any) {
       setMessage({
@@ -237,11 +269,13 @@ export function ModernAuthForm() {
           } else {
             // 3. Solo verificar suscripción si NO es manager NI empleado
             console.log('🔍 Usuario es owner - verificando suscripción...')
-            const { data: subscription } = await supabase
+            const { data: subscription, error: subError } = await supabase
               .from('user_subscriptions')
-              .select('status, end_date, plan:plan_id(display_name)')
+              .select('status, end_date, plan:subscription_plans(display_name)')
               .eq('user_id', authData.user.id)
-              .single()
+              .maybeSingle()
+
+            console.log('🔍 Subscription query result:', { subscription, subError })
 
             const sub = subscription as any
             // Si no tiene suscripción o está inactiva
@@ -1273,12 +1307,12 @@ export function ModernAuthForm() {
                     <span className="text-blue-400 text-[10px] font-medium bg-blue-400/20 px-1.5 py-0.5 rounded">Ideal</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$499</span>
+                    <span className="text-xl font-bold text-white">$19.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 250 facturas/mes</li>
-                    <li>✓ Hasta 5 Usuarios</li>
+                    <li>✓ Hasta 500 facturas/mes</li>
+                    <li>✓ Hasta 3 Usuarios</li>
                     <li>✓ 300 Productos/Servicios</li>
                     <li>✓ 100 Clientes</li>
                   </ul>
@@ -1296,12 +1330,12 @@ export function ModernAuthForm() {
                     <h4 className="text-white font-semibold text-sm">Plan Professional</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-xl font-bold text-white">$999</span>
+                    <span className="text-xl font-bold text-white">$39.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/80 text-[10px]">
                     <li>✓ Hasta 1,000 facturas/mes</li>
-                    <li>✓ Hasta 5 Usuarios</li>
+                    <li>✓ Hasta 10 Usuarios</li>
                     <li>✓ 1,000 Productos/Servicios</li>
                     <li>✓ 500 Clientes</li>
                   </ul>
@@ -1317,12 +1351,12 @@ export function ModernAuthForm() {
                     <span className="text-green-400 text-[10px] font-medium bg-green-400/20 px-1.5 py-0.5 rounded">Full</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$1,999</span>
+                    <span className="text-xl font-bold text-white">$59.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
                     <li>✓ Hasta 5,000 facturas/mes</li>
-                    <li>✓ Hasta 15 Usuarios</li>
+                    <li>✓ Hasta 20 Usuarios</li>
                     <li>✓ 5,000 Productos/Servicios</li>
                     <li>✓ API Access + Soporte 24/7</li>
                   </ul>
@@ -1338,12 +1372,12 @@ export function ModernAuthForm() {
                     <span className="text-purple-400 text-[10px] font-medium bg-purple-400/20 px-1.5 py-0.5 rounded">Premium</span>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-lg font-bold text-white">$3,999</span>
+                    <span className="text-xl font-bold text-white">$89.99</span>
                     <span className="text-white/60 text-[10px]">/mes</span>
                   </div>
                   <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 20,000 facturas/mes</li>
-                    <li>✓ Hasta 100 Usuarios</li>
+                    <li>✓ Hasta 10,000 facturas/mes</li>
+                    <li>✓ Hasta 50 Usuarios</li>
                     <li>✓ 20,000 Productos/Servicios</li>
                     <li>✓ Multi-sucursales + Premium</li>
                   </ul>

@@ -49,6 +49,52 @@ export async function POST(request: Request) {
       );
     }
 
+    // Verificar límite de empleados según plan de suscripción
+    const { data: subscription } = await supabaseAdmin
+      .from('user_subscriptions')
+      .select(`
+        current_max_users,
+        subscription_plans!inner (
+          name,
+          display_name
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (!subscription) {
+      return NextResponse.json(
+        { error: 'No tienes una suscripción activa' },
+        { status: 403 }
+      );
+    }
+
+    const sub = subscription as any;
+    const maxUsers = sub.current_max_users || 1;
+    const planName = sub.subscription_plans?.display_name || 'Desconocido';
+
+    // Plan gratuito no permite empleados (max_users = 1 = solo owner)
+    if (maxUsers <= 1) {
+      return NextResponse.json(
+        { error: `Tu plan "${planName}" no permite crear empleados. Actualiza tu plan para agregar empleados a tu equipo.` },
+        { status: 403 }
+      );
+    }
+
+    // Contar empleados actuales
+    const { count: currentEmployees } = await supabaseAdmin
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('parent_user_id', user.id);
+
+    if (currentEmployees !== null && currentEmployees >= maxUsers - 1) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite de ${maxUsers - 1} empleado(s) de tu plan "${planName}". Actualiza tu plan para agregar más empleados.` },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
       email,

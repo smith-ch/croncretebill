@@ -212,18 +212,25 @@ export function Sidebar() {
   const { alertCount } = useStockAlerts()
   const { canAccessModule, permissions } = useUserPermissions()
 
-  // Verificar si el usuario es subscription manager
+  // Verificar si el usuario es subscription manager o super admin
   useEffect(() => {
     async function checkSubscriptionManager() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        const { data, error } = await supabase.rpc('is_subscription_manager', {
+        // Verificar subscription manager
+        const { data: isManager, error: managerError } = await supabase.rpc('is_subscription_manager', {
           p_user_id: user.id
         })
 
-        if (!error && data) {
+        // Verificar super admin
+        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc('is_super_admin', {
+          p_user_id: user.id
+        })
+
+        // Permitir acceso si es subscription manager O super admin
+        if ((!managerError && isManager) || (!superAdminError && isSuperAdmin)) {
           setIsSubscriptionManager(true)
         }
       } catch (error) {

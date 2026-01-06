@@ -62,7 +62,7 @@ export default function ClientLayout({
       console.log('🔍 Usuario no es manager, verificando suscripción...')
       const { data: subscription, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('status, end_date, plan:plan_id(display_name)')
+        .select('status, end_date, subscription_plans!plan_id(display_name)')
         .eq('user_id', userId)
         .maybeSingle()
 

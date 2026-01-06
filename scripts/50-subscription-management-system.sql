@@ -34,6 +34,28 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Agregar columnas faltantes si la tabla ya existe
+DO $$
+BEGIN
+  -- Agregar is_default si no existe
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'subscription_plans' AND column_name = 'is_default'
+  ) THEN
+    ALTER TABLE subscription_plans ADD COLUMN is_default BOOLEAN DEFAULT false;
+    RAISE NOTICE '✅ Columna is_default agregada a subscription_plans';
+  END IF;
+
+  -- Agregar is_active si no existe
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'subscription_plans' AND column_name = 'is_active'
+  ) THEN
+    ALTER TABLE subscription_plans ADD COLUMN is_active BOOLEAN DEFAULT true;
+    RAISE NOTICE '✅ Columna is_active agregada a subscription_plans';
+  END IF;
+END $$;
+
 -- Índices
 CREATE INDEX IF NOT EXISTS idx_subscription_plans_active ON subscription_plans(is_active);
 CREATE INDEX IF NOT EXISTS idx_subscription_plans_default ON subscription_plans(is_default) WHERE is_default = true;
@@ -379,8 +401,8 @@ VALUES
     'starter',
     'Plan Starter',
     'Para pequeños negocios',
-    500.00,
-    5000.00,
+    19.99,
+    199.90,
     3,
     500,
     500,
@@ -405,8 +427,8 @@ VALUES
     'professional',
     'Plan Profesional',
     'Para negocios en crecimiento',
-    1500.00,
-    15000.00,
+    39.99,
+    399.90,
     10,
     2000,
     2000,
@@ -438,8 +460,8 @@ VALUES
     'enterprise',
     'Plan Empresarial',
     'Para grandes empresas',
-    5000.00,
-    50000.00,
+    89.99,
+    899.90,
     null, -- Ilimitado
     null, -- Ilimitado
     null, -- Ilimitado
