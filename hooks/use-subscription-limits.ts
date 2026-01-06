@@ -39,6 +39,29 @@ export function useSubscriptionLimits() {
   useEffect(() => {
     loadLimits()
     loadUsage()
+
+    // Suscribirse a cambios en tiempo real en user_subscriptions
+    const subscriptionChannel = supabase
+      .channel('subscription-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuchar todos los eventos (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        (payload) => {
+          console.log('🔄 Realtime: Subscription changed', payload)
+          // Recargar límites cuando cambia la suscripción
+          loadLimits()
+        }
+      )
+      .subscribe()
+
+    // Cleanup al desmontar
+    return () => {
+      supabase.removeChannel(subscriptionChannel)
+    }
   }, [])
 
   async function loadLimits() {

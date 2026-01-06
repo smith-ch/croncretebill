@@ -14,6 +14,29 @@ export function usePlanAccess() {
 
   useEffect(() => {
     loadPlanName()
+
+    // Suscribirse a cambios en tiempo real en user_subscriptions
+    const subscriptionChannel = supabase
+      .channel('plan-access-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_subscriptions'
+        },
+        (payload) => {
+          console.log('🔄 Realtime: Plan access changed', payload)
+          // Recargar el plan cuando cambia la suscripción
+          loadPlanName()
+        }
+      )
+      .subscribe()
+
+    // Cleanup al desmontar
+    return () => {
+      supabase.removeChannel(subscriptionChannel)
+    }
   }, [])
 
   async function loadPlanName() {
