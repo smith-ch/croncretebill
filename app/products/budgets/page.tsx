@@ -12,6 +12,8 @@ import { Plus, Search, Calculator, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { CurrencyConverter, DualCurrencyDisplay } from "@/components/currency-converter"
+import { useCurrency } from "@/hooks/use-currency"
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<any[]>([])
@@ -20,7 +22,9 @@ export default function BudgetsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showUSD, setShowUSD] = useState(false)
   const { toast } = useToast()
+  const { exchangeRate, formatCurrency, formatUSD } = useCurrency()
 
   useEffect(() => {
     fetchBudgets()
@@ -122,11 +126,6 @@ export default function BudgetsPage() {
     }
   }
 
-  const formatCurrency = (amount: number) => {
-    const symbol = companySettings?.currency === "USD" ? "$" : "RD$"
-    return `${symbol}${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-
   const filteredBudgets = budgets.filter(
     (budget) =>
       (budget.budget_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -185,6 +184,12 @@ export default function BudgetsPage() {
                 className="pl-10 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
+            <CurrencyConverter 
+              onToggle={setShowUSD} 
+              exchangeRate={exchangeRate}
+              currentCurrency="DOP"
+              variant="compact"
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -251,10 +256,25 @@ export default function BudgetsPage() {
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <div className="text-right">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                          {formatCurrency(budget.total || 0)}
-                        </p>
-                        <p className="text-xs text-gray-500">{budget.budget_items?.length || 0} elemento(s)</p>
+                        {showUSD ? (
+                          <div>
+                            <p className="text-2xl font-bold text-green-600">
+                              {formatUSD((budget.total || 0) / exchangeRate)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatCurrency(budget.total || 0)} DOP
+                            </p>
+                          </div>
+                        ) : (
+                          <DualCurrencyDisplay 
+                            amount={budget.total || 0}
+                            currencySymbol={companySettings?.currency_symbol || "RD$"}
+                            exchangeRate={exchangeRate}
+                            showBoth={true}
+                            size="lg"
+                          />
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">{budget.budget_items?.length || 0} elemento(s)</p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">

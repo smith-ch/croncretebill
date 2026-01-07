@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast"
 import { InvoicePDFPreview } from "@/components/invoices/invoice-pdf-preview"
 import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { CurrencyConverter, DualCurrencyDisplay } from "@/components/currency-converter"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -39,7 +40,8 @@ export default function InvoicesPage() {
   const [dateFilter, setDateFilter] = useState("all")
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'delete' | 'markPaid'}>({show: false, id: null, type: 'delete'})
   const [isProcessing, setIsProcessing] = useState(false)
-  const { formatCurrency } = useCurrency()
+  const [showUSD, setShowUSD] = useState(false)
+  const { formatCurrency, formatUSD, exchangeRate } = useCurrency()
   const { canDelete, canEdit } = useUserPermissions()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
@@ -441,6 +443,15 @@ export default function InvoicesPage() {
                   <SelectItem value="quarter">Último trimestre</SelectItem>
                 </SelectContent>
               </Select>
+
+              <div className="flex-shrink-0">
+                <CurrencyConverter 
+                  onToggle={setShowUSD} 
+                  exchangeRate={exchangeRate}
+                  currentCurrency="DOP"
+                  variant="compact"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -518,10 +529,24 @@ export default function InvoicesPage() {
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-2 sm:gap-3 lg:gap-6 flex-shrink-0 w-full sm:w-auto">
                       <div className="text-left lg:text-right w-full sm:w-auto">
-                        <p className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-blue-900 transition-colors">
-                          {formatCurrency(invoice.total || 0)}
-                        </p>
-                        {invoice.include_itbis && <p className="text-xs text-slate-500">Incluye ITBIS</p>}
+                        {showUSD ? (
+                          <div>
+                            <p className="text-xl sm:text-2xl font-bold text-green-600">
+                              {formatUSD((invoice.total || 0) / exchangeRate)}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {formatCurrency(invoice.total || 0)} DOP
+                            </p>
+                          </div>
+                        ) : (
+                          <DualCurrencyDisplay 
+                            amount={invoice.total || 0}
+                            exchangeRate={exchangeRate}
+                            showBoth={true}
+                            size="lg"
+                          />
+                        )}
+                        {invoice.include_itbis && <p className="text-xs text-slate-500 mt-1">Incluye ITBIS</p>}
                       </div>
 
                       <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">

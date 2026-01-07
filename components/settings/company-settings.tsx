@@ -43,6 +43,7 @@ interface CompanySettingsData {
   company_logo?: string
   currency_code: string
   currency_symbol: string
+  usd_exchange_rate?: number
   business_type: string
   foundation_year?: string
   employee_count?: string
@@ -112,6 +113,7 @@ export function CompanySettings() {
     invoice_show_logo: true,
     invoice_auto_number: true,
     currency_symbol: "RD$",
+    usd_exchange_rate: 58.50,
     business_type: "",
     foundation_year: "",
     employee_count: "",
@@ -329,6 +331,7 @@ export function CompanySettings() {
         company_logo: logoUrl,
         currency_code: settings.currency_code,
         currency_symbol: settings.currency_symbol,
+        usd_exchange_rate: settings.usd_exchange_rate || 58.50,
         business_type: settings.business_type,
         foundation_year: settings.foundation_year,
         employee_count: settings.employee_count,
@@ -858,6 +861,35 @@ export function CompanySettings() {
               />
             </div>
           </div>
+
+          {/* Tasa de cambio USD */}
+          <div className="space-y-2">
+            <Label htmlFor="usd_exchange_rate" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Tasa de Cambio USD (para conversión en documentos)
+            </Label>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <Input
+                  id="usd_exchange_rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={settings.usd_exchange_rate || 58.50}
+                  onChange={(e) => setSettings({ ...settings, usd_exchange_rate: parseFloat(e.target.value) || 58.50 })}
+                  className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600"
+                  placeholder="58.50"
+                />
+              </div>
+              <Badge variant="outline" className="whitespace-nowrap">
+                1 USD = {settings.usd_exchange_rate || 58.50} {settings.currency_code}
+              </Badge>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Esta tasa se usará para mostrar precios en USD en facturas, presupuestos y recibos térmicos
+            </p>
+          </div>
+
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-800 dark:text-blue-300">
               <strong className="text-blue-800 dark:text-blue-300">Ejemplo:</strong> {settings.currency_symbol}1,234.56

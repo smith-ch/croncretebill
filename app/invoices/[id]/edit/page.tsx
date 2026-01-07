@@ -185,11 +185,11 @@ export default function EditInvoicePage() {
       setNcf(invoice.ncf || "")
 
       const [clientsRes, projectsRes, driversRes, vehiclesRes, companyRes] = await Promise.all([
-        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", user.id),
-        supabase.from("projects").select("id, name, client_id").eq("user_id", user.id),
-        supabase.from("drivers").select("id, name").eq("user_id", user.id),
-        supabase.from("vehicles").select("id, model, plate").eq("user_id", user.id),
-        supabase.from("company_settings").select("*").eq("user_id", user.id).single(),
+        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", dataUserId),
+        supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId),
+        supabase.from("drivers").select("id, name").eq("user_id", dataUserId),
+        supabase.from("vehicles").select("id, model, plate").eq("user_id", dataUserId),
+        supabase.from("company_settings").select("*").eq("user_id", dataUserId).single(),
       ])
 
       setClients((clientsRes.data as Client[]) || [])

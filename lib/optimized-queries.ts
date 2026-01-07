@@ -27,6 +27,7 @@ export async function getCompanySettings(userId: string) {
           company_logo,
           currency_code,
           currency_symbol,
+          usd_exchange_rate,
           business_type,
           invoice_primary_color,
           invoice_secondary_color,

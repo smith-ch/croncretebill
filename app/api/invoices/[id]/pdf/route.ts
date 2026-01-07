@@ -81,6 +81,8 @@ function generateInvoiceHTML(
   companySettings: any,
   currencySymbol: string,
 ) {
+  const exchangeRate = companySettings?.usd_exchange_rate || 63.18
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES")
   }
@@ -90,6 +92,19 @@ function generateInvoiceHTML(
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`
+  }
+
+  const formatUSD = (amount: number) => {
+    return `$${(amount / exchangeRate).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
+  }
+
+  const formatDualCurrency = (amount: number) => {
+    const dopAmount = formatCurrency(amount)
+    const usdAmount = formatUSD(amount)
+    return `<div style="line-height: 1.3;">${dopAmount}<br><span style="font-size: 0.85em; color: #666;">${usdAmount}</span></div>`
   }
 
   const getPaymentMethodLabel = (paymentMethod: string) => {
@@ -500,6 +515,10 @@ function generateInvoiceHTML(
                         <h4>FECHA DE VENCIMIENTO:</h4>
                         <p>${formatDate(invoice.due_date)}</p>
                     </div>
+                    <div class="detail-section" style="margin-top: 10px;">
+                        <h4>TASA USD:</h4>
+                        <p style="font-size: 0.9em; color: #666;">1 USD = ${exchangeRate.toFixed(2)} ${currencySymbol.replace('$', '')}</p>
+                    </div>
                 </div>
             </div>
             
@@ -527,8 +546,8 @@ function generateInvoiceHTML(
                             <td class="text-left">${itemName}</td>
                             <td>${isItbisInvoice ? "18% S" : "No VAT"}</td>
                             <td>${item.quantity}</td>
-                            <td>${formatCurrency(item.unit_price)}</td>
-                            <td class="text-right">${formatCurrency(item.total)}</td>
+                            <td>${formatDualCurrency(item.unit_price)}</td>
+                            <td class="text-right">${formatDualCurrency(item.total)}</td>
                         </tr>
                     `
                         })
@@ -541,21 +560,21 @@ function generateInvoiceHTML(
                 <div class="totals">
                     <div class="totals-row">
                         <span>SUBTOTAL</span>
-                        <span>${formatCurrency(invoice.subtotal || 0)}</span>
+                        <span>${formatDualCurrency(invoice.subtotal || 0)}</span>
                     </div>
                     ${
                       isItbisInvoice
                         ? `
                         <div class="totals-row">
                             <span>IMPUESTO</span>
-                            <span>${formatCurrency(invoice.tax_amount || 0)}</span>
+                            <span>${formatDualCurrency(invoice.tax_amount || 0)}</span>
                         </div>
                     `
                         : ""
                     }
                     <div class="totals-row total">
                         <span>TOTAL</span>
-                        <span>${formatCurrency(invoice.total || 0)}</span>
+                        <span>${formatDualCurrency(invoice.total || 0)}</span>
                     </div>
                 </div>
             </div>
