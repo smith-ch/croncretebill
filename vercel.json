@@ -48,6 +48,12 @@
       ]
     }
   ],
+  "crons": [
+    {
+      "path": "/api/update-exchange-rate",
+      "schedule": "0 8 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/sw.js",

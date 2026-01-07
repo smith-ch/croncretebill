@@ -11,13 +11,29 @@ interface BudgetPDFGeneratorProps {
 
 export function BudgetPDFGenerator({ budget, settings }: BudgetPDFGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showUSD, setShowUSD] = useState(false)
 
-  const formatCurrency = (amount: number) => {
+  const exchangeRate = settings?.usd_exchange_rate || 63.18
+
+  const formatCurrency = (amount: number, currency: "DOP" | "USD" = "DOP") => {
+    if (currency === "USD") {
+      const usdAmount = amount / exchangeRate
+      return `$${usdAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    }
     const currencySymbol = settings?.currency_symbol || "RD$"
     return `${currencySymbol}${(amount || 0).toLocaleString("es-DO", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`
+  }
+
+  const formatDualCurrency = (amount: number) => {
+    const dopAmount = formatCurrency(amount, "DOP")
+    const usdAmount = formatCurrency(amount, "USD")
+    return `${dopAmount} <span style="color: #718096; font-size: 0.85em;">(${usdAmount})</span>`
   }
 
   const formatDate = (dateString: string) => {
@@ -762,8 +778,8 @@ export function BudgetPDFGenerator({ budget, settings }: BudgetPDFGeneratorProps
       </td>
       <td class="text-center">${item.quantity || 0}</td>
       <td class="text-center">${itemUnit}</td>
-      <td class="text-right">${formatCurrency(item.unit_price || 0)}</td>
-      <td class="text-right"><strong>${formatCurrency(item.total || 0)}</strong></td>
+      <td class="text-right">${formatDualCurrency(item.unit_price || 0)}</td>
+      <td class="text-right"><strong>${formatDualCurrency(item.total || 0)}</strong></td>
     </tr>
   `
                       })
@@ -785,19 +801,24 @@ export function BudgetPDFGenerator({ budget, settings }: BudgetPDFGeneratorProps
         <table class="totals-table">
           <tr class="subtotal-row">
             <td><strong>Subtotal:</strong></td>
-            <td class="text-right"><strong>${formatCurrency(budget.subtotal || 0)}</strong></td>
+            <td class="text-right"><strong>${formatDualCurrency(budget.subtotal || 0)}</strong></td>
           </tr>
           ${
             budget.itbis_amount && budget.itbis_amount > 0
               ? `
           <tr class="tax-row">
             <td><strong>ITBIS (${budget.itbis_rate || 18}%):</strong></td>
-            <td class="text-right"><strong>${formatCurrency(budget.itbis_amount)}</strong></td>
+            <td class="text-right"><strong>${formatDualCurrency(budget.itbis_amount)}</strong></td>
           </tr>
           `
               : ""
           }
           <tr class="total-row">
+            <td><strong>TOTAL:</strong></td>
+            <td class="text-right"><strong>${formatDualCurrency(budget.total || 0)}</strong></td>
+          </tr>
+        </table>
+      </div>>
             <td><strong>TOTAL:</strong></td>
             <td class="text-right"><strong>${formatCurrency(budget.total || 0)}</strong></td>
           </tr>

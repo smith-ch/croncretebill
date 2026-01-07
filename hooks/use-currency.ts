@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase"
 export function useCurrency() {
   const [currencySymbol, setCurrencySymbol] = useState("RD$")
   const [currencyCode, setCurrencyCode] = useState("DOP")
+  const [exchangeRate, setExchangeRate] = useState(63.18)
 
   useEffect(() => {
     fetchCurrencySettings()
@@ -23,7 +24,7 @@ export function useCurrency() {
 
       const { data: settings, error } = await supabase
         .from("company_settings")
-        .select("currency_symbol, currency_code")
+        .select("currency_symbol, currency_code, usd_exchange_rate")
         .eq("user_id", user.id)
         .maybeSingle()
 
@@ -35,6 +36,7 @@ export function useCurrency() {
       if (settings) {
         setCurrencySymbol((settings as any).currency_symbol || "RD$")
         setCurrencyCode((settings as any).currency_code || "DOP")
+        setExchangeRate((settings as any).usd_exchange_rate || 63.18)
       }
     } catch (error) {
       console.error("Error fetching currency settings:", error)
@@ -94,10 +96,42 @@ export function useCurrency() {
     }
   }
 
+  // Convertir de DOP a USD
+  const convertToUSD = (amountInDOP: number): number => {
+    if (typeof amountInDOP !== 'number' || isNaN(amountInDOP) || !isFinite(amountInDOP)) {
+      return 0
+    }
+    return amountInDOP / exchangeRate
+  }
+
+  // Formatear monto en USD
+  const formatUSD = (amount: number): string => {
+    if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
+      return '$0.00'
+    }
+
+    try {
+      const formattedAmount = amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+      return `$${formattedAmount}`
+    } catch (error) {
+      const fixed = amount.toFixed(2)
+      const parts = fixed.split('.')
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      const decimalPart = '.' + parts[1]
+      return `$${integerPart}${decimalPart}`
+    }
+  }
+
   return {
     currencySymbol,
     currencyCode,
+    exchangeRate,
     formatCurrency,
     formatNumber,
+    convertToUSD,
+    formatUSD,
   }
 }

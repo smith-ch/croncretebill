@@ -38,6 +38,8 @@ export default function NewBudgetPage() {
   const [projects, setProjects] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
+  const [productSearchTerms, setProductSearchTerms] = useState<Record<string, string>>({})
+  const [serviceSearchTerms, setServiceSearchTerms] = useState<Record<string, string>>({})
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
     {
       id: "item-1",
@@ -138,6 +140,30 @@ export default function NewBudgetPage() {
       total: 0,
     }
     setBudgetItems([...budgetItems, newItem])
+  }
+
+  // Funciones de filtrado por búsqueda
+  const getFilteredProducts = (itemId: string) => {
+    const searchTerm = productSearchTerms[itemId]?.toLowerCase() || ""
+    if (!searchTerm) return products
+    
+    return products.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.code?.toLowerCase().includes(searchTerm) ||
+      product.product_code?.toLowerCase().includes(searchTerm) ||
+      product.sku?.toLowerCase().includes(searchTerm)
+    )
+  }
+
+  const getFilteredServices = (itemId: string) => {
+    const searchTerm = serviceSearchTerms[itemId]?.toLowerCase() || ""
+    if (!searchTerm) return services
+    
+    return services.filter(service => 
+      service.name.toLowerCase().includes(searchTerm) ||
+      service.code?.toLowerCase().includes(searchTerm) ||
+      service.service_code?.toLowerCase().includes(searchTerm)
+    )
   }
 
   const updateBudgetItem = (id: string, field: string, value: any) => {
@@ -457,27 +483,58 @@ export default function NewBudgetPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Producto/Servicio</Label>
+                          <Label>{item.item_type === "product" ? "Producto" : "Servicio"} *</Label>
                           <Select
-                            value={item.item_id || "not-selected"}
+                            value={item.item_id || "default"}
                             onValueChange={(value) => {
-                              if (value !== "not-selected" && value !== "no-items") {
+                              if (value !== "default" && value !== "no-items") {
                                 updateBudgetItem(item.id, "item_id", value)
                               }
                             }}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Seleccionar" />
+                              <SelectValue
+                                placeholder={`Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                              >
+                                {item.item_id
+                                  ? `${item.item_name} - ${formatCurrency(item.unit_price)}`
+                                  : `Seleccionar ${item.item_type === "product" ? "producto" : "servicio"}`}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="not-selected" disabled>
-                                Seleccionar {item.item_type === "product" ? "producto" : "servicio"}
+                              <div className="p-2 border-b sticky top-0 bg-white z-10">
+                                <Input
+                                  placeholder={`Buscar ${item.item_type === "product" ? "producto" : "servicio"} por código o nombre...`}
+                                  value={item.item_type === "product" ? productSearchTerms[item.id] || "" : serviceSearchTerms[item.id] || ""}
+                                  onChange={(e) => {
+                                    if (item.item_type === "product") {
+                                      setProductSearchTerms(prev => ({...prev, [item.id]: e.target.value}))
+                                    } else {
+                                      setServiceSearchTerms(prev => ({...prev, [item.id]: e.target.value}))
+                                    }
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-8"
+                                />
+                              </div>
+                              <SelectItem value="default" disabled className="hidden">
+                                Seleccionar
                               </SelectItem>
                               {item.item_type === "product" ? (
-                                products.length > 0 ? (
-                                  products.map((product) => (
+                                getFilteredProducts(item.id).length > 0 ? (
+                                  getFilteredProducts(item.id).map((product) => (
                                     <SelectItem key={product.id} value={product.id}>
-                                      {product.name} - {formatCurrency(product.unit_price || 0)}
+                                      <div className="flex justify-between items-center w-full">
+                                        <span>{product.name}</span>
+                                        <span className="text-green-600 font-semibold ml-2">
+                                          {formatCurrency(product.unit_price || 0)}
+                                        </span>
+                                      </div>
+                                      {(product.code || product.product_code) && (
+                                        <div className="text-xs text-gray-500">
+                                          Código: {product.code || product.product_code}
+                                        </div>
+                                      )}
                                     </SelectItem>
                                   ))
                                 ) : (
@@ -485,16 +542,28 @@ export default function NewBudgetPage() {
                                     No hay productos disponibles
                                   </SelectItem>
                                 )
-                              ) : services.length > 0 ? (
-                                services.map((service) => (
-                                  <SelectItem key={service.id} value={service.id}>
-                                    {service.name} - {formatCurrency(service.price || 0)}
-                                  </SelectItem>
-                                ))
                               ) : (
-                                <SelectItem value="no-items" disabled>
-                                  No hay servicios disponibles
-                                </SelectItem>
+                                getFilteredServices(item.id).length > 0 ? (
+                                  getFilteredServices(item.id).map((service) => (
+                                    <SelectItem key={service.id} value={service.id}>
+                                      <div className="flex justify-between items-center w-full">
+                                        <span>{service.name}</span>
+                                        <span className="text-green-600 font-semibold ml-2">
+                                          {formatCurrency(service.price || 0)}
+                                        </span>
+                                      </div>
+                                      {(service.code || service.service_code) && (
+                                        <div className="text-xs text-gray-500">
+                                          Código: {service.code || service.service_code}
+                                        </div>
+                                      )}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-items" disabled>
+                                    No hay servicios disponibles
+                                  </SelectItem>
+                                )
                               )}
                             </SelectContent>
                           </Select>

@@ -42,6 +42,7 @@ interface CompanySettings {
   company_website?: string
   company_logo?: string
   currency_symbol?: string
+  usd_exchange_rate?: number
   invoice_primary_color?: string
   invoice_secondary_color?: string
   invoice_format?: string
@@ -57,6 +58,7 @@ export async function generateInvoicePDF(
   const primaryColor = companySettings.invoice_primary_color || '#3b82f6'
   const secondaryColor = companySettings.invoice_secondary_color || '#64748b'
   const currencySymbol = companySettings.currency_symbol || 'RD$'
+  const exchangeRate = companySettings.usd_exchange_rate || 63.18
   
   // Convertir colores hex a RGB para jsPDF
   const hexToRgb = (hex: string) => {
@@ -88,6 +90,21 @@ export async function generateInvoicePDF(
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
+  }
+
+  // Helper para formatear USD
+  const formatUSD = (amount: number) => {
+    return `$${(amount / exchangeRate).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`
+  }
+
+  // Helper para formato dual (DOP y USD)
+  const formatDualCurrency = (amount: number) => {
+    const dopAmount = formatCurrency(amount)
+    const usdAmount = formatUSD(amount)
+    return `${dopAmount} (${usdAmount})`
   }
 
   // Helper para formatear fecha
@@ -167,7 +184,7 @@ export async function generateInvoicePDF(
   
   // Cuadro de información de factura
   doc.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
-  doc.rect(15, yPos, 85, 35, 'F')
+  doc.rect(15, yPos, 85, 42, 'F')
   
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
@@ -176,6 +193,7 @@ export async function generateInvoicePDF(
   doc.text('FECHA:', 18, yPos + 13)
   doc.text('VENCIMIENTO:', 18, yPos + 20)
   doc.text('ESTADO:', 18, yPos + 27)
+  doc.text('TASA USD:', 18, yPos + 34)
   
   doc.setFont('helvetica', 'normal')
   doc.text(invoice.invoice_number, 45, yPos + 6)
@@ -186,12 +204,13 @@ export async function generateInvoicePDF(
                      invoice.status === 'enviada' ? 'PENDIENTE' : 
                      invoice.status.toUpperCase()
   doc.text(statusText, 45, yPos + 27)
+  doc.text(`1 USD = ${exchangeRate.toFixed(2)} ${currencySymbol.replace('$', '')}`, 45, yPos + 34)
 
   // Cuadro de información del cliente
   if (invoice.clients) {
     doc.setDrawColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b)
     doc.setLineWidth(0.5)
-    doc.rect(110, yPos, pageWidth - 125, 35)
+    doc.rect(110, yPos, pageWidth - 125, 42)
     
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
@@ -214,7 +233,7 @@ export async function generateInvoicePDF(
     }
   }
 
-  yPos += 45
+  yPos += 52
 
   // ========== TABLA DE PRODUCTOS/SERVICIOS ==========
   
@@ -226,33 +245,33 @@ export async function generateInvoicePDF(
       itemName,
       unit,
       item.quantity.toString(),
-      formatCurrency(item.unit_price),
-      formatCurrency(item.total)
+      formatDualCurrency(item.unit_price),
+      formatDualCurrency(item.total)
     ]
   }) || []
 
   autoTable(doc, {
     startY: yPos,
-    head: [['DESCRIPCIÓN', 'UNIDAD', 'CANT.', 'PRECIO', 'TOTAL']],
+    head: [['DESCRIPCIÓN', 'UNIDAD', 'CANT.', 'PRECIO UNITARIO', 'TOTAL']],
     body: tableData,
     theme: 'grid',
     headStyles: {
       fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b],
       textColor: [255, 255, 255],
-      fontSize: 10,
+      fontSize: 9,
       fontStyle: 'bold',
       halign: 'center'
     },
     bodyStyles: {
-      fontSize: 9,
+      fontSize: 7.5,
       textColor: [0, 0, 0]
     },
     columnStyles: {
-      0: { cellWidth: 70, halign: 'left' },
-      1: { cellWidth: 25, halign: 'center' },
-      2: { cellWidth: 20, halign: 'center' },
-      3: { cellWidth: 30, halign: 'right' },
-      4: { cellWidth: 35, halign: 'right' }
+      0: { cellWidth: 55, halign: 'left' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 15, halign: 'center' },
+      3: { cellWidth: 45, halign: 'right' },
+      4: { cellWidth: 45, halign: 'right' }
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
@@ -278,13 +297,13 @@ export async function generateInvoicePDF(
   
   // Subtotal
   doc.text('Subtotal:', totalsX, totalsY)
-  doc.text(formatCurrency(invoice.subtotal), pageWidth - 20, totalsY, { align: 'right' })
+  doc.text(formatDualCurrency(invoice.subtotal), pageWidth - 20, totalsY, { align: 'right' })
   totalsY += 6
 
   // ITBIS (si aplica)
   if (invoice.include_itbis) {
     doc.text('ITBIS (18%):', totalsX, totalsY)
-    doc.text(formatCurrency(invoice.tax_amount), pageWidth - 20, totalsY, { align: 'right' })
+    doc.text(formatDualCurrency(invoice.tax_amount), pageWidth - 20, totalsY, { align: 'right' })
     totalsY += 6
   }
 
@@ -293,7 +312,7 @@ export async function generateInvoicePDF(
   doc.setFontSize(12)
   doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b)
   doc.text('TOTAL:', totalsX, totalsY)
-  doc.text(formatCurrency(invoice.total), pageWidth - 20, totalsY, { align: 'right' })
+  doc.text(formatDualCurrency(invoice.total), pageWidth - 20, totalsY, { align: 'right' })
 
   // ========== NOTAS Y MENSAJE PERSONALIZADO ==========
   
