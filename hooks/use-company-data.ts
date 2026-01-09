@@ -70,14 +70,24 @@ export function useCompanyData(): UseCompanyDataReturn {
         phone: userData.user_metadata?.phone || ''
       })
 
+      // Check if user is employee (has parent_user_id) to use owner's company settings
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('parent_user_id')
+        .eq('user_id', userData.id)
+        .maybeSingle()
+
+      // Use owner's ID if employee, otherwise use current user's ID
+      const ownerUserId = profile?.parent_user_id || userData.id
+
       // Get company settings with deduplication
       const companyData = await fetchWithDedup(
-        getCacheKey('company', userData.id),
+        getCacheKey('company', ownerUserId),
         async () => {
           const { data, error: companyError } = await supabase
             .from('company_settings')
             .select('company_name, company_email, company_phone, company_address, company_logo, tax_id, business_type, currency_symbol, currency_code')
-            .eq('user_id', userData.id)
+            .eq('user_id', ownerUserId)
             .single()
 
           if (companyError && companyError.code !== 'PGRST116') {
