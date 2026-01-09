@@ -344,13 +344,14 @@ export function useUserPermissions() {
 
         // Si está en modo empleado O es empleado real, aplicar restricciones ESTRICTAS
         // ESTO DEBE APLICARSE INCLUSO EN CASO DE ERROR
+        // En caso de error, los empleados NO tienen permisos por defecto (false)
         if (isEmployeeMode || isRealEmployee) {
           defaultPermissions = {
-            canCreateInvoices: true, // Los empleados SÍ pueden crear facturas
-            canViewFinances: false, // Los empleados NO pueden ver finanzas
-            canManageInventory: true, // Los empleados SÍ pueden crear productos/servicios (solo crear)
-            canManageClients: true, // Los empleados SÍ pueden crear clientes
-            maxInvoiceAmount: 25000, // Límite más bajo para empleados
+            canCreateInvoices: false, // Por defecto NO, debe estar en DB
+            canViewFinances: false, // Por defecto NO
+            canManageInventory: false, // Por defecto NO, debe estar en DB
+            canManageClients: false, // Por defecto NO, debe estar en DB
+            maxInvoiceAmount: 15000, // Límite bajo para empleados
             role: 'employee',
             isOwner: false,
             wasOriginallyOwner: !isRealEmployee, // Solo true si es propietario en modo prueba
@@ -435,13 +436,14 @@ export function useUserPermissions() {
         
         // FORZAR: Si está en modo empleado O es empleado real O no es owner confirmado, aplicar restricciones ESTRICTAS
         if (isEmployeeMode || isRealEmployee || !originalIsOwner) {
+          // USAR PERMISOS REALES DE LA BASE DE DATOS, no hardcodear
           finalPermissions = {
             ...finalPermissions,
-            canCreateInvoices: true,  // Solo pueden crear facturas básicas
-            canViewFinances: false,   // NO pueden ver reportes financieros ni agenda
-            canManageInventory: true, // SÍ pueden crear productos/servicios (solo crear, no editar/eliminar)
-            canManageClients: true,   // SÍ pueden gestionar clientes
-            maxInvoiceAmount: 15000,   // Límite muy bajo para empleados
+            canCreateInvoices: (permissionsData as any)?.canCreateInvoices || false,  // Usar permisos de DB
+            canViewFinances: (permissionsData as any)?.canViewFinances || false,   // Usar permisos de DB
+            canManageInventory: (permissionsData as any)?.canManageInventory || false, // Usar permisos de DB
+            canManageClients: (permissionsData as any)?.canManageClients || false,   // Usar permisos de DB
+            maxInvoiceAmount: (permissionsData as any)?.maxInvoiceAmount || 15000,   // Límite de empleados
             role: 'employee',
             isOwner: false,           // IMPORTANTE: false para empleados
             wasOriginallyOwner: originalIsOwner && !isRealEmployee, // Solo para propietarios en modo prueba

@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, UserCheck, UserX, Mail, Edit2, Shield, Eye, EyeOff, Loader2, CheckCircle, XCircle, Target, AlertCircle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Trash2, Plus, UserCheck, UserX, Mail, Edit2, Shield, Eye, EyeOff, Loader2, CheckCircle, XCircle, Target, AlertCircle, Package } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -37,6 +39,14 @@ export default function EmployeeConfigPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>("")
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [editPermissions, setEditPermissions] = useState({
+    canCreateInvoices: false,
+    canViewFinances: false,
+    canManageInventory: false,
+    canManageClients: false
+  })
+  const [updating, setUpdating] = useState(false)
   
   // Formulario de nuevo empleado
   const [newEmployee, setNewEmployee] = useState({
@@ -45,10 +55,10 @@ export default function EmployeeConfigPage() {
     displayName: "",
     department: "",
     jobPosition: "",
-    canCreateInvoices: true,  // Establecido por defecto
-    canViewFinances: false,   // No permitido
-    canManageInventory: false, // No permitido
-    canManageClients: true    // Establecido por defecto
+    canCreateInvoices: true,  // Por defecto activado
+    canViewFinances: false,   // Por defecto desactivado
+    canManageInventory: false, // Por defecto desactivado (owner decide)
+    canManageClients: true    // Por defecto activado
   })
 
   useEffect(() => {
@@ -277,6 +287,52 @@ export default function EmployeeConfigPage() {
     }
   }
 
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee(employee)
+    setEditPermissions({
+      canCreateInvoices: employee.can_create_invoices,
+      canViewFinances: employee.can_view_finances,
+      canManageInventory: employee.can_manage_inventory,
+      canManageClients: employee.can_manage_clients
+    })
+  }
+
+  const handleUpdatePermissions = async () => {
+    if (!editingEmployee) return
+
+    setUpdating(true)
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          can_create_invoices: editPermissions.canCreateInvoices,
+          can_view_finances: editPermissions.canViewFinances,
+          can_manage_inventory: editPermissions.canManageInventory,
+          can_manage_clients: editPermissions.canManageClients
+        })
+        .eq('id', editingEmployee.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Permisos actualizados",
+        description: `Los permisos de ${editingEmployee.display_name} han sido actualizados exitosamente`
+      })
+
+      setEditingEmployee(null)
+      loadEmployees()
+    } catch (error: any) {
+      console.error('Error updating permissions:', error)
+      toast({
+        title: "Error",
+        description: error.message || "No se pudieron actualizar los permisos",
+        variant: "destructive"
+      })
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   if (loading && !currentUserId) {
     return (
       <div className="container max-w-4xl mx-auto py-8 flex items-center justify-center">
@@ -411,29 +467,94 @@ export default function EmployeeConfigPage() {
             </div>
           </div>
 
-          {/* Permisos Establecidos */}
+          {/* Permisos */}
           <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-blue-600" />
-              <Label className="text-base font-semibold text-blue-900">Permisos Establecidos</Label>
+              <Label className="text-base font-semibold text-blue-900">Permisos del Empleado</Label>
             </div>
-            <p className="text-sm text-blue-800">Los empleados tienen los siguientes permisos por defecto:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="flex items-center space-x-2 text-sm">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-gray-700">Crear Facturas</span>
+            <p className="text-sm text-blue-800 mb-4">Selecciona los permisos que tendrá este empleado:</p>
+            
+            <div className="space-y-3">
+              {/* Permiso: Crear Facturas */}
+              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+                <Checkbox 
+                  id="canCreateInvoices"
+                  checked={newEmployee.canCreateInvoices}
+                  onCheckedChange={(checked) => 
+                    setNewEmployee({...newEmployee, canCreateInvoices: checked as boolean})
+                  }
+                  disabled={!canAddUsers || remainingUsers <= 0}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="canCreateInvoices" className="text-sm font-medium cursor-pointer">
+                    Crear Facturas
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Permite crear, editar y eliminar facturas
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 text-sm">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-gray-700">Gestionar Clientes</span>
+
+              {/* Permiso: Gestionar Clientes */}
+              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+                <Checkbox 
+                  id="canManageClients"
+                  checked={newEmployee.canManageClients}
+                  onCheckedChange={(checked) => 
+                    setNewEmployee({...newEmployee, canManageClients: checked as boolean})
+                  }
+                  disabled={!canAddUsers || remainingUsers <= 0}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="canManageClients" className="text-sm font-medium cursor-pointer">
+                    Gestionar Clientes
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Permite ver, agregar y editar clientes
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 text-sm">
-                <XCircle className="h-4 w-4 text-red-500" />
-                <span className="text-gray-500">Ver Finanzas (No permitido)</span>
+
+              {/* Permiso: Gestionar Inventario */}
+              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+                <Checkbox 
+                  id="canManageInventory"
+                  checked={newEmployee.canManageInventory}
+                  onCheckedChange={(checked) => 
+                    setNewEmployee({...newEmployee, canManageInventory: checked as boolean})
+                  }
+                  disabled={!canAddUsers || remainingUsers <= 0}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="canManageInventory" className="text-sm font-medium cursor-pointer flex items-center">
+                    <Package className="h-4 w-4 mr-1.5 text-indigo-600" />
+                    Gestionar Inventario
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Permite ver stock, agregar productos y actualizar inventario
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 text-sm">
-                <XCircle className="h-4 w-4 text-red-500" />
-                <span className="text-gray-500">Gestionar Inventario (No permitido)</span>
+
+              {/* Permiso: Ver Finanzas */}
+              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+                <Checkbox 
+                  id="canViewFinances"
+                  checked={newEmployee.canViewFinances}
+                  onCheckedChange={(checked) => 
+                    setNewEmployee({...newEmployee, canViewFinances: checked as boolean})
+                  }
+                  disabled={!canAddUsers || remainingUsers <= 0}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="canViewFinances" className="text-sm font-medium cursor-pointer">
+                    Ver Finanzas
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Permite ver reportes financieros y estadísticas sensibles
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -551,6 +672,14 @@ export default function EmployeeConfigPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleEditEmployee(employee)}
+                    >
+                      <Edit2 className="h-4 w-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleToggleActive(employee.id, employee.is_active)}
                     >
                       {employee.is_active ? (
@@ -580,6 +709,120 @@ export default function EmployeeConfigPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de edición de permisos */}
+      <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Permisos</DialogTitle>
+            <DialogDescription>
+              Actualiza los permisos de {editingEmployee?.display_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            {/* Permiso: Crear Facturas */}
+            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+              <Checkbox 
+                id="edit-canCreateInvoices"
+                checked={editPermissions.canCreateInvoices}
+                onCheckedChange={(checked) => 
+                  setEditPermissions({...editPermissions, canCreateInvoices: checked as boolean})
+                }
+              />
+              <div className="flex-1">
+                <Label htmlFor="edit-canCreateInvoices" className="text-sm font-medium cursor-pointer">
+                  Crear Facturas
+                </Label>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Permite crear, editar y eliminar facturas
+                </p>
+              </div>
+            </div>
+
+            {/* Permiso: Gestionar Clientes */}
+            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+              <Checkbox 
+                id="edit-canManageClients"
+                checked={editPermissions.canManageClients}
+                onCheckedChange={(checked) => 
+                  setEditPermissions({...editPermissions, canManageClients: checked as boolean})
+                }
+              />
+              <div className="flex-1">
+                <Label htmlFor="edit-canManageClients" className="text-sm font-medium cursor-pointer">
+                  Gestionar Clientes
+                </Label>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Permite ver, agregar y editar clientes
+                </p>
+              </div>
+            </div>
+
+            {/* Permiso: Gestionar Inventario */}
+            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+              <Checkbox 
+                id="edit-canManageInventory"
+                checked={editPermissions.canManageInventory}
+                onCheckedChange={(checked) => 
+                  setEditPermissions({...editPermissions, canManageInventory: checked as boolean})
+                }
+              />
+              <div className="flex-1">
+                <Label htmlFor="edit-canManageInventory" className="text-sm font-medium cursor-pointer flex items-center">
+                  <Package className="h-4 w-4 mr-1.5 text-indigo-600" />
+                  Gestionar Inventario
+                </Label>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Permite ver stock, agregar productos y actualizar inventario
+                </p>
+              </div>
+            </div>
+
+            {/* Permiso: Ver Finanzas */}
+            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+              <Checkbox 
+                id="edit-canViewFinances"
+                checked={editPermissions.canViewFinances}
+                onCheckedChange={(checked) => 
+                  setEditPermissions({...editPermissions, canViewFinances: checked as boolean})
+                }
+              />
+              <div className="flex-1">
+                <Label htmlFor="edit-canViewFinances" className="text-sm font-medium cursor-pointer">
+                  Ver Finanzas
+                </Label>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Permite ver reportes financieros y estadísticas sensibles
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditingEmployee(null)}
+              disabled={updating}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdatePermissions}
+              disabled={updating}
+            >
+              {updating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Actualizando...
+                </>
+              ) : (
+                'Guardar Cambios'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Información */}
       <Card className="bg-blue-50 border-blue-200">
