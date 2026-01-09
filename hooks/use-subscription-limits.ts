@@ -74,55 +74,37 @@ export function useSubscriptionLimits() {
 
       console.log('🔍 Loading subscription limits for user:', user.id)
 
-      // Check if user is an employee (has parent_user_id)
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('parent_user_id')
-        .eq('user_id', user.id)
-        .single()
-
-      // Use owner's ID if employee, otherwise use current user's ID
-      const ownerUserId = profile?.parent_user_id || user.id
-      
-      if (profile?.parent_user_id) {
-        console.log('👤 Employee detected, loading owner limits:', ownerUserId)
-      }
-
-      // Get owner's subscription with plan details
+      // Usar función RPC que bypasea RLS y obtiene suscripción heredada correctamente
       const { data: subscription, error: subError } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          current_max_users,
-          current_max_invoices,
-          current_max_products,
-          current_max_clients,
-          plan_id,
-          subscription_plans!inner (
-            name,
-            display_name
-          )
-        `)
-        .eq('user_id', ownerUserId)
-        .eq('status', 'active')
-        .single()
+        .rpc('get_effective_subscription', { user_uuid: user.id })
 
       if (subError) {
         console.error('❌ Error loading subscription:', subError)
+        // Fallback a plan gratuito
+        setLimits({
+          maxUsers: 1,
+          maxInvoices: 5,
+          maxProducts: 10,
+          maxClients: 5,
+          planName: 'free',
+          planDisplayName: 'Plan Gratuito',
+          isLoading: false,
+        })
+        return
       }
 
       console.log('📋 Subscription data:', subscription)
 
-      if (subscription) {
-        const sub = subscription as any
-        const planName = sub.subscription_plans?.name || 'free'
-        const planDisplayName = sub.subscription_plans?.display_name || 'Plan Gratuito'
+      if (subscription && subscription.length > 0) {
+        const sub = subscription[0]
         
-        console.log('✅ Plan detected:', planName, '-', planDisplayName)
-        console.log('📊 Limits:', {
+        console.log('✅ Plan detected:', sub.plan_name, '-', sub.plan_display_name)
+        console.log('📊 Límites heredados:', {
           users: sub.current_max_users,
           invoices: sub.current_max_invoices,
           products: sub.current_max_products,
-          clients: sub.current_max_clients
+          clients: sub.current_max_clients,
+          is_inherited: sub.is_inherited
         })
 
         setLimits({
@@ -130,8 +112,8 @@ export function useSubscriptionLimits() {
           maxInvoices: sub.current_max_invoices || 5,
           maxProducts: sub.current_max_products || 10,
           maxClients: sub.current_max_clients || 5,
-          planName: planName,
-          planDisplayName: planDisplayName,
+          planName: sub.plan_name || 'free',
+          planDisplayName: sub.plan_display_name || 'Plan Gratuito',
           isLoading: false,
         })
       } else {
@@ -163,90 +145,30 @@ export function useSubscriptionLimits() {
 
       console.log('📊 Loading usage for user:', user.id)
 
-      // Check if user is an employee (has parent_user_id)
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('parent_user_id')
-        .eq('user_id', user.id)
-        .single()
+      // Usar función RPC que cuenta correctamente para owner y empleados
+      const { data: usageData, error: usageError } = await supabase
+        .rpc('get_subscription_usage', { user_uuid: user.id })
 
-      // Use owner's ID for counting usage (employees share owner's limits)
-      const ownerUserId = profile?.parent_user_id || user.id
-      
-      if (profile?.parent_user_id) {
-        console.log('👤 Employee detected, counting owner usage:', ownerUserId)
+      if (usageError) {
+        console.error('❌ Error loading usage:', usageError)
+        return
       }
 
-      // Get current month's start date
-      const now = new Date()
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      console.log('📊 Usage data:', usageData)
 
-      // Count users (employees) of the OWNER
-      const { count: usersCount, error: usersError } = await supabase
-        .from('user_profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('parent_user_id', ownerUserId)
+      if (usageData && usageData.length > 0) {
+        const usage = usageData[0]
+        
+        const usageCount = {
+          users: usage.users_count || 0,
+          invoices: usage.invoices_count || 0,
+          products: usage.products_count || 0,
+          clients: usage.clients_count || 0,
+        }
 
-      if (usersError) console.error('Error counting users:', usersError)
-
-      // Count invoices for current month (of the OWNER, includes both regular invoices and thermal receipts)
-      const { count: invoicesCount, error: invoicesError } = await supabase
-        .from('invoices')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', ownerUserId)
-        .gte('created_at', monthStart.toISOString())
-
-      if (invoicesError) console.error('Error counting invoices:', invoicesError)
-
-      // Count thermal receipts for current month (of the OWNER)
-      const { count: thermalReceiptsCount, error: thermalError } = await supabase
-        .from('thermal_receipts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', ownerUserId)
-        .gte('created_at', monthStart.toISOString())
-
-      if (thermalError) console.error('Error counting thermal receipts:', thermalError)
-
-      // Total invoices = regular invoices + thermal receipts
-      const totalInvoices = (invoicesCount || 0) + (thermalReceiptsCount || 0)
-
-      // Count products (of the OWNER)
-      const { count: productsCount, error: productsError } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', ownerUserId)
-
-      if (productsError) console.error('Error counting products:', productsError)
-
-      // Count services (of the OWNER)
-      const { count: servicesCount, error: servicesError } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', ownerUserId)
-
-      if (servicesError) console.error('Error counting services:', servicesError)
-
-      // Total products = products + services
-      const totalProducts = (productsCount || 0) + (servicesCount || 0)
-
-      // Count clients (of the OWNER)
-      const { count: clientsCount, error: clientsError } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', ownerUserId)
-
-      if (clientsError) console.error('Error counting clients:', clientsError)
-
-      const usageData = {
-        users: usersCount || 0,
-        invoices: totalInvoices,
-        products: totalProducts,
-        clients: clientsCount || 0,
+        console.log('✅ Usage loaded:', usageCount)
+        setUsage(usageCount)
       }
-
-      console.log('✅ Usage loaded:', usageData)
-
-      setUsage(usageData)
     } catch (error) {
       console.error('❌ Error loading usage:', error)
     }

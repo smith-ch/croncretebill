@@ -184,37 +184,55 @@ export function useUserPermissions() {
     let timeoutId: ReturnType<typeof setTimeout> | undefined
     
     try {
-      timeoutId = setTimeout(() => {
-        console.warn('Permission loading timeout, setting default owner permissions')
-        // Set default owner permissions if timeout occurs
+      timeoutId = setTimeout(async () => {
+        console.warn('Permission loading timeout - verificando si es empleado antes de establecer permisos')
+        
+        // CRITICAL: Incluso en timeout, verificar si es empleado
+        let isTimeoutEmployee = false
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.user?.id) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('parent_user_id')
+              .eq('user_id', session.user.id)
+              .single()
+            
+            isTimeoutEmployee = profile?.parent_user_id !== null
+          }
+        } catch (e) {
+          console.error('Error verificando empleado en timeout:', e)
+        }
+        
+        // Establecer permisos según si es empleado o no
         setPermissions({
-          canCreateInvoices: true,
-          canViewFinances: true,
-          canManageInventory: true,
-          canManageClients: true,
-          maxInvoiceAmount: null,
-          role: 'owner',
-          isOwner: true,
-          wasOriginallyOwner: true,
-          isRealEmployee: false,
-          canEditInvoices: true,
-          canEditClients: true,
-          canEditProducts: true,
-          canEditServices: true,
-          canEditProjects: true,
-          canEditVehicles: true,
-          canEditThermalReceipts: true,
-          canEditAgendaEvents: true,
-          canEditExpenses: true,
-          canDeleteInvoices: true,
-          canDeleteClients: true,
-          canDeleteProducts: true,
-          canDeleteServices: true,
-          canDeleteProjects: true,
-          canDeleteVehicles: true,
-          canDeleteThermalReceipts: true,
-          canDeleteAgendaEvents: true,
-          canDeleteExpenses: true
+          canCreateInvoices: !isTimeoutEmployee,
+          canViewFinances: !isTimeoutEmployee,
+          canManageInventory: !isTimeoutEmployee,
+          canManageClients: !isTimeoutEmployee,
+          maxInvoiceAmount: isTimeoutEmployee ? 15000 : null,
+          role: isTimeoutEmployee ? 'employee' : 'owner',
+          isOwner: !isTimeoutEmployee,
+          wasOriginallyOwner: !isTimeoutEmployee,
+          isRealEmployee: isTimeoutEmployee,
+          canEditInvoices: !isTimeoutEmployee,
+          canEditClients: !isTimeoutEmployee,
+          canEditProducts: !isTimeoutEmployee,
+          canEditServices: !isTimeoutEmployee,
+          canEditProjects: !isTimeoutEmployee,
+          canEditVehicles: !isTimeoutEmployee,
+          canEditThermalReceipts: !isTimeoutEmployee,
+          canEditAgendaEvents: !isTimeoutEmployee,
+          canEditExpenses: !isTimeoutEmployee,
+          canDeleteInvoices: !isTimeoutEmployee,
+          canDeleteClients: !isTimeoutEmployee,
+          canDeleteProducts: !isTimeoutEmployee,
+          canDeleteServices: !isTimeoutEmployee,
+          canDeleteProjects: !isTimeoutEmployee,
+          canDeleteVehicles: !isTimeoutEmployee,
+          canDeleteThermalReceipts: !isTimeoutEmployee,
+          canDeleteAgendaEvents: !isTimeoutEmployee,
+          canDeleteExpenses: !isTimeoutEmployee
         })
         setLoading(false)
       }, 3000) // 3 segundos máximo - más rápido
@@ -249,7 +267,6 @@ export function useUserPermissions() {
             localStorage.setItem('is-real-employee', 'true')
             // Asegurar que NO se marque como owner
             localStorage.removeItem('was-originally-owner')
-            console.log('✅ Empleado real detectado desde base de datos (parent_user_id:', profile.parent_user_id, ')')
           } else if (profile.parent_user_id === null) {
             // NO tiene parent_user_id = ES OWNER
             isOwner = true
@@ -261,7 +278,6 @@ export function useUserPermissions() {
               localStorage.removeItem('is-real-employee')
             }
             localStorage.setItem('was-originally-owner', 'true')
-            console.log('✅ Owner detectado desde base de datos (parent_user_id: NULL)')
           }
         } else if (user.email) {
           // Fallback: verificar por email en archivo local
@@ -292,19 +308,17 @@ export function useUserPermissions() {
 
       if (error) {
         console.error('Error loading permissions:', error)
-        // En caso de error, asumir permisos de owner
-        // Guardar que es owner originalmente
-        localStorage.setItem('was-originally-owner', 'true')
+        // CRITICAL: En caso de error, NO asumir owner si es empleado real
         
         let defaultPermissions: UserPermissions = {
-          canCreateInvoices: true,
-          canViewFinances: true,
-          canManageInventory: true,
-          canManageClients: true,
-          maxInvoiceAmount: null as number | null,
-          role: 'owner',
-          isOwner: true,
-          wasOriginallyOwner: true,
+          canCreateInvoices: !isRealEmployee,
+          canViewFinances: !isRealEmployee,
+          canManageInventory: !isRealEmployee,
+          canManageClients: !isRealEmployee,
+          maxInvoiceAmount: isRealEmployee ? 15000 : (null as number | null),
+          role: isRealEmployee ? 'employee' : 'owner',
+          isOwner: !isRealEmployee, // Solo owner si NO es empleado real
+          wasOriginallyOwner: !isRealEmployee,
           isRealEmployee: isRealEmployee,
           // Permisos de edición para owner por defecto
           canEditInvoices: true,
@@ -328,9 +342,8 @@ export function useUserPermissions() {
           canDeleteExpenses: true
         }
 
-        // Fallback to default owner permissions
-
         // Si está en modo empleado O es empleado real, aplicar restricciones ESTRICTAS
+        // ESTO DEBE APLICARSE INCLUSO EN CASO DE ERROR
         if (isEmployeeMode || isRealEmployee) {
           defaultPermissions = {
             canCreateInvoices: true, // Los empleados SÍ pueden crear facturas
@@ -368,16 +381,22 @@ export function useUserPermissions() {
         setPermissions(defaultPermissions)
       } else if (permissionsData) {
         
-        // SIEMPRE verificar si es owner de múltiples formas
+        // CRITICAL FIX: Si es empleado real (parent_user_id !== null), NUNCA es owner
+        // Solo verificar isOwner del RPC, que se basa en parent_user_id de la DB
         const originalIsOwner = Boolean(
-          (permissionsData as any)?.isOwner || 
+          !isRealEmployee && // Si es empleado real, NUNCA es owner
+          ((permissionsData as any)?.isOwner || 
           (permissionsData as any)?.role === 'owner' || 
-          (permissionsData as any)?.role === 'admin' ||
-          localStorage.getItem('was-originally-owner') === 'true'
+          (permissionsData as any)?.role === 'admin')
         )
         
         // Guardar si es owner originalmente para el RoleSwitcher
-        localStorage.setItem('was-originally-owner', String(originalIsOwner))
+        // PERO: Si es empleado real, NUNCA guardar como owner
+        if (!isRealEmployee) {
+          localStorage.setItem('was-originally-owner', String(originalIsOwner))
+        } else {
+          localStorage.removeItem('was-originally-owner')
+        }
         
         let finalPermissions = {
           canCreateInvoices: (permissionsData as any)?.canCreateInvoices || false,
@@ -389,26 +408,26 @@ export function useUserPermissions() {
           isOwner: originalIsOwner,
           wasOriginallyOwner: originalIsOwner, // Nuevo campo para RoleSwitcher
           isRealEmployee: isRealEmployee, // Indica si es empleado real vs propietario en modo prueba
-          // Permisos de edición por defecto basados en si es owner
-          canEditInvoices: originalIsOwner,
-          canEditClients: originalIsOwner,
-          canEditProducts: originalIsOwner,
-          canEditServices: originalIsOwner,
-          canEditProjects: originalIsOwner,
-          canEditVehicles: originalIsOwner,
-          canEditThermalReceipts: originalIsOwner,
-          canEditAgendaEvents: originalIsOwner,
-          canEditExpenses: originalIsOwner,
-          // Permisos de eliminación por defecto basados en si es owner
-          canDeleteInvoices: originalIsOwner,
-          canDeleteClients: originalIsOwner,
-          canDeleteProducts: originalIsOwner,
-          canDeleteServices: originalIsOwner,
-          canDeleteProjects: originalIsOwner,
-          canDeleteVehicles: originalIsOwner,
-          canDeleteThermalReceipts: originalIsOwner,
-          canDeleteAgendaEvents: originalIsOwner,
-          canDeleteExpenses: originalIsOwner
+          // Permisos de edición por defecto: SOLO para owners Y NO empleados reales
+          canEditInvoices: originalIsOwner && !isRealEmployee,
+          canEditClients: originalIsOwner && !isRealEmployee,
+          canEditProducts: originalIsOwner && !isRealEmployee,
+          canEditServices: originalIsOwner && !isRealEmployee,
+          canEditProjects: originalIsOwner && !isRealEmployee,
+          canEditVehicles: originalIsOwner && !isRealEmployee,
+          canEditThermalReceipts: originalIsOwner && !isRealEmployee,
+          canEditAgendaEvents: originalIsOwner && !isRealEmployee,
+          canEditExpenses: originalIsOwner && !isRealEmployee,
+          // Permisos de eliminación por defecto: SOLO para owners Y NO empleados reales
+          canDeleteInvoices: originalIsOwner && !isRealEmployee,
+          canDeleteClients: originalIsOwner && !isRealEmployee,
+          canDeleteProducts: originalIsOwner && !isRealEmployee,
+          canDeleteServices: originalIsOwner && !isRealEmployee,
+          canDeleteProjects: originalIsOwner && !isRealEmployee,
+          canDeleteVehicles: originalIsOwner && !isRealEmployee,
+          canDeleteThermalReceipts: originalIsOwner && !isRealEmployee,
+          canDeleteAgendaEvents: originalIsOwner && !isRealEmployee,
+          canDeleteExpenses: originalIsOwner && !isRealEmployee
         }
 
         // VERIFICAR si está en modo empleado (role-switcher)
@@ -492,21 +511,24 @@ export function useUserPermissions() {
         localStorage.setItem('cached-permissions', JSON.stringify(finalPermissions))
         localStorage.setItem('permissions-cache-time', Date.now().toString())
       } else {
-        // No hay datos de permisos específicos, asumir que es owner principal
-        // No permissions data - primary owner
+        // No hay datos de permisos específicos
+        // CRITICAL: NO asumir owner si es empleado real
         
-        // Guardar que es owner originalmente
-        localStorage.setItem('was-originally-owner', 'true')
+        // Solo guardar como owner si NO es empleado real
+        if (!isRealEmployee) {
+          localStorage.setItem('was-originally-owner', 'true')
+        }
         
         let ownerPermissions = {
-          canCreateInvoices: true,
-          canViewFinances: true,
-          canManageInventory: true,
-          canManageClients: true,
-          maxInvoiceAmount: null as number | null,
-          role: 'owner',
-          isOwner: true,
-          wasOriginallyOwner: true,
+          canCreateInvoices: !isRealEmployee,
+          canViewFinances: !isRealEmployee,
+          canManageInventory: !isRealEmployee,
+          canManageClients: !isRealEmployee,
+          maxInvoiceAmount: isRealEmployee ? 15000 : (null as number | null),
+          role: isRealEmployee ? 'employee' : 'owner',
+          isOwner: !isRealEmployee, // Solo owner si NO es empleado real
+          wasOriginallyOwner: !isRealEmployee,
+          isRealEmployee: isRealEmployee,
           // Permisos de edición para owner
           canEditInvoices: true,
           canEditClients: true,
