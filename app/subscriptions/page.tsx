@@ -387,6 +387,17 @@ export default function SubscriptionsManagementPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
+      console.log('📤 Enviando datos a create_manual_subscription:', {
+        p_user_email: newSubEmail,
+        p_plan_name: newSubPlan,
+        p_start_date: new Date().toISOString(),
+        p_end_date: newSubEndDate || null,
+        p_status: newSubStatus,
+        p_billing_cycle: newSubBillingCycle,
+        p_manager_email: user?.email || 'smithrodriguez345@gmail.com',
+        p_notes: newSubNotes || null
+      })
+      
       const { data, error } = await supabase.rpc('create_manual_subscription', {
         p_user_email: newSubEmail,
         p_plan_name: newSubPlan,
@@ -398,10 +409,16 @@ export default function SubscriptionsManagementPage() {
         p_notes: newSubNotes || null
       })
 
-      if (error) throw error
+      console.log('📥 Respuesta de create_manual_subscription:', { data, error })
+
+      if (error) {
+        console.error('❌ Error de Supabase:', error)
+        throw error
+      }
 
       const result = data as any
       if (!result.success) {
+        console.error('❌ Error en resultado:', result)
         throw new Error(result.message)
       }
 
