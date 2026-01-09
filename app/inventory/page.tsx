@@ -79,6 +79,29 @@ export default function UnifiedInventoryPage() {
   const { permissions, canEdit } = useUserPermissions()
   const { toast } = useToast()
 
+  // Helper para obtener el owner ID (el usuario actual o su parent_user_id)
+  const getOwnerUserId = async (userId: string): Promise<string> => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('parent_user_id')
+        .eq('user_id', userId)
+        .maybeSingle()
+      
+      if (error) {
+        console.error('Error getting owner user id:', error)
+        return userId
+      }
+      
+      // Si tiene parent_user_id, es un empleado, usar el ID del owner
+      // Si no tiene parent_user_id o no hay perfil, es el owner, usar userId
+      return profile?.parent_user_id || userId
+    } catch (error) {
+      console.error('Error getting owner user id:', error)
+      return userId
+    }
+  }
+
   const fetchProducts = async () => {
     try {
       const {
@@ -89,10 +112,12 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       const { data, error } = await supabase
         .from('products')
         .select('id, name, unit, current_stock, product_code')
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
         .order('name')
 
       if (error) {
@@ -119,22 +144,24 @@ export default function UnifiedInventoryPage() {
 
       console.log('Checking warehouses for user:', user.id)
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       // Verificar si el usuario tiene almacenes activos
       const { data: existingWarehouses, error: checkError } = await supabase
         .from('warehouses')
         .select('id, name, user_id, is_active')
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
 
       console.log('Existing warehouses:', existingWarehouses, 'Error:', checkError)
 
       // Si no tiene almacenes activos, crear uno por defecto
       if (!existingWarehouses || existingWarehouses.length === 0) {
-        console.log('Creating default warehouse for user:', user.id)
+        console.log('Creating default warehouse for user:', ownerUserId)
         
         const { data: newWarehouse, error: createError } = await (supabase as any)
           .from('warehouses')
           .insert({
-            user_id: user.id,
+            user_id: ownerUserId,
             name: 'Almacén Principal',
             description: 'Almacén principal creado automáticamente',
             address: 'Dirección del almacén principal',
@@ -181,6 +208,8 @@ export default function UnifiedInventoryPage() {
 
       console.log('Current user ID:', user.id)
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       // Asegurar que el usuario tenga al menos un almacén
       await ensureDefaultWarehouse()
 
@@ -196,7 +225,7 @@ export default function UnifiedInventoryPage() {
           created_at,
           user_id
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
         .order('created_at')
 
       console.log('Warehouses query result:', { data, error, user_id: user.id })
@@ -215,7 +244,7 @@ export default function UnifiedInventoryPage() {
             product:products!inner (cost_price)
           `)
           .eq('warehouse_id', warehouse.id)
-          .eq('product.user_id', user.id)
+          .eq('product.user_id', ownerUserId)
 
         return {
           ...warehouse,
@@ -641,12 +670,14 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       // Eliminar almacén
       const { error } = await supabase
         .from('warehouses')
         .delete()
         .eq('id', deleteConfirm.id)
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
 
       if (error) {
         throw error
@@ -686,11 +717,13 @@ export default function UnifiedInventoryPage() {
 
       console.log('Starting product sync for user:', user.id)
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       // Obtener todos los productos del usuario
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select('id, name, current_stock, user_id')
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
 
       if (productsError) {
         console.error('Error getting products:', productsError)
@@ -703,7 +736,7 @@ export default function UnifiedInventoryPage() {
       const { data: warehouse } = await supabase
         .from('warehouses')
         .select('id, name')
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
         .eq('is_active', true)
         .limit(1)
         .single()
@@ -716,7 +749,7 @@ export default function UnifiedInventoryPage() {
         const { data: newWarehouse, error: createError } = await (supabase as any)
           .from('warehouses')
           .insert({
-            user_id: user.id,
+            user_id: ownerUserId,
             name: 'Almacén Principal',
             description: 'Almacén principal creado automáticamente',
             address: 'Dirección del almacén principal',
@@ -860,11 +893,13 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       // Calcular resumen manualmente en lugar de usar RPC
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select('id, current_stock, unit_price')
-        .eq('user_id', user.id)
+        .eq('user_id', ownerUserId)
 
       if (productsError) {
         console.error('Error fetching products for summary:', productsError)
@@ -898,6 +933,8 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       const { data, error } = await supabase
         .from('product_warehouse_stock')
         .select(`
@@ -927,8 +964,8 @@ export default function UnifiedInventoryPage() {
           )
         `)
         .eq('warehouse.is_active', true)
-        .eq('warehouse.user_id', user.id)
-        .eq('product.user_id', user.id)
+        .eq('warehouse.user_id', ownerUserId)
+        .eq('product.user_id', ownerUserId)
         .order('id')
 
       if (error) {
@@ -962,6 +999,8 @@ export default function UnifiedInventoryPage() {
         return
       }
 
+      const ownerUserId = await getOwnerUserId(user.id)
+
       const { data, error } = await supabase
         .from('stock_movements')
         .select(`
@@ -974,8 +1013,8 @@ export default function UnifiedInventoryPage() {
           warehouse:warehouses!inner (name, user_id),
           user:profiles (email)
         `)
-        .eq('product.user_id', user.id)
-        .eq('warehouse.user_id', user.id)
+        .eq('product.user_id', ownerUserId)
+        .eq('warehouse.user_id', ownerUserId)
         .order('movement_date', { ascending: false })
         .limit(50)
 
