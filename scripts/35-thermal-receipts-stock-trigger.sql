@@ -11,12 +11,46 @@ RETURNS TRIGGER AS $$
 DECLARE
     current_stock_value DECIMAL(10,3);
     product_name_value VARCHAR(255);
+    receipt_user_id UUID;
+    default_warehouse_id UUID;
+    product_cost DECIMAL(10,2);
 BEGIN
     -- Solo procesar si hay un product_id (no servicios)
     IF NEW.product_id IS NOT NULL THEN
-        -- Obtener stock actual del producto
-        SELECT current_stock, name 
-        INTO current_stock_value, product_name_value
+        -- Obtener el user_id del recibo térmico
+        SELECT user_id INTO receipt_user_id 
+        FROM thermal_receipts 
+        WHERE id = NEW.thermal_receipt_id;
+        
+        -- Obtener el warehouse por defecto del usuario
+        SELECT id INTO default_warehouse_id 
+        FROM warehouses 
+        WHERE user_id = receipt_user_id
+        ORDER BY created_at ASC 
+        LIMIT 1;
+        
+        -- Si no hay warehouse, crear uno por defecto
+        IF default_warehouse_id IS NULL THEN
+            INSERT INTO warehouses (
+                user_id, 
+                name, 
+                description, 
+                address, 
+                is_active
+            ) VALUES (
+                receipt_user_id,
+                'Almacén Principal',
+                'Almacén principal creado automáticamente',
+                'Dirección del almacén principal',
+                true
+            ) RETURNING id INTO default_warehouse_id;
+            
+            RAISE NOTICE 'Creado warehouse % para usuario %', default_warehouse_id, receipt_user_id;
+        END IF;
+        
+        -- Obtener stock actual y costo del producto
+        SELECT current_stock, name, COALESCE(cost_price, 0)
+        INTO current_stock_value, product_name_value, product_cost
         FROM products 
         WHERE id = NEW.product_id;
         
@@ -38,6 +72,37 @@ BEGIN
                     available_stock = new_available_stock,
                     updated_at = NOW()
                 WHERE id = NEW.product_id;
+                
+                -- Registrar movimiento de stock
+                INSERT INTO stock_movements (
+                    user_id,
+                    product_id,
+                    warehouse_id,
+                    movement_type,
+                    quantity_before,
+                    quantity_change,
+                    quantity_after,
+                    unit_cost,
+                    total_cost,
+                    reference_type,
+                    reference_id,
+                    notes,
+                    movement_date
+                ) VALUES (
+                    receipt_user_id,
+                    NEW.product_id,
+                    default_warehouse_id,
+                    'salida',
+                    current_stock_value,
+                    -NEW.quantity,
+                    new_current_stock,
+                    product_cost,
+                    product_cost * NEW.quantity,
+                    'thermal_receipt',
+                    NEW.thermal_receipt_id,
+                    'Venta - Recibo Térmico: ' || NEW.item_name,
+                    NOW()
+                );
                 
                 -- Log para debug
                 RAISE NOTICE 'Stock reducido en recibo térmico para producto "%": % unidades (antes: %, después: %)', 
@@ -64,9 +129,23 @@ CREATE OR REPLACE FUNCTION handle_thermal_receipt_item_stock_restoration()
 RETURNS TRIGGER AS $$
 DECLARE
     product_name_value VARCHAR(255);
+    receipt_user_id UUID;
+    default_warehouse_id UUID;
 BEGIN
     -- Solo procesar si hay un product_id (no servicios)
     IF OLD.product_id IS NOT NULL THEN
+        -- Obtener el user_id del recibo térmico
+        SELECT user_id INTO receipt_user_id 
+        FROM thermal_receipts 
+        WHERE id = OLD.thermal_receipt_id;
+        
+        -- Obtener el warehouse por defecto del usuario
+        SELECT id INTO default_warehouse_id 
+        FROM warehouses 
+        WHERE user_id = receipt_user_id
+        ORDER BY created_at ASC 
+        LIMIT 1;
+        
         -- Obtener nombre del producto
         SELECT name 
         INTO product_name_value
@@ -75,17 +154,62 @@ BEGIN
         
         -- Si encontramos el producto, restaurar el stock
         IF FOUND THEN
-            -- Restaurar stock
-            UPDATE products 
-            SET 
-                current_stock = COALESCE(current_stock, 0) + OLD.quantity,
-                available_stock = COALESCE(available_stock, 0) + OLD.quantity,
-                updated_at = NOW()
-            WHERE id = OLD.product_id;
-            
-            -- Log para debug
-            RAISE NOTICE 'Stock restaurado por eliminación de recibo térmico para producto "%": + % unidades', 
-                product_name_value, OLD.quantity;
+            DECLARE
+                old_stock DECIMAL(10,3);
+                new_stock DECIMAL(10,3);
+            BEGIN
+                -- Obtener stock actual antes de restaurar
+                SELECT COALESCE(current_stock, 0) INTO old_stock
+                FROM products 
+                WHERE id = OLD.product_id;
+                
+                new_stock := old_stock + OLD.quantity;
+                
+                -- Restaurar stock
+                UPDATE products 
+                SET 
+                    current_stock = new_stock,
+                    available_stock = new_stock,
+                    updated_at = NOW()
+                WHERE id = OLD.product_id;
+                
+                -- Registrar movimiento de devolución/ajuste
+                IF default_warehouse_id IS NOT NULL THEN
+                    INSERT INTO stock_movements (
+                        user_id,
+                        product_id,
+                        warehouse_id,
+                        movement_type,
+                        quantity_before,
+                        quantity_change,
+                        quantity_after,
+                        unit_cost,
+                        total_cost,
+                        reference_type,
+                        reference_id,
+                        notes,
+                        movement_date
+                    ) VALUES (
+                        receipt_user_id,
+                        OLD.product_id,
+                        default_warehouse_id,
+                        'entrada',
+                        old_stock,
+                        OLD.quantity,
+                        new_stock,
+                        0,
+                        0,
+                        'thermal_receipt_delete',
+                        OLD.thermal_receipt_id,
+                        'Devolución - Eliminación de Recibo Térmico: ' || OLD.item_name,
+                        NOW()
+                    );
+                END IF;
+                
+                -- Log para debug
+                RAISE NOTICE 'Stock restaurado por eliminación de recibo térmico para producto "%": + % unidades', 
+                    product_name_value, OLD.quantity;
+            END;
         END IF;
     END IF;
     
@@ -150,5 +274,10 @@ BEGIN
     RAISE NOTICE '';
     RAISE NOTICE 'Y SE RESTAURARÁN AUTOMÁTICAMENTE AL:';
     RAISE NOTICE '  - Eliminar recibos térmicos';
+    RAISE NOTICE '';
+    RAISE NOTICE '📊 MOVIMIENTOS DE INVENTARIO:';
+    RAISE NOTICE '  ✅ Se registran en stock_movements al crear recibos térmicos';
+    RAISE NOTICE '  ✅ Se registran en stock_movements al eliminar recibos térmicos';
+    RAISE NOTICE '  ✅ Se registran en stock_movements al crear facturas';
     RAISE NOTICE '====================================================================';
 END $$;

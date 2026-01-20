@@ -664,6 +664,8 @@ export default function ThermalReceiptsPage() {
       }
 
       const verification_code = generateVerificationCode()
+      const receipt_number = `TRM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
+      
       // Use a fallback URL for local development
       const baseUrl = window.location.origin.includes('localhost') 
         ? 'https://tu-dominio-futuro.com' // Cambia esto por tu dominio de producción
@@ -675,6 +677,7 @@ export default function ThermalReceiptsPage() {
         .from("thermal_receipts")
         .insert({
           user_id: dataUserId,
+          receipt_number,
           client_id: selectedClientId || null,
           client_name: clientName || "Cliente General",
           subtotal,
@@ -686,10 +689,8 @@ export default function ThermalReceiptsPage() {
           qr_code: qr_url,
           verification_code,
           digital_receipt_url: qr_url,
-          notes,
-          include_itbis: includeItbis,
-          ncf: includeItbis && ncf ? ncf : null
-        } as any)
+          notes: notes || null
+        })
         .select()
         .single()
 
@@ -700,6 +701,11 @@ export default function ThermalReceiptsPage() {
           return
         }
         throw receiptError
+      }
+
+      // Verify receipt was created
+      if (!(receiptData as any)?.id) {
+        throw new Error("No se pudo obtener el ID del recibo creado")
       }
 
       // Save receipt items
@@ -715,12 +721,18 @@ export default function ThermalReceiptsPage() {
           line_total: item.line_total
         }))
 
-      const { error: itemsError } = await supabase
-        .from("thermal_receipt_items")
-        .insert(itemsToSave as any)
+      if (itemsToSave.length > 0) {
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("thermal_receipt_items")
+          .insert(itemsToSave)
+          .select()
 
-      if (itemsError) {
-        throw itemsError
+        if (itemsError) {
+          console.error("Error inserting items:", itemsError)
+          throw itemsError
+        }
+
+        console.log("Items inserted successfully:", itemsData)
       }
 
       // Reset form
