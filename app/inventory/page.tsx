@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -71,13 +71,36 @@ export default function UnifiedInventoryPage() {
   const [movements, setMovements] = useState<any[]>([])
   const [warehouses, setWarehouses] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterWarehouse, setFilterWarehouse] = useState<string>("all")
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null; name: string }>({ show: false, id: null, name: '' })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [pageSize] = useState(50)
+  const [loadingStock, setLoadingStock] = useState(false)
+  const searchTimeoutRef = useRef<number | null>(null)
   const { formatCurrency, formatNumber } = useCurrency()
   const { permissions, canEdit } = useUserPermissions()
   const { toast } = useToast()
+
+  // Debounce search term
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1) // Reset to first page on search
+    }, 500)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
 
   // Helper para obtener el owner ID (el usuario actual o su parent_user_id)
   const getOwnerUserId = async (userId: string): Promise<string> => {
@@ -235,24 +258,43 @@ export default function UnifiedInventoryPage() {
         return
       }
 
-      // Calcular datos adicionales para cada almacén
-      const processedWarehouses = await Promise.all(data?.map(async (warehouse: any) => {
-        const { data: stockData } = await supabase
+      // OPTIMIZACIÓN: Obtener todos los datos de stock en UNA SOLA QUERY en lugar de N queries
+      const warehouseIds = data?.map(w => w.id) || []
+      
+      let stockDataByWarehouse: { [key: string]: { count: number, value: number } } = {}
+      
+      if (warehouseIds.length > 0) {
+        const { data: allStockData } = await supabase
           .from('product_warehouse_stock')
           .select(`
+            warehouse_id,
             current_stock,
-            product:products!inner (cost_price)
+            product:products!inner (cost_price, user_id)
           `)
-          .eq('warehouse_id', warehouse.id)
+          .in('warehouse_id', warehouseIds)
           .eq('product.user_id', ownerUserId)
 
+        // Agrupar por warehouse_id
+        stockDataByWarehouse = (allStockData || []).reduce((acc: any, stock: any) => {
+          const wId = stock.warehouse_id
+          if (!acc[wId]) {
+            acc[wId] = { count: 0, value: 0 }
+          }
+          acc[wId].count++
+          acc[wId].value += (stock.current_stock * (stock.product?.cost_price || 0))
+          return acc
+        }, {})
+      }
+
+      // Mapear datos sin queries adicionales
+      const processedWarehouses = data?.map((warehouse: any) => {
+        const stockInfo = stockDataByWarehouse[warehouse.id] || { count: 0, value: 0 }
         return {
           ...warehouse,
-          product_count: stockData?.length || 0,
-          total_stock_value: stockData?.reduce((sum: number, stock: any) => 
-            sum + (stock.current_stock * (stock.product?.cost_price || 0)), 0) || 0
+          product_count: stockInfo.count,
+          total_stock_value: stockInfo.value
         }
-      }) || [])
+      }) || []
 
       setWarehouses(processedWarehouses)
     } catch (error) {
@@ -262,8 +304,8 @@ export default function UnifiedInventoryPage() {
 
   const fetchAllData = useCallback(async () => {
     setLoading(true)
-    // Primero sincronizar productos con almacenes
-    await syncProductsWithWarehouse()
+    // NO sincronizar en cada carga - solo cuando sea necesario
+    // await syncProductsWithWarehouse() // REMOVIDO para mejorar rendimiento
     
     await Promise.all([
       fetchSummary(),
@@ -274,6 +316,13 @@ export default function UnifiedInventoryPage() {
     ])
     setLoading(false)
   }, [fetchWarehouses])
+
+  // Refetch stock items cuando cambien filtros o página
+  useEffect(() => {
+    if (!loading) {
+      fetchStockItems()
+    }
+  }, [debouncedSearchTerm, filterStatus, filterWarehouse, currentPage])
 
   const createStockMovement = async () => {
     // Validaciones
@@ -769,84 +818,109 @@ export default function UnifiedInventoryPage() {
 
       console.log('Using warehouse:', warehouseData.id, warehouseData.name)
 
-      // Para cada producto, verificar si existe en product_warehouse_stock
+      // OPTIMIZACIÓN: Obtener TODO el stock existente en UNA query en lugar de 209 queries
+      const productIds = (products as any[])?.map(p => p.id) || []
+      
+      const { data: existingStockData } = await supabase
+        .from('product_warehouse_stock')
+        .select('product_id, id, current_stock')
+        .eq('warehouse_id', warehouseData.id)
+        .in('product_id', productIds)
+
+      // Crear un Map para acceso rápido
+      const stockMap = new Map(
+        (existingStockData || []).map((s: any) => [s.product_id, s])
+      )
+
+      // Arrays para batch inserts
+      const stockToInsert: any[] = []
+      const movementsToInsert: any[] = []
+      const stockToUpdate: any[] = []
+
+      // Procesar todos los productos
       for (const product of (products as any[]) || []) {
-        const { data: existingStock } = await supabase
-          .from('product_warehouse_stock')
-          .select('id, current_stock')
-          .eq('product_id', product.id)
-          .eq('warehouse_id', warehouseData.id)
-          .single()
+        const existingStock = stockMap.get(product.id)
 
         if (!existingStock) {
-          // Crear registro de stock en almacén
-          console.log(`Creating warehouse stock for product: ${product.name}`)
-          const { error: insertError } = await (supabase as any)
-            .from('product_warehouse_stock')
-            .insert({
+          // Preparar para insertar
+          stockToInsert.push({
+            product_id: product.id,
+            warehouse_id: warehouseData.id,
+            current_stock: product.current_stock || 0,
+            available_stock: product.current_stock || 0,
+            reserved_stock: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+          if (product.current_stock > 0) {
+            movementsToInsert.push({
               product_id: product.id,
               warehouse_id: warehouseData.id,
-              current_stock: product.current_stock || 0,
-              available_stock: product.current_stock || 0,
-              reserved_stock: 0,
-              created_at: new Date().toISOString(),
+              movement_type: 'entrada',
+              quantity_change: product.current_stock,
+              notes: 'Sincronización inicial de stock desde catálogo',
+              movement_date: new Date().toISOString(),
+              user_id: user.id
+            })
+          }
+        } else {
+          // Verificar si necesita actualización
+          const stockData = existingStock as any
+          if (stockData.current_stock !== product.current_stock) {
+            const quantityChange = product.current_stock - stockData.current_stock
+
+            stockToUpdate.push({
+              id: stockData.id,
+              current_stock: product.current_stock,
+              available_stock: product.current_stock,
               updated_at: new Date().toISOString()
             })
 
-          if (insertError) {
-            console.error(`Error creating stock for ${product.name}:`, insertError)
-          } else {
-            // Crear movimiento inicial si hay stock
-            if (product.current_stock > 0) {
-              await (supabase as any)
-                .from('stock_movements')
-                .insert({
-                  product_id: product.id,
-                  warehouse_id: warehouseData.id,
-                  movement_type: 'entrada',
-                  quantity_change: product.current_stock,
-                  notes: 'Sincronización inicial de stock desde catálogo',
-                  movement_date: new Date().toISOString(),
-                  user_id: user.id
-                })
-            }
-          }
-        } else {
-          // Verificar si el stock está sincronizado
-          const stockData = existingStock as any
-          if (stockData.current_stock !== product.current_stock) {
-            console.log(`Syncing stock for product: ${product.name}`)
-            const quantityChange = product.current_stock - stockData.current_stock
-
-            // Actualizar stock en almacén
-            await (supabase as any)
-              .from('product_warehouse_stock')
-              .update({
-                current_stock: product.current_stock,
-                available_stock: product.current_stock,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', stockData.id)
-
-            // Crear movimiento de ajuste
             if (quantityChange !== 0) {
-              await (supabase as any)
-                .from('stock_movements')
-                .insert({
-                  product_id: product.id,
-                  warehouse_id: warehouseData.id,
-                  movement_type: 'ajuste',
-                  quantity_change: quantityChange,
-                  notes: 'Sincronización automática de stock desde catálogo',
-                  movement_date: new Date().toISOString(),
-                  user_id: user.id
-                })
+              movementsToInsert.push({
+                product_id: product.id,
+                warehouse_id: warehouseData.id,
+                movement_type: 'ajuste',
+                quantity_change: quantityChange,
+                notes: 'Sincronización automática de stock desde catálogo',
+                movement_date: new Date().toISOString(),
+                user_id: user.id
+              })
             }
           }
         }
       }
 
-      console.log('Product sync completed')
+      // BATCH INSERTS Y UPDATES - MUCHO MÁS RÁPIDO
+      if (stockToInsert.length > 0) {
+        console.log(`Inserting ${stockToInsert.length} new stock records (batch)`)
+        const { error } = await (supabase as any)
+          .from('product_warehouse_stock')
+          .insert(stockToInsert)
+        if (error) console.error('Error batch inserting stock:', error)
+      }
+
+      if (stockToUpdate.length > 0) {
+        console.log(`Updating ${stockToUpdate.length} stock records (batch)`)
+        // Supabase no soporta batch update directamente, pero podemos hacerlo más eficiente
+        for (const stock of stockToUpdate) {
+          await (supabase as any)
+            .from('product_warehouse_stock')
+            .update(stock)
+            .eq('id', stock.id)
+        }
+      }
+
+      if (movementsToInsert.length > 0) {
+        console.log(`Inserting ${movementsToInsert.length} movements (batch)`)
+        const { error } = await (supabase as any)
+          .from('stock_movements')
+          .insert(movementsToInsert)
+        if (error) console.error('Error batch inserting movements:', error)
+      }
+
+      console.log('Product sync completed (optimized)')
     } catch (error) {
       console.error('Error in product sync:', error)
     }
@@ -855,6 +929,15 @@ export default function UnifiedInventoryPage() {
   useEffect(() => {
     fetchAllData()
   }, [fetchAllData])
+
+  // Ya no necesitamos filtrar aquí porque lo hacemos en la query
+  const filteredStockItems = useMemo(() => stockItems, [stockItems])
+
+  const totalPages = Math.ceil(totalItems / pageSize)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages))
+  }
 
   // Check if user has permission to manage inventory
   if (!permissions.canManageInventory) {
@@ -924,18 +1007,21 @@ export default function UnifiedInventoryPage() {
   }
 
   const fetchStockItems = async () => {
+    setLoadingStock(true)
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) {
+        setLoadingStock(false)
         return
       }
 
       const ownerUserId = await getOwnerUserId(user.id)
 
-      const { data, error } = await supabase
+      // Construir query con filtros
+      let query = supabase
         .from('product_warehouse_stock')
         .select(`
           id,
@@ -954,38 +1040,81 @@ export default function UnifiedInventoryPage() {
             category,
             barcode,
             is_trackable,
-            product_code,
-            user_id
+            product_code
           ),
           warehouse:warehouses!inner (
             id,
-            name,
-            user_id
+            name
           )
-        `)
+        `, { count: 'exact' })
         .eq('warehouse.is_active', true)
         .eq('warehouse.user_id', ownerUserId)
         .eq('product.user_id', ownerUserId)
-        .order('id')
+
+      // Aplicar búsqueda si existe
+      if (debouncedSearchTerm) {
+        query = query.or(
+          `product.name.ilike.%${debouncedSearchTerm}%,product.product_code.ilike.%${debouncedSearchTerm}%,product.category.ilike.%${debouncedSearchTerm}%,warehouse.name.ilike.%${debouncedSearchTerm}%`
+        )
+      }
+
+      // Aplicar filtro de almacén
+      if (filterWarehouse !== 'all') {
+        query = query.eq('warehouse.id', filterWarehouse)
+      }
+
+      // Paginación
+      const from = (currentPage - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .order('id', { ascending: true })
+        .range(from, to)
 
       if (error) {
         console.error('Error fetching stock items:', error)
+        setLoadingStock(false)
         return
       }
 
-      const processedItems = data?.map((item: any) => ({
-        ...item,
-        stock_value: item.current_stock * (item.product?.cost_price || 0),
-        is_low_stock: item.current_stock <= (item.product?.reorder_point || 0) && item.current_stock > 0,
-        is_out_of_stock: item.current_stock === 0,
-        stock_status: item.current_stock === 0 ? 'out_of_stock' 
-          : item.current_stock <= (item.product?.reorder_point || 0) ? 'low_stock' 
-          : 'in_stock'
-      })) || []
+      setTotalItems(count || 0)
 
-      setStockItems(processedItems)
+      const processedItems = data?.map((item: any) => {
+        const stockValue = item.current_stock * (item.product?.cost_price || 0)
+        const isLowStock = item.current_stock <= (item.product?.reorder_point || 0) && item.current_stock > 0
+        const isOutOfStock = item.current_stock === 0
+        
+        let stockStatus = 'in_stock'
+        if (isOutOfStock) stockStatus = 'out_of_stock'
+        else if (isLowStock) stockStatus = 'low_stock'
+
+        return {
+          ...item,
+          stock_value: stockValue,
+          is_low_stock: isLowStock,
+          is_out_of_stock: isOutOfStock,
+          stock_status: stockStatus
+        }
+      }) || []
+
+      // Aplicar filtro de estado localmente (más eficiente que en la query)
+      let filteredItems = processedItems
+      if (filterStatus !== 'all') {
+        filteredItems = processedItems.filter(item => item.stock_status === filterStatus)
+      }
+
+      // Ordenar alfabéticamente por nombre del producto
+      filteredItems.sort((a, b) => {
+        const nameA = a.product?.name?.toLowerCase() || ''
+        const nameB = b.product?.name?.toLowerCase() || ''
+        return nameA.localeCompare(nameB)
+      })
+
+      setStockItems(filteredItems)
     } catch (error) {
       console.error('Error fetching stock items:', error)
+    } finally {
+      setLoadingStock(false)
     }
   }
 
@@ -1009,14 +1138,14 @@ export default function UnifiedInventoryPage() {
           quantity_change,
           movement_date,
           notes,
-          product:products!inner (name, unit, product_code, user_id),
-          warehouse:warehouses!inner (name, user_id),
+          user_id,
+          product:products (name, unit, product_code),
+          warehouse:warehouses (name),
           user:profiles (email)
         `)
-        .eq('product.user_id', ownerUserId)
-        .eq('warehouse.user_id', ownerUserId)
+        .eq('user_id', ownerUserId)
         .order('movement_date', { ascending: false })
-        .limit(50)
+        .limit(100)
 
       if (error) {
         console.error('Error fetching movements:', error)
@@ -1085,17 +1214,6 @@ export default function UnifiedInventoryPage() {
     }
   }
 
-  const filteredStockItems = stockItems.filter(item => {
-    const matchesSearch = item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.product?.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.product?.product_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.warehouse?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || item.stock_status === filterStatus
-    const matchesWarehouse = filterWarehouse === 'all' || item.warehouse?.id === filterWarehouse
-    
-    return matchesSearch && matchesStatus && matchesWarehouse
-  })
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -1120,6 +1238,25 @@ export default function UnifiedInventoryPage() {
           <Button variant="outline" onClick={fetchAllData}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Actualizar
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              toast({
+                title: "Sincronizando...",
+                description: "Sincronizando productos con almacenes",
+              })
+              await syncProductsWithWarehouse()
+              await fetchAllData()
+              toast({
+                title: "Sincronización completa",
+                description: "Productos sincronizados correctamente",
+              })
+            }}
+            className="text-xs"
+          >
+            <Package className="w-4 h-4 mr-2" />
+            Sincronizar
           </Button>
         </div>
       </div>
@@ -1468,6 +1605,66 @@ export default function UnifiedInventoryPage() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-gray-600">
+                    Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} items
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1 || loadingStock}
+                    >
+                      Anterior
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum
+                        if (totalPages <= 5) {
+                          pageNum = i + 1
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i
+                        } else {
+                          pageNum = currentPage - 2 + i
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            disabled={loadingStock}
+                            className="w-10"
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages || loadingStock}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {loadingStock && (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
+                  <span className="ml-2 text-gray-600">Cargando productos...</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

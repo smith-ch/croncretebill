@@ -119,8 +119,8 @@ export async function POST(request: NextRequest) {
       throw itemsError
     }
 
-    // Manual stock reduction as fallback (until triggers are working)
-    console.log('Manually reducing stock for invoice items...')
+    // Stock movements tracking (stock reduction is handled by database trigger)
+    console.log('Creating stock movements for invoice items...')
     
     // Get all products and warehouse stocks in batch to avoid N+1 queries
     const productIds = invoiceItems
@@ -128,21 +128,18 @@ export async function POST(request: NextRequest) {
       .map((item: any) => item.product_id)
     
     if (productIds.length > 0) {
-      // Batch fetch products
-      const { data: products, error: productsError } = await supabaseAdmin
+      // Batch fetch products with cost information
+      const { data: products } = await supabaseAdmin
         .from('products')
-        .select('id, name, current_stock, available_stock')
+        .select('id, name, cost_price')
         .in('id', productIds)
       
-      // Batch fetch warehouse stocks
-      const { data: allWarehouseStocks, error: warehouseError } = await supabaseAdmin
+      // Batch fetch warehouse stocks (for stock movement tracking only)
+      const { data: allWarehouseStocks } = await supabaseAdmin
         .from('product_warehouse_stock')
-        .select('id, product_id, current_stock, available_stock, warehouse_id')
+        .select('id, product_id, current_stock, warehouse_id')
         .in('product_id', productIds)
-      
-      if (productsError || warehouseError) {
-        console.error('Error fetching stock data:', productsError || warehouseError)
-      }
+        .gt('current_stock', 0)
       
       // Create maps for quick lookup
       const productMap = new Map(products?.map(p => [p.id, p]) || [])
@@ -165,103 +162,47 @@ export async function POST(request: NextRequest) {
               continue
             }
 
-            // Calculate new stock values for products table
-            const newCurrentStock = Math.max(0, (currentProduct.current_stock || 0) - item.quantity)
-            const newAvailableStock = Math.max(0, (currentProduct.available_stock || currentProduct.current_stock || 0) - item.quantity)
-
-          // Update products table stock
-          const { error: updateError } = await supabaseAdmin
-            .from('products')
-            .update({
-              current_stock: newCurrentStock,
-              available_stock: newAvailableStock
-            })
-            .eq('id', item.product_id)
-
-          if (updateError) {
-            console.error('Error updating product stock:', updateError)
-          } else {
-            console.log(`Product stock reduced for ${currentProduct.name}: ${item.quantity} units (was: ${currentProduct.current_stock}, now: ${newCurrentStock})`)
-          }
-
-            // Update warehouse stock (reduce from the first warehouse with available stock)
-            let remainingToReduce = item.quantity
-            const warehouseUpdates = []
+            // Create stock movements for tracking (not for reducing stock - that's done by trigger)
+            let remainingToTrack = item.quantity
             const stockMovements = []
             
             for (const warehouseStock of warehouseStocks) {
-              if (remainingToReduce <= 0) break
+              if (remainingToTrack <= 0) break
               
               const currentWarehouseStock = warehouseStock.current_stock || 0
               if (currentWarehouseStock > 0) {
-                const toReduceFromWarehouse = Math.min(remainingToReduce, currentWarehouseStock)
-                const newWarehouseStock = currentWarehouseStock - toReduceFromWarehouse
-                const newWarehouseAvailable = Math.max(0, (warehouseStock.available_stock || currentWarehouseStock) - toReduceFromWarehouse)
-
-                // Collect warehouse updates
-                warehouseUpdates.push({
-                  id: warehouseStock.id,
-                  current_stock: newWarehouseStock,
-                  available_stock: newWarehouseAvailable
-                })
+                const toTrack = Math.min(remainingToTrack, currentWarehouseStock)
                 
-                // Collect stock movements
+                // Create stock movement record (for history/tracking only)
                 stockMovements.push({
                   user_id: user_id,
                   product_id: item.product_id,
                   warehouse_id: warehouseStock.warehouse_id,
                   movement_type: 'venta',
                   quantity_before: currentWarehouseStock,
-                  quantity_change: -toReduceFromWarehouse,
-                  quantity_after: newWarehouseStock,
-                  unit_cost: item.unit_price,
-                  total_cost: (item.unit_price * toReduceFromWarehouse),
+                  quantity_change: -toTrack,
+                  quantity_after: currentWarehouseStock - toTrack,
+                  unit_cost: currentProduct.cost_price || 0,
+                  total_cost: (currentProduct.cost_price || 0) * toTrack,
                   reference_type: 'invoice',
                   reference_id: invoice.id,
-                  notes: `Stock reducido por factura ${invoice.invoice_number}`
+                  movement_date: new Date().toISOString(),
+                  notes: `Venta - Factura ${invoice.invoice_number}`
                 })
 
-                remainingToReduce -= toReduceFromWarehouse
-                console.log(`Warehouse stock to be reduced: ${toReduceFromWarehouse} units (was: ${currentWarehouseStock}, will be: ${newWarehouseStock})`)
+                remainingToTrack -= toTrack
               }
             }
             
-            // Batch update warehouse stocks
-            if (warehouseUpdates.length > 0) {
-              for (const update of warehouseUpdates) {
-                const { error: warehouseUpdateError } = await supabaseAdmin
-                  .from('product_warehouse_stock')
-                  .update({
-                    current_stock: update.current_stock,
-                    available_stock: update.available_stock
-                  })
-                  .eq('id', update.id)
-                
-                if (warehouseUpdateError) {
-                  console.error('Error updating warehouse stock:', warehouseUpdateError)
-                }
-              }
-            }
-            
-            // Batch insert stock movements
+            // Insert stock movements for tracking
             if (stockMovements.length > 0) {
-              const { error: movementError } = await supabaseAdmin
+              await supabaseAdmin
                 .from('stock_movements')
                 .insert(stockMovements)
-              
-              if (movementError) {
-                console.error('Error creating stock movements:', movementError)
-              } else {
-                console.log(`Stock movements created for ${currentProduct.name}`)
-              }
             }
-
-            if (remainingToReduce > 0) {
-              console.warn(`Could not reduce ${remainingToReduce} units from warehouse stock for ${currentProduct.name}`)
-            }
-
           } catch (error) {
-            console.error('Error in manual stock reduction:', error)
+            console.error('Error creating stock movement:', error)
+            // Don't fail the entire invoice if movement tracking fails
           }
         }
       }

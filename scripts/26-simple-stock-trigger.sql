@@ -18,16 +18,27 @@ BEGIN
         
         -- Si encontramos el producto, reducir el stock
         IF FOUND THEN
-            -- Reducir stock (no permitir negativo)
-            UPDATE products 
-            SET 
-                current_stock = GREATEST(0, COALESCE(current_stock, 0) - NEW.quantity),
-                available_stock = GREATEST(0, COALESCE(available_stock, current_stock, 0) - NEW.quantity)
-            WHERE id = NEW.product_id;
-            
-            -- Log para debug
-            RAISE NOTICE 'Stock reducido para producto "%": % unidades (stock anterior: %)', 
-                product_name_value, NEW.quantity, current_stock_value;
+            -- Calcular nuevos valores de stock
+            DECLARE
+                new_current_stock DECIMAL(10,3);
+                new_available_stock DECIMAL(10,3);
+            BEGIN
+                -- Calcular el nuevo stock actual
+                new_current_stock := GREATEST(0, COALESCE(current_stock_value, 0) - NEW.quantity);
+                new_available_stock := new_current_stock;
+                
+                -- Reducir stock (no permitir negativo)
+                UPDATE products 
+                SET 
+                    current_stock = new_current_stock,
+                    available_stock = new_available_stock,
+                    updated_at = NOW()
+                WHERE id = NEW.product_id;
+                
+                -- Log para debug
+                RAISE NOTICE 'Stock reducido para producto "%": % unidades (antes: %, después: %)', 
+                    product_name_value, NEW.quantity, current_stock_value, new_current_stock;
+            END;
         END IF;
     END IF;
     

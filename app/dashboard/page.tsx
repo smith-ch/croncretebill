@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
   Plus,
   FileText,
@@ -28,6 +29,12 @@ import {
   Eye,
   RefreshCw,
   DollarSign,
+  ShoppingCart,
+  Package,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+  Info,
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -70,6 +77,8 @@ interface DashboardStats {
   totalRevenue: number
   pendingRevenue: number
   todayRevenue: number
+  todayInvoices: number
+  todayExpenseAmount: number
   totalClients: number
   totalProducts: number
   totalProjects: number
@@ -117,6 +126,8 @@ export default function DashboardPage() {
     totalRevenue: 0,
     pendingRevenue: 0,
     todayRevenue: 0,
+    todayInvoices: 0,
+    todayExpenseAmount: 0,
     totalClients: 0,
     totalProducts: 0,
     totalProjects: 0,
@@ -162,6 +173,7 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState('')
   const [dailyQuote, setDailyQuote] = useState('Hoy es un gran día para alcanzar tus metas.')
   const [quoteLoading, setQuoteLoading] = useState(true)
+  const [showWeekly, setShowWeekly] = useState(true)
   const { formatCurrency, formatNumber } = useCurrency()
   const { permissions } = useUserPermissions()
   const businessNotifications = useBusinessNotifications()
@@ -395,8 +407,15 @@ export default function DashboardPage() {
       // Cargar datos básicos primero
       setLoadingStates(prev => ({ ...prev, basicStats: true }))
 
+      // Helper para normalizar fechas (eliminar hora, comparar solo fecha)
+      const normalizeDate = (dateStr: string | Date) => {
+        const d = new Date(dateStr)
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+      }
+
       const now = new Date()
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const today = normalizeDate(now)
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
       
       // Calculate current month start for accurate monthly calculations
       const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -420,7 +439,7 @@ export default function DashboardPage() {
           due_date,
           issue_date,
           created_at,
-          clients!inner(name)
+          clients(name)
         `)
         .eq("user_id", dataUserId)
         .order("created_at", { ascending: false }) as unknown as { data: Invoice[] | null }
@@ -475,6 +494,15 @@ export default function DashboardPage() {
       const paidInvoices = validInvoices.filter((inv) => inv.status === "pagada") || []
       const unpaidInvoices = validInvoices.filter((inv) => inv.status === "enviada") || []
 
+      console.log('📊 DEBUG FACTURAS:', {
+        totalInvoices,
+        validInvoices: validInvoices.length,
+        paidInvoices: paidInvoices.length,
+        unpaidInvoices: unpaidInvoices.length,
+        statusesEncontrados: [...new Set(invoices?.map(inv => inv.status))],
+        ejemploFactura: paidInvoices[0]
+      })
+
       const invoiceRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       // Si hay error en thermal receipts, usar 0 como fallback
       const thermalReceiptRevenue = thermalError ? 0 : (thermalReceipts?.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0) || 0)
@@ -497,15 +525,32 @@ export default function DashboardPage() {
 
 
 
-      const weeklyInvoices = validInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo).length || 0
-      const weeklyPaidInvoices = paidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
-      const weeklyUnpaidInvoices = unpaidInvoices.filter((inv) => new Date(inv.created_at) >= weekAgo)
-      const weeklyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => new Date(receipt.created_at) >= weekAgo) || [])
+      const weeklyPaidInvoices = paidInvoices.filter((inv) => normalizeDate(inv.created_at) >= weekAgo)
+      const weeklyUnpaidInvoices = unpaidInvoices.filter((inv) => normalizeDate(inv.created_at) >= weekAgo)
+      const weeklyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => normalizeDate(receipt.created_at) >= weekAgo) || [])
+      
+      console.log('📅 DEBUG SEMANAL:', {
+        weekAgo: weekAgo.toISOString(),
+        now: now.toISOString(),
+        weeklyPaidInvoices: weeklyPaidInvoices.length,
+        weeklyThermalReceipts: weeklyThermalReceipts.length,
+        ejemploFechaPaidInvoice: weeklyPaidInvoices[0]?.created_at,
+        ejemploFechaThermal: weeklyThermalReceipts[0]?.created_at
+      })
       
       const weeklyInvoiceRevenue = weeklyPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       const weeklyThermalRevenue = weeklyThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
       const weeklyRevenue = weeklyInvoiceRevenue + weeklyThermalRevenue
       const weeklyPendingRevenue = weeklyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+      
+      console.log('💰 DEBUG REVENUE SEMANAL:', {
+        weeklyInvoiceRevenue,
+        weeklyThermalRevenue,
+        weeklyRevenue
+      })
+      
+      // Contar solo facturas que generan revenue (pagadas + thermal receipts)
+      const weeklyInvoices = weeklyPaidInvoices.length + weeklyThermalReceipts.length
 
       const weeklyExpenses = expenses?.filter((exp) => new Date(exp.created_at) >= weekAgo).length || 0
       const weeklyExpenseAmount =
@@ -513,48 +558,55 @@ export default function DashboardPage() {
           ?.filter((exp) => new Date(exp.created_at) >= weekAgo)
           .reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
 
-      // Calcular venta de hoy (inicio y fin del día actual)
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
-      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
-      
+      // Calcular venta de hoy (comparar solo fecha, no hora)
       const todayPaidInvoices = paidInvoices.filter((inv) => {
-        const invDate = new Date(inv.issue_date || inv.created_at)
-        return invDate >= todayStart && invDate <= todayEnd
+        const invDate = normalizeDate(inv.created_at)
+        return invDate.getTime() === today.getTime()
       })
       
       const todayThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => {
-        const receiptDate = new Date(receipt.created_at)
-        return receiptDate >= todayStart && receiptDate <= todayEnd
+        const receiptDate = normalizeDate(receipt.created_at)
+        return receiptDate.getTime() === today.getTime()
       }) || [])
       
       const todayInvoiceRevenue = todayPaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       const todayThermalRevenue = todayThermalReceipts.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
       const todayRevenue = todayInvoiceRevenue + todayThermalRevenue
-
-      const monthlyInvoices = invoices?.filter((inv) => {
-        const invDate = new Date(inv.issue_date || inv.created_at)
-        return invDate >= currentMonthStart && invDate <= currentMonthEnd
-      }).length || 0
+      const todayInvoices = todayPaidInvoices.length + todayThermalReceipts.length
       
-      // Filter paid invoices by issue_date (not created_at) and status = 'pagada'
+      const todayExpenseAmount = expenses?.filter((exp) => {
+        const expDate = normalizeDate(exp.created_at)
+        return expDate.getTime() === today.getTime()
+      }).reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
+
+      // Filtrar facturas PAGADAS del mes usando created_at (cuando se registró/pagó)
+      // Esto asegura que contemos ingresos reales del mes, no facturas emitidas hace meses
       const monthlyPaidInvoices = invoices?.filter((inv) => {
         if (inv.status !== "pagada") {
           return false
         }
-        const invDate = new Date(inv.issue_date || inv.created_at)
+        const invDate = normalizeDate(inv.created_at)
         return invDate >= currentMonthStart && invDate <= currentMonthEnd
       }) || []
+      
+      console.log('📆 DEBUG MENSUAL:', {
+        currentMonthStart: currentMonthStart.toISOString(),
+        currentMonthEnd: currentMonthEnd.toISOString(),
+        monthlyPaidInvoices: monthlyPaidInvoices.length,
+        ejemploFecha: monthlyPaidInvoices[0]?.created_at,
+        ejemploFechaNormalizada: monthlyPaidInvoices[0] ? normalizeDate(monthlyPaidInvoices[0].created_at).toISOString() : null
+      })
       
       const monthlyUnpaidInvoices = invoices?.filter((inv) => {
         if (inv.status !== "enviada") {
           return false
         }
-        const invDate = new Date(inv.issue_date || inv.created_at)
+        const invDate = normalizeDate(inv.created_at)
         return invDate >= currentMonthStart && invDate <= currentMonthEnd
       }) || []
       
       const monthlyThermalReceipts = thermalError ? [] : (thermalReceipts?.filter((receipt) => {
-        const receiptDate = new Date(receipt.created_at)
+        const receiptDate = normalizeDate(receipt.created_at)
         return receiptDate >= currentMonthStart && receiptDate <= currentMonthEnd
       }) || [])
       
@@ -563,17 +615,20 @@ export default function DashboardPage() {
       const monthlyRevenue = monthlyInvoiceRevenue + monthlyThermalRevenue
       const monthlyPendingRevenue = monthlyUnpaidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
       
+      // Contar solo facturas que generan revenue (pagadas + thermal receipts)
+      const monthlyInvoices = monthlyPaidInvoices.length + monthlyThermalReceipts.length
+      
       // Calcular facturas pendientes específicamente del mes actual para mostrar en la tarjeta
       const monthlyPendingInvoices = monthlyUnpaidInvoices.length // Facturas no pagadas del mes
 
       const monthlyExpenses = expenses?.filter((exp) => {
-        const expDate = new Date(exp.created_at)
+        const expDate = normalizeDate(exp.created_at)
         return expDate >= currentMonthStart && expDate <= currentMonthEnd
       }).length || 0
       const monthlyExpenseAmount =
         expenses
           ?.filter((exp) => {
-            const expDate = new Date(exp.created_at)
+            const expDate = normalizeDate(exp.created_at)
             return expDate >= currentMonthStart && expDate <= currentMonthEnd
           })
           .reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0
@@ -670,6 +725,8 @@ export default function DashboardPage() {
         totalRevenue,
         pendingRevenue,
         todayRevenue,
+        todayInvoices,
+        todayExpenseAmount,
         totalClients: clientsCount || 0,
         totalProducts: productsCount || 0,
         totalProjects: projectsCount || 0,
@@ -1297,48 +1354,76 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Rendimiento Semanal - Mobile Optimized */}
+          {/* Rendimiento Semanal/Hoy - Mobile Optimized */}
           <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
             <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-300/20 to-green-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
             <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-2 sm:p-2.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
-                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-2 sm:p-2.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                    <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg font-bold text-emerald-900">
+                    {showWeekly ? 'Esta Semana' : 'Hoy'}
+                  </CardTitle>
                 </div>
-                <CardTitle className="text-base sm:text-lg font-bold text-emerald-900">Esta Semana</CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-emerald-700 font-medium">Hoy</span>
+                  <Switch
+                    checked={showWeekly}
+                    onCheckedChange={setShowWeekly}
+                    className="data-[state=checked]:bg-emerald-600"
+                  />
+                  <span className="text-xs text-emerald-700 font-medium">Semana</span>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="relative pt-0 p-3 sm:p-6">
               <div className="space-y-2 sm:space-y-3">
                 <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-emerald-200/50">
                   <div className="text-2xl sm:text-3xl font-bold text-emerald-800">
-                    {formatCurrency(stats.weeklyRevenue)}
+                    {formatCurrency(showWeekly ? stats.weeklyRevenue : stats.todayRevenue)}
                   </div>
-                  <div className="text-xs sm:text-sm text-emerald-600 font-medium">Ingresos semanales</div>
+                  <div className="text-xs sm:text-sm text-emerald-600 font-medium">
+                    {showWeekly ? 'Ingresos semanales' : 'Ingresos de hoy'}
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-white/50 rounded-lg p-2 text-center">
-                    <div className="text-lg sm:text-xl font-bold text-emerald-700">{formatNumber(stats.weeklyInvoices)}</div>
+                    <div className="text-lg sm:text-xl font-bold text-emerald-700">
+                      {formatNumber(showWeekly ? stats.weeklyInvoices : stats.todayInvoices)}
+                    </div>
                     <div className="text-xs text-emerald-600">Facturas</div>
                   </div>
                   <div className="bg-white/50 rounded-lg p-2 text-center">
                     <div className="text-lg sm:text-xl font-bold text-emerald-700">
-                      {formatCurrency(stats.weeklyExpenseAmount)}
+                      {formatCurrency(showWeekly ? stats.weeklyExpenseAmount : stats.todayExpenseAmount)}
                     </div>
                     <div className="text-xs text-emerald-600">Gastos</div>
                   </div>
                 </div>
 
                 <div className="bg-white/50 rounded-lg p-2">
-                  <div className="text-xs text-emerald-600">Balance neto semanal</div>
+                  <div className="text-xs text-emerald-600">
+                    {showWeekly ? 'Balance neto semanal' : 'Balance neto de hoy'}
+                  </div>
                   <div className="text-base sm:text-lg font-bold text-emerald-800">
-                    {formatCurrency(stats.weeklyRevenue - stats.weeklyExpenseAmount)}
+                    {formatCurrency(showWeekly 
+                      ? (stats.weeklyRevenue - stats.weeklyExpenseAmount) 
+                      : (stats.todayRevenue - stats.todayExpenseAmount)
+                    )}
                   </div>
                   <div className={`text-xs ${
-                    (stats.weeklyRevenue - stats.weeklyExpenseAmount) > 0 ? 'text-emerald-600' : 'text-red-600'
+                    (showWeekly 
+                      ? (stats.weeklyRevenue - stats.weeklyExpenseAmount) 
+                      : (stats.todayRevenue - stats.todayExpenseAmount)
+                    ) > 0 ? 'text-emerald-600' : 'text-red-600'
                   } flex items-center gap-1`}>
-                    {(stats.weeklyRevenue - stats.weeklyExpenseAmount) > 0 ? '↗ Positivo' : '↘ Negativo'}
+                    {(showWeekly 
+                      ? (stats.weeklyRevenue - stats.weeklyExpenseAmount) 
+                      : (stats.todayRevenue - stats.todayExpenseAmount)
+                    ) > 0 ? '↗ Positivo' : '↘ Negativo'}
                   </div>
                 </div>
               </div>
@@ -1514,6 +1599,99 @@ export default function DashboardPage() {
               ) : (
                 <StatsCards {...stats} />
               )}
+            </div>
+
+            {/* Banner Nueva Funcionalidad - Sistema de Clasificación de Compras */}
+            <div className="mb-6 lg:mb-8 animate-in slide-in-from-top duration-700">
+              <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+                {/* Efecto de brillo animado */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-400/10 rounded-full blur-3xl animate-pulse"></div>
+                
+                <CardContent className="p-4 lg:p-6 relative">
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
+                    {/* Icono destacado */}
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-green-400 rounded-2xl blur-lg opacity-50 animate-pulse"></div>
+                        <div className="relative w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
+                          <ShoppingCart className="h-8 w-8 lg:h-10 lg:w-10 text-white" />
+                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white">
+                            <Sparkles className="h-3 w-3 text-yellow-900" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenido */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs font-bold">
+                          NUEVA FUNCIONALIDAD
+                        </Badge>
+                        <Badge variant="outline" className="border-green-600 text-green-700 px-2 py-0.5 text-xs">
+                          Contabilidad
+                        </Badge>
+                      </div>
+                      
+                      <h3 className="text-lg lg:text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 text-green-600" />
+                        Sistema de Clasificación de Compras
+                      </h3>
+                      
+                      <p className="text-sm lg:text-base text-gray-700 mb-3 lg:mb-4">
+                        <strong>Evita errores contables:</strong> Ahora puedes clasificar tus compras correctamente como 
+                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-green-100 text-green-800 rounded font-semibold">
+                          <Package className="h-3 w-3" />
+                          Inventario
+                        </span> 
+                        (productos para venta) o
+                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-orange-100 text-orange-800 rounded font-semibold">
+                          <Receipt className="h-3 w-3" />
+                          Gastos
+                        </span>
+                        (uso interno). El sistema registra automáticamente cada compra en la categoría correcta.
+                      </p>
+
+                      {/* Beneficios rápidos */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                          <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="font-medium">Contabilidad correcta</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                          <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="font-medium">Control de stock</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                          <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="font-medium">Utilidades reales</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                          <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="font-medium">Sin errores</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-shrink-0">
+                      <Link href="/purchases/new" className="w-full lg:w-auto">
+                        <Button className="bg-green-600 hover:bg-green-700 text-white w-full lg:w-auto group shadow-lg hover:shadow-xl transition-all">
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Registrar Compra
+                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </Link>
+                      <Link href="/system-info" className="w-full lg:w-auto">
+                        <Button variant="outline" size="sm" className="w-full lg:w-auto border-green-600 text-green-700 hover:bg-green-50">
+                          <Info className="h-4 w-4 mr-2" />
+                          Ver más detalles
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Alertas Importantes Mejoradas */}

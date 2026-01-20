@@ -35,6 +35,7 @@ import {
   Info,
   UserCog,
   Target,
+  ShoppingCart,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -102,6 +103,18 @@ const navigation = [
     href: "/expenses",
     icon: DollarSign,
     module: "expenses",
+  },
+  {
+    name: "Compras",
+    href: "/purchases",
+    icon: ShoppingCart,
+    module: "purchases",
+  },
+  {
+    name: "Rentabilidad",
+    href: "/reports/profitability",
+    icon: TrendingUp,
+    module: "reports",
   },
   {
     name: "Agenda",

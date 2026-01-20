@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -15,11 +15,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, AlertCircle } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
-import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
 import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { useDataUserId } from "@/hooks/use-data-user-id"
 
@@ -48,23 +46,54 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [pageSize] = useState(50)
+  const searchTimeoutRef = useRef<number | null>(null)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, canAccessModule } = useUserPermissions()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
   const { limits, canAddProducts, remainingProducts } = useSubscriptionLimits()
-  // const { categories } = useCategories('service')
+
+  // Debounce search term
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1)
+    }, 500)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {
       fetchServices()
     }
-  }, [dataUserId, userIdLoading])
+  }, [dataUserId, userIdLoading, debouncedSearchTerm, selectedCategoryId, currentPage])
+
+  // Ya no necesitamos filtrar aquí porque lo hacemos en la query
+  const filteredServices = useMemo(() => services, [services])
+
+  const totalPages = Math.ceil(totalItems / pageSize)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // Check if user has permission to access services
   if (!canAccessModule('services')) {
@@ -95,10 +124,11 @@ export default function ServicesPage() {
   const fetchServices = async () => {
     try {
       if (!dataUserId) return
+      setLoading(true)
 
       try {
-        // Intentar cargar desde el servidor
-        const { data, error } = await supabase
+        // Construir query con paginación
+        let query = supabase
           .from("services")
           .select(`
             *,
@@ -106,11 +136,32 @@ export default function ServicesPage() {
               name,
               color
             )
-          `)
+          `, { count: 'exact' })
           .eq("user_id", dataUserId)
+
+        // Aplicar búsqueda si existe
+        if (debouncedSearchTerm) {
+          query = query.or(
+            `name.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,service_code.ilike.%${debouncedSearchTerm}%`
+          )
+        }
+
+        // Aplicar filtro de categoría
+        if (selectedCategoryId) {
+          query = query.eq('category_id', selectedCategoryId)
+        }
+
+        // Paginación
+        const from = (currentPage - 1) * pageSize
+        const to = from + pageSize - 1
+
+        const { data, error, count } = await query
           .order("created_at", { ascending: false })
+          .range(from, to)
 
         if (error) throw error
+        
+        setTotalItems(count || 0)
         
         // Guardar en cache para uso offline
         if (data) {
@@ -179,17 +230,6 @@ export default function ServicesPage() {
       setDeleteConfirm({show: false, id: null})
     }
   }
-
-  const filteredServices = services.filter((service) => {
-    const matchesSearch = 
-      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.service_code?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = selectedCategoryId === null || service.category === selectedCategoryId
-    
-    return matchesSearch && matchesCategory
-  })
 
   if (loading) {
     return (
@@ -472,6 +512,59 @@ export default function ServicesPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+          
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-6 border-t">
+              <div className="text-sm text-gray-600">
+                Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} servicios
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                >
+                  Anterior
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = currentPage - 2 + i
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        disabled={loading}
+                        className="w-10"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  Siguiente
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
