@@ -36,6 +36,7 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  ShoppingCart,
 } from "lucide-react"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -92,6 +93,18 @@ const mobileNavigation = [
     href: "/expenses",
     icon: DollarSign,
     module: "expenses",
+  },
+  {
+    name: "Compras",
+    href: "/purchases",
+    icon: ShoppingCart,
+    module: "purchases",
+  },
+  {
+    name: "Rentabilidad",
+    href: "/reports/profitability",
+    icon: TrendingUp,
+    module: "reports",
   },
   {
     name: "Agenda",

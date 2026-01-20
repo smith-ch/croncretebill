@@ -36,3 +36,16 @@ export function formatNumber(number: number, decimals: number = 0): string {
     return integerPart + decimalPart
   }
 }
+
+/**
+ * Formatea un número como moneda en formato dominicano (RD$)
+ * @param amount - El monto a formatear
+ * @returns Monto formateado como RD$ 1,000.00
+ */
+export function formatCurrency(amount: number): string {
+  if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
+    return 'RD$ 0.00'
+  }
+  
+  return `RD$ ${formatNumber(amount, 2)}`
+}

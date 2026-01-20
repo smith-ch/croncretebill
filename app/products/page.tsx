@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -14,9 +14,7 @@ import { Plus, Search, Package, Edit, Trash2, Calculator, AlertCircle } from "lu
 import Link from "next/link"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
-import { useCategories } from "@/hooks/use-categories"
 import { useToast } from "@/hooks/use-toast"
-import { useOnlineStatus } from "@/hooks/use-online-status"
 import { offlineCache } from "@/lib/offline-cache"
 import { useDataUserId } from "@/hooks/use-data-user-id"
 import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
@@ -45,31 +43,54 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [pageSize] = useState(50)
+  const searchTimeoutRef = useRef<number | null>(null)
   const { formatCurrency } = useCurrency()
   const { canDelete, canEdit, permissions } = useUserPermissions()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
   const { limits, canAddProducts, remainingProducts, refreshUsage } = useSubscriptionLimits()
+
+  // Debounce search term
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1)
+    }, 500)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
   // const { categories } = useCategories('product')
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {
       fetchProducts()
     }
-  }, [dataUserId, userIdLoading])
+  }, [dataUserId, userIdLoading, debouncedSearchTerm, selectedCategoryId, currentPage])
 
   const fetchProducts = async () => {
     try {
       if (!dataUserId) return
+      setLoading(true)
 
       try {
-        // Intentar cargar desde el servidor
-        const { data, error } = await supabase
+        // Construir query con paginación
+        let query = supabase
           .from("products")
           .select(`
             *,
@@ -77,11 +98,32 @@ export default function ProductsPage() {
               name,
               color
             )
-          `)
+          `, { count: 'exact' })
           .eq("user_id", dataUserId)
+
+        // Aplicar búsqueda si existe
+        if (debouncedSearchTerm) {
+          query = query.or(
+            `name.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,product_code.ilike.%${debouncedSearchTerm}%`
+          )
+        }
+
+        // Aplicar filtro de categoría
+        if (selectedCategoryId) {
+          query = query.eq('category_id', selectedCategoryId)
+        }
+
+        // Paginación
+        const from = (currentPage - 1) * pageSize
+        const to = from + pageSize - 1
+
+        const { data, error, count } = await query
           .order("created_at", { ascending: false })
+          .range(from, to)
 
         if (error) throw error
+        
+        setTotalItems(count || 0)
         
         // Guardar en cache para uso offline
         if (data) {
@@ -152,16 +194,15 @@ export default function ProductsPage() {
     }
   }
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.product_code?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = selectedCategoryId === null || product.category_id === selectedCategoryId
-    
-    return matchesSearch && matchesCategory
-  })
+  // Ya no necesitamos filtrar aquí porque lo hacemos en la query
+  const filteredProducts = useMemo(() => products, [products])
+
+  const totalPages = Math.ceil(totalItems / pageSize)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   if (loading) {
     return (
@@ -508,6 +549,59 @@ export default function ProductsPage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+            
+            {/* Paginación */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-6 border-t">
+                <div className="text-sm text-gray-600">
+                  Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} productos
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                  >
+                    Anterior
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToPage(pageNum)}
+                          disabled={loading}
+                          className="w-10"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages || loading}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

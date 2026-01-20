@@ -63,6 +63,7 @@ interface Product {
   name: string
   price: number
   stock_quantity: number
+  current_stock?: number
   product_code?: string
 }
 
@@ -373,7 +374,7 @@ export default function ThermalReceiptsPage() {
         // Fetch products
         supabase
           .from("products")
-          .select("id, name, price, stock_quantity, product_code")
+          .select("id, name, price, stock_quantity, product_code, current_stock")
           .eq("user_id", dataUserId)
           .order("name"),
         
