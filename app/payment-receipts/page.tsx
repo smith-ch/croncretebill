@@ -901,7 +901,7 @@ export default function PaymentReceiptsPage() {
       case "check":
         return <FileText className="h-4 w-4 text-orange-600" />
       default:
-        return <DollarSign className="h-4 w-4 text-slate-600" />
+        return <DollarSign className="h-4 w-4 text-slate-400" />
     }
   }
 
@@ -917,7 +917,7 @@ export default function PaymentReceiptsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -990,7 +990,7 @@ export default function PaymentReceiptsPage() {
             <CheckCircle className="h-8 w-8 text-emerald-600" />
             Comprobantes de Pago
           </h1>
-          <p className="text-responsive text-slate-600 mt-1">
+          <p className="text-responsive text-slate-400 mt-1">
             Gestión automática de comprobantes cuando las facturas son pagadas
           </p>
         </div>
@@ -998,49 +998,49 @@ export default function PaymentReceiptsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 card-hover animate-scale-in">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-emerald-600 font-medium text-xs uppercase tracking-wide mb-1">Total Recaudado</p>
                 <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(stats.totalPaid)}</p>
               </div>
-              <div className="hidden sm:block p-2 bg-emerald-200 rounded-full flex-shrink-0 ml-2">
-                <TrendingUp className="h-5 w-5 text-emerald-700" />
+              <div className="hidden sm:block p-2 bg-emerald-900/30 rounded-full flex-shrink-0 ml-2">
+                <TrendingUp className="h-5 w-5 text-emerald-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-blue-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Emitidos</p>
                 <p className="text-xl sm:text-2xl font-bold text-blue-900">{stats.totalReceipts}</p>
               </div>
-              <div className="hidden sm:block p-2 bg-blue-200 rounded-full flex-shrink-0 ml-2">
-                <Receipt className="h-5 w-5 text-blue-700" />
+              <div className="hidden sm:block p-2 bg-slate-800 rounded-full flex-shrink-0 ml-2">
+                <Receipt className="h-5 w-5 text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-purple-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Hoy</p>
                 <p className="text-xl sm:text-2xl font-bold text-purple-900">{stats.todayReceipts}</p>
               </div>
-              <div className="hidden sm:block p-2 bg-purple-200 rounded-full flex-shrink-0 ml-2">
-                <Calendar className="h-5 w-5 text-purple-700" />
+              <div className="hidden sm:block p-2 bg-purple-900/30 rounded-full flex-shrink-0 ml-2">
+                <Calendar className="h-5 w-5 text-purple-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -1049,7 +1049,7 @@ export default function PaymentReceiptsPage() {
                   {mostUsedMethodLabel}
                 </p>
               </div>
-              <div className="hidden sm:block p-2 bg-orange-200 rounded-full flex-shrink-0 ml-2">
+              <div className="hidden sm:block p-2 bg-orange-900/30 rounded-full flex-shrink-0 ml-2">
                 {getPaymentMethodIcon(mostUsedPaymentMethod)}
               </div>
             </div>
@@ -1058,7 +1058,7 @@ export default function PaymentReceiptsPage() {
       </div>
 
       <Tabs defaultValue="receipts-list" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-100">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800">
           <TabsTrigger 
             value="receipts-list"
             className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
@@ -1084,11 +1084,11 @@ export default function PaymentReceiptsPage() {
 
         {/* Lista de Comprobantes */}
         <TabsContent value="receipts-list" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-slate-800">Comprobantes de Pago Emitidos</CardTitle>
+                  <CardTitle className="text-slate-200">Comprobantes de Pago Emitidos</CardTitle>
                   <CardDescription>
                     Historial de todos los comprobantes generados automáticamente
                   </CardDescription>
@@ -1112,7 +1112,7 @@ export default function PaymentReceiptsPage() {
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">
                     No hay comprobantes emitidos
                   </h3>
-                  <p className="text-slate-600 mb-6">
+                  <p className="text-slate-400 mb-6">
                     Los comprobantes se generan automáticamente cuando las facturas son marcadas como pagadas
                   </p>
                 </div>
@@ -1121,21 +1121,21 @@ export default function PaymentReceiptsPage() {
                   {paymentReceipts.map((receipt, index) => (
                     <div
                       key={receipt.id}
-                      className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 bg-white border-0 shadow-md rounded-xl hover:bg-gradient-to-r hover:from-emerald-50 hover:to-slate-50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up"
+                      className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 bg-slate-900 border-0 shadow-md rounded-xl hover:bg-slate-800/70 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up"
                       style={{animationDelay: `${index * 0.05}s`}}
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="p-2 bg-emerald-100 rounded-lg flex-shrink-0">
+                        <div className="p-2 bg-emerald-900/30 rounded-lg flex-shrink-0">
                           {getPaymentMethodIcon(receipt.payment_method)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-slate-900 text-sm sm:text-base truncate">
                             {formatReceiptNumber(receipt.receipt_number)}
                           </div>
-                          <div className="text-xs sm:text-sm text-slate-600 truncate">
+                          <div className="text-xs sm:text-sm text-slate-400 truncate">
                             Factura: {receipt.invoice?.invoice_number || 'N/A'} • {receipt.invoice?.clients?.name || 'Cliente no encontrado'}
                           </div>
-                          <div className="text-xs sm:text-sm text-slate-600">
+                          <div className="text-xs sm:text-sm text-slate-400">
                             {getPaymentMethodLabel(receipt.payment_method)} • {formatCurrency(receipt.amount_paid)}
                           </div>
                           <div className="text-xs text-slate-500">
@@ -1149,14 +1149,14 @@ export default function PaymentReceiptsPage() {
                             variant={receipt.receipt_type === "formal" ? "default" : "secondary"}
                             className={`text-xs ${
                               receipt.receipt_type === "formal"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-slate-100 text-slate-600"
+                                ? "bg-slate-800 text-blue-300"
+                                : "bg-slate-100 text-slate-400"
                             }`}
                           >
                             {receipt.receipt_type === "formal" ? "Formal" : "Simple"}
                           </Badge>
                           {receipt.emailed_at && (
-                            <Badge className="bg-green-100 text-green-800 text-xs hidden sm:inline-flex">
+                            <Badge className="bg-green-900/30 text-green-300 text-xs hidden sm:inline-flex">
                               <Mail className="h-3 w-3 mr-1" />
                               Enviado
                             </Badge>
@@ -1196,7 +1196,7 @@ export default function PaymentReceiptsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteReceipt(receipt)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                            className="text-red-600 hover:text-red-400 hover:bg-red-900/30 h-8 w-8 p-0"
                             title="Eliminar Comprobante"
                           >
                             <XCircle className="h-3.5 w-3.5" />
@@ -1222,7 +1222,7 @@ export default function PaymentReceiptsPage() {
                               </DialogHeader>
                               {selectedReceipt && (
                                 <div className="space-y-4">
-                                  <div className="relative bg-slate-100 p-6 rounded-lg shadow-inner overflow-hidden">
+                                  <div className="relative bg-slate-800 p-6 rounded-lg shadow-inner overflow-hidden">
                                     {/* Watermark */}
                                     <div
                                       className="pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -1242,8 +1242,8 @@ export default function PaymentReceiptsPage() {
                                     <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
                                       {/* Company Info */}
                                       <div>
-                                        <h3 className="font-semibold mb-2 text-slate-700">Datos de la Empresa</h3>
-                                        <div className="text-sm text-slate-700">
+                                        <h3 className="font-semibold mb-2 text-slate-300">Datos de la Empresa</h3>
+                                        <div className="text-sm text-slate-300">
                                           <div><span className="font-medium">Nombre:</span> {companySettings?.company_name || 'Empresa'}</div>
                                           <div><span className="font-medium">RNC:</span> {companySettings?.tax_id || 'N/A'}</div>
                                           <div><span className="font-medium">Dirección:</span> {companySettings?.company_address || 'N/A'}</div>
@@ -1252,8 +1252,8 @@ export default function PaymentReceiptsPage() {
                                       </div>
                                       {/* Client Info */}
                                       <div>
-                                        <h3 className="font-semibold mb-2 text-slate-700">Información del Cliente</h3>
-                                        <div className="text-sm text-slate-700">
+                                        <h3 className="font-semibold mb-2 text-slate-300">Información del Cliente</h3>
+                                        <div className="text-sm text-slate-300">
                                           <div><span className="font-medium">Nombre:</span> {selectedReceipt.invoice?.clients?.name || 'Cliente no encontrado'}</div>
                                           <div><span className="font-medium">RNC/Cédula:</span> {selectedReceipt.invoice?.clients?.rnc || 'N/A'}</div>
                                           <div><span className="font-medium">Dirección:</span> {selectedReceipt.invoice?.clients?.address || 'N/A'}</div>
@@ -1262,37 +1262,37 @@ export default function PaymentReceiptsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="bg-slate-200 p-4 rounded-lg border border-slate-300">
-                                    <h3 className="font-semibold mb-2 text-slate-800">Información del Pago</h3>
+                                  <div className="bg-slate-200 p-4 rounded-lg border border-slate-700">
+                                    <h3 className="font-semibold mb-2 text-slate-200">Información del Pago</h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                       <div>
-                                        <span className="text-slate-600">Número:</span>
+                                        <span className="text-slate-400">Número:</span>
                                         <p className="font-medium">{formatReceiptNumber(selectedReceipt.receipt_number)}</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-600">Fecha:</span>
+                                        <span className="text-slate-400">Fecha:</span>
                                         <p className="font-medium">
                                           {new Date(selectedReceipt.payment_date).toLocaleDateString()}
                                         </p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-600">Factura:</span>
+                                        <span className="text-slate-400">Factura:</span>
                                         <p className="font-medium">{selectedReceipt.invoice?.invoice_number || 'N/A'}</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-600">Método de Pago:</span>
+                                        <span className="text-slate-400">Método de Pago:</span>
                                         <p className="font-medium">{getPaymentMethodLabel(selectedReceipt.payment_method)}</p>
                                       </div>
                                     </div>
                                     <div className="mt-4 pt-4 border-t border-slate-400 bg-slate-300 -mx-4 -mb-4 px-4 pb-4 rounded-b-lg">
                                       <div className="flex justify-between items-center">
-                                        <span className="text-lg font-semibold text-slate-800">Total Pagado:</span>
+                                        <span className="text-lg font-semibold text-slate-200">Total Pagado:</span>
                                         <span className="text-xl font-bold text-slate-900">{formatCurrency(selectedReceipt.amount_paid)}</span>
                                       </div>
                                     </div>
                                     {selectedReceipt.notes && (
                                       <div className="mt-4">
-                                        <span className="text-slate-600">Notas:</span>
+                                        <span className="text-slate-400">Notas:</span>
                                         <p className="font-medium">{selectedReceipt.notes}</p>
                                       </div>
                                     )}
@@ -1300,8 +1300,8 @@ export default function PaymentReceiptsPage() {
 
                                   {/* Items Section - Products and Services */}
                                   {selectedReceipt.invoice?.invoice_items && selectedReceipt.invoice.invoice_items.length > 0 && (
-                                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                                      <h3 className="font-semibold mb-3 text-slate-800 flex items-center gap-2">
+                                    <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+                                      <h3 className="font-semibold mb-3 text-slate-200 flex items-center gap-2">
                                         <Receipt className="h-4 w-4" />
                                         Detalle de la Factura
                                       </h3>
@@ -1312,7 +1312,7 @@ export default function PaymentReceiptsPage() {
                                           const itemType = item.products ? 'Producto' : item.services ? 'Servicio' : 'Item'
                                           
                                           return (
-                                            <div key={index} className="flex justify-between items-start p-3 bg-white rounded border border-slate-200">
+                                            <div key={index} className="flex justify-between items-start p-3 bg-slate-900 rounded border border-slate-800">
                                               <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
                                                   <span className="font-medium text-slate-900">{itemName}</span>
@@ -1321,7 +1321,7 @@ export default function PaymentReceiptsPage() {
                                                   </Badge>
                                                 </div>
                                                 {itemDescription && (
-                                                  <p className="text-xs text-slate-600 mb-2">{itemDescription}</p>
+                                                  <p className="text-xs text-slate-400 mb-2">{itemDescription}</p>
                                                 )}
                                                 <div className="flex gap-4 text-xs text-slate-500">
                                                   <span>Cantidad: {item.quantity}</span>
@@ -1355,9 +1355,9 @@ export default function PaymentReceiptsPage() {
 
         {/* Generar Comprobante Manual */}
         <TabsContent value="manual-receipt" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
             <CardHeader className="pb-4">
-              <CardTitle className="text-slate-800 flex items-center gap-2">
+              <CardTitle className="text-slate-200 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-emerald-600" />
                 Generar Comprobante Manual
               </CardTitle>
@@ -1530,7 +1530,7 @@ export default function PaymentReceiptsPage() {
                   </div>
 
                   {selectedInvoice && (
-                    <div className="p-4 bg-slate-100 rounded-lg">
+                    <div className="p-4 bg-slate-800 rounded-lg">
                       <h3 className="font-semibold mb-2">Resumen de la Factura</h3>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
@@ -1585,9 +1585,9 @@ export default function PaymentReceiptsPage() {
 
         {/* Generar Comprobante de Gasto */}
         <TabsContent value="expense-receipt" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-red-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-red-50">
             <CardHeader className="pb-4">
-              <CardTitle className="text-slate-800 flex items-center gap-2">
+              <CardTitle className="text-slate-200 flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-red-600" />
                 Generar Comprobante de Gasto
               </CardTitle>
@@ -1722,23 +1722,23 @@ export default function PaymentReceiptsPage() {
                   </div>
 
                   {selectedExpense && (
-                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="p-4 bg-red-900/30 rounded-lg border border-red-800">
                       <h3 className="font-semibold mb-2 text-red-900">Resumen del Gasto</h3>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-red-700">Descripción:</span>
+                          <span className="text-red-400">Descripción:</span>
                           <span className="text-red-900 font-medium">{selectedExpense.description}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-red-700">Fecha:</span>
+                          <span className="text-red-400">Fecha:</span>
                           <span className="text-red-900">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-red-700">Categoría:</span>
+                          <span className="text-red-400">Categoría:</span>
                           <span className="text-red-900">{selectedExpense.category || 'Sin categoría'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-red-700">Monto:</span>
+                          <span className="text-red-400">Monto:</span>
                           <span className="font-medium text-red-900">{formatCurrency(selectedExpense.amount)}</span>
                         </div>
                       </div>

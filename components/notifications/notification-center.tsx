@@ -20,8 +20,8 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-slate-600" />
-          <span className="text-sm font-medium text-slate-700">Notificaciones</span>
+          <Bell className="h-4 w-4 text-slate-400" />
+          <span className="text-sm font-medium text-slate-300">Notificaciones</span>
           <Badge variant="secondary" className="text-xs">
             {banners.length}
           </Badge>
@@ -31,7 +31,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
             variant="ghost"
             size="sm"
             onClick={clearAllBanners}
-            className="text-xs text-slate-500 hover:text-slate-700"
+            className="text-xs text-slate-500 hover:text-slate-300"
           >
             Limpiar todo
           </Button>

@@ -133,9 +133,9 @@ export function KeyboardShortcutsHelper() {
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors group"
+                                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-900 transition-colors group"
                               >
-                                <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                                <span className="text-sm text-slate-300 group-hover:text-slate-900 transition-colors">
                                   {shortcut.description}
                                 </span>
                                 <div className="flex items-center gap-1">
@@ -144,7 +144,7 @@ export function KeyboardShortcutsHelper() {
                                       {keyIndex > 0 && (
                                         <span className="text-slate-400 text-xs mx-1">+</span>
                                       )}
-                                      <kbd className="px-2 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded shadow-sm group-hover:border-blue-400 group-hover:text-blue-700 transition-colors">
+                                      <kbd className="px-2 py-1 text-xs font-semibold text-slate-300 bg-slate-900 border border-slate-700 rounded shadow-sm group-hover:border-blue-400 group-hover:text-blue-400 transition-colors">
                                         {key}
                                       </kbd>
                                     </React.Fragment>
@@ -157,10 +157,10 @@ export function KeyboardShortcutsHelper() {
                       ))}
 
                       {/* Tip */}
-                      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="mt-6 p-4 bg-slate-900 border border-slate-700 rounded-lg">
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center">
                               <span className="text-lg">💡</span>
                             </div>
                           </div>
@@ -168,9 +168,9 @@ export function KeyboardShortcutsHelper() {
                             <h4 className="text-sm font-semibold text-blue-900 mb-1">
                               Consejo Pro
                             </h4>
-                            <p className="text-xs text-blue-700 leading-relaxed">
+                            <p className="text-xs text-blue-400 leading-relaxed">
                               Los atajos de teclado no funcionan cuando estás escribiendo en campos de texto.
-                              En Mac, usa <kbd className="px-1.5 py-0.5 text-xs bg-white border border-blue-300 rounded">Cmd</kbd> en lugar de <kbd className="px-1.5 py-0.5 text-xs bg-white border border-blue-300 rounded">Ctrl</kbd>.
+                              En Mac, usa <kbd className="px-1.5 py-0.5 text-xs bg-slate-900 border border-blue-300 rounded">Cmd</kbd> en lugar de <kbd className="px-1.5 py-0.5 text-xs bg-slate-900 border border-blue-300 rounded">Ctrl</kbd>.
                             </p>
                           </div>
                         </div>

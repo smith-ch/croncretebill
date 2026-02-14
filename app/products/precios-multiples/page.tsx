@@ -92,8 +92,8 @@ export default function MultiplePricesPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Precios Múltiples</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <h1 className="text-3xl font-bold text-slate-200 dark:text-white">Gestión de Precios Múltiples</h1>
+        <p className="text-slate-400 dark:text-gray-400 mt-2">
           Configura diferentes precios para tus productos según cantidad, fechas y clientes específicos.
         </p>
       </div>
@@ -150,8 +150,8 @@ export default function MultiplePricesPage() {
                     <div
                       key={product.id}
                       onClick={() => setSelectedProduct(product)}
-                      className={`p-4 border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                        selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-950 border-blue-200' : ''
+                      className={`p-4 border-b cursor-pointer hover:bg-slate-950 dark:hover:bg-gray-800 transition-colors ${
+                        selectedProduct?.id === product.id ? 'bg-slate-900 dark:bg-blue-950 border-slate-700' : ''
                       }`}
                     >
                       <div className="flex justify-between items-start">
@@ -160,12 +160,12 @@ export default function MultiplePricesPage() {
                           <p className="text-xs text-gray-500 mt-1">{product.description}</p>
                           <div className="flex items-center gap-2 mt-2">
                             {product.sku && (
-                              <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                              <span className="text-xs bg-slate-800 px-2 py-1 rounded">
                                 {product.sku}
                               </span>
                             )}
                             {product.category && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              <span className="text-xs bg-slate-800 text-blue-400 px-2 py-1 rounded">
                                 {product.category}
                               </span>
                             )}
@@ -193,7 +193,7 @@ export default function MultiplePricesPage() {
                 <CardTitle>
                   Precios para: {selectedProduct.name}
                 </CardTitle>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-slate-400">
                   <span>Precio base: {formatCurrency(selectedProduct.unit_price)}</span>
                   {selectedProduct.sku && <span>SKU: {selectedProduct.sku}</span>}
                   {selectedProduct.category && <span>Categoría: {selectedProduct.category}</span>}
@@ -210,7 +210,7 @@ export default function MultiplePricesPage() {
             <Card>
               <CardContent className="p-12 text-center">
                 <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                <h3 className="text-lg font-medium text-slate-400 mb-2">
                   Selecciona un producto
                 </h3>
                 <p className="text-gray-500">

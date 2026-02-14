@@ -71,12 +71,12 @@ export default function ProjectsPage() {
   // Check if user has permission to manage clients (projects are linked to clients)
   if (!permissions.canManageClients) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-red-200 bg-red-50">
+          <Card className="border-2 border-red-800 bg-red-900/30">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <h2 className="text-2xl font-bold text-red-300 mb-2">Acceso Restringido</h2>
                 <p className="text-red-600">
                   No tienes permisos para acceder a los proyectos. Esta función requiere permisos de gestión de clientes.
                 </p>
@@ -213,15 +213,15 @@ export default function ProjectsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "activo":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-900/30 text-green-300 border-green-800"
       case "pausado":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "completado":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-slate-800 text-blue-300 border-slate-700"
       case "cancelado":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-900/30 text-red-300 border-red-800"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-slate-800 text-slate-200 border-slate-800"
     }
   }
 
@@ -249,7 +249,7 @@ export default function ProjectsPage() {
       case "baja":
         return "bg-green-500"
       default:
-        return "bg-gray-500"
+        return "bg-slate-9500"
     }
   }
 
@@ -298,7 +298,7 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -374,7 +374,7 @@ export default function ProjectsPage() {
           <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
             Gestión de Proyectos
           </h1>
-          <p className="text-sm lg:text-base text-slate-600 mt-1 lg:mt-2">Administra todos tus proyectos con seguimiento completo</p>
+          <p className="text-sm lg:text-base text-slate-400 mt-1 lg:mt-2">Administra todos tus proyectos con seguimiento completo</p>
         </div>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
@@ -397,12 +397,12 @@ export default function ProjectsPage() {
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Proyectos Activos</p>
-                <p className="text-3xl font-bold text-blue-800">{activeProjects}</p>
+                <p className="text-3xl font-bold text-blue-300">{activeProjects}</p>
               </div>
               <div className="p-3 bg-blue-500 rounded-full">
                 <Briefcase className="h-6 w-6 text-white" />
@@ -411,12 +411,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium">Completados Este Mes</p>
-                <p className="text-3xl font-bold text-green-800">{completedThisMonth}</p>
+                <p className="text-3xl font-bold text-green-300">{completedThisMonth}</p>
               </div>
               <div className="p-3 bg-green-500 rounded-full">
                 <Target className="h-6 w-6 text-white" />
@@ -425,12 +425,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-600 text-sm font-medium">Total Facturado</p>
-                <p className="text-3xl font-bold text-purple-800">{formatCurrency(totalInvoiced)}</p>
+                <p className="text-3xl font-bold text-purple-300">{formatCurrency(totalInvoiced)}</p>
               </div>
               <div className="p-3 bg-purple-500 rounded-full">
                 <DollarSign className="h-6 w-6 text-white" />
@@ -439,12 +439,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-amber-600 text-sm font-medium">Ganancia Total</p>
-                <p className="text-3xl font-bold text-amber-800">{formatCurrency(totalProfit)}</p>
+                <p className="text-3xl font-bold text-amber-300">{formatCurrency(totalProfit)}</p>
               </div>
               <div className="p-3 bg-amber-500 rounded-full">
                 <TrendingUp className="h-6 w-6 text-white" />
@@ -550,10 +550,10 @@ export default function ProjectsPage() {
           {filteredProjects.length === 0 ? (
             <div className="text-center py-12">
               <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-slate-200 dark:text-white mb-2">
                 {projects.length === 0 ? "No hay proyectos" : "No se encontraron proyectos"}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-slate-400 dark:text-gray-400 mb-4">
                 {projects.length === 0
                   ? "Comienza creando tu primer proyecto"
                   : "Intenta ajustar los filtros de búsqueda"}
@@ -575,7 +575,7 @@ export default function ProjectsPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   {viewMode === "grid" ? (
-                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
@@ -598,7 +598,7 @@ export default function ProjectsPage() {
                                 setEditingProject(project)
                                 setShowForm(true)
                               }}
-                              className="hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              className="hover:bg-slate-900 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               title="Editar proyecto"
                             >
                               <Edit className="h-4 w-4" />
@@ -608,7 +608,7 @@ export default function ProjectsPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(project.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                                className="text-red-600 hover:text-red-400 hover:bg-red-900/30 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                                 title="Eliminar proyecto"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -618,26 +618,26 @@ export default function ProjectsPage() {
                         </div>
 
                         <div className="space-y-3 text-sm">
-                          <div className="flex items-center gap-2 text-slate-600">
+                          <div className="flex items-center gap-2 text-slate-400">
                             <Users className="h-4 w-4" />
                             <span className="font-medium">Cliente:</span> {project.clients?.name}
                           </div>
 
                           {project.description && (
-                            <p className="text-slate-600 text-xs line-clamp-2 bg-slate-50 p-2 rounded">
+                            <p className="text-slate-400 text-xs line-clamp-2 bg-slate-900 p-2 rounded">
                               {project.description}
                             </p>
                           )}
 
                           {project.address && (
-                            <div className="flex items-start gap-2 text-slate-600">
+                            <div className="flex items-start gap-2 text-slate-400">
                               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <span className="text-xs">{project.address}</span>
                             </div>
                           )}
 
                           {project.start_date && (
-                            <div className="flex items-center gap-2 text-slate-600">
+                            <div className="flex items-center gap-2 text-slate-400">
                               <Calendar className="h-4 w-4" />
                               <span className="text-xs">
                                 Inicio: {new Date(project.start_date).toLocaleDateString()}
@@ -648,13 +648,13 @@ export default function ProjectsPage() {
 
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-medium text-slate-600">Progreso</span>
-                              <span className="text-xs font-bold text-slate-800">{project.progress}%</span>
+                              <span className="text-xs font-medium text-slate-400">Progreso</span>
+                              <span className="text-xs font-bold text-slate-200">{project.progress}%</span>
                             </div>
                             <Progress value={project.progress} className="h-2" />
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800">
                             <div className="text-center">
                               <p className="text-xs text-slate-500">Facturado</p>
                               <p className="font-bold text-green-600">{formatCurrency(project.totalInvoiced || 0)}</p>
@@ -684,7 +684,7 @@ export default function ProjectsPage() {
                               {getStatusIcon(project.status)}
                               {project.status}
                             </Badge>
-                            <span className="text-sm text-slate-600">{project.clients?.name}</span>
+                            <span className="text-sm text-slate-400">{project.clients?.name}</span>
                             <div className="flex items-center gap-4 text-sm text-slate-500">
                               <span>Progreso: {project.progress}%</span>
                               <span>Facturado: {formatCurrency(project.totalInvoiced || 0)}</span>
@@ -709,7 +709,7 @@ export default function ProjectsPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(project.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-400"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

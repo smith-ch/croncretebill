@@ -131,8 +131,8 @@ export function InvoicePreview({
   }
 
   return (
-    <Card className="w-full max-w-2xl bg-white shadow-lg">
-      <CardHeader className="border-b-2 border-slate-200">
+    <Card className="w-full max-w-2xl bg-slate-900 shadow-lg">
+      <CardHeader className="border-b-2 border-slate-800">
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">
             {companyInfo?.logo && (
@@ -142,17 +142,17 @@ export function InvoicePreview({
                 className="w-16 h-8 sm:w-20 sm:h-10 object-contain mb-2"
               />
             )}
-            <h3 className="text-base sm:text-lg font-bold text-slate-800 truncate">
+            <h3 className="text-base sm:text-lg font-bold text-slate-200 truncate">
               {companyInfo?.name || "Mi Empresa"}
             </h3>
             {companyInfo?.address && (
-              <p className="text-xs text-slate-600 line-clamp-2">{companyInfo.address}</p>
+              <p className="text-xs text-slate-400 line-clamp-2">{companyInfo.address}</p>
             )}
             {companyInfo?.phone && (
-              <p className="text-xs text-slate-600">Tel: {companyInfo.phone}</p>
+              <p className="text-xs text-slate-400">Tel: {companyInfo.phone}</p>
             )}
             {companyInfo?.email && (
-              <p className="text-xs text-slate-600 truncate">Email: {companyInfo.email}</p>
+              <p className="text-xs text-slate-400 truncate">Email: {companyInfo.email}</p>
             )}
           </div>
           <div className="text-right flex-shrink-0">
@@ -175,9 +175,9 @@ export function InvoicePreview({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-2">FACTURAR A:</h4>
+              <h4 className="text-sm font-bold text-slate-200 mb-2">FACTURAR A:</h4>
               {client ? (
-                <div className="text-xs text-slate-600 space-y-1">
+                <div className="text-xs text-slate-400 space-y-1">
                   <p className="font-medium">{client.name}</p>
                   {client.rnc && <p>RNC: {client.rnc}</p>}
                   {client.address && <p className="line-clamp-2">{client.address}</p>}
@@ -193,32 +193,32 @@ export function InvoicePreview({
 
             {project && (
               <div>
-                <h4 className="text-sm font-bold text-slate-800 mb-2">PROYECTO:</h4>
-                <p className="text-xs text-slate-600 line-clamp-2">{project.name}</p>
+                <h4 className="text-sm font-bold text-slate-200 mb-2">PROYECTO:</h4>
+                <p className="text-xs text-slate-400 line-clamp-2">{project.name}</p>
               </div>
             )}
           </div>
 
           <div className="space-y-4 sm:text-right">
             <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-2">FACTURA N°:</h4>
+              <h4 className="text-sm font-bold text-slate-200 mb-2">FACTURA N°:</h4>
               <p className="text-sm font-medium truncate">{invoiceNumber || "---"}</p>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-2">FECHA:</h4>
-              <p className="text-xs text-slate-600">
+              <h4 className="text-sm font-bold text-slate-200 mb-2">FECHA:</h4>
+              <p className="text-xs text-slate-400">
                 {invoiceDate ? formatDate(invoiceDate) : "---"}
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-2">VENCIMIENTO:</h4>
-              <p className="text-xs text-slate-600">
+              <h4 className="text-sm font-bold text-slate-200 mb-2">VENCIMIENTO:</h4>
+              <p className="text-xs text-slate-400">
                 {dueDate ? formatDate(dueDate) : "---"}
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-2">FORMA DE PAGO:</h4>
-              <p className="text-xs text-slate-600">
+              <h4 className="text-sm font-bold text-slate-200 mb-2">FORMA DE PAGO:</h4>
+              <p className="text-xs text-slate-400">
                 {getPaymentMethodLabel(paymentMethod || "credito")}
               </p>
             </div>
@@ -227,8 +227,8 @@ export function InvoicePreview({
 
         {/* NCF Section */}
         {includeItbis && (
-          <div className="bg-white p-3 rounded text-center border">
-            <p className="text-sm font-bold text-slate-800">
+          <div className="bg-slate-900 p-3 rounded text-center border">
+            <p className="text-sm font-bold text-slate-200">
               NCF: {ncf || "Sin NCF especificado"}
             </p>
           </div>
@@ -252,7 +252,7 @@ export function InvoicePreview({
                 const itemTotal = item.quantity * item.unit_price
                 
                 return (
-                  <div key={item.id} className="grid grid-cols-12 gap-1 sm:gap-2 p-2 text-xs hover:bg-slate-50">
+                  <div key={item.id} className="grid grid-cols-12 gap-1 sm:gap-2 p-2 text-xs hover:bg-slate-900">
                     <div className="col-span-6 sm:col-span-5 text-left font-medium">
                       <div className="line-clamp-2">
                         {itemInfo.name}
@@ -303,7 +303,7 @@ export function InvoicePreview({
                 </div>
               )}
               
-              <div className="flex justify-between p-3 text-base sm:text-lg font-bold bg-slate-50">
+              <div className="flex justify-between p-3 text-base sm:text-lg font-bold bg-slate-900">
                 <span>TOTAL:</span>
                 <span>{formatCurrency(total)}</span>
               </div>
@@ -313,7 +313,7 @@ export function InvoicePreview({
 
         {/* Pending Balance */}
         <div className="text-right">
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-slate-200">
             SALDO PENDIENTE: {formatCurrency(total)}
           </p>
         </div>
@@ -321,9 +321,9 @@ export function InvoicePreview({
         {/* Tax Summary for ITBIS invoices */}
         {includeItbis && subtotal > 0 && (
           <div className="border-t pt-4">
-            <h4 className="text-sm font-bold text-slate-800 mb-3">RESUMEN DE IMPUESTOS</h4>
+            <h4 className="text-sm font-bold text-slate-200 mb-3">RESUMEN DE IMPUESTOS</h4>
             <div className="border rounded-lg overflow-hidden">
-              <div className="bg-slate-100">
+              <div className="bg-slate-800">
                 <div className="grid grid-cols-3 gap-2 p-2 text-xs font-medium">
                   <div className="text-center">TASA</div>
                   <div className="text-center">IMPUESTO</div>
@@ -341,9 +341,9 @@ export function InvoicePreview({
 
         {/* Notes */}
         {notes && (
-          <div className="bg-white border p-4 rounded">
-            <h4 className="text-sm font-bold text-slate-800 mb-2">Notas:</h4>
-            <p className="text-xs text-slate-600 whitespace-pre-wrap">{notes}</p>
+          <div className="bg-slate-900 border p-4 rounded">
+            <h4 className="text-sm font-bold text-slate-200 mb-2">Notas:</h4>
+            <p className="text-xs text-slate-400 whitespace-pre-wrap">{notes}</p>
           </div>
         )}
 

@@ -142,7 +142,7 @@ export default function DriversPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex justify-between items-center">
@@ -196,8 +196,8 @@ export default function DriversPage() {
         className="flex justify-between items-center"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Conductores</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gestiona tu equipo de conductores</p>
+          <h1 className="text-3xl font-bold text-slate-200 dark:text-white">Conductores</h1>
+          <p className="text-slate-400 dark:text-gray-400">Gestiona tu equipo de conductores</p>
         </div>
         <Dialog
           open={showForm}
@@ -247,8 +247,8 @@ export default function DriversPage() {
               </div>
 
               {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
+                <Alert className="border-red-800 bg-red-900/30">
+                  <AlertDescription className="text-red-300">{error}</AlertDescription>
                 </Alert>
               )}
 
@@ -284,8 +284,8 @@ export default function DriversPage() {
           {filteredDrivers.length === 0 ? (
             <div className="text-center py-12">
               <UserCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay conductores</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Comienza agregando tu primer conductor</p>
+              <h3 className="text-lg font-medium text-slate-200 dark:text-white mb-2">No hay conductores</h3>
+              <p className="text-slate-400 dark:text-gray-400 mb-4">Comienza agregando tu primer conductor</p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo Conductor
@@ -300,10 +300,10 @@ export default function DriversPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-slate-900 to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{driver.name}</h3>
+                        <h3 className="font-semibold text-slate-200 dark:text-white">{driver.name}</h3>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -312,7 +312,7 @@ export default function DriversPage() {
                               setEditingDriver(driver)
                               setShowForm(true)
                             }}
-                            className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            className="hover:bg-slate-800 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                             title="Editar conductor"
                           >
                             <Edit className="h-4 w-4" />
@@ -321,7 +321,7 @@ export default function DriversPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(driver.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            className="text-red-600 hover:text-red-400 hover:bg-red-900/30 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                             title="Eliminar conductor"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -330,19 +330,19 @@ export default function DriversPage() {
                       </div>
                       <div className="space-y-2 text-sm">
                         {driver.cedula && (
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-slate-400 dark:text-gray-400">
                             <CreditCard className="h-4 w-4" />
                             <span>{driver.cedula}</span>
                           </div>
                         )}
                         {driver.phone && (
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-slate-400 dark:text-gray-400">
                             <Phone className="h-4 w-4" />
                             <span>{driver.phone}</span>
                           </div>
                         )}
                         {driver.license_number && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Licencia:</span> {driver.license_number}
                           </p>
                         )}

@@ -14,12 +14,14 @@ import {
   Mail, 
   Lock, 
   User, 
-  Sparkles,
+  UserPlus,
+  LogIn,
   CheckCircle,
   AlertCircle,
   Eye,
   EyeOff,
-  KeyRound
+  KeyRound,
+  CreditCard
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -101,17 +103,6 @@ export function ModernAuthForm() {
       transition: {
         duration: 0.4,
         ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
-      }
-    }
-  }
-
-  const logoVariants = {
-    animate: {
-      y: [0, -5, 0],
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut" as const
       }
     }
   }
@@ -239,80 +230,85 @@ export function ModernAuthForm() {
 
       // Verificar estado de suscripción
       if (authData?.user) {
-        // 1. Verificar si el usuario es subscription_manager (siempre tiene acceso)
-        const { data: isManager, error: managerError } = await supabase
-          .rpc('is_subscription_manager', { p_user_id: authData.user.id } as any)
+        console.log('🔍 Login - Verificando permisos para:', authData.user.id, authData.user.email)
         
-        console.log('🔍 Login - Checking subscription_manager:', { userId: authData.user.id, isManager, managerError })
+        // Verificar perfil del usuario (sin is_super_admin que no existe)
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('parent_user_id, is_active, display_name, role_id, user_roles(name)')
+          .eq('user_id', authData.user.id)
+          .single()
         
-        if (managerError) {
-          console.error('Error verificando rol de manager:', managerError)
+        console.log('📋 Perfil obtenido:', profileData)
+        console.log('⚠️ Error al obtener perfil:', profileError)
+        
+        // 1. Verificar si es Subscription Manager (gestor de suscripciones)
+        const isSubscriptionManager = profileData?.user_roles?.name === 'subscription_manager'
+        console.log('🎫 Rol:', profileData?.user_roles?.name, '| Es gestor?', isSubscriptionManager)
+        
+        if (isSubscriptionManager) {
+          console.log('✅ GESTOR DE SUSCRIPCIONES - acceso garantizado sin verificar suscripción')
+          // NO hacer return aquí, solo no verificar la suscripción más adelante
         }
         
-        if (isManager) {
-          console.log('✅ Usuario es subscription_manager - acceso permitido sin verificar suscripción')
-          // Manager tiene acceso total, no verificar suscripción
+        // 2. Verificar si es empleado
+        const isEmployee = profileData?.parent_user_id !== null && profileData?.parent_user_id !== undefined
+        console.log('👤 Es empleado:', isEmployee, '| parent_user_id:', profileData?.parent_user_id)
+        
+        if (isEmployee) {
+          console.log('✅ Empleado - acceso permitido por herencia del owner')
+          // No verificar suscripción para empleados
+        } else if (!isSubscriptionManager) {
+          // 3. Es owner normal (no es gestor ni empleado) - verificar su suscripción
+          console.log('👔 Es owner normal - verificando suscripción...')
+        const { data: subscription, error: subError } = await supabase
+          .from('user_subscriptions')
+          .select('status, end_date, subscription_plans!plan_id(display_name)')
+          .eq('user_id', authData.user.id)
+          .maybeSingle()
+
+          console.log('📊 Suscripción:', subscription)
+          console.log('⚠️ Error suscripción:', subError)
+
+          // Verificar si la suscripción está expirada
+          const isExpired = subscription?.end_date && new Date(subscription.end_date) < new Date()
+          const isActive = subscription?.status === 'active' && !isExpired
+          
+          console.log('🔍 Estado: expired?', isExpired, '| active?', isActive, '| status:', subscription?.status)
+
+          if (!isActive && subscription?.status !== 'trial') {
+            console.log('❌ Suscripción no válida - bloqueando acceso')
+            
+            // Cerrar sesión
+            await supabase.auth.signOut()
+            
+            setMessage({
+              type: "error",
+              text: isExpired 
+                ? `Tu suscripción expiró el ${new Date(subscription.end_date).toLocaleDateString()}. Contacta al administrador para renovarla.`
+                : "No tienes una suscripción activa. Contacta al administrador.",
+            })
+            setLoading(false)
+            return
+          }
+          
+          console.log('✅ Owner con suscripción válida - acceso permitido')
         } else {
-          // 2. Verificar si el usuario es empleado (no necesita suscripción propia)
-          const { data: isEmployee, error: employeeError } = await supabase
-            .rpc('is_employee', { p_user_id: authData.user.id } as any)
-          
-          console.log('🔍 Login - Checking employee status:', { userId: authData.user.id, isEmployee, employeeError })
-          
-          if (employeeError) {
-            console.error('Error verificando estado de empleado:', employeeError)
-          }
-          
-          if (isEmployee) {
-            console.log('✅ Usuario es empleado - acceso permitido sin verificar suscripción propia')
-            // Empleados no necesitan suscripción propia, operan bajo la del owner
-          } else {
-            // 3. Solo verificar suscripción si NO es manager NI empleado
-            console.log('🔍 Usuario es owner - verificando suscripción...')
-            const { data: subscription, error: subError } = await supabase
-              .from('user_subscriptions')
-              .select('status, end_date, plan:subscription_plans(display_name)')
-              .eq('user_id', authData.user.id)
-              .maybeSingle()
-
-            console.log('🔍 Subscription query result:', { subscription, subError })
-
-            const sub = subscription as any
-            // Si no tiene suscripción o está inactiva
-            if (!sub || sub.status !== 'active') {
-              // Cerrar sesión inmediatamente
-              await supabase.auth.signOut()
-              
-              setMessage({
-                type: "error",
-                text: sub 
-                  ? `Tu suscripción está ${sub.status === 'expired' ? 'expirada' : 'inactiva'}. Contacta al administrador para renovarla.`
-                  : "No tienes una suscripción activa. Contacta al administrador para activar tu cuenta.",
-              })
-              setLoading(false)
-              return
-            }
-
-            // Si la suscripción expira pronto (menos de 7 días), mostrar advertencia
-            if (sub.end_date) {
-              const daysUntilExpiry = Math.ceil(
-                (new Date(sub.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-              )
-              
-              if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
-                setMessage({
-                  type: "info",
-                  text: `⚠️ Tu suscripción ${sub.plan?.display_name || ''} expira en ${daysUntilExpiry} día(s). Contacta al administrador para renovarla.`,
-                })
-              }
-            }
-          }
+          console.log('✅ Acceso garantizado - No se verifica suscripción (gestor o empleado)')
         }
       }
     } catch (error: any) {
+      const errMsg = error?.message || "Error al iniciar sesión"
+      // Errores 500/Database suelen ser triggers o configuración en Supabase
+      const isServerError = errMsg.toLowerCase().includes("database") || 
+        errMsg.includes("500") || 
+        error?.status === 500 ||
+        errMsg.toLowerCase().includes("internal server error")
       setMessage({
         type: "error",
-        text: error.message || "Error al iniciar sesión",
+        text: isServerError 
+          ? "Error del servidor al verificar credenciales. Por favor contacta al administrador del sistema." 
+          : errMsg,
       })
     } finally {
       setLoading(false)
@@ -417,82 +413,26 @@ export function ModernAuthForm() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-500 border-t-slate-300"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
-      {/* Animated Background Grid */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10" 
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
+      {/* Subtle grid background */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <div className="absolute inset-0" 
              style={{
                backgroundImage: `
-                 linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                 linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+                 linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                 linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
                `,
-               backgroundSize: '50px 50px'
+               backgroundSize: '60px 60px'
              }} />
       </div>
-
-      {/* Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Large floating shapes */}
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={`shape-${i}`}
-            className={`absolute rounded-full opacity-10 blur-sm ${
-              i % 3 === 0 ? 'bg-gradient-to-br from-blue-400 to-cyan-400' :
-              i % 3 === 1 ? 'bg-gradient-to-br from-purple-400 to-pink-400' :
-              'bg-gradient-to-br from-indigo-400 to-blue-400'
-            }`}
-            style={{
-              width: Math.random() * 200 + 100,
-              height: Math.random() * 200 + 100,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              x: [0, Math.random() * 100 - 50, 0],
-              y: [0, Math.random() * 100 - 50, 0],
-              scale: [1, Math.random() * 0.5 + 0.8, 1],
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 5,
-            }}
-          />
-        ))}
-
-        {/* Particles */}
-        {mounted && [...Array(50)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute w-1 h-1 bg-white rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -Math.random() * 100 - 50],
-              x: [0, Math.random() * 40 - 20],
-              opacity: [0, 0.8, 0],
-              scale: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 3 + 2,
-              repeat: Infinity,
-              ease: "easeOut",
-              delay: Math.random() * 5,
-            }}
-          />
-        ))}
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-transparent to-slate-900/30 pointer-events-none" />
 
       {/* Main Content - Two Column Layout */}
       <div className="w-full max-w-7xl relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -504,158 +444,49 @@ export function ModernAuthForm() {
           animate="visible"
           className="w-full"
         >
-        <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl shadow-black/25 hover:shadow-black/40 transition-all duration-700 hover:border-white/30">
-          <CardHeader className="text-center pb-2">
+        <Card className="backdrop-blur-xl bg-slate-900/80 border border-slate-700/50 shadow-2xl">
+          <CardHeader className="text-center pb-4 pt-8">
             <motion.div 
-              variants={logoVariants}
-              animate="animate"
-              className="flex items-center justify-center mb-6"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              variants={itemVariants}
+              className="flex items-center justify-center mb-4"
             >
-              <div className="relative">
-                {/* Glowing effects */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-full blur-xl opacity-60"
-                  animate={{
-                    scale: [1, 1.4, 1],
-                    rotate: [0, 180, 360],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-                
-                {/* Icon container */}
-                <div className="relative bg-white/20 backdrop-blur-sm p-4 rounded-full border border-white/30">
-                  <Building2 className="relative h-12 w-12 text-white drop-shadow-lg" />
-                  
-                  {/* Sparkles */}
-                  {[...Array(6)].map((_, i) => (
-                    <motion.div
-                      key={`sparkle-${i}`}
-                      className="absolute"
-                      style={{
-                        top: '50%',
-                        left: '50%',
-                        transform: `rotate(${i * 60}deg) translateY(-30px)`,
-                      }}
-                      animate={{
-                        scale: [0, 1, 0],
-                        opacity: [0, 1, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: i * 0.3,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <Sparkles className="h-3 w-3 text-yellow-300 drop-shadow-lg" />
-                    </motion.div>
-                  ))}
-                </div>
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-slate-800 border border-slate-600/50">
+                <Building2 className="h-7 w-7 text-slate-300" />
               </div>
             </motion.div>
             
             <motion.h1 
               variants={itemVariants}
-              className="text-5xl font-bold text-white mb-2 drop-shadow-2xl"
-              style={{
-                background: 'linear-gradient(135deg, #fff 0%, #e0e7ff 25%, #c7d2fe 50%, #a5b4fc 75%, #8b5cf6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.5))'
-              }}
-              whileHover={{ scale: 1.02 }}
+              className="text-2xl font-semibold text-white mb-1"
             >
               ConcreteBill
             </motion.h1>
             
-            <motion.div
+            <motion.p
               variants={itemVariants}
-              className="flex items-center justify-center gap-2 text-white/80 text-sm font-medium mb-4"
+              className="text-slate-400 text-sm mb-6"
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              >
-                ✨
-              </motion.div>
-              <span>Sistema de Facturación Inteligente</span>
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              >
-                💎
-              </motion.div>
-            </motion.div>
-
-            {/* Stats preview */}
-            <motion.div
-              variants={itemVariants}
-              className="flex justify-center gap-6 mb-4"
-            >
-              {[
-                { icon: "📊", label: "Analytics", color: "from-blue-400 to-cyan-400" },
-                { icon: "💰", label: "Revenue", color: "from-green-400 to-emerald-400" },
-                { icon: "🚀", label: "Growth", color: "from-purple-400 to-pink-400" }
-              ].map((item, i) => (
-                <motion.div
-                  key={item.label}
-                  className="text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                >
-                  <motion.div
-                    className={`text-2xl mb-1 p-2 rounded-full bg-gradient-to-r ${item.color} inline-block`}
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      rotate: [0, 5, -5, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: i * 0.5,
-                    }}
-                  >
-                    {item.icon}
-                  </motion.div>
-                  <div className="text-xs text-white/60">{item.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
+              Sistema de facturación empresarial
+            </motion.p>
           </CardHeader>
 
           <CardContent className="p-6">
             <motion.div variants={itemVariants}>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/10 backdrop-blur-sm border border-white/20 p-1 rounded-xl">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-800/50 border border-slate-600/50 p-1 rounded-lg">
                   <TabsTrigger 
                     value="signin" 
-                    className="data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-lg text-white/70 backdrop-blur-sm transition-all duration-300 rounded-lg"
+                    className="data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400 transition-colors rounded-md flex items-center gap-2 justify-center"
                   >
-                    <motion.span
-                      className="flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      🔑 Iniciar Sesión
-                    </motion.span>
+                    <LogIn className="h-4 w-4" />
+                    Iniciar Sesión
                   </TabsTrigger>
                   <TabsTrigger 
                     value="signup"
-                    className="data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-lg text-white/70 backdrop-blur-sm transition-all duration-300 rounded-lg"
+                    className="data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400 transition-colors rounded-md flex items-center gap-2 justify-center"
                   >
-                    <motion.span
-                      className="flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      ✨ Registrarse
-                    </motion.span>
+                    <UserPlus className="h-4 w-4" />
+                    Registrarse
                   </TabsTrigger>
                 </TabsList>
 
@@ -669,10 +500,10 @@ export function ModernAuthForm() {
                       className="mb-4"
                     >
                       <motion.div 
-                        className={`p-4 rounded-xl border backdrop-blur-sm ${
+                        className={`p-4 rounded-lg border ${
                           message.type === "error" 
-                            ? "border-red-300/30 bg-red-500/10" 
-                            : "border-green-300/30 bg-green-500/10"
+                            ? "border-red-900/50 bg-red-950/30" 
+                            : "border-emerald-900/50 bg-emerald-950/30"
                         }`}
                         animate={{
                           scale: [1, 1.02, 1],
@@ -716,112 +547,72 @@ export function ModernAuthForm() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
                   >
-                    <motion.div 
-                      className="space-y-2"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Label htmlFor="email" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <Mail className="h-4 w-4" />
                         Correo Electrónico
                       </Label>
-                      <div className="relative group">
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        />
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                           <Input
                             id="email"
                             name="email"
                             type="email"
                             required
-                            className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                            className="pl-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                             placeholder="tu@email.com"
                           />
-                        </div>
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div 
-                      className="space-y-2"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Label htmlFor="password" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <Lock className="h-4 w-4" />
                         Contraseña
                       </Label>
-                      <div className="relative group">
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        />
-                        <div className="relative">
-                          <Lock className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                           <Input
                             id="password"
                             name="password"
                             type={showPassword ? "text" : "password"}
                             required
-                            className="pl-12 pr-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                            className="pl-12 pr-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                             placeholder="••••••••"
                           />
-                          <motion.button
+                          <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-4 text-white/60 hover:text-white/90 transition-colors z-10"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors z-10"
                           >
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                          </motion.button>
-                        </div>
+                          </button>
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-8"
-                    >
+                    <div className="mt-6">
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-14 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-300 shadow-xl hover:shadow-2xl border-0 rounded-xl backdrop-blur-sm relative overflow-hidden group"
+                        className="w-full h-12 bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors rounded-lg border border-slate-600 flex items-center justify-center gap-3"
                       >
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          initial={false}
-                        />
-                        <div className="relative z-10 flex items-center justify-center gap-3">
                           {loading ? (
                             <>
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              >
-                                <Loader2 className="h-5 w-5" />
-                              </motion.div>
+                              <Loader2 className="h-5 w-5 animate-spin" />
                               <span>Iniciando sesión...</span>
                             </>
                           ) : (
                             <>
-                              <motion.div
-                                whileHover={{ rotate: 15 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                🚀
-                              </motion.div>
+                              <LogIn className="h-5 w-5" />
                               <span>Iniciar Sesión</span>
                             </>
                           )}
-                        </div>
                       </Button>
-                    </motion.div>
+                    </div>
 
                     {/* Forgot Password Link */}
                     <motion.div 
-                      className="text-center"
+                      className="text-center space-y-2"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.3 }}
@@ -829,11 +620,12 @@ export function ModernAuthForm() {
                       <button
                         type="button"
                         onClick={() => setShowResetPassword(true)}
-                        className="text-sm text-white/70 hover:text-white/90 underline-offset-4 hover:underline transition-colors flex items-center gap-2 justify-center mx-auto"
+                        className="text-sm text-slate-400 hover:text-slate-200 underline-offset-4 hover:underline transition-colors flex items-center gap-2 justify-center mx-auto"
                       >
                         <KeyRound className="h-4 w-4" />
                         ¿Olvidaste tu contraseña?
                       </button>
+
                     </motion.div>
 
                     {/* Social Login Divider */}
@@ -844,10 +636,10 @@ export function ModernAuthForm() {
                       transition={{ delay: 0.4 }}
                     >
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/20"></div>
+                        <div className="w-full border-t border-slate-600"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-4 text-white/60 bg-transparent">O continuar con</span>
+                        <span className="px-4 bg-slate-900/80 text-slate-500">O continuar con</span>
                       </div>
                     </motion.div>
 
@@ -864,7 +656,7 @@ export function ModernAuthForm() {
                           type="button"
                           onClick={handleGoogleSignIn}
                           disabled={loading}
-                          className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          className="w-full h-12 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white transition-colors rounded-lg"
                         >
                           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                             <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
@@ -882,7 +674,7 @@ export function ModernAuthForm() {
                           type="button"
                           onClick={handleFacebookSignIn}
                           disabled={loading}
-                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border-0 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border border-[#1877F2] text-white transition-colors rounded-lg"
                         >
                           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -904,93 +696,91 @@ export function ModernAuthForm() {
                   >
                     {/* Signup form fields */}
                     <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                      <Label htmlFor="fullName" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <User className="h-4 w-4" />
                         Nombre Completo
                       </Label>
                       <div className="relative group">
-                        <User className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                         <Input
                           id="fullName"
                           name="fullName"
                           type="text"
                           required
-                          className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                          className="pl-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                           placeholder="Juan Pérez"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="companyName" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                      <Label htmlFor="companyName" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         Nombre de la Empresa
                       </Label>
                       <div className="relative group">
-                        <Building2 className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                         <Input
                           id="companyName"
                           name="companyName"
                           type="text"
                           required
-                          className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                          className="pl-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                           placeholder="Mi Empresa S.A."
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email-signup" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                      <Label htmlFor="email-signup" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <Mail className="h-4 w-4" />
                         Correo Electrónico
                       </Label>
                       <div className="relative group">
-                        <Mail className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                         <Input
                           id="email-signup"
                           name="email"
                           type="email"
                           required
-                          className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                          className="pl-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                           placeholder="tu@empresa.com"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password-signup" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                      <Label htmlFor="password-signup" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                         <Lock className="h-4 w-4" />
                         Contraseña
                       </Label>
                       <div className="relative group">
-                        <Lock className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                         <Input
                           id="password-signup"
                           name="password"
                           type={showPassword ? "text" : "password"}
                           required
-                          className="pl-12 pr-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                          className="pl-12 pr-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                           placeholder="••••••••"
                         />
-                        <motion.button
+                        <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-4 text-white/60 hover:text-white/90 transition-colors z-10"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors z-10"
                         >
                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </motion.button>
+                        </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="plan-select" className="text-sm font-medium text-white/90 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4" />
+                        <CreditCard className="h-4 w-4" />
                         Plan de Suscripción
                       </Label>
                       <Select value={selectedPlanId} onValueChange={setSelectedPlanId} required>
-                        <SelectTrigger className="h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl">
+                        <SelectTrigger className="h-12 bg-slate-800/50 border border-slate-600/50 text-white focus:border-slate-500 rounded-lg">
                           <SelectValue placeholder="Selecciona un plan" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-800 border-slate-700">
@@ -1009,47 +799,31 @@ export function ModernAuthForm() {
                         </SelectContent>
                       </Select>
                       {selectedPlanId && (
-                        <p className="text-xs text-white/60">
+                        <p className="text-xs text-slate-500">
                           {availablePlans.find(p => p.id === selectedPlanId)?.description}
                         </p>
                       )}
                     </div>
 
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-8"
-                    >
+                    <div className="mt-6">
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-14 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white font-medium transition-all duration-300 shadow-xl hover:shadow-2xl border-0 rounded-xl backdrop-blur-sm relative overflow-hidden group"
+                        className="w-full h-12 bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors rounded-lg border border-slate-600 flex items-center justify-center gap-3"
                       >
-                        <div className="relative z-10 flex items-center justify-center gap-3">
-                          {loading ? (
-                            <>
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              >
-                                <Loader2 className="h-5 w-5" />
-                              </motion.div>
-                              <span>Creando cuenta...</span>
-                            </>
-                          ) : (
-                            <>
-                              <motion.div
-                                whileHover={{ rotate: 15 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                ✨
-                              </motion.div>
-                              <span>Crear Cuenta</span>
-                            </>
-                          )}
-                        </div>
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Creando cuenta...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-5 w-5" />
+                            <span>Crear cuenta</span>
+                          </>
+                        )}
                       </Button>
-                    </motion.div>
+                    </div>
 
                     {/* Social Login Divider */}
                     <motion.div 
@@ -1059,10 +833,10 @@ export function ModernAuthForm() {
                       transition={{ delay: 0.4 }}
                     >
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/20"></div>
+                        <div className="w-full border-t border-slate-600"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-4 text-white/60 bg-transparent">O regístrate con</span>
+                        <span className="px-4 bg-slate-900/80 text-slate-500">O regístrate con</span>
                       </div>
                     </motion.div>
 
@@ -1079,7 +853,7 @@ export function ModernAuthForm() {
                           type="button"
                           onClick={handleGoogleSignIn}
                           disabled={loading}
-                          className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          className="w-full h-12 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white transition-colors rounded-lg"
                         >
                           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                             <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
@@ -1097,7 +871,7 @@ export function ModernAuthForm() {
                           type="button"
                           onClick={handleFacebookSignIn}
                           disabled={loading}
-                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border-0 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border border-[#1877F2] text-white transition-colors rounded-lg"
                         >
                           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -1117,11 +891,8 @@ export function ModernAuthForm() {
           variants={itemVariants}
           className="text-center mt-6"
         >
-          <p className="text-sm text-white/60">
-            Powered by{" "}
-            <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              ConcreteBill
-            </span>
+          <p className="text-sm text-slate-500">
+            ConcreteBill · Sistema de facturación
           </p>
         </motion.div>
       </motion.div>
@@ -1146,21 +917,17 @@ export function ModernAuthForm() {
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-md"
               >
-                <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
+                <Card className="backdrop-blur-xl bg-slate-900/95 border border-slate-700/50 shadow-2xl">
                   <CardHeader className="text-center pb-4">
-                    <motion.div
-                      className="flex items-center justify-center mb-4"
-                      animate={{ rotate: [0, -10, 10, 0] }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                        <KeyRound className="h-8 w-8 text-white" />
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-14 h-14 bg-slate-800 border border-slate-600 rounded-lg flex items-center justify-center">
+                        <KeyRound className="h-7 w-7 text-slate-300" />
                       </div>
-                    </motion.div>
-                    <h3 className="text-2xl font-bold text-white mb-2">
-                      Restablecer Contraseña
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      Restablecer contraseña
                     </h3>
-                    <p className="text-white/70 text-sm">
+                    <p className="text-slate-400 text-sm">
                       Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña
                     </p>
                   </CardHeader>
@@ -1196,19 +963,19 @@ export function ModernAuthForm() {
 
                     <form onSubmit={handleResetPassword} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="reset-email" className="text-sm font-medium text-white/90 flex items-center gap-2">
+                        <Label htmlFor="reset-email" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                           <Mail className="h-4 w-4" />
                           Correo Electrónico
                         </Label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-4 h-5 w-5 text-white/60 z-10" />
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 z-10" />
                           <Input
                             id="reset-email"
                             type="email"
                             value={resetEmail}
                             onChange={(e) => setResetEmail(e.target.value)}
                             required
-                            className="pl-12 h-14 bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:border-white/40 focus:bg-white/15 transition-all duration-300 rounded-xl"
+                            className="pl-12 h-12 bg-slate-800/50 border border-slate-600/50 text-white placeholder-slate-500 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors rounded-lg"
                             placeholder="tu@email.com"
                           />
                         </div>
@@ -1222,14 +989,14 @@ export function ModernAuthForm() {
                             setMessage(null)
                             setResetEmail("")
                           }}
-                          className="flex-1 h-12 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          className="flex-1 h-11 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white transition-colors rounded-lg"
                         >
                           Cancelar
                         </Button>
                         <Button
                           type="submit"
                           disabled={loading}
-                          className="flex-1 h-12 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium transition-all duration-300 shadow-xl border-0 rounded-xl"
+                          className="flex-1 h-11 bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors border border-slate-600 rounded-lg"
                         >
                           {loading ? (
                             <>
@@ -1257,153 +1024,122 @@ export function ModernAuthForm() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="hidden lg:block"
         >
-          <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl h-full flex flex-col">
-            <CardHeader className="text-center pb-2 pt-4">
-              <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="mb-2"
-              >
-                <div className="w-14 h-14 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl">
-                  <Sparkles className="h-7 w-7 text-white" />
-                </div>
-              </motion.div>
-              <h2 className="text-xl font-bold text-white mb-1">
-                ¡Próximamente!
+          <Card className="backdrop-blur-xl bg-slate-900/80 border border-slate-700/50 shadow-2xl h-full flex flex-col">
+            <CardHeader className="text-center pb-2 pt-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-lg bg-slate-800 border border-slate-600/50">
+                <CreditCard className="h-6 w-6 text-slate-400" />
+              </div>
+              <h2 className="text-lg font-semibold text-white mb-1">
+                Planes de suscripción
               </h2>
-              <p className="text-white/80 text-xs">
-                Servicio por suscripción
+              <p className="text-slate-400 text-sm">
+                Elige el plan que mejor se adapte a tu empresa
               </p>
             </CardHeader>
 
             <CardContent className="p-4 space-y-2.5 flex-1 overflow-y-auto">
               {/* Mensaje Principal */}
-              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg p-2.5 backdrop-blur-sm">
-                <p className="text-white/90 text-xs leading-relaxed">
-                  🎉 <strong>Regístrate ahora</strong> y obtén acceso <strong className="text-green-400">GRATIS</strong> durante el periodo de prueba.
+              <div className="bg-slate-800/50 border border-slate-600/50 rounded-lg p-2.5">
+                <p className="text-slate-300 text-xs leading-relaxed">
+                  <strong>Regístrate ahora</strong> y obtén acceso <strong className="text-emerald-400">gratuito</strong> durante el periodo de prueba.
                 </p>
               </div>
 
               {/* Planes de Suscripción */}
               <div className="space-y-2">
-                <h3 className="text-white font-semibold text-sm mb-2 flex items-center gap-1.5">
-                  <div className="w-0.5 h-4 bg-gradient-to-b from-blue-400 to-purple-500 rounded-full"></div>
-                  Planes Disponibles
+                <h3 className="text-slate-300 font-medium text-sm mb-2">
+                  Planes disponibles
                 </h3>
 
                 {/* Plan Starter */}
-                <motion.div
-                  whileHover={{ scale: 1.01, x: 3 }}
-                  className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
-                >
+                <div className="bg-slate-800/30 border border-slate-600/50 rounded-lg p-2.5 hover:border-slate-500/50 transition-colors">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Starter</h4>
-                    <span className="text-blue-400 text-[10px] font-medium bg-blue-400/20 px-1.5 py-0.5 rounded">Ideal</span>
+                    <h4 className="text-white font-medium text-sm">Plan Starter</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-xl font-bold text-white">$19.99</span>
-                    <span className="text-white/60 text-[10px]">/mes</span>
+                    <span className="text-slate-500 text-[10px]">/mes</span>
                   </div>
-                  <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 500 facturas/mes</li>
-                    <li>✓ Hasta 3 Usuarios</li>
-                    <li>✓ 300 Productos/Servicios</li>
-                    <li>✓ 100 Clientes</li>
+                  <ul className="space-y-0.5 text-slate-400 text-[10px]">
+                    <li>Hasta 500 facturas/mes</li>
+                    <li>Hasta 3 usuarios</li>
+                    <li>300 productos/servicios</li>
+                    <li>100 clientes</li>
                   </ul>
-                </motion.div>
+                </div>
 
-                {/* Plan Professional - Destacado */}
-                <motion.div
-                  whileHover={{ scale: 1.02, x: 3 }}
-                  className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 rounded-lg p-2.5 backdrop-blur-sm relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">
-                    Popular
-                  </div>
-                  <div className="flex items-center justify-between mb-1 mt-1">
+                {/* Plan Professional */}
+                <div className="bg-slate-800/50 border-2 border-slate-500/50 rounded-lg p-2.5">
+                  <div className="flex items-center justify-between mb-1">
                     <h4 className="text-white font-semibold text-sm">Plan Professional</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-xl font-bold text-white">$39.99</span>
-                    <span className="text-white/60 text-[10px]">/mes</span>
+                    <span className="text-slate-500 text-[10px]">/mes</span>
                   </div>
-                  <ul className="space-y-0.5 text-white/80 text-[10px]">
-                    <li>✓ Hasta 1,000 facturas/mes</li>
-                    <li>✓ Hasta 10 Usuarios</li>
-                    <li>✓ 1,000 Productos/Servicios</li>
-                    <li>✓ 500 Clientes</li>
+                  <ul className="space-y-0.5 text-slate-300 text-[10px]">
+                    <li>Hasta 1,000 facturas/mes</li>
+                    <li>Hasta 10 usuarios</li>
+                    <li>1,000 productos/servicios</li>
+                    <li>500 clientes</li>
                   </ul>
-                </motion.div>
+                </div>
 
                 {/* Plan Business */}
-                <motion.div
-                  whileHover={{ scale: 1.01, x: 3 }}
-                  className="bg-white/5 border border-white/10 rounded-lg p-2.5 backdrop-blur-sm hover:bg-white/10 transition-all"
-                >
+                <div className="bg-slate-800/30 border border-slate-600/50 rounded-lg p-2.5 hover:border-slate-500/50 transition-colors">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Business</h4>
-                    <span className="text-green-400 text-[10px] font-medium bg-green-400/20 px-1.5 py-0.5 rounded">Full</span>
+                    <h4 className="text-white font-medium text-sm">Plan Business</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-xl font-bold text-white">$59.99</span>
-                    <span className="text-white/60 text-[10px]">/mes</span>
+                    <span className="text-slate-500 text-[10px]">/mes</span>
                   </div>
-                  <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 5,000 facturas/mes</li>
-                    <li>✓ Hasta 20 Usuarios</li>
-                    <li>✓ 5,000 Productos/Servicios</li>
-                    <li>✓ API Access + Soporte 24/7</li>
+                  <ul className="space-y-0.5 text-slate-400 text-[10px]">
+                    <li>Hasta 5,000 facturas/mes</li>
+                    <li>Hasta 20 usuarios</li>
+                    <li>5,000 productos/servicios</li>
+                    <li>API + soporte 24/7</li>
                   </ul>
-                </motion.div>
+                </div>
 
                 {/* Plan Enterprise */}
-                <motion.div
-                  whileHover={{ scale: 1.01, x: 3 }}
-                  className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg p-2.5 backdrop-blur-sm hover:bg-purple-500/10 transition-all"
-                >
+                <div className="bg-slate-800/30 border border-slate-600/50 rounded-lg p-2.5 hover:border-slate-500/50 transition-colors">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-white font-semibold text-sm">Plan Enterprise</h4>
-                    <span className="text-purple-400 text-[10px] font-medium bg-purple-400/20 px-1.5 py-0.5 rounded">Premium</span>
+                    <h4 className="text-white font-medium text-sm">Plan Enterprise</h4>
                   </div>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-xl font-bold text-white">$89.99</span>
-                    <span className="text-white/60 text-[10px]">/mes</span>
+                    <span className="text-slate-500 text-[10px]">/mes</span>
                   </div>
-                  <ul className="space-y-0.5 text-white/70 text-[10px]">
-                    <li>✓ Hasta 10,000 facturas/mes</li>
-                    <li>✓ Hasta 50 Usuarios</li>
-                    <li>✓ 20,000 Productos/Servicios</li>
-                    <li>✓ Multi-sucursales + Premium</li>
+                  <ul className="space-y-0.5 text-slate-400 text-[10px]">
+                    <li>Hasta 10,000 facturas/mes</li>
+                    <li>Hasta 50 usuarios</li>
+                    <li>20,000 productos/servicios</li>
+                    <li>Multi-sucursales</li>
                   </ul>
-                </motion.div>
+                </div>
               </div>
 
               {/* Beneficios */}
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-400/20 rounded-lg p-2.5 backdrop-blur-sm">
-                <h4 className="text-green-400 font-semibold text-xs mb-1.5 flex items-center gap-1.5">
-                  <CheckCircle className="h-3 w-3" />
-                  Incluido en todos:
+              <div className="bg-slate-800/30 border border-slate-600/50 rounded-lg p-2.5">
+                <h4 className="text-slate-300 font-medium text-xs mb-1.5 flex items-center gap-1.5">
+                  <CheckCircle className="h-3 w-3 text-emerald-500" />
+                  Incluido en todos los planes
                 </h4>
-                <ul className="space-y-0.5 text-white/80 text-[10px]">
-                  <li>✓ Facturación electrónica NCF</li>
-                  <li>✓ Gestión de inventario</li>
-                  <li>✓ Reportes DGII (606/607)</li>
-                  <li>✓ Respaldos automáticos</li>
-                  <li>✓ App móvil incluida</li>
-                  <li>✓ Cotizaciones y presupuestos</li>
+                <ul className="space-y-0.5 text-slate-400 text-[10px]">
+                  <li>Facturación electrónica NCF</li>
+                  <li>Gestión de inventario</li>
+                  <li>Reportes DGII (606/607)</li>
+                  <li>Respaldos automáticos</li>
+                  <li>App móvil incluida</li>
+                  <li>Cotizaciones y presupuestos</li>
                 </ul>
               </div>
 
               {/* Call to Action */}
               <div className="text-center pt-1">
-                <p className="text-white/60 text-[10px]">
-                  💡 Precios por anunciarse
+                <p className="text-slate-500 text-[10px]">
+                  Precios sujetos a disponibilidad
                 </p>
               </div>
             </CardContent>

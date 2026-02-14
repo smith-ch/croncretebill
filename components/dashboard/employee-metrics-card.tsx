@@ -11,7 +11,7 @@ export function EmployeeMetricsCard() {
 
   if (loading) {
     return (
-      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Card className="border-slate-700 bg-gradient-to-br from-blue-50 to-indigo-50">
         <CardContent className="p-8 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </CardContent>
@@ -21,9 +21,9 @@ export function EmployeeMetricsCard() {
 
   if (!hasGoal || !currentGoal) {
     return (
-      <Card className="border-slate-200 bg-slate-50">
+      <Card className="border-slate-800 bg-slate-900">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-600">
+          <CardTitle className="flex items-center gap-2 text-slate-400">
             <Target className="h-5 w-5" />
             Metas del Mes
           </CardTitle>
@@ -45,7 +45,7 @@ export function EmployeeMetricsCard() {
         borderColor: "border-green-300",
         icon: <CheckCircle className="h-6 w-6 text-green-600" />,
         text: "¡Excelente desempeño!",
-        textColor: "text-green-700"
+        textColor: "text-green-400"
       }
     }
     if (progress.overall_percentage >= 70) {
@@ -62,7 +62,7 @@ export function EmployeeMetricsCard() {
       borderColor: "border-red-300",
       icon: <XCircle className="h-6 w-6 text-red-600" />,
       text: "Necesitas mejorar",
-      textColor: "text-red-700"
+      textColor: "text-red-400"
     }
   }
 
@@ -89,9 +89,9 @@ export function EmployeeMetricsCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Progreso General */}
-        <div className="p-4 bg-white rounded-lg shadow-sm border">
+        <div className="p-4 bg-slate-900 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold text-slate-700">Progreso General</span>
+            <span className="font-semibold text-slate-300">Progreso General</span>
             <div className="text-right">
               <div className="text-3xl font-bold" style={{
                 color: progress.overall_percentage >= 90 ? '#10b981' :
@@ -120,16 +120,16 @@ export function EmployeeMetricsCard() {
         {/* Métricas Individuales */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Ventas */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <div className="bg-slate-900 p-4 rounded-lg shadow-sm border">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-slate-800 rounded-lg">
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </div>
-              <span className="text-sm font-semibold text-slate-700">Ventas</span>
+              <span className="text-sm font-semibold text-slate-300">Ventas</span>
             </div>
             <div className="space-y-2">
               <div>
-                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Actual</span>
                   <span>Meta</span>
                 </div>
@@ -155,16 +155,16 @@ export function EmployeeMetricsCard() {
           </div>
 
           {/* Facturas */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <div className="bg-slate-900 p-4 rounded-lg shadow-sm border">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-green-100 rounded-lg">
+              <div className="p-2 bg-green-900/30 rounded-lg">
                 <FileText className="h-4 w-4 text-green-600" />
               </div>
-              <span className="text-sm font-semibold text-slate-700">Facturas</span>
+              <span className="text-sm font-semibold text-slate-300">Facturas</span>
             </div>
             <div className="space-y-2">
               <div>
-                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Actual</span>
                   <span>Meta</span>
                 </div>
@@ -190,16 +190,16 @@ export function EmployeeMetricsCard() {
           </div>
 
           {/* Clientes Nuevos */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <div className="bg-slate-900 p-4 rounded-lg shadow-sm border">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
+              <div className="p-2 bg-purple-900/30 rounded-lg">
                 <Users className="h-4 w-4 text-purple-600" />
               </div>
-              <span className="text-sm font-semibold text-slate-700">Clientes</span>
+              <span className="text-sm font-semibold text-slate-300">Clientes</span>
             </div>
             <div className="space-y-2">
               <div>
-                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Actual</span>
                   <span>Meta</span>
                 </div>
@@ -227,7 +227,7 @@ export function EmployeeMetricsCard() {
 
         {/* Notas del owner */}
         {currentGoal.notas && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-3">
             <p className="text-sm text-blue-900">
               <strong className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />

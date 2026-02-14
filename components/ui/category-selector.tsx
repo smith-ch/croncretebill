@@ -131,7 +131,7 @@ export function CategorySelector({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="w-full justify-start text-blue-600 hover:text-blue-400 hover:bg-slate-900"
                       onClick={(e) => {
                         e.preventDefault()
                         setShowCreateDialog(true)
@@ -182,7 +182,7 @@ export function CategorySelector({
                             key={color}
                             type="button"
                             className={`w-8 h-8 rounded-full border-2 ${
-                              newCategory.color === color ? 'border-gray-400' : 'border-gray-200'
+                              newCategory.color === color ? 'border-gray-400' : 'border-slate-800'
                             }`}
                             style={{ backgroundColor: color }}
                             onClick={() => setNewCategory(prev => ({ ...prev, color }))}

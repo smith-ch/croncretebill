@@ -51,7 +51,7 @@ export default function ClearCachePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <Card className="max-w-md w-full">
         <CardHeader>
           <CardTitle>🧹 Caché Limpiado</CardTitle>
@@ -61,7 +61,7 @@ export default function ClearCachePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {cleared && (
-            <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded">
+            <div className="bg-green-900/30 border border-green-800 text-green-300 p-4 rounded">
               <p className="font-semibold">✅ Caché limpiado exitosamente</p>
               <p className="text-sm mt-2">
                 Todos los datos de permisos en caché han sido eliminados.
@@ -71,7 +71,7 @@ export default function ClearCachePage() {
 
           <div className="space-y-2">
             <h3 className="font-semibold">Siguiente paso:</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-400">
               Para que los cambios tengan efecto completo, debes cerrar sesión y volver a iniciar sesión.
             </p>
           </div>

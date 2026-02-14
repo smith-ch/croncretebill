@@ -11,7 +11,7 @@ const DefaultLoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[200px]">
     <div className="flex flex-col items-center space-y-3">
       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-      <p className="text-sm text-gray-600 animate-pulse">Cargando...</p>
+      <p className="text-sm text-slate-400 animate-pulse">Cargando...</p>
     </div>
   </div>
 )

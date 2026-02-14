@@ -141,8 +141,8 @@ export default function PurchaseHistoryPage() {
 
   const getTypeDisplay = (type: string) => {
     return type === 'inventory' 
-      ? { label: 'Inventario', color: 'bg-green-100 text-green-800', icon: Package }
-      : { label: 'Gasto', color: 'bg-orange-100 text-orange-800', icon: Receipt }
+      ? { label: 'Inventario', color: 'bg-green-900/30 text-green-300', icon: Package }
+      : { label: 'Gasto', color: 'bg-orange-900/30 text-orange-300', icon: Receipt }
   }
 
   const getCategoryLabel = (category?: string) => {
@@ -166,20 +166,20 @@ export default function PurchaseHistoryPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando historial...</p>
+          <p className="text-slate-400">Cargando historial...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-slate-950 py-8">
       <div className="container max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Historial de Compras</h1>
-            <p className="text-gray-600 mt-1">Registro completo de inventario y gastos</p>
+            <h1 className="text-3xl font-bold text-slate-200">Historial de Compras</h1>
+            <p className="text-slate-400 mt-1">Registro completo de inventario y gastos</p>
           </div>
           <Button onClick={() => router.push('/purchases/new')} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -192,12 +192,12 @@ export default function PurchaseHistoryPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center">
                   <DollarSign className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total</p>
-                  <p className="text-lg font-bold text-gray-900">{formatCurrency(stats.totalPurchases)}</p>
+                  <p className="text-sm text-slate-400">Total</p>
+                  <p className="text-lg font-bold text-slate-200">{formatCurrency(stats.totalPurchases)}</p>
                 </div>
               </div>
             </CardContent>
@@ -206,12 +206,12 @@ export default function PurchaseHistoryPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-green-900/30 flex items-center justify-center">
                   <Package className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Inventario</p>
-                  <p className="text-lg font-bold text-green-700">{formatCurrency(stats.totalInventory)}</p>
+                  <p className="text-sm text-slate-400">Inventario</p>
+                  <p className="text-lg font-bold text-green-400">{formatCurrency(stats.totalInventory)}</p>
                 </div>
               </div>
             </CardContent>
@@ -220,12 +220,12 @@ export default function PurchaseHistoryPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-orange-900/30 flex items-center justify-center">
                   <Receipt className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Gastos</p>
-                  <p className="text-lg font-bold text-orange-700">{formatCurrency(stats.totalExpenses)}</p>
+                  <p className="text-sm text-slate-400">Gastos</p>
+                  <p className="text-lg font-bold text-orange-400">{formatCurrency(stats.totalExpenses)}</p>
                 </div>
               </div>
             </CardContent>
@@ -234,12 +234,12 @@ export default function PurchaseHistoryPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-purple-900/30 flex items-center justify-center">
                   <ShoppingBag className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Compras Inventario</p>
-                  <p className="text-lg font-bold text-purple-700">{stats.inventoryCount}</p>
+                  <p className="text-sm text-slate-400">Compras Inventario</p>
+                  <p className="text-lg font-bold text-purple-400">{stats.inventoryCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -248,12 +248,12 @@ export default function PurchaseHistoryPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-red-900/30 flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Compras Gastos</p>
-                  <p className="text-lg font-bold text-red-700">{stats.expenseCount}</p>
+                  <p className="text-sm text-slate-400">Compras Gastos</p>
+                  <p className="text-lg font-bold text-red-400">{stats.expenseCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -311,7 +311,7 @@ export default function PurchaseHistoryPage() {
             {filteredPurchases.length === 0 ? (
               <div className="text-center py-12">
                 <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No se encontraron compras</p>
+                <p className="text-slate-400">No se encontraron compras</p>
                 <Button 
                   onClick={() => router.push('/purchases/new')} 
                   className="mt-4"
@@ -329,7 +329,7 @@ export default function PurchaseHistoryPage() {
                   return (
                     <div
                       key={purchase.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      className="border rounded-lg p-4 hover:bg-slate-950 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -339,10 +339,10 @@ export default function PurchaseHistoryPage() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-gray-900">{purchase.description}</h3>
+                                <h3 className="font-semibold text-slate-200">{purchase.description}</h3>
                                 <Badge className={typeInfo.color}>{typeInfo.label}</Badge>
                               </div>
-                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <div className="flex items-center gap-4 text-sm text-slate-400">
                                 <span>{format(new Date(purchase.purchase_date), "d 'de' MMMM, yyyy", { locale: es })}</span>
                                 {purchase.supplier && <span>• {purchase.supplier}</span>}
                                 {purchase.receipt_number && <span>• #{purchase.receipt_number}</span>}
@@ -351,13 +351,13 @@ export default function PurchaseHistoryPage() {
                           </div>
 
                           {purchase.purchase_type === 'expense' && purchase.expense_category && (
-                            <div className="ml-13 text-sm text-gray-600">
+                            <div className="ml-13 text-sm text-slate-400">
                               <span className="font-medium">Categoría:</span> {getCategoryLabel(purchase.expense_category)}
                             </div>
                           )}
 
                           {purchase.purchase_type === 'inventory' && purchase.quantity && (
-                            <div className="ml-13 text-sm text-gray-600">
+                            <div className="ml-13 text-sm text-slate-400">
                               <span className="font-medium">Cantidad:</span> {purchase.quantity} unidades • 
                               <span className="ml-1">Costo unitario:</span> {formatCurrency(purchase.unit_cost || 0)}
                             </div>
@@ -371,7 +371,7 @@ export default function PurchaseHistoryPage() {
                         </div>
 
                         <div className="text-right ml-4">
-                          <p className="text-2xl font-bold text-gray-900">{formatCurrency(purchase.amount)}</p>
+                          <p className="text-2xl font-bold text-slate-200">{formatCurrency(purchase.amount)}</p>
                         </div>
                       </div>
                     </div>

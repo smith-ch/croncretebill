@@ -104,8 +104,8 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
       case 'excellent':
         return {
           color: 'from-emerald-500 to-green-600',
-          bgColor: 'from-emerald-50 to-green-50',
-          textColor: 'text-emerald-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-emerald-400',
           icon: Trophy,
           message: '¡Excelente salud financiera!',
           description: 'Tu negocio está funcionando de manera óptima',
@@ -113,8 +113,8 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
       case 'good':
         return {
           color: 'from-blue-500 to-indigo-600',
-          bgColor: 'from-blue-50 to-indigo-50',
-          textColor: 'text-blue-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-blue-400',
           icon: ThumbsUp,
           message: 'Buena salud financiera',
           description: 'El negocio marcha bien con algunas oportunidades',
@@ -122,8 +122,8 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
       case 'warning':
         return {
           color: 'from-amber-500 to-orange-600',
-          bgColor: 'from-amber-50 to-orange-50',
-          textColor: 'text-amber-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-amber-400',
           icon: AlertTriangle,
           message: healthScore === 0 ? 'Sin datos suficientes' : 'Atención requerida',
           description: healthScore === 0 ? 'Comienza registrando ingresos y gastos para ver tu salud financiera' : 'Hay áreas que necesitan mejoras',
@@ -131,8 +131,8 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
       case 'critical':
         return {
           color: 'from-red-500 to-pink-600',
-          bgColor: 'from-red-50 to-pink-50',
-          textColor: 'text-red-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-red-400',
           icon: AlertTriangle,
           message: 'Requiere acción inmediata',
           description: 'Es importante tomar medidas correctivas',
@@ -144,9 +144,9 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
   const IconComponent = config.icon
 
   return (
-    <Card className={`shadow-2xl border-0 bg-gradient-to-br ${config.bgColor} relative overflow-hidden`}>
-      <div className={`absolute inset-0 bg-gradient-to-br ${config.color}/5`}></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+    <Card className={`shadow-2xl border-slate-700 bg-gradient-to-br ${config.bgColor} relative overflow-hidden`}>
+      <div className={`absolute inset-0 bg-gradient-to-br ${config.color}/10`}></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-700/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
       <CardHeader className="relative">
         <div className="flex items-center gap-4">
           <motion.div 
@@ -189,17 +189,17 @@ export const FinancialHealthWidget: React.FC<FinancialHealthProps> = ({
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-white/50 backdrop-blur-sm rounded-xl">
+          <div className="text-center p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl">
             <div className={`text-2xl font-bold ${config.textColor}`}>
               {monthlyTarget > 0 ? Math.round((monthlyRevenue / monthlyTarget) * 100) : 0}%
             </div>
-            <p className="text-sm text-gray-600">Meta del Mes</p>
+            <p className="text-sm text-slate-400">Meta del Mes</p>
           </div>
-          <div className="text-center p-4 bg-white/50 backdrop-blur-sm rounded-xl">
+          <div className="text-center p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl">
             <div className={`text-2xl font-bold ${config.textColor}`}>
               {totalRevenue > 0 ? Math.round(((totalRevenue - totalExpenses) / totalRevenue) * 100) : 0}%
             </div>
-            <p className="text-sm text-gray-600">Margen Profit</p>
+            <p className="text-sm text-slate-400">Margen Profit</p>
           </div>
         </div>
       </CardContent>
@@ -242,7 +242,7 @@ export const PerformanceComparisonWidget: React.FC<PerformanceComparisonProps> =
       isPositive,
       icon: isPositive ? ArrowUpRight : ArrowDownRight,
       color: isPositive ? 'text-emerald-600' : 'text-red-600',
-      bgColor: isPositive ? 'bg-emerald-100' : 'bg-red-100',
+      bgColor: isPositive ? 'bg-emerald-900/30' : 'bg-red-900/30',
     }
   }
 
@@ -271,9 +271,9 @@ export const PerformanceComparisonWidget: React.FC<PerformanceComparisonProps> =
   ]
 
   return (
-    <Card className="shadow-2xl border-0 bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-indigo-500/5"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-300/20 to-indigo-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+    <Card className="shadow-2xl border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-indigo-600/10"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-600/20 to-indigo-600/20 rounded-full -translate-y-16 translate-x-16"></div>
       <CardHeader className="relative">
         <div className="flex items-center gap-4">
           <motion.div 
@@ -284,11 +284,11 @@ export const PerformanceComparisonWidget: React.FC<PerformanceComparisonProps> =
             <BarChart3 className="h-8 w-8 text-white" />
           </motion.div>
           <div>
-            <CardTitle className="text-2xl font-bold text-violet-900 flex items-center gap-2">
+            <CardTitle className="text-2xl font-bold text-violet-300 flex items-center gap-2">
               Comparación Mensual
-              <TrendingUp className="h-5 w-5 text-violet-600" />
+              <TrendingUp className="h-5 w-5 text-violet-400" />
             </CardTitle>
-            <CardDescription className="text-violet-700 text-base font-medium">
+            <CardDescription className="text-violet-400 text-base font-medium">
               vs. mes anterior
             </CardDescription>
           </div>
@@ -302,19 +302,19 @@ export const PerformanceComparisonWidget: React.FC<PerformanceComparisonProps> =
           return (
             <motion.div 
               key={metric.title}
-              className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+              className="flex items-center justify-between p-4 bg-slate-800/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-r from-violet-100 to-indigo-100 rounded-xl">
-                  <IconComponent className="h-6 w-6 text-violet-700" />
+                <div className="p-3 bg-gradient-to-r from-violet-900/50 to-indigo-900/50 rounded-xl">
+                  <IconComponent className="h-6 w-6 text-violet-400" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-violet-900 text-lg">{metric.title}</h4>
-                  <div className="flex items-center gap-2 text-sm text-violet-700">
+                  <h4 className="font-bold text-violet-300 text-lg">{metric.title}</h4>
+                  <div className="flex items-center gap-2 text-sm text-violet-400">
                     <span>Actual: ${metric.current.toLocaleString()}</span>
                     <span>•</span>
                     <span>Anterior: ${metric.previous.toLocaleString()}</span>
@@ -370,29 +370,29 @@ export const QuickInsightsWidget: React.FC<QuickInsightsProps> = ({ insights }) 
       case 'success':
         return {
           color: 'from-emerald-500 to-green-600',
-          bgColor: 'from-emerald-50 to-green-50',
-          textColor: 'text-emerald-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-emerald-400',
           icon: CheckCircle,
         }
       case 'warning':
         return {
           color: 'from-amber-500 to-orange-600',
-          bgColor: 'from-amber-50 to-orange-50',
-          textColor: 'text-amber-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-amber-400',
           icon: AlertTriangle,
         }
       case 'info':
         return {
           color: 'from-blue-500 to-indigo-600',
-          bgColor: 'from-blue-50 to-indigo-50',
-          textColor: 'text-blue-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-blue-400',
           icon: Eye,
         }
       default:
         return {
           color: 'from-purple-500 to-pink-600',
-          bgColor: 'from-purple-50 to-pink-50',
-          textColor: 'text-purple-900',
+          bgColor: 'from-slate-900 to-slate-800',
+          textColor: 'text-purple-400',
           icon: Star,
         }
     }
@@ -403,9 +403,9 @@ export const QuickInsightsWidget: React.FC<QuickInsightsProps> = ({ insights }) 
   const IconComponent = config.icon
 
   return (
-    <Card className={`shadow-2xl border-0 bg-gradient-to-br ${config.bgColor} relative overflow-hidden`}>
-      <div className={`absolute inset-0 bg-gradient-to-br ${config.color}/5`}></div>
-      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-12 translate-x-12"></div>
+    <Card className={`shadow-2xl border-slate-700 bg-gradient-to-br ${config.bgColor} relative overflow-hidden`}>
+      <div className={`absolute inset-0 bg-gradient-to-br ${config.color}/10`}></div>
+      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-slate-700/30 to-transparent rounded-full -translate-y-12 translate-x-12"></div>
       <CardHeader className="relative">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -431,7 +431,7 @@ export const QuickInsightsWidget: React.FC<QuickInsightsProps> = ({ insights }) 
                 <div
                   key={index}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === currentInsight ? `bg-gradient-to-r ${config.color}` : 'bg-white/50'
+                    index === currentInsight ? `bg-gradient-to-r ${config.color}` : 'bg-slate-600/50'
                   }`}
                 />
               ))}
@@ -458,7 +458,7 @@ export const QuickInsightsWidget: React.FC<QuickInsightsProps> = ({ insights }) 
             {insight.action && (
               <Button 
                 variant="outline" 
-                className={`border-2 ${config.textColor} hover:bg-white/50 transition-all duration-300`}
+                className={`border-2 ${config.textColor} hover:bg-slate-800/50 transition-all duration-300`}
                 asChild
               >
                 <a href={insight.action.href}>

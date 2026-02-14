@@ -825,26 +825,26 @@ export default function AgendaPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-slate-800 text-blue-300 border-slate-700"
       case "completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-emerald-900/30 text-emerald-300 border-emerald-800"
       case "overdue":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-900/30 text-red-300 border-red-800"
       default:
-        return "bg-slate-100 text-slate-800 border-slate-200"
+        return "bg-slate-100 text-slate-200 border-slate-800"
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-900/30 text-red-300 border-red-800"
       case "medium":
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-amber-900/30 text-amber-300 border-amber-800"
       case "low":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-900/30 text-green-300 border-green-800"
       default:
-        return "bg-slate-100 text-slate-800 border-slate-200"
+        return "bg-slate-100 text-slate-200 border-slate-800"
     }
   }
 
@@ -933,7 +933,7 @@ export default function AgendaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -949,7 +949,7 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 lg:space-y-8">
         {/* Header optimized for mobile */}
         <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
@@ -957,7 +957,7 @@ export default function AgendaPage() {
             <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Agenda de Negocio
             </h1>
-            <p className="text-sm lg:text-base text-slate-600">Administra y controla todas tus actividades empresariales</p>
+            <p className="text-sm lg:text-base text-slate-400">Administra y controla todas tus actividades empresariales</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 w-full sm:w-auto">
             <Button onClick={() => openNewItemDialog()} className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -991,16 +991,16 @@ export default function AgendaPage() {
         {/* Notificaciones y Alertas */}
         {getUpcomingNotifications().length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
               <Bell className="h-5 w-5 text-amber-500" />
               Notificaciones Importantes
             </h2>
             <div className="grid gap-3">
               {getUpcomingNotifications().map((notification, index) => (
                 <Card key={index} className={`border-l-4 ${
-                  notification.type === "error" ? "border-l-red-500 bg-red-50" :
-                  notification.type === "warning" ? "border-l-amber-500 bg-amber-50" :
-                  "border-l-blue-500 bg-blue-50"
+                  notification.type === "error" ? "border-l-red-500 bg-red-900/30" :
+                  notification.type === "warning" ? "border-l-amber-500 bg-amber-900/30" :
+                  "border-l-blue-500 bg-slate-900"
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -1009,8 +1009,8 @@ export default function AgendaPage() {
                         {notification.type === "warning" && <Clock className="h-5 w-5 text-amber-600" />}
                         {notification.type === "info" && <Bell className="h-5 w-5 text-blue-600" />}
                         <div>
-                          <p className="font-medium text-slate-800">{notification.title}</p>
-                          <p className="text-sm text-slate-600">{notification.message}</p>
+                          <p className="font-medium text-slate-200">{notification.title}</p>
+                          <p className="text-sm text-slate-400">{notification.message}</p>
                         </div>
                       </div>
                       <Badge variant="secondary" className="ml-2">
@@ -1030,11 +1030,11 @@ export default function AgendaPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-green-600" />
                     Resumen de Productividad
                   </h3>
-                  <div className="flex items-center gap-6 text-sm text-slate-600">
+                  <div className="flex items-center gap-6 text-sm text-slate-400">
                     <div>
                       <span className="font-medium text-green-600">{getProductivityInsights().completedThisWeek}</span> completadas esta semana
                     </div>
@@ -1067,7 +1067,7 @@ export default function AgendaPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Eventos Pendientes</p>
+                  <p className="text-sm text-slate-400">Eventos Pendientes</p>
                   <p className="text-2xl font-bold text-blue-600">{getUpcomingItems().length}</p>
                 </div>
                 <Clock className="h-8 w-8 text-blue-600" />
@@ -1078,7 +1078,7 @@ export default function AgendaPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Vencidos</p>
+                  <p className="text-sm text-slate-400">Vencidos</p>
                   <p className="text-2xl font-bold text-red-600">{getOverdueItems().length}</p>
                 </div>
                 <AlertCircle className="h-8 w-8 text-red-600" />
@@ -1091,7 +1091,7 @@ export default function AgendaPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">Gastos Fijos</p>
+                      <p className="text-sm text-slate-400">Gastos Fijos</p>
                       <p className="text-2xl font-bold text-orange-600">{fixedExpenses.length}</p>
                     </div>
                     <Receipt className="h-8 w-8 text-orange-600" />
@@ -1102,7 +1102,7 @@ export default function AgendaPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">Total Mensual</p>
+                      <p className="text-sm text-slate-400">Total Mensual</p>
                       <p className="text-2xl font-bold text-green-600">{formatCurrency(getTotalMonthlyExpenses())}</p>
                     </div>
                     <DollarSign className="h-8 w-8 text-green-600" />
@@ -1117,7 +1117,7 @@ export default function AgendaPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">Mis Tareas</p>
+                      <p className="text-sm text-slate-400">Mis Tareas</p>
                       <p className="text-2xl font-bold text-purple-600">{agendaItems.filter(item => item.type === 'reminder').length}</p>
                     </div>
                     <User className="h-8 w-8 text-purple-600" />
@@ -1128,7 +1128,7 @@ export default function AgendaPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">Facturas Activas</p>
+                      <p className="text-sm text-slate-400">Facturas Activas</p>
                       <p className="text-2xl font-bold text-green-600">{agendaItems.filter(item => item.type === 'invoice').length}</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-green-600" />
@@ -1201,7 +1201,7 @@ export default function AgendaPage() {
                             </div>
                           </div>
                           {item.description && (
-                            <p className="text-slate-600 text-sm lg:text-base line-clamp-2 lg:line-clamp-none">{item.description}</p>
+                            <p className="text-slate-400 text-sm lg:text-base line-clamp-2 lg:line-clamp-none">{item.description}</p>
                           )}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-500">
                             <div className="flex items-center gap-1">
@@ -1224,7 +1224,7 @@ export default function AgendaPage() {
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                           {canDelete('agendaEvents') && (
-                            <Button size="sm" variant="outline" onClick={() => deleteItem(item.id)} className="text-red-600 hover:text-red-700">
+                            <Button size="sm" variant="outline" onClick={() => deleteItem(item.id)} className="text-red-600 hover:text-red-400">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
@@ -1237,7 +1237,7 @@ export default function AgendaPage() {
                 <Card>
                   <CardContent className="p-8 text-center">
                     <Calendar className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay eventos en la agenda</h3>
+                    <h3 className="text-xl font-semibold text-slate-300 mb-2">No hay eventos en la agenda</h3>
                     <p className="text-gray-500 mb-4">Comienza agregando eventos, recordatorios o tareas</p>
                     <Button onClick={() => openNewItemDialog()}>
                       <Plus className="h-4 w-4 mr-2" />
@@ -1284,7 +1284,7 @@ export default function AgendaPage() {
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                           {canDelete('expenses') && (
-                            <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-700">
+                            <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-400">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
@@ -1297,7 +1297,7 @@ export default function AgendaPage() {
                   <Card>
                     <CardContent className="p-8 text-center">
                       <Receipt className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay gastos fijos configurados</h3>
+                      <h3 className="text-xl font-semibold text-slate-300 mb-2">No hay gastos fijos configurados</h3>
                       <p className="text-gray-500 mb-4">Agrega gastos recurrentes para un mejor control</p>
                       <Button onClick={() => setShowFixedExpenseDialog(true)}>
                         <Plus className="h-4 w-4 mr-2" />
@@ -1349,7 +1349,7 @@ export default function AgendaPage() {
                     {/* Week day headers */}
                     <div className="grid grid-cols-7 border-b">
                       {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
-                        <div key={day} className="p-3 text-center text-sm font-medium text-slate-600 border-r last:border-r-0">
+                        <div key={day} className="p-3 text-center text-sm font-medium text-slate-400 border-r last:border-r-0">
                           {day}
                         </div>
                       ))}
@@ -1366,8 +1366,8 @@ export default function AgendaPage() {
                           <div 
                             key={index}
                             className={`min-h-[120px] p-2 border-r border-b last-in-row:border-r-0 cursor-pointer transition-colors ${
-                              dayIsToday ? 'bg-blue-50 border-blue-200' : 'hover:bg-slate-50'
-                            } ${dayIsSelected ? 'ring-2 ring-blue-400 bg-blue-50' : ''}`}
+                              dayIsToday ? 'bg-slate-900 border-slate-700' : 'hover:bg-slate-900'
+                            } ${dayIsSelected ? 'ring-2 ring-blue-400 bg-slate-900' : ''}`}
                             onClick={() => day && setSelectedCalendarDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
                           >
                             {day && (
@@ -1446,10 +1446,10 @@ export default function AgendaPage() {
                           const itemsForDay = getItemsForCalendarDate(selectedDay)
                           return itemsForDay.length > 0 ? (
                             itemsForDay.map((item, index) => (
-                              <div key={index} className="p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                              <div key={index} className="p-3 border rounded-lg hover:bg-slate-900 transition-colors">
                                 <div className="font-medium text-sm mb-1">{item.title}</div>
                                 {item.amount && item.amount > 0 && (
-                                  <div className="text-xs text-slate-600 mb-2">
+                                  <div className="text-xs text-slate-400 mb-2">
                                     {formatCurrency(item.amount)}
                                   </div>
                                 )}
@@ -1457,9 +1457,9 @@ export default function AgendaPage() {
                                   <Badge 
                                     variant="outline" 
                                     className={`text-xs ${
-                                      item.type === 'invoice' ? 'border-red-200 text-red-600' :
-                                      item.type === 'expense' ? 'border-orange-200 text-orange-600' :
-                                      'border-blue-200 text-blue-600'
+                                      item.type === 'invoice' ? 'border-red-800 text-red-600' :
+                                      item.type === 'expense' ? 'border-orange-800 text-orange-600' :
+                                      'border-slate-700 text-blue-600'
                                     }`}
                                   >
                                     {item.type === 'invoice' ? 'Factura' :
@@ -1521,17 +1521,17 @@ export default function AgendaPage() {
                         <span className="text-sm font-medium">Recordatorios</span>
                       </div>
                     </div>
-                    <hr className="border-slate-200" />
+                    <hr className="border-slate-800" />
                     <div className="space-y-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 bg-blue-100 border-2 border-blue-400 rounded"></div>
-                        <span className="text-sm text-slate-600">Fecha seleccionada</span>
+                        <div className="w-4 h-4 bg-slate-800 border-2 border-blue-400 rounded"></div>
+                        <span className="text-sm text-slate-400">Fecha seleccionada</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 bg-blue-50 border border-blue-300 rounded relative">
-                          <div className="absolute inset-1 bg-blue-200 rounded-full"></div>
+                        <div className="w-4 h-4 bg-slate-900 border border-blue-300 rounded relative">
+                          <div className="absolute inset-1 bg-slate-800 rounded-full"></div>
                         </div>
-                        <span className="text-sm text-slate-600">Día actual</span>
+                        <span className="text-sm text-slate-400">Día actual</span>
                       </div>
                     </div>
                   </CardContent>
@@ -1564,7 +1564,7 @@ export default function AgendaPage() {
                     )}
                     <div className="border-t pt-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Auto-actualizar</span>
+                        <span className="text-sm text-slate-400">Auto-actualizar</span>
                         <Button
                           variant="ghost"
                           size="sm"

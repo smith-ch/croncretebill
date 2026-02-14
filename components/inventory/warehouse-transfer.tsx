@@ -293,7 +293,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
             <Package className="w-5 h-5" />
             Transferir Productos Entre Almacenes
           </CardTitle>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-400">
             Mueve productos de un almacén a otro sin duplicar registros
           </p>
         </CardHeader>
@@ -368,7 +368,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
               </Select>
               
               {availableProducts.length === 0 && sourceWarehouse && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-400 mt-1">
                   No hay productos con stock en este almacén
                 </p>
               )}
@@ -389,7 +389,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
                   onChange={(e) => setTransferQuantity(parseInt(e.target.value) || 0)}
                   placeholder="0"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-400 mt-1">
                   Disponible: {selectedProductData.current_stock} {selectedProductData.product.unit}
                 </p>
               </div>
@@ -409,7 +409,7 @@ export function WarehouseTransfer({ onTransferComplete }: { onTransferComplete?:
 
           {/* Botón de transferencia */}
           {selectedProductData && transferQuantity > 0 && targetWarehouse && (
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-slate-900 p-4 rounded-lg">
               <h4 className="font-medium mb-2">Resumen de Transferencia:</h4>
               <div className="space-y-1 text-sm">
                 <p><strong>Producto:</strong> {selectedProductData.product.name}</p>

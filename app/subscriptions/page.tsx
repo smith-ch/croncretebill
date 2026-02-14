@@ -68,6 +68,7 @@ interface UserSubscription {
   current_invoices_count: number
   current_products_count: number
   current_clients_count: number
+  is_employee?: boolean
 }
 
 interface SubscriptionRequest {
@@ -248,52 +249,79 @@ export default function SubscriptionsManagementPage() {
       if (plansError) throw plansError
       setPlans(plansData || [])
 
-      // Paso 1: Obtener todos los owners (usuarios principales)
-      const { data: ownerProfiles, error: profilesError } = await supabase
+      // Paso 1: Obtener TODOS los usuarios (owners y empleados)
+      const { data: allProfiles, error: profilesError } = await supabase
         .from('user_profiles')
         .select('user_id, email, display_name, parent_user_id')
-        .is('parent_user_id', null)
+        .order('email')
 
       if (profilesError) throw profilesError
 
-      console.log('👥 Total de OWNERS encontrados:', ownerProfiles?.length || 0)
-      console.log('👥 Owners:', ownerProfiles?.map(p => p.email))
+      console.log('👥 Total de USUARIOS encontrados:', allProfiles?.length || 0)
+      console.log('👥 Usuarios:', allProfiles?.map(p => ({ email: p.email, is_employee: !!p.parent_user_id })))
 
-      if (!ownerProfiles || ownerProfiles.length === 0) {
+      if (!allProfiles || allProfiles.length === 0) {
         setSubscriptions([])
         return
       }
 
-      // Paso 2: Obtener las IDs de todos los owners
-      const ownerIds = ownerProfiles.map(p => p.user_id)
-      console.log('🆔 Owner IDs:', ownerIds)
+      // Paso 2: Obtener las IDs de todos los usuarios
+      const allUserIds = allProfiles.map(p => p.user_id)
+      console.log('🆔 Total User IDs:', allUserIds.length)
 
-      // Paso 3: Cargar TODAS las suscripciones de esos owners
+      // Paso 3: Cargar TODAS las suscripciones existentes
       const { data: subsData, error: subsError } = await supabase
         .from('user_subscriptions')
         .select('*')
-        .in('user_id', ownerIds)
         .order('created_at', { ascending: false })
 
       if (subsError) throw subsError
 
       console.log('📊 Total de SUSCRIPCIONES encontradas:', subsData?.length || 0)
-      console.log('📊 Suscripciones:', subsData?.map(s => ({ user_id: s.user_id, status: s.status })))
 
-      // Paso 4: Combinar datos de suscripciones con perfiles y planes
-      const formattedSubs = (subsData || []).map((subscription: any) => {
-        const profile = ownerProfiles.find(p => p.user_id === subscription.user_id)
-        const plan = plansData?.find(p => p.id === subscription.plan_id)
+      // Paso 4: Crear un mapa de suscripciones por user_id para búsqueda rápida
+      const subscriptionsByUserId = new Map(
+        (subsData || []).map((sub: any) => [sub.user_id, sub])
+      )
+
+      // Paso 5: Combinar TODOS los usuarios con sus suscripciones (o sin ellas)
+      const formattedSubs = allProfiles.map((profile: any) => {
+        const subscription = subscriptionsByUserId.get(profile.user_id)
+        const plan = subscription ? plansData?.find(p => p.id === subscription.plan_id) : null
         
-        return {
-          ...subscription,
-          user_email: profile?.email || 'Sin email',
-          plan_name: plan?.name || 'N/A',
-          plan_display_name: plan?.display_name || 'N/A'
+        if (subscription) {
+          // Usuario con suscripción
+          return {
+            ...subscription,
+            user_email: profile.email,
+            plan_name: plan?.name || 'N/A',
+            plan_display_name: plan?.display_name || 'N/A',
+            is_employee: !!profile.parent_user_id
+          }
+        } else {
+          // Usuario SIN suscripción - crear entrada ficticia
+          return {
+            id: `no-sub-${profile.user_id}`,
+            user_id: profile.user_id,
+            plan_id: null,
+            start_date: new Date().toISOString(),
+            end_date: null,
+            status: 'inactive' as const,
+            billing_cycle: 'monthly' as const,
+            notes: 'Sin suscripción asignada',
+            user_email: profile.email,
+            plan_name: 'Sin Plan',
+            plan_display_name: 'Sin Plan',
+            is_employee: !!profile.parent_user_id,
+            current_users_count: 0,
+            current_invoices_count: 0,
+            current_products_count: 0,
+            current_clients_count: 0
+          }
         }
       })
       
-      console.log('✅ Suscripciones formateadas:', formattedSubs.length)
+      console.log('✅ Total usuarios mostrados (con y sin suscripción):', formattedSubs.length)
       
       setSubscriptions(formattedSubs)
 
@@ -307,7 +335,7 @@ export default function SubscriptionsManagementPage() {
       if (historyError) throw historyError
       setHistory(historyData || [])
 
-      // Cargar notificaciones de pago pendientes (solo de owners, no empleados)
+      // Cargar notificaciones de pago pendientes (de todos los usuarios)
       const { data: notificationsData, error: notificationsError } = await supabase
         .from('payment_notifications')
         .select(`
@@ -320,9 +348,9 @@ export default function SubscriptionsManagementPage() {
 
       if (notificationsError) throw notificationsError
       
-      // Filtrar notificaciones solo de owners (ya tenemos ownerIds definido arriba)
+      // Incluir notificaciones de todos los usuarios
       const formattedNotifications = (notificationsData || [])
-        .filter((notif: any) => ownerIds.includes(notif.user_id)) // Solo notificaciones de owners
+        .filter((notif: any) => allUserIds.includes(notif.user_id)) // Todos los usuarios
         .map((notif: any) => {
           // Buscar el plan en la lista de planes que ya tenemos
           const plan = plans.find(p => p.id === notif.subscription?.plan_id)
@@ -338,7 +366,7 @@ export default function SubscriptionsManagementPage() {
       
       setPaymentNotifications(formattedNotifications)
 
-      // Cargar solicitudes de suscripción pendientes (solo de owners, no empleados)
+      // Cargar solicitudes de suscripción pendientes (de todos los usuarios)
       const { data: requestsData, error: requestsError } = await supabase
         .from('subscription_requests')
         .select('*')
@@ -1048,7 +1076,16 @@ export default function SubscriptionsManagementPage() {
                 <TableBody>
                   {subscriptions.map((sub) => (
                     <TableRow key={sub.id}>
-                      <TableCell className="font-medium">{sub.user_email}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {sub.user_email}
+                          {sub.is_employee && (
+                            <Badge variant="outline" className="text-xs">
+                              👤 Empleado
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{sub.plan_display_name}</TableCell>
                       <TableCell>{getStatusBadge(sub.status)}</TableCell>
                       <TableCell className="capitalize">{sub.billing_cycle}</TableCell>
@@ -1687,7 +1724,7 @@ export default function SubscriptionsManagementPage() {
           <div className="space-y-4">
             {selectedNotification && (
               <>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="bg-slate-950 p-4 rounded-lg space-y-2">
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="font-medium">Usuario:</span> {selectedNotification.user_email}
@@ -1699,7 +1736,7 @@ export default function SubscriptionsManagementPage() {
                   </div>
                   <div>
                     <span className="font-medium text-sm">Detalles del Pago:</span>
-                    <p className="text-sm mt-1 p-2 bg-white rounded border">
+                    <p className="text-sm mt-1 p-2 bg-slate-900 rounded border">
                       {selectedNotification.payment_note}
                     </p>
                   </div>

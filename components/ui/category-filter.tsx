@@ -32,7 +32,7 @@ export function CategoryFilter({
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <Filter className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-500">Cargando categorías...</span>
+        <span className="text-sm text-slate-400">Cargando categorías...</span>
       </div>
     )
   }
@@ -46,8 +46,8 @@ export function CategoryFilter({
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center gap-2">
-        <Tag className="w-4 h-4 text-gray-600" />
-        <span className="font-medium text-sm text-gray-700">Filtrar por categoría:</span>
+        <Tag className="w-4 h-4 text-slate-400" />
+        <span className="font-medium text-sm text-slate-300">Filtrar por categoría:</span>
       </div>
       
       <div className="flex flex-wrap gap-2">
@@ -104,7 +104,7 @@ export function CategoryFilter({
           <div className="flex-1">
             <h4 className="font-medium text-sm">{selectedCategory.name}</h4>
             {selectedCategory.description && (
-              <p className="text-xs text-gray-600 mt-1">{selectedCategory.description}</p>
+              <p className="text-xs text-slate-400 mt-1">{selectedCategory.description}</p>
             )}
           </div>
           <Badge variant="outline" className="text-xs">

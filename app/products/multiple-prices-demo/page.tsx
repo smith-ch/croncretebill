@@ -63,13 +63,13 @@ export default function MultiplePricesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
           <div className="space-y-2">
             <Link href="/products">
-              <Button variant="ghost" className="mb-4 hover:bg-blue-50">
+              <Button variant="ghost" className="mb-4 hover:bg-slate-900">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver a Productos
               </Button>
@@ -77,7 +77,7 @@ export default function MultiplePricesPage() {
             <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Gestión de Precios Múltiples
             </h1>
-            <p className="text-sm lg:text-base text-slate-600">
+            <p className="text-sm lg:text-base text-slate-400">
               Busca productos y gestiona sus precios múltiples
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function MultiplePricesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Panel de búsqueda y selección */}
           <div className="lg:col-span-2">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="w-5 h-5" />
@@ -121,8 +121,8 @@ export default function MultiplePricesPage() {
                         key={product.id}
                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedProduct?.id === product.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25'
+                            ? 'border-blue-500 bg-slate-900'
+                            : 'border-slate-800 hover:border-blue-300 hover:bg-blue-25'
                         }`}
                         onClick={() => setSelectedProduct(product)}
                       >
@@ -135,7 +135,7 @@ export default function MultiplePricesPage() {
                             )}
                             <span className="font-medium">{product.name}</span>
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-slate-400">
                             Precio base: {formatCurrency(product.unit_price)} / {product.unit}
                           </div>
                           {product.description && (
@@ -155,7 +155,7 @@ export default function MultiplePricesPage() {
           {/* Panel de gestión de precios */}
           <div className="lg:col-span-3">
             {selectedProduct ? (
-              <Card className="border-0 shadow-lg bg-white">
+              <Card className="border-0 shadow-lg bg-slate-900">
                 <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5" />
@@ -179,11 +179,11 @@ export default function MultiplePricesPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border-0 shadow-lg bg-white">
+              <Card className="border-0 shadow-lg bg-slate-900">
                 <CardContent className="p-12 text-center">
                   <div className="space-y-4">
                     <Package className="w-16 h-16 mx-auto text-gray-300" />
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-slate-200">
                       Selecciona un producto
                     </h3>
                     <p className="text-gray-500">

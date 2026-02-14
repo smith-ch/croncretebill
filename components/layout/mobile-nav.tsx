@@ -316,7 +316,7 @@ export function MobileNav() {
   return (
     <>
       {/* Mobile Header - Enhanced Design */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pwa-header bg-gradient-to-r from-white to-blue-50 backdrop-blur-md border-b border-slate-200 shadow-lg">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pwa-header bg-gradient-to-r from-slate-900 to-blue-50 backdrop-blur-md border-b border-slate-800 shadow-lg">
         <div className="flex items-center justify-between px-4 h-16">
           <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
@@ -334,52 +334,52 @@ export function MobileNav() {
             className="h-10 w-10 p-0 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:scale-110 transition-all duration-300 rounded-xl"
           >
             {isOpen ? (
-              <X className="h-5 w-5 text-slate-700" />
+              <X className="h-5 w-5 text-slate-300" />
             ) : (
-              <Menu className="h-5 w-5 text-slate-700" />
+              <Menu className="h-5 w-5 text-slate-300" />
             )}
           </Button>
         </div>
 
         {/* Mobile Menu Overlay - Enhanced Design with Animations */}
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 bg-gradient-to-b from-slate-50 to-slate-100 backdrop-blur-xl border-b border-slate-200 shadow-2xl max-h-[80vh] overflow-y-auto animate-slide-down">
+          <div className="absolute top-full left-0 right-0 bg-gradient-to-b from-slate-50 to-slate-100 backdrop-blur-xl border-b border-slate-800 shadow-2xl max-h-[80vh] overflow-y-auto animate-slide-down">
             <nav className="px-3 py-4">
               
               {/* Información de la Empresa y Usuario */}
-              <div className="mb-4 pb-3 border-b border-slate-300">
+              <div className="mb-4 pb-3 border-b border-slate-700">
                 {/* Información de la empresa */}
                 {company && !loading && (
                   <div className="space-y-2 mb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="p-1.5 bg-blue-100 rounded-lg flex-shrink-0">
+                        <div className="p-1.5 bg-slate-800 rounded-lg flex-shrink-0">
                           <Building2 className="h-4 w-4 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-sm text-slate-800 truncate">
+                          <h3 className="font-bold text-sm text-slate-200 truncate">
                             {company.company_name || "Sin nombre"}
                           </h3>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs px-1.5 py-0 mt-0.5">
+                          <Badge variant="outline" className="bg-slate-900 text-blue-400 border-slate-700 text-xs px-1.5 py-0 mt-0.5">
                             {company.business_type || "SRL"}
                           </Badge>
                         </div>
                       </div>
                       <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1 hover:bg-slate-200 rounded-md transition-all duration-200 flex-shrink-0"
+                        className="p-1 hover:bg-slate-800 rounded-md transition-all duration-200 flex-shrink-0"
                       >
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-slate-600" />
+                          <ChevronUp className="h-4 w-4 text-slate-400" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-slate-600" />
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
                         )}
                       </button>
                     </div>
 
                     {/* Información expandida */}
                     {isExpanded && (
-                      <div className="space-y-1.5 pl-2 text-xs text-slate-600 animate-slide-down">
+                      <div className="space-y-1.5 pl-2 text-xs text-slate-400 animate-slide-down">
                         {company.company_email && (
                           <div className="flex items-center gap-2 truncate">
                             <Mail className="h-3 w-3 text-slate-400 flex-shrink-0" />
@@ -411,33 +411,33 @@ export function MobileNav() {
 
                 {/* Perfil del usuario */}
                 {profile && !loading && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
-                    <Avatar className="h-8 w-8 border-2 border-blue-200">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
+                    <Avatar className="h-8 w-8 border-2 border-slate-700">
                       <AvatarImage 
                         src={profile.avatar_url} 
                         alt={`${profile.first_name} ${profile.last_name}`} 
                       />
-                      <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold text-xs">
+                      <AvatarFallback className="bg-slate-800 text-blue-400 font-semibold text-xs">
                         {getInitials(profile.first_name, profile.last_name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-slate-800 truncate">
+                      <p className="font-semibold text-sm text-slate-200 truncate">
                         {profile.first_name && profile.last_name 
                           ? `${profile.first_name} ${profile.last_name}`
                           : "Usuario"
                         }
                       </p>
                       {permissions.isRealEmployee ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200 text-xs px-1.5 py-0 h-4 mt-0.5">
+                        <Badge className="bg-green-900/30 text-green-400 border-green-800 text-xs px-1.5 py-0 h-4 mt-0.5">
                           <span className="mr-1">👤</span> Empleado
                         </Badge>
                       ) : permissions.role === 'employee' ? (
-                        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-1.5 py-0 h-4 mt-0.5">
+                        <Badge className="bg-slate-800 text-blue-400 border-slate-700 text-xs px-1.5 py-0 h-4 mt-0.5">
                           <span className="mr-1">🔄</span> Modo Prueba
                         </Badge>
                       ) : (
-                        <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs px-1.5 py-0 h-4 mt-0.5">
+                        <Badge className="bg-amber-900/30 text-amber-400 border-amber-800 text-xs px-1.5 py-0 h-4 mt-0.5">
                           <span className="mr-1">👑</span> Propietario
                         </Badge>
                       )}
@@ -447,49 +447,49 @@ export function MobileNav() {
 
                 {/* Métricas rápidas */}
                 {stats && !loading && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
+                  <div className="mt-3 pt-3 border-t border-slate-800">
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-white rounded-lg p-2 border border-blue-100 shadow-sm">
-                        <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                      <div className="bg-slate-900 rounded-lg p-2 border border-blue-100 shadow-sm">
+                        <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <DollarSign className="h-3 w-3 text-blue-500" />
                           <span>Ingresos:</span>
                         </div>
-                        <p className="font-bold text-sm text-blue-700 truncate">
+                        <p className="font-bold text-sm text-blue-400 truncate">
                           {formatCurrency(stats.monthlyRevenue)}
                         </p>
                       </div>
 
-                      <div className="bg-white rounded-lg p-2 border border-green-100 shadow-sm">
-                        <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                      <div className="bg-slate-900 rounded-lg p-2 border border-green-100 shadow-sm">
+                        <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <Users className="h-3 w-3 text-green-500" />
                           <span>Clientes:</span>
                         </div>
-                        <p className="font-bold text-sm text-green-700">{stats.totalClients}</p>
+                        <p className="font-bold text-sm text-green-400">{stats.totalClients}</p>
                       </div>
 
-                      <div className="bg-white rounded-lg p-2 border border-purple-100 shadow-sm">
-                        <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                      <div className="bg-slate-900 rounded-lg p-2 border border-purple-100 shadow-sm">
+                        <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <FileText className="h-3 w-3 text-purple-500" />
                           <span>Facturas:</span>
                         </div>
-                        <p className="font-bold text-sm text-purple-700">{stats.monthlyInvoices}</p>
+                        <p className="font-bold text-sm text-purple-400">{stats.monthlyInvoices}</p>
                       </div>
 
                       <div className={cn(
                         "rounded-lg p-2 border shadow-sm",
-                        monthlyProgress >= 75 ? "bg-emerald-50 border-emerald-200" : 
-                        monthlyProgress >= 50 ? "bg-amber-50 border-amber-200" : 
-                        "bg-red-50 border-red-200"
+                        monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" : 
+                        monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" : 
+                        "bg-red-900/30 border-red-800"
                       )}>
-                        <div className="flex items-center gap-1 text-xs text-slate-600 mb-1">
+                        <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <Target className="h-3 w-3" />
                           <span>Meta:</span>
                         </div>
                         <p className={cn(
                           "font-bold text-sm",
-                          monthlyProgress >= 75 ? "text-emerald-700" : 
-                          monthlyProgress >= 50 ? "text-amber-700" : 
-                          "text-red-700"
+                          monthlyProgress >= 75 ? "text-emerald-400" : 
+                          monthlyProgress >= 50 ? "text-amber-400" : 
+                          "text-red-400"
                         )}>
                           {monthlyProgress.toFixed(0)}%
                         </p>
@@ -500,17 +500,17 @@ export function MobileNav() {
                     {(stats.overdueInvoices > 0 || stats.pendingInvoices > 5) && (
                       <div className="space-y-1.5 mt-2">
                         {stats.overdueInvoices > 0 && (
-                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-red-50 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-red-900/30 rounded-lg border border-red-800">
                             <AlertCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
-                            <span className="text-xs font-semibold text-red-700">
+                            <span className="text-xs font-semibold text-red-400">
                               {stats.overdueInvoices} vencida{stats.overdueInvoices !== 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
                         {stats.pendingInvoices > 5 && (
-                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-amber-900/30 rounded-lg border border-amber-800">
                             <Clock className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-                            <span className="text-xs font-semibold text-amber-700">
+                            <span className="text-xs font-semibold text-amber-400">
                               {stats.pendingInvoices} pendiente{stats.pendingInvoices !== 1 ? 's' : ''}
                             </span>
                           </div>
@@ -541,8 +541,8 @@ export function MobileNav() {
                         className={cn(
                           "w-full justify-start px-4 py-3 text-left font-medium transition-all duration-300 rounded-xl transform hover:scale-[1.02] shadow-sm hover:shadow-md",
                           isActive(item.href)
-                            ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-l-4 border-blue-600 shadow-md hover:shadow-lg"
-                            : "text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100"
+                            ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-l-4 border-blue-600 shadow-md hover:shadow-lg"
+                            : "text-slate-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100"
                         )}
                       >
                         <div className="relative">
@@ -576,11 +576,11 @@ export function MobileNav() {
               </div>
 
               {/* Logout Section with Enhanced Design */}
-              <div className="border-t border-slate-300 pt-4 mt-4">
+              <div className="border-t border-slate-700 pt-4 mt-4">
                 <div className="rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 p-3 mb-3 text-center border border-blue-300 shadow-md">
-                  <p className="text-sm font-bold text-blue-800">ConcreteBill Pro</p>
+                  <p className="text-sm font-bold text-blue-300">ConcreteBill Pro</p>
                   <p className="text-xs text-blue-600 mt-0.5 font-medium">Sistema de Facturación</p>
-                  <div className="mt-2 w-full bg-blue-200 rounded-full h-1">
+                  <div className="mt-2 w-full bg-slate-800 rounded-full h-1">
                     <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 rounded-full" style={{ width: '85%' }}></div>
                   </div>
                 </div>
@@ -598,7 +598,7 @@ export function MobileNav() {
                       console.error("Error logging out:", error)
                     }
                   }}
-                  className="w-full justify-start px-4 py-3 text-left font-semibold text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md"
+                  className="w-full justify-start px-4 py-3 text-left font-semibold text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-400 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md"
                 >
                   <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

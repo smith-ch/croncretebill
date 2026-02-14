@@ -141,8 +141,8 @@ export function ProductPriceSelector({
     return (
       <div className={`space-y-2 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+          <div className="h-10 bg-slate-800 rounded"></div>
         </div>
       </div>
     )
@@ -152,7 +152,7 @@ export function ProductPriceSelector({
     return (
       <div className={`space-y-2 ${className}`}>
         <Label>Precio</Label>
-        <div className="text-sm text-gray-500 p-3 border rounded-md bg-gray-50">
+        <div className="text-sm text-slate-400 p-3 border rounded-md bg-slate-900">
           No hay precios configurados para este producto
         </div>
       </div>
@@ -207,7 +207,7 @@ export function ProductPriceSelector({
                   key={price.id} 
                   value={price.id}
                   disabled={!isApplicable}
-                  className={isRecommended ? 'bg-blue-50' : ''}
+                  className={isRecommended ? 'bg-slate-900' : ''}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export function ProductPriceSelector({
                 {formatCurrency(selectedPrice.price)}
               </div>
               
-              <div className="space-y-1 text-sm text-gray-600">
+              <div className="space-y-1 text-sm text-slate-400">
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   <span>{getQuantityText(selectedPrice)}</span>
@@ -319,7 +319,7 @@ export function ProductPriceSelector({
 
       {/* Show applicable prices summary */}
       {applicablePrices.length > 1 && showQuantityInput && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-slate-400">
           {applicablePrices.length} precio{applicablePrices.length !== 1 ? 's' : ''} disponible{applicablePrices.length !== 1 ? 's' : ''} para {currentQuantity} unidad{currentQuantity !== 1 ? 'es' : ''}
         </div>
       )}

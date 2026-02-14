@@ -160,9 +160,9 @@ export default function DriverDeliveriesPage() {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pendiente: { color: "bg-yellow-100 text-yellow-800", label: "Pendiente" },
-      en_transito: { color: "bg-blue-100 text-blue-800", label: "En Tránsito" },
-      entregado: { color: "bg-green-100 text-green-800", label: "Entregado" },
-      cancelado: { color: "bg-red-100 text-red-800", label: "Cancelado" },
+      en_transito: { color: "bg-slate-800 text-blue-300", label: "En Tránsito" },
+      entregado: { color: "bg-green-900/30 text-green-300", label: "Entregado" },
+      cancelado: { color: "bg-red-900/30 text-red-300", label: "Cancelado" },
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pendiente
@@ -185,8 +185,8 @@ export default function DriverDeliveriesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Entregas de Conductores</h1>
-        <p className="text-gray-600 dark:text-gray-400">Gestiona las entregas asignadas a conductores</p>
+        <h1 className="text-3xl font-bold text-slate-200 dark:text-white">Entregas de Conductores</h1>
+        <p className="text-slate-400 dark:text-gray-400">Gestiona las entregas asignadas a conductores</p>
       </div>
 
       {/* Filters */}
@@ -249,8 +249,8 @@ export default function DriverDeliveriesPage() {
       </Card>
 
       {error && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        <Alert className="border-red-800 bg-red-900/30">
+          <AlertDescription className="text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
@@ -262,7 +262,7 @@ export default function DriverDeliveriesPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">{delivery.delivery_notes?.delivery_number || "N/A"}</CardTitle>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-400">
                     {new Date(delivery.delivery_date).toLocaleDateString("es-ES")}
                   </p>
                 </div>
@@ -322,7 +322,7 @@ export default function DriverDeliveriesPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => deleteDelivery(delivery.id)}
-                  className="text-red-600 hover:text-red-700"
+                  className="text-red-600 hover:text-red-400"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -336,8 +336,8 @@ export default function DriverDeliveriesPage() {
         <Card>
           <CardContent className="text-center py-8">
             <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay entregas</h3>
-            <p className="text-gray-600">No se encontraron entregas con los filtros aplicados.</p>
+            <h3 className="text-lg font-medium text-slate-200 mb-2">No hay entregas</h3>
+            <p className="text-slate-400">No se encontraron entregas con los filtros aplicados.</p>
           </CardContent>
         </Card>
       )}

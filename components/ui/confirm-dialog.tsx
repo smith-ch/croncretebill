@@ -42,10 +42,10 @@ export function ConfirmDialog({
   }
 
   const colors = {
-    danger: "text-red-600 bg-red-50 dark:bg-red-900/20",
+    danger: "text-red-600 bg-red-900/30 dark:bg-red-900/20",
     warning: "text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20",
-    info: "text-blue-600 bg-blue-50 dark:bg-blue-900/20",
-    success: "text-green-600 bg-green-50 dark:bg-green-900/20"
+    info: "text-blue-600 bg-slate-900 dark:bg-blue-900/20",
+    success: "text-green-600 bg-green-900/30 dark:bg-green-900/20"
   }
 
   const buttonColors = {

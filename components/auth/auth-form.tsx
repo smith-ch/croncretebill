@@ -303,7 +303,7 @@ export function AuthForm() {
                 <Building2 className="h-10 w-10 text-white drop-shadow-2xl" />
               </div>
             </div>
-            <CardTitle className="text-4xl font-bold text-white drop-shadow-2xl bg-gradient-to-r from-white to-cyan-100 bg-clip-text text-transparent">
+            <CardTitle className="text-4xl font-bold text-white drop-shadow-2xl bg-gradient-to-r from-slate-900 to-cyan-100 bg-clip-text text-transparent">
               ConcreteFlow
             </CardTitle>
             <CardDescription className="text-cyan-100/90 text-lg font-medium drop-shadow-lg">

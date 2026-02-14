@@ -64,7 +64,7 @@ export function RoleSwitcher() {
       <Card className="w-full max-w-md mx-auto opacity-50">
         <CardContent className="p-4">
           <div className="flex items-center justify-center">
-            <div className="text-sm text-gray-500">Cargando configuración de rol...</div>
+            <div className="text-sm text-slate-400">Cargando configuración de rol...</div>
           </div>
         </CardContent>
       </Card>
@@ -98,7 +98,7 @@ export function RoleSwitcher() {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="h-6 px-2 text-xs border-amber-200 text-amber-700 hover:bg-amber-50"
+                className="h-6 px-2 text-xs border-amber-800 text-amber-400 hover:bg-amber-900/30"
               >
                 <Crown className="h-3 w-3" />
               </Button>
@@ -108,7 +108,7 @@ export function RoleSwitcher() {
               variant="outline" 
               size="sm"
               onClick={toggleToEmployee}
-              className="h-6 px-2 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="h-6 px-2 text-xs border-slate-700 text-blue-400 hover:bg-slate-900"
             >
               <EyeOff className="h-3 w-3" />
             </Button>

@@ -942,13 +942,13 @@ export default function UnifiedInventoryPage() {
   // Check if user has permission to manage inventory
   if (!permissions.canManageInventory) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6 overflow-x-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 overflow-x-hidden">
         <div className="max-w-7xl mx-auto overflow-x-hidden">
-          <Card className="border-2 border-red-200 bg-red-50">
+          <Card className="border-2 border-red-800 bg-red-900/30">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
                 <Warehouse className="h-16 w-16 text-red-400 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <h2 className="text-2xl font-bold text-red-300 mb-2">Acceso Restringido</h2>
                 <p className="text-red-600">
                   No tienes permisos para acceder al inventario. Esta función requiere permisos de gestión de inventario.
                 </p>
@@ -1162,11 +1162,11 @@ export default function UnifiedInventoryPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'in_stock':
-        return <Badge className="bg-green-100 text-green-800">En Stock</Badge>
+        return <Badge className="bg-green-900/30 text-green-300">En Stock</Badge>
       case 'low_stock':
         return <Badge className="bg-yellow-100 text-yellow-800">Stock Bajo</Badge>
       case 'out_of_stock':
-        return <Badge className="bg-red-100 text-red-800">Sin Stock</Badge>
+        return <Badge className="bg-red-900/30 text-red-300">Sin Stock</Badge>
       default:
         return <Badge variant="outline">Desconocido</Badge>
     }
@@ -1174,15 +1174,15 @@ export default function UnifiedInventoryPage() {
 
   const getMovementTypeColor = (type: string) => {
     switch (type) {
-      case 'entrada': return 'bg-green-100 text-green-800'
-      case 'salida': return 'bg-red-100 text-red-800'
-      case 'ajuste': return 'bg-blue-100 text-blue-800'
-      case 'transferencia': return 'bg-purple-100 text-purple-800'
-      case 'transfer_in': return 'bg-green-100 text-green-800'
-      case 'transfer_out': return 'bg-red-100 text-red-800'
-      case 'venta': return 'bg-orange-100 text-orange-800'
+      case 'entrada': return 'bg-green-900/30 text-green-300'
+      case 'salida': return 'bg-red-900/30 text-red-300'
+      case 'ajuste': return 'bg-slate-800 text-blue-300'
+      case 'transferencia': return 'bg-purple-900/30 text-purple-300'
+      case 'transfer_in': return 'bg-green-900/30 text-green-300'
+      case 'transfer_out': return 'bg-red-900/30 text-red-300'
+      case 'venta': return 'bg-orange-900/30 text-orange-300'
       case 'devolucion': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-slate-800 text-slate-200'
     }
   }
 
@@ -1227,8 +1227,8 @@ export default function UnifiedInventoryPage() {
       {/* Header - Mobile Optimized */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 overflow-x-hidden">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Inventario Unificado</h1>
-          <p className="text-sm lg:text-base text-gray-600">Gestión completa de inventario, stock, movimientos y almacenes</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-200">Inventario Unificado</h1>
+          <p className="text-sm lg:text-base text-slate-400">Gestión completa de inventario, stock, movimientos y almacenes</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button onClick={() => setShowMovementForm(true)}>
@@ -1373,7 +1373,7 @@ export default function UnifiedInventoryPage() {
                   )}
                   {(summary?.out_of_stock_items || 0) > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-red-800">
+                      <span className="text-red-300">
                         {summary?.out_of_stock_items} producto{(summary?.out_of_stock_items || 0) !== 1 ? 's' : ''} sin stock
                       </span>
                       <Button size="sm" variant="outline" onClick={() => {
@@ -1400,14 +1400,14 @@ export default function UnifiedInventoryPage() {
             <CardContent>
               <div className="space-y-3">
                 {movements.slice(0, 5).map((movement) => (
-                  <div key={movement.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={movement.id} className="flex items-center justify-between p-3 bg-slate-950 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${getMovementTypeColor(movement.movement_type)}`}>
                         {getMovementIcon(movement.movement_type)}
                       </div>
                       <div>
                         <p className="font-medium">{movement.product?.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-slate-400">
                           {movement.warehouse?.name} • {new Date(movement.movement_date).toLocaleDateString()}
                         </p>
                       </div>
@@ -1529,18 +1529,18 @@ export default function UnifiedInventoryPage() {
                   </thead>
                   <tbody>
                     {filteredStockItems.map((item) => (
-                      <tr key={item.id} className="border-b hover:bg-gray-50">
+                      <tr key={item.id} className="border-b hover:bg-slate-950">
                         <td className="p-2">
                           <div>
                             <p className="font-medium">
                               {item.product?.product_code && (
-                                <span className="text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mr-2 text-xs">
+                                <span className="text-blue-600 font-mono bg-slate-900 px-2 py-1 rounded mr-2 text-xs">
                                   {item.product.product_code}
                                 </span>
                               )}
                               {item.product?.name}
                             </p>
-                            <p className="text-sm text-gray-600">{item.product?.category}</p>
+                            <p className="text-sm text-slate-400">{item.product?.category}</p>
                           </div>
                         </td>
                         <td className="p-2">{item.warehouse?.name}</td>
@@ -1609,7 +1609,7 @@ export default function UnifiedInventoryPage() {
               {/* Paginación */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-slate-400">
                     Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} items
                   </div>
                   <div className="flex gap-2">
@@ -1662,7 +1662,7 @@ export default function UnifiedInventoryPage() {
               {loadingStock && (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
-                  <span className="ml-2 text-gray-600">Cargando productos...</span>
+                  <span className="ml-2 text-slate-400">Cargando productos...</span>
                 </div>
               )}
             </CardContent>
@@ -1702,7 +1702,7 @@ export default function UnifiedInventoryPage() {
                   </thead>
                   <tbody>
                     {movements.map((movement) => (
-                      <tr key={movement.id} className="border-b hover:bg-gray-50">
+                      <tr key={movement.id} className="border-b hover:bg-slate-950">
                         <td className="p-2">
                           {new Date(movement.movement_date).toLocaleDateString('es-ES', {
                             day: '2-digit',
@@ -1714,7 +1714,7 @@ export default function UnifiedInventoryPage() {
                         </td>
                         <td className="p-2">
                           {movement.product?.product_code && (
-                            <span className="text-blue-600 font-mono bg-blue-50 px-2 py-1 rounded mr-2 text-xs">
+                            <span className="text-blue-600 font-mono bg-slate-900 px-2 py-1 rounded mr-2 text-xs">
                               {movement.product.product_code}
                             </span>
                           )}
@@ -1758,7 +1758,7 @@ export default function UnifiedInventoryPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {warehouses.map((warehouse) => (
-                  <Card key={warehouse.id} className={`${warehouse.is_active ? 'border-green-200' : 'border-gray-200'}`}>
+                  <Card key={warehouse.id} className={`${warehouse.is_active ? 'border-green-800' : 'border-slate-800'}`}>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
                         <span>{warehouse.name}</span>
@@ -1770,22 +1770,22 @@ export default function UnifiedInventoryPage() {
                     <CardContent>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Productos:</span>
+                          <span className="text-sm text-slate-400">Productos:</span>
                           <span className="font-semibold">{formatNumber(warehouse.product_count)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Valor Total:</span>
+                          <span className="text-sm text-slate-400">Valor Total:</span>
                           <span className="font-semibold">{formatCurrency(warehouse.total_stock_value)}</span>
                         </div>
                         {warehouse.address && (
                           <div>
-                            <span className="text-sm text-gray-600">Dirección:</span>
+                            <span className="text-sm text-slate-400">Dirección:</span>
                             <p className="text-sm">{warehouse.address}</p>
                           </div>
                         )}
                         {warehouse.description && (
                           <div>
-                            <span className="text-sm text-gray-600">Descripción:</span>
+                            <span className="text-sm text-slate-400">Descripción:</span>
                             <p className="text-sm">{warehouse.description}</p>
                           </div>
                         )}
@@ -1801,7 +1801,7 @@ export default function UnifiedInventoryPage() {
                             variant="outline" 
                             size="sm" 
                             onClick={() => deleteWarehouse(warehouse.id, warehouse.name)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -1829,7 +1829,7 @@ export default function UnifiedInventoryPage() {
           </DialogHeader>
           <div className="space-y-4">
             {movementFormError && (
-              <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg">
+              <div className="p-3 text-sm text-red-400 bg-red-900/30 rounded-lg">
                 {movementFormError}
               </div>
             )}
@@ -1912,8 +1912,8 @@ export default function UnifiedInventoryPage() {
             </div>
 
             {movementFormError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-800 text-sm">{movementFormError}</p>
+              <div className="bg-red-900/30 border border-red-800 rounded-md p-3">
+                <p className="text-red-300 text-sm">{movementFormError}</p>
               </div>
             )}
 

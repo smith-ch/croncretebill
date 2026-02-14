@@ -415,7 +415,7 @@ export default function FAQPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header mejorado */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-6">
@@ -427,7 +427,7 @@ export default function FAQPage() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
             Centro de Ayuda
           </h1>
-          <p className="text-slate-600 text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-slate-400 text-xl max-w-3xl mx-auto leading-relaxed">
             Encuentra respuestas a las preguntas más comunes y obtén soporte técnico especializado para aprovechar al máximo tu sistema de facturación
           </p>
         </motion.div>
@@ -487,7 +487,7 @@ export default function FAQPage() {
         </motion.div>
 
         {/* Búsqueda mejorada */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50">
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-50">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
@@ -501,12 +501,12 @@ export default function FAQPage() {
                 placeholder="Buscar preguntas, categorías o palabras clave..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 py-3 text-lg border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+                className="pl-12 py-3 text-lg border-slate-800 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
               />
             </div>
             {searchTerm && (
               <div className="mt-4 text-center">
-                <p className="text-slate-600">
+                <p className="text-slate-400">
                   {filteredFaqs.length} resultado{filteredFaqs.length !== 1 ? 's' : ''} encontrado{filteredFaqs.length !== 1 ? 's' : ''} para &ldquo;<span className="font-semibold text-blue-600">{searchTerm}</span>&rdquo;
                 </p>
               </div>
@@ -518,42 +518,42 @@ export default function FAQPage() {
         {!searchTerm && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="p-3 bg-blue-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                     <BookOpen className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-700">{systemFAQs.length}</p>
+                  <p className="text-2xl font-bold text-blue-400">{systemFAQs.length}</p>
                   <p className="text-blue-600 font-medium">Preguntas Frecuentes</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-xl transition-all duration-300">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="p-3 bg-emerald-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                     <HelpCircle className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700">{categories.length}</p>
+                  <p className="text-2xl font-bold text-emerald-400">{categories.length}</p>
                   <p className="text-emerald-600 font-medium">Categorías de Ayuda</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-xl transition-all duration-300">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="p-3 bg-amber-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-amber-700">24-48h</p>
+                  <p className="text-2xl font-bold text-amber-400">24-48h</p>
                   <p className="text-amber-600 font-medium">Tiempo de Respuesta</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="p-3 bg-purple-500 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                     <Star className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-700">24/7</p>
+                  <p className="text-2xl font-bold text-purple-400">24/7</p>
                   <p className="text-purple-600 font-medium">Disponibilidad</p>
                 </CardContent>
               </Card>
@@ -564,47 +564,47 @@ export default function FAQPage() {
         {/* Acceso rápido a temas populares */}
         {!searchTerm && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 to-white">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 to-slate-900">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
+                <CardTitle className="flex items-center gap-2 text-slate-200">
                   <Zap className="h-5 w-5 text-amber-500" />
                   Temas Más Consultados
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all cursor-pointer"
+                  <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-xl border border-slate-700 hover:shadow-md transition-all cursor-pointer"
                        onClick={() => setSearchTerm("crear factura")}>
                     <div className="flex items-center gap-3 mb-2">
                       <FileText className="h-5 w-5 text-blue-600" />
-                      <span className="font-semibold text-blue-800">Crear Facturas</span>
+                      <span className="font-semibold text-blue-300">Crear Facturas</span>
                     </div>
                     <p className="text-blue-600 text-sm">Proceso completo de facturación</p>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 hover:shadow-md transition-all cursor-pointer"
+                  <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-xl border border-emerald-800 hover:shadow-md transition-all cursor-pointer"
                        onClick={() => setSearchTerm("dashboard")}>
                     <div className="flex items-center gap-3 mb-2">
                       <TrendingUp className="h-5 w-5 text-emerald-600" />
-                      <span className="font-semibold text-emerald-800">Dashboard</span>
+                      <span className="font-semibold text-emerald-300">Dashboard</span>
                     </div>
                     <p className="text-emerald-600 text-sm">Métricas e indicadores</p>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all cursor-pointer"
+                  <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-xl border border-purple-800 hover:shadow-md transition-all cursor-pointer"
                        onClick={() => setSearchTerm("roles empleado")}>
                     <div className="flex items-center gap-3 mb-2">
                       <Users className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold text-purple-800">Roles y Permisos</span>
+                      <span className="font-semibold text-purple-300">Roles y Permisos</span>
                     </div>
                     <p className="text-purple-600 text-sm">Gestión de empleados</p>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200 hover:shadow-md transition-all cursor-pointer"
+                  <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-xl border border-amber-800 hover:shadow-md transition-all cursor-pointer"
                        onClick={() => setSearchTerm("reportes IA")}>
                     <div className="flex items-center gap-3 mb-2">
                       <Star className="h-5 w-5 text-amber-600" />
-                      <span className="font-semibold text-amber-800">Reportes con IA</span>
+                      <span className="font-semibold text-amber-300">Reportes con IA</span>
                     </div>
                     <p className="text-amber-600 text-sm">Análisis inteligente</p>
                   </div>
@@ -618,7 +618,7 @@ export default function FAQPage() {
                     <p className="text-rose-600 text-sm">Protección de datos</p>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl border border-cyan-200 hover:shadow-md transition-all cursor-pointer"
+                  <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-xl border border-cyan-200 hover:shadow-md transition-all cursor-pointer"
                        onClick={() => setSearchTerm("soporte técnico")}>
                     <div className="flex items-center gap-3 mb-2">
                       <MessageCircle className="h-5 w-5 text-cyan-600" />
@@ -639,7 +639,7 @@ export default function FAQPage() {
                 <HelpCircle className="h-10 w-10 text-slate-400" />
               </div>
               <h3 className="text-lg font-medium text-slate-900 mb-2">No se encontraron preguntas</h3>
-              <p className="text-slate-600">Intenta con otros términos de búsqueda o usa los accesos rápidos de arriba</p>
+              <p className="text-slate-400">Intenta con otros términos de búsqueda o usa los accesos rápidos de arriba</p>
             </CardContent>
           </Card>
         ) : (
@@ -676,7 +676,7 @@ export default function FAQPage() {
                         transition={{ delay: index * 0.05 }}
                       >
                         <Collapsible open={openItems.includes(faq.id)} onOpenChange={() => toggleItem(faq.id)}>
-                          <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-white">
+                          <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-slate-900">
                             <CollapsibleTrigger asChild>
                               <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 transition-all duration-300 rounded-t-lg">
                                 <div className="flex items-center justify-between">
@@ -696,7 +696,7 @@ export default function FAQPage() {
                             <CollapsibleContent>
                               <CardContent className="pt-0 pb-6 px-6">
                                 <div className="border-t border-slate-100 pt-4">
-                                  <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">{faq.answer}</p>
+                                  <p className="text-slate-400 whitespace-pre-wrap leading-relaxed">{faq.answer}</p>
                                 </div>
                               </CardContent>
                             </CollapsibleContent>

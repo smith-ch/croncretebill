@@ -207,9 +207,9 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Connection Status Indicator */}
           {!isOnline && (
-            <Alert className="bg-orange-50 border-orange-200">
+            <Alert className="bg-orange-900/30 border-orange-800">
               <WifiOff className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="text-orange-800">
+              <AlertDescription className="text-orange-300">
                 Sin conexión. El servicio se guardará localmente y se sincronizará automáticamente cuando vuelva la conexión.
               </AlertDescription>
             </Alert>
@@ -237,7 +237,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   defaultValue={service?.service_code} 
                   placeholder="Se generará automáticamente si se deja vacío" 
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-400">
                   Si no especifica un código, se generará automáticamente (ej: SERV0001)
                 </p>
               </div>
@@ -272,7 +272,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
           {/* Pricing and Duration */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Precio y Duración</h3>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+            <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-3">
               <div className="flex items-center space-x-3">
                 <Checkbox
                   id="custom_pricing"
@@ -280,11 +280,11 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   onCheckedChange={(checked) => setIsCustomPricing(checked as boolean)}
                   className="border-blue-300"
                 />
-                <Label htmlFor="custom_pricing" className="text-blue-800 font-medium">
+                <Label htmlFor="custom_pricing" className="text-blue-300 font-medium">
                   Servicio personalizado (precio se define en factura)
                 </Label>
               </div>
-              <div className="flex items-start gap-2 text-sm text-blue-700">
+              <div className="flex items-start gap-2 text-sm text-blue-400">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <p>
                   Si activas esta opción, el precio se definirá manualmente al crear cada factura. Útil para servicios
@@ -305,9 +305,9 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   placeholder={isCustomPricing ? "Se define en factura" : "0.00"}
                   required={!isCustomPricing}
                   disabled={isCustomPricing}
-                  className={isCustomPricing ? "bg-gray-100 text-gray-500" : ""}
+                  className={isCustomPricing ? "bg-slate-800 text-slate-400" : ""}
                 />
-                {isCustomPricing && <p className="text-xs text-gray-600">El precio se definirá al crear la factura</p>}
+                {isCustomPricing && <p className="text-xs text-slate-400">El precio se definirá al crear la factura</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="production_cost">Precio de Producción</Label>
@@ -319,7 +319,7 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
                   defaultValue={service?.production_cost || ""}
                   placeholder="0.00"
                 />
-                <p className="text-xs text-gray-600">Costo interno para calcular margen de ganancia</p>
+                <p className="text-xs text-slate-400">Costo interno para calcular margen de ganancia</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit">Unidad</Label>
@@ -381,8 +381,8 @@ export function ServiceForm({ service, onSuccess, inModal = false }: ServiceForm
           </div>
 
           {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <Alert className="border-red-800 bg-red-900/30">
+              <AlertDescription className="text-red-300">{error}</AlertDescription>
             </Alert>
           )}
 

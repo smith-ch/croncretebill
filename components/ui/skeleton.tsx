@@ -7,7 +7,7 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-slate-100 dark:bg-slate-800", className)}
+      className={cn("animate-pulse rounded-md bg-slate-800 dark:bg-slate-800", className)}
       {...props}
     />
   )
@@ -26,7 +26,7 @@ export function DashboardSkeleton() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="p-6 bg-white rounded-lg border">
+          <div key={i} className="p-6 bg-slate-900 rounded-lg border">
             <Skeleton className="h-4 w-24 mb-2" />
             <Skeleton className="h-8 w-16" />
           </div>
@@ -35,7 +35,7 @@ export function DashboardSkeleton() {
       
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="bg-slate-900 p-6 rounded-lg border">
           <Skeleton className="h-6 w-32 mb-4" />
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -47,7 +47,7 @@ export function DashboardSkeleton() {
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="bg-slate-900 p-6 rounded-lg border">
           <Skeleton className="h-6 w-32 mb-4" />
           <Skeleton className="h-48 w-full" />
         </div>

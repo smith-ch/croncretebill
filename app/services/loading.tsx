@@ -10,7 +10,7 @@ export default function ServicesLoading() {
           <div className="h-10 bg-gray-200 rounded w-32"></div>
         </div>
 
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-slate-900 rounded-lg shadow">
           <div className="h-16 bg-gray-200 rounded-t-lg"></div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

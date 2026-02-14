@@ -45,7 +45,7 @@ export function generateViewport() {
     maximumScale: 5,
     userScalable: true,
     viewportFit: 'cover',
-    themeColor: "#3b82f6"
+    themeColor: "#0f172a" // slate-900 para match con login
   }
 }
 

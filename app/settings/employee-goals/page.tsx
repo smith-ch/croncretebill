@@ -249,12 +249,12 @@ export default function EmployeeGoalsPage() {
 
   const getProgressColor = (percentage: number) => {
     if (percentage >= 90) {
-      return "text-green-600 bg-green-50"
+      return "text-green-600 bg-green-900/30"
     }
     if (percentage >= 70) {
       return "text-yellow-600 bg-yellow-50"
     }
-    return "text-red-600 bg-red-50"
+    return "text-red-600 bg-red-900/30"
   }
 
   const getProgressIcon = (percentage: number) => {
@@ -270,7 +270,7 @@ export default function EmployeeGoalsPage() {
   if (!permissions.isOwner) {
     return (
       <div className="container max-w-6xl mx-auto py-8">
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-800 bg-red-900/30">
           <CardContent className="p-6">
             <p className="text-red-600">Solo los propietarios pueden gestionar metas de empleados.</p>
           </CardContent>
@@ -289,7 +289,7 @@ export default function EmployeeGoalsPage() {
           <Target className="h-8 w-8 text-blue-600" />
           Metas de Empleados
         </h1>
-        <p className="text-slate-600">
+        <p className="text-slate-400">
           Establece y monitorea las metas mensuales de tu equipo
         </p>
         <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -308,7 +308,7 @@ export default function EmployeeGoalsPage() {
 
       {/* Formulario de meta */}
       {showForm && (
-        <Card className="border-blue-200 bg-blue-50/30">
+        <Card className="border-slate-700 bg-slate-900/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
@@ -482,7 +482,7 @@ export default function EmployeeGoalsPage() {
                       <span className="font-semibold">Progreso General</span>
                       <span className="text-2xl font-bold">{goal.progress.overall_percentage}%</span>
                     </div>
-                    <div className="w-full bg-white/50 rounded-full h-3">
+                    <div className="w-full bg-slate-800/50 rounded-full h-3">
                       <div 
                         className="h-3 rounded-full transition-all duration-300"
                         style={{
@@ -505,11 +505,11 @@ export default function EmployeeGoalsPage() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Actual:</span>
+                          <span className="text-slate-400">Actual:</span>
                           <span className="font-semibold">{formatCurrency(goal.current_metrics.ventas_total)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Meta:</span>
+                          <span className="text-slate-400">Meta:</span>
                           <span>{formatCurrency(goal.meta_ventas_total)}</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
@@ -532,11 +532,11 @@ export default function EmployeeGoalsPage() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Actual:</span>
+                          <span className="text-slate-400">Actual:</span>
                           <span className="font-semibold">{goal.current_metrics.facturas_cantidad}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Meta:</span>
+                          <span className="text-slate-400">Meta:</span>
                           <span>{goal.meta_facturas_cantidad}</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
@@ -559,11 +559,11 @@ export default function EmployeeGoalsPage() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Actual:</span>
+                          <span className="text-slate-400">Actual:</span>
                           <span className="font-semibold">{goal.current_metrics.clientes_nuevos}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Meta:</span>
+                          <span className="text-slate-400">Meta:</span>
                           <span>{goal.meta_clientes_nuevos}</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
@@ -581,8 +581,8 @@ export default function EmployeeGoalsPage() {
 
                   {/* Notas */}
                   {goal.notas && (
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                      <p className="text-sm text-slate-700"><strong>Notas:</strong> {goal.notas}</p>
+                    <div className="p-3 bg-slate-900 rounded-lg">
+                      <p className="text-sm text-slate-300"><strong>Notas:</strong> {goal.notas}</p>
                     </div>
                   )}
                 </CardContent>

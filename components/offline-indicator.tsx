@@ -154,15 +154,15 @@ export function OfflineIndicator() {
           {stats.total > 0 && (
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-slate-50 rounded p-2">
-                <div className="text-slate-600">Pendientes</div>
+                <div className="text-slate-400">Pendientes</div>
                 <div className="font-bold text-amber-600">{stats.pending}</div>
               </div>
               <div className="bg-slate-50 rounded p-2">
-                <div className="text-slate-600">Completadas</div>
+                <div className="text-slate-400">Completadas</div>
                 <div className="font-bold text-green-600">{stats.completed}</div>
               </div>
               {stats.failed > 0 && (
-                <div className="bg-red-50 rounded p-2 col-span-2">
+                <div className="bg-red-900/30 rounded p-2 col-span-2">
                   <div className="text-red-600">Fallidas</div>
                   <div className="font-bold text-red-600">{stats.failed}</div>
                 </div>
@@ -173,7 +173,7 @@ export function OfflineIndicator() {
           {/* Lista de acciones */}
           {actions.length > 0 && (
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              <div className="text-xs font-semibold text-slate-600 mb-2">
+              <div className="text-xs font-semibold text-slate-400 mb-2">
                 Acciones recientes:
               </div>
               {actions.slice(0, 10).map((action) => (
@@ -228,7 +228,7 @@ export function OfflineIndicator() {
 
           {/* Mensaje offline */}
           {!isOnline && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800">
+            <div className="bg-amber-900/30 border border-amber-800 rounded p-3 text-xs text-amber-300">
               <div className="font-semibold mb-1">Modo Offline</div>
               <div>
                 Puedes seguir trabajando. Los cambios se sincronizarán automáticamente cuando vuelva la conexión.

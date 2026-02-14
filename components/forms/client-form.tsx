@@ -238,7 +238,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
                   target.value = value
                 }}
               />
-              <p className="text-xs text-gray-500">Formato: 001-1234567-8 (11 dígitos)</p>
+              <p className="text-xs text-slate-400">Formato: 001-1234567-8 (11 dígitos)</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="contact_person">Persona de Contacto</Label>
@@ -282,8 +282,8 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
           </div>
 
           {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <Alert className="border-red-800 bg-red-900/30">
+              <AlertDescription className="text-red-300">{error}</AlertDescription>
             </Alert>
           )}
 

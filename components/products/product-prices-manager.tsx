@@ -173,9 +173,9 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
       <Card>
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-slate-800 rounded w-1/2"></div>
+            <div className="h-8 bg-slate-800 rounded"></div>
+            <div className="h-8 bg-slate-800 rounded"></div>
           </div>
         </CardContent>
       </Card>
@@ -354,7 +354,7 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
               <div
                 key={price.id}
                 className={`border rounded-lg p-4 ${
-                  price.is_default ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                  price.is_default ? 'border-slate-700 bg-slate-900' : 'border-slate-800'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -369,7 +369,7 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
                       )}
                     </div>
                     
-                    <div className="space-y-1 text-sm text-gray-600">
+                    <div className="space-y-1 text-sm text-slate-400">
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4" />
                         <span className="font-medium text-lg text-gray-900">
@@ -401,7 +401,7 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
                       </div>
                       
                       {price.description && (
-                        <div className="text-xs text-gray-500 mt-2">
+                        <div className="text-xs text-slate-400 mt-2">
                           {price.description}
                         </div>
                       )}
@@ -432,7 +432,7 @@ export function ProductPricesManager({ productId, productName, onPriceChange }: 
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDelete(price.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-400"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

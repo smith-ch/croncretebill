@@ -274,7 +274,7 @@ export function ProductPriceDropdown({
                     </Badge>
                   )}
                   {price.isBasePrice && (
-                    <Badge variant="secondary" className="text-xs h-4 bg-blue-100 text-blue-700">
+                    <Badge variant="secondary" className="text-xs h-4 bg-slate-800 text-blue-400">
                       Precio Base
                     </Badge>
                   )}
@@ -288,7 +288,7 @@ export function ProductPriceDropdown({
                       Cliente Específico
                     </Badge>
                   )}
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                  <span className="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded">
                     Qty: {price.min_quantity}
                     {price.max_quantity ? `-${price.max_quantity}` : '+'}
                   </span>

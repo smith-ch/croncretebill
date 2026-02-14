@@ -35,10 +35,10 @@ export function LoadingBypass() {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div className="bg-white rounded-lg p-6 max-w-md mx-4 text-center">
+      <div className="bg-slate-900 rounded-lg p-6 max-w-md mx-4 text-center">
         <AlertTriangle className="h-12 w-12 text-orange-600 mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Carga Lenta Detectada</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-slate-400 mb-4">
           La aplicación está tardando más de lo esperado. Puedes forzar la carga con permisos básicos.
         </p>
         <div className="flex gap-3 justify-center">

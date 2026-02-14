@@ -158,7 +158,7 @@ export function AnimatedCard({
           "hover:shadow-md": variant === "default",
           "shadow-lg hover:shadow-xl": variant === "elevated",
           "backdrop-blur-md bg-white/10 border-white/20": variant === "glass",
-          "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200": variant === "gradient",
+          "bg-gradient-to-br from-blue-50 to-indigo-50 border-slate-700": variant === "gradient",
           "cursor-pointer hover:border-blue-300": variant === "interactive",
         },
         className
@@ -304,7 +304,7 @@ export function ProgressBar({
 
   return (
     <div ref={ref} className={cn("relative", className)}>
-      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
         <motion.div
           className={cn(
             "h-full rounded-full",
@@ -323,7 +323,7 @@ export function ProgressBar({
       </div>
       {showPercentage && (
         <motion.span
-          className="absolute right-0 top-3 text-sm font-medium text-gray-700"
+          className="absolute right-0 top-3 text-sm font-medium text-slate-300"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ delay: 1 }}

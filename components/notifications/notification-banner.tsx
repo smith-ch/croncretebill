@@ -40,7 +40,7 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
       case "info":
         return "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-300 text-blue-900 shadow-blue-100"
       default:
-        return "bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300 text-gray-900 shadow-gray-100"
+        return "bg-gradient-to-r from-gray-50 to-slate-50 border-slate-700 text-gray-900 shadow-gray-100"
     }
   }
 
@@ -55,7 +55,7 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
       case "info":
         return "text-blue-600"
       default:
-        return "text-gray-600"
+        return "text-slate-400"
     }
   }
 
