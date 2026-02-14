@@ -933,12 +933,12 @@ export default function MonthlyReportsPage() {
   // Check if user has permission to view financial reports
   if (!permissions.canViewFinances) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-red-200 bg-red-50">
+          <Card className="border-2 border-red-800 bg-red-900/30">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <h2 className="text-2xl font-bold text-red-300 mb-2">Acceso Restringido</h2>
                 <p className="text-red-600">
                   No tienes permisos para acceder a los reportes mensuales. Esta función requiere permisos financieros.
                 </p>
@@ -987,7 +987,7 @@ export default function MonthlyReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="heading-responsive font-bold text-slate-900">Reportes Mensuales</h1>
-          <p className="text-responsive text-slate-600 mt-1">Análisis detallado de tu rendimiento financiero mensual con IA</p>
+          <p className="text-responsive text-slate-400 mt-1">Análisis detallado de tu rendimiento financiero mensual con IA</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
@@ -1052,7 +1052,7 @@ export default function MonthlyReportsPage() {
             {/* KPI Cards Optimizadas - Dos Filas Compactas */}
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3">
               {/* Revenue Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3 lg:p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1075,13 +1075,13 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Net Profit Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-emerald-600 font-medium uppercase">Ganancia</p>
                       <p className="text-lg font-bold text-emerald-900">{formatCurrency(kpiData.netProfit)}</p>
-                      <p className="text-xs text-emerald-700">{kpiData.profitMargin.toFixed(1)}% margen</p>
+                      <p className="text-xs text-emerald-400">{kpiData.profitMargin.toFixed(1)}% margen</p>
                     </div>
                     <TrendingUp className="h-6 w-6 text-emerald-600" />
                   </div>
@@ -1089,7 +1089,7 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Expenses Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1112,13 +1112,13 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Health Score Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-purple-600 font-medium uppercase">Salud</p>
                       <p className="text-lg font-bold text-purple-900">{kpiData.businessHealthScore}/100</p>
-                      <p className="text-xs text-purple-700">
+                      <p className="text-xs text-purple-400">
                         {kpiData.businessHealthScore >= 75 ? 'Excelente' : kpiData.businessHealthScore >= 50 ? 'Bueno' : 'Atención'}
                       </p>
                     </div>
@@ -1128,13 +1128,13 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Growth Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-amber-600 font-medium uppercase">Crecimiento</p>
                       <p className="text-lg font-bold text-amber-900">{kpiData.averageGrowth >= 0 ? '+' : ''}{kpiData.averageGrowth}%</p>
-                      <p className="text-xs text-amber-700">promedio</p>
+                      <p className="text-xs text-amber-400">promedio</p>
                     </div>
                     <BarChart3 className="h-6 w-6 text-amber-600" />
                   </div>
@@ -1142,7 +1142,7 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Prediction Card */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-teal-50 to-teal-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1159,7 +1159,7 @@ export default function MonthlyReportsPage() {
             {/* Segunda Fila de Métricas */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* Total Invoices */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1187,13 +1187,13 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Total Expenses Count */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-orange-600 font-medium uppercase">Gastos</p>
                       <p className="text-lg font-bold text-orange-900">{kpiData.totalExpenses}</p>
-                      <p className="text-xs text-orange-700">registros</p>
+                      <p className="text-xs text-orange-400">registros</p>
                     </div>
                     <Receipt className="h-6 w-6 text-orange-600" />
                   </div>
@@ -1201,7 +1201,7 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Average Expense */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-pink-50 to-pink-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1215,7 +1215,7 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* Consistency */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1229,7 +1229,7 @@ export default function MonthlyReportsPage() {
               </Card>
 
               {/* ROI */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-violet-100 hover:shadow-lg transition-all duration-200">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -1251,31 +1251,31 @@ export default function MonthlyReportsPage() {
               {/* Desglose Mensual */}
               <Card className="border-0 shadow-lg">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-slate-600" />
+                  <CardTitle className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-slate-400" />
                     <span>Desglose Mensual Detallado</span>
                   </CardTitle>
                   <CardDescription>Análisis completo mes por mes de tu rendimiento financiero</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 max-h-80 overflow-y-auto">
                   {monthlyData.map((month, index) => (
-                    <div key={index} className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                    <div key={index} className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-800 hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h4 className="font-bold text-lg text-slate-800">{month.monthName} {month.year}</h4>
-                          <p className="text-sm text-slate-600">{month.totalInvoices} facturas • {month.totalExpenses} gastos</p>
+                          <h4 className="font-bold text-lg text-slate-200">{month.monthName} {month.year}</h4>
+                          <p className="text-sm text-slate-400">{month.totalInvoices} facturas • {month.totalExpenses} gastos</p>
                         </div>
                         <div className="text-right">
                           <div className={`text-xl font-bold ${month.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                             {formatCurrency(month.netProfit)}
                           </div>
-                          <div className="text-sm text-slate-600">{month.profitMargin.toFixed(1)}% margen</div>
+                          <div className="text-sm text-slate-400">{month.profitMargin.toFixed(1)}% margen</div>
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 text-sm">
-                        <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                          <p className="text-blue-700 font-medium">Ingresos</p>
+                        <div className="text-center p-2 bg-slate-900 rounded border border-slate-700">
+                          <p className="text-blue-400 font-medium">Ingresos</p>
                           <p className="font-bold text-blue-900">{formatCurrency(month.totalRevenue)}</p>
                           {index > 0 && (
                             <p className={`text-xs ${month.growth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -1284,23 +1284,23 @@ export default function MonthlyReportsPage() {
                           )}
                         </div>
                         
-                        <div className="text-center p-2 bg-red-50 rounded border border-red-200">
-                          <p className="text-red-700 font-medium">Gastos</p>
+                        <div className="text-center p-2 bg-red-900/30 rounded border border-red-800">
+                          <p className="text-red-400 font-medium">Gastos</p>
                           <p className="font-bold text-red-900">{formatCurrency(month.expenseAmount)}</p>
                           <p className="text-xs text-red-600">{month.totalExpenses} registros</p>
                         </div>
                         
-                        <div className="text-center p-2 bg-emerald-50 rounded border border-emerald-200">
-                          <p className="text-emerald-700 font-medium">ROI</p>
+                        <div className="text-center p-2 bg-emerald-900/30 rounded border border-emerald-800">
+                          <p className="text-emerald-400 font-medium">ROI</p>
                           <p className="font-bold text-emerald-900">{month.roi.toFixed(1)}%</p>
                           <p className="text-xs text-emerald-600">rendimiento</p>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-slate-300">
-                        <div className="flex justify-between text-xs text-slate-600">
-                          <span>Ticket Promedio: <strong className="text-slate-800">{formatCurrency(month.avgInvoiceValue)}</strong></span>
-                          <span>Gasto Promedio: <strong className="text-slate-800">{formatCurrency(month.avgExpenseValue)}</strong></span>
+                      <div className="mt-3 pt-3 border-t border-slate-700">
+                        <div className="flex justify-between text-xs text-slate-400">
+                          <span>Ticket Promedio: <strong className="text-slate-200">{formatCurrency(month.avgInvoiceValue)}</strong></span>
+                          <span>Gasto Promedio: <strong className="text-slate-200">{formatCurrency(month.avgExpenseValue)}</strong></span>
                         </div>
                         <div className="mt-1">
                           <div className="w-full bg-slate-200 rounded-full h-2">
@@ -1322,8 +1322,8 @@ export default function MonthlyReportsPage() {
               {/* Análisis Comparativo */}
               <Card className="border-0 shadow-lg">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center space-x-2">
-                    <BarChart3 className="h-5 w-5 text-slate-600" />
+                  <CardTitle className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                    <BarChart3 className="h-5 w-5 text-slate-400" />
                     <span>Análisis Comparativo</span>
                   </CardTitle>
                   <CardDescription>Comparación de rendimiento entre meses</CardDescription>
@@ -1331,28 +1331,28 @@ export default function MonthlyReportsPage() {
                 <CardContent className="space-y-4">
                   {/* Best vs Worst Performance */}
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <div className="flex justify-between items-center p-3 bg-emerald-900/30 rounded-lg border border-emerald-800">
                       <div>
-                        <p className="text-sm font-medium text-emerald-800">🏆 Mejor Mes</p>
+                        <p className="text-sm font-medium text-emerald-300">🏆 Mejor Mes</p>
                         <p className="text-lg font-bold text-emerald-900">{kpiData.bestMonth}</p>
                         <p className="text-xs text-emerald-600">Mayor ganancia neta</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-emerald-700">Ganancia:</p>
+                        <p className="text-sm text-emerald-400">Ganancia:</p>
                         <p className="font-bold text-emerald-900">
                           {monthlyData.length > 0 ? formatCurrency(Math.max(...monthlyData.map(m => m.netProfit))) : '$0'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex justify-between items-center p-3 bg-red-900/30 rounded-lg border border-red-800">
                       <div>
-                        <p className="text-sm font-medium text-red-800">📉 Mes Más Débil</p>
+                        <p className="text-sm font-medium text-red-300">📉 Mes Más Débil</p>
                         <p className="text-lg font-bold text-red-900">{kpiData.worstMonth}</p>
                         <p className="text-xs text-red-600">Menor rendimiento</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-red-700">Ganancia:</p>
+                        <p className="text-sm text-red-400">Ganancia:</p>
                         <p className="font-bold text-red-900">
                           {monthlyData.length > 0 ? formatCurrency(Math.min(...monthlyData.map(m => m.netProfit))) : '$0'}
                         </p>
@@ -1361,20 +1361,20 @@ export default function MonthlyReportsPage() {
                   </div>
 
                   {/* Cash Flow Analysis */}
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
+                  <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
+                    <h4 className="font-semibold text-blue-300 mb-3 flex items-center">
                       <Activity className="h-4 w-4 mr-2" />
                       Análisis de Flujo de Efectivo
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Flujo Neto Total:</span>
+                        <span className="text-blue-400">Flujo Neto Total:</span>
                         <span className={`font-bold ${kpiData.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                           {formatCurrency(kpiData.netProfit)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Relación Ingresos/Gastos:</span>
+                        <span className="text-blue-400">Relación Ingresos/Gastos:</span>
                         <span className="font-bold text-blue-900">
                           {kpiData.totalExpenseAmount > 0 ? 
                             `${(kpiData.totalRevenue / kpiData.totalExpenseAmount).toFixed(1)}:1` : 
@@ -1382,7 +1382,7 @@ export default function MonthlyReportsPage() {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Cobertura de Gastos:</span>
+                        <span className="text-blue-400">Cobertura de Gastos:</span>
                         <span className="font-bold text-blue-900">
                           {kpiData.totalExpenseAmount > 0 ? 
                             `${Math.floor((kpiData.netProfit / kpiData.totalExpenseAmount) * 30)} días` : 
@@ -1393,22 +1393,22 @@ export default function MonthlyReportsPage() {
                   </div>
 
                   {/* Business Metrics */}
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-green-800 mb-3 flex items-center">
+                  <div className="p-4 bg-green-900/30 rounded-lg border border-green-800">
+                    <h4 className="font-semibold text-green-300 mb-3 flex items-center">
                       <Users className="h-4 w-4 mr-2" />
                       Métricas del Negocio
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:gap-3 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-green-700">Clientes:</span>
+                        <span className="text-green-400">Clientes:</span>
                         <span className="font-bold text-green-900">{kpiData.totalClients}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-green-700">Productos:</span>
+                        <span className="text-green-400">Productos:</span>
                         <span className="font-bold text-green-900">{kpiData.totalProducts}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-green-700">Ingresos/Cliente:</span>
+                        <span className="text-green-400">Ingresos/Cliente:</span>
                         <span className="font-bold text-green-900">
                           {kpiData.totalClients > 0 ? 
                             formatCurrency(kpiData.totalRevenue / kpiData.totalClients) : 
@@ -1416,7 +1416,7 @@ export default function MonthlyReportsPage() {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-green-700">Facturas/Cliente:</span>
+                        <span className="text-green-400">Facturas/Cliente:</span>
                         <span className="font-bold text-green-900">
                           {kpiData.totalClients > 0 ? 
                             (kpiData.totalInvoices / kpiData.totalClients).toFixed(1) : 
@@ -1497,13 +1497,13 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-center p-4 bg-slate-900 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">{kpiData.businessHealthScore}</div>
-                        <div className="text-sm text-blue-700">Score de Salud</div>
+                        <div className="text-sm text-blue-400">Score de Salud</div>
                       </div>
-                      <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                      <div className="text-center p-4 bg-emerald-900/30 rounded-lg">
                         <div className="text-2xl font-bold text-emerald-600">{kpiData.consistencyScore}%</div>
-                        <div className="text-sm text-emerald-700">Consistencia</div>
+                        <div className="text-sm text-emerald-400">Consistencia</div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -1543,16 +1543,16 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {monthlyData.map((month, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex justify-between items-center p-3 bg-slate-950 rounded-lg">
                         <div>
                           <span className="font-medium">{month.monthName}</span>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-slate-400">
                             {month.totalInvoices} facturas • {month.totalExpenses} gastos
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-emerald-600">{formatCurrency(month.netProfit)}</div>
-                          <div className="text-xs text-gray-600">{month.profitMargin.toFixed(1)}% margen</div>
+                          <div className="text-xs text-slate-400">{month.profitMargin.toFixed(1)}% margen</div>
                         </div>
                       </div>
                     ))}
@@ -1565,9 +1565,9 @@ export default function MonthlyReportsPage() {
           <TabsContent value="ai-insights" className="space-y-6">
             {/* Grok AI Badge */}
             {grokInsightsAvailable && (
-              <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700 border-2 border-purple-800 rounded-lg p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-2 rounded-lg">
+                  <div className="bg-purple-900/30 p-2 rounded-lg">
                     <Brain className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
@@ -1577,7 +1577,7 @@ export default function MonthlyReportsPage() {
                         <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
                       )}
                     </h3>
-                    <p className="text-sm text-purple-700">
+                    <p className="text-sm text-purple-400">
                       {loadingGrokInsights 
                         ? 'Generando análisis avanzado con Llama 3.3...' 
                         : 'Análisis mejorado con inferencia ultra-rápida de Groq'}
@@ -1592,24 +1592,24 @@ export default function MonthlyReportsPage() {
 
             {/* AI Predictions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-blue-800">
+                  <CardTitle className="flex items-center space-x-2 text-blue-300">
                     <Brain className="h-5 w-5" />
                     <span>Predicciones IA</span>
                   </CardTitle>
-                  <CardDescription className="text-blue-700 font-medium">
+                  <CardDescription className="text-blue-400 font-medium">
                     Proyecciones basadas en análisis de tendencias y patrones históricos
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+                  <div className="text-center p-4 bg-slate-900 rounded-lg border border-slate-700">
                     <div className="text-3xl font-bold text-blue-900">
                       {formatCurrency(aiInsights.predictions.nextMonthRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700 font-semibold mt-1">Próximo Mes Estimado</div>
+                    <div className="text-sm text-blue-400 font-semibold mt-1">Próximo Mes Estimado</div>
                     <div className="flex items-center justify-center gap-2 mt-2">
-                      <div className="text-xs text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                      <div className="text-xs text-blue-600 font-medium bg-slate-900 px-3 py-1 rounded-full">
                         Confianza: {aiInsights.predictions.confidenceLevel}%
                       </div>
                       {aiInsights.predictions.confidenceLevel >= 80 && (
@@ -1618,10 +1618,10 @@ export default function MonthlyReportsPage() {
                     </div>
                   </div>
                   <div className="text-center p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-300">
-                    <div className="text-2xl font-bold text-blue-800">
+                    <div className="text-2xl font-bold text-blue-300">
                       {formatCurrency(aiInsights.predictions.nextQuarterRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700 font-semibold mt-1">Proyección Trimestral (3 meses)</div>
+                    <div className="text-sm text-blue-400 font-semibold mt-1">Proyección Trimestral (3 meses)</div>
                     <div className="text-xs text-blue-600 mt-2">
                       {aiInsights.predictions.nextQuarterRevenue > kpiData.totalRevenue * 1.1 ? '📈 Tendencia positiva' : 
                        aiInsights.predictions.nextQuarterRevenue < kpiData.totalRevenue * 0.9 ? '📉 Requiere atención' :
@@ -1631,9 +1631,9 @@ export default function MonthlyReportsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-emerald-800">
+                  <CardTitle className="flex items-center space-x-2 text-emerald-300">
                     <Lightbulb className="h-5 w-5" />
                     <span>Recomendaciones</span>
                   </CardTitle>
@@ -1641,7 +1641,7 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {aiInsights.recommendations.slice(0, 4).map((rec, index) => (
-                      <div key={index} className="p-3 bg-white rounded-lg border border-emerald-200 hover:shadow-md transition-shadow">
+                      <div key={index} className="p-3 bg-slate-900 rounded-lg border border-emerald-800 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                           <Badge 
                             variant={rec.priority === 'high' ? 'destructive' : 'secondary'}
@@ -1649,11 +1649,11 @@ export default function MonthlyReportsPage() {
                           >
                             {rec.priority === 'high' ? '🔥 Alta Prioridad' : '⚡ Media'}
                           </Badge>
-                          <span className="text-xs text-emerald-600 font-medium capitalize bg-emerald-50 px-2 py-1 rounded">
+                          <span className="text-xs text-emerald-600 font-medium capitalize bg-emerald-900/30 px-2 py-1 rounded">
                             {rec.type.replace(/-/g, ' ')}
                           </span>
                         </div>
-                        <p className="text-sm font-semibold text-gray-800 mb-1">{rec.action}</p>
+                        <p className="text-sm font-semibold text-slate-200 mb-1">{rec.action}</p>
                         <p className="text-xs text-emerald-600 font-medium">💡 {rec.impact}</p>
                       </div>
                     ))}
@@ -1661,9 +1661,9 @@ export default function MonthlyReportsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-amber-800">
+                  <CardTitle className="flex items-center space-x-2 text-amber-300">
                     <AlertTriangle className="h-5 w-5" />
                     <span>Alertas IA</span>
                   </CardTitle>
@@ -1672,7 +1672,7 @@ export default function MonthlyReportsPage() {
                   <div className="space-y-3">
                     {aiInsights.risks.length > 0 ? (
                       aiInsights.risks.slice(0, 4).map((risk, index) => (
-                        <div key={index} className="p-3 bg-white rounded-lg border border-amber-200 hover:shadow-md transition-shadow">
+                        <div key={index} className="p-3 bg-slate-900 rounded-lg border border-amber-800 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-2">
                             <Badge 
                               variant={risk.level === 'high' ? 'destructive' : 'secondary'}
@@ -1680,12 +1680,12 @@ export default function MonthlyReportsPage() {
                             >
                               {risk.level === 'high' ? '⚠️ Riesgo Alto' : '⚡ Riesgo Medio'}
                             </Badge>
-                            <span className="text-xs text-amber-600 font-medium capitalize bg-amber-50 px-2 py-1 rounded">
+                            <span className="text-xs text-amber-600 font-medium capitalize bg-amber-900/30 px-2 py-1 rounded">
                               {risk.type.replace(/-/g, ' ')}
                             </span>
                           </div>
-                          <p className="text-sm font-semibold text-gray-800 mb-1">{risk.description}</p>
-                          <p className="text-xs text-amber-700 font-medium">🎯 {risk.recommendation}</p>
+                          <p className="text-sm font-semibold text-slate-200 mb-1">{risk.description}</p>
+                          <p className="text-xs text-amber-400 font-medium">🎯 {risk.recommendation}</p>
                         </div>
                       ))
                     ) : (
@@ -1715,17 +1715,17 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                     {aiInsights.opportunities.map((opp, index) => (
-                      <div key={index} className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:shadow-md transition-all">
+                      <div key={index} className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg border border-purple-800 hover:shadow-md transition-all">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="font-bold text-purple-800 capitalize text-sm bg-white px-3 py-1 rounded-full">
+                          <span className="font-bold text-purple-300 capitalize text-sm bg-slate-900 px-3 py-1 rounded-full">
                             {opp.area.replace(/-/g, ' ')}
                           </span>
                           <Badge variant="outline" className="text-purple-600 border-purple-300 font-semibold">
                             💎 Oportunidad
                           </Badge>
                         </div>
-                        <p className="text-sm font-semibold text-purple-800 mb-2">{opp.potential}</p>
-                        <p className="text-xs text-purple-700 font-medium">🚀 {opp.action}</p>
+                        <p className="text-sm font-semibold text-purple-300 mb-2">{opp.potential}</p>
+                        <p className="text-xs text-purple-400 font-medium">🚀 {opp.action}</p>
                       </div>
                     ))}
                   </div>

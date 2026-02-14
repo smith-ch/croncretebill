@@ -84,7 +84,7 @@ export const SessionIndicator = ({
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className={`p-2 rounded-full ${
-            isUrgent ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+            isUrgent ? 'bg-red-900/30 text-red-600' : 'bg-amber-900/30 text-amber-600'
           }`}>
             <Clock className="h-4 w-4" />
           </div>
@@ -115,7 +115,7 @@ export const SessionIndicator = ({
           <Progress 
             value={progressValue} 
             className={`h-2 ${
-              isUrgent ? 'bg-red-100' : 'bg-amber-100'
+              isUrgent ? 'bg-red-900/30' : 'bg-amber-900/30'
             }`}
           />
 

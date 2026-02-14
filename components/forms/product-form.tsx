@@ -307,9 +307,9 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
     <>
       {/* Connection Status Indicator */}
       {!isOnline && (
-        <Alert className="mb-4 bg-orange-50 border-orange-200">
+        <Alert className="mb-4 bg-orange-900/30 border-orange-800">
           <WifiOff className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-orange-800">
+          <AlertDescription className="text-orange-300">
             Sin conexión. El producto se guardará localmente y se sincronizará automáticamente cuando vuelva la conexión.
           </AlertDescription>
         </Alert>
@@ -337,7 +337,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
               defaultValue={product?.product_code} 
               placeholder="Se generará automáticamente si se deja vacío" 
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-400">
               Si no especifica un código, se generará automáticamente (ej: PROD0001)
             </p>
           </div>
@@ -395,7 +395,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
               defaultValue={product?.cost_price}
               placeholder="0.00"
             />
-            <p className="text-xs text-gray-500">Si no se especifica, se usará el precio de venta</p>
+            <p className="text-xs text-slate-400">Si no se especifica, se usará el precio de venta</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

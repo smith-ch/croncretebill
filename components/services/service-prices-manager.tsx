@@ -146,7 +146,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando precios...</p>
+          <p className="text-slate-400">Cargando precios...</p>
         </div>
       </div>
     )
@@ -161,7 +161,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
             <h3 className="text-lg font-semibold text-gray-900">
               Precios del Servicio{serviceName && `: ${serviceName}`}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-400">
               Gestiona diferentes precios para este servicio
             </p>
           </div>
@@ -300,7 +300,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
             <h4 className="text-lg font-medium text-gray-900 mb-2">
               No hay precios configurados
             </h4>
-            <p className="text-gray-600 mb-4">
+            <p className="text-slate-400 mb-4">
               Crea diferentes precios para este servicio para ofrecer opciones flexibles
             </p>
             <Button
@@ -325,14 +325,14 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
                           {price.price_name}
                         </h4>
                         {price.is_default && (
-                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <Badge className="bg-green-900/30 text-green-300 border-green-800">
                             <Star className="h-3 w-3 mr-1" />
                             Por defecto
                           </Badge>
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
                         <span className="font-medium text-lg text-blue-600">
                           {formatCurrency(price.price)}
                         </span>
@@ -359,7 +359,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
                       )}
 
                       {price.description && (
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-slate-400 mt-2">
                           {price.description}
                         </p>
                       )}
@@ -372,7 +372,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
                         variant="outline"
                         size="sm"
                         onClick={() => handleSetAsDefault(price)}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-400 hover:bg-green-900/30"
                       >
                         <StarOff className="h-4 w-4" />
                       </Button>
@@ -382,7 +382,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(price)}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="text-blue-600 hover:text-blue-400 hover:bg-slate-900"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -391,7 +391,7 @@ export function ServicePricesManager({ serviceId, serviceName, onPriceChange }: 
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(price.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

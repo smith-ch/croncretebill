@@ -98,12 +98,12 @@ export default function ServicesPage() {
   // Check if user has permission to access services
   if (!canAccessModule('services')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-red-200 bg-red-50">
+          <Card className="border-2 border-red-800 bg-red-900/30">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <h2 className="text-2xl font-bold text-red-300 mb-2">Acceso Restringido</h2>
                 <p className="text-red-600">
                   No tienes permisos para acceder a los servicios. Esta función requiere permisos de gestión de inventario.
                 </p>
@@ -253,13 +253,13 @@ export default function ServicesPage() {
           <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Servicios
           </h1>
-          <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">Gestiona tu catálogo de servicios</p>
+          <p className="text-sm lg:text-base text-slate-400 dark:text-gray-400">Gestiona tu catálogo de servicios</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             onClick={() => router.push('/services/multiple-prices')}
             variant="outline"
-            className="border-blue-200 hover:bg-blue-50 w-full sm:w-auto"
+            className="border-slate-700 hover:bg-slate-900 w-full sm:w-auto"
           >
             <DollarSign className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Precios Múltiples</span>
@@ -299,9 +299,9 @@ export default function ServicesPage() {
       </div>
 
       {!limits.isLoading && remainingProducts <= 5 && (
-        <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+        <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-900/30" : "border-amber-500 bg-amber-900/30"}>
           <AlertCircle className={remainingProducts === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
-          <AlertDescription className={remainingProducts === 0 ? "text-red-800" : "text-amber-800"}>
+          <AlertDescription className={remainingProducts === 0 ? "text-red-300" : "text-amber-300"}>
             {remainingProducts === 0 ? (
               <span>
                 <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}. 
@@ -317,7 +317,7 @@ export default function ServicesPage() {
         </Alert>
       )}
 
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-slate-900 to-gray-50">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 lg:p-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
@@ -342,8 +342,8 @@ export default function ServicesPage() {
           {filteredServices.length === 0 ? (
             <div className="text-center py-12">
               <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay servicios</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Comienza agregando tu primer servicio</p>
+              <h3 className="text-lg font-medium text-slate-200 dark:text-white mb-2">No hay servicios</h3>
+              <p className="text-slate-400 dark:text-gray-400 mb-4">Comienza agregando tu primer servicio</p>
               <Button
                 onClick={() => setShowForm(true)}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
@@ -357,25 +357,25 @@ export default function ServicesPage() {
               {filteredServices.map((service) => (
                 <Card
                   key={service.id}
-                  className="hover:shadow-lg transition-all duration-300 lg:hover:scale-105 bg-white border-0 shadow-md"
+                  className="hover:shadow-lg transition-all duration-300 lg:hover:scale-105 bg-slate-900 border-0 shadow-md"
                 >
                   <CardContent className="p-3 lg:p-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm lg:text-base text-gray-900 dark:text-white truncate">{service.name}</h3>
+                        <h3 className="font-semibold text-sm lg:text-base text-slate-200 dark:text-white truncate">{service.name}</h3>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {service.id.startsWith('temp_') && (
-                            <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+                            <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-900/30">
                               ⏳ Pendiente
                             </Badge>
                           )}
                           {service.service_code && (
-                            <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
+                            <Badge variant="secondary" className="text-xs font-mono bg-slate-800 text-blue-400">
                               {service.service_code}
                             </Badge>
                           )}
                           {service.categories?.name && (
-                            <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
+                            <Badge variant="outline" className="text-xs border-slate-700 text-slate-400">
                               {service.categories.name}
                             </Badge>
                           )}
@@ -389,7 +389,7 @@ export default function ServicesPage() {
                             setEditingService(service)
                             setShowForm(true)
                           }}
-                          className="hover:bg-blue-50 text-blue-600"
+                          className="hover:bg-slate-900 text-blue-600"
                           aria-label={`Editar servicio ${service.name}`}
                           disabled={!canEdit('services')}
                         >
@@ -400,7 +400,7 @@ export default function ServicesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(service.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
                             aria-label={`Eliminar servicio ${service.name}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -410,24 +410,24 @@ export default function ServicesPage() {
                     </div>
                     
                     {service.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{service.description}</p>
+                      <p className="text-sm text-slate-400 dark:text-gray-400 mb-3 line-clamp-2">{service.description}</p>
                     )}
                     
                     <div className="space-y-3">
                       {/* Precios */}
                       {service.price !== null ? (
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                            <div className="text-xs text-blue-700 font-semibold mb-1">Precio Venta</div>
-                            <div className="font-bold text-blue-800 text-lg">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-slate-700">
+                            <div className="text-xs text-blue-400 font-semibold mb-1">Precio Venta</div>
+                            <div className="font-bold text-blue-300 text-lg">
                               {formatCurrency(service.price)}
                             </div>
                             <div className="text-xs text-blue-600">por {service.unit}</div>
                           </div>
                           {service.production_cost ? (
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-200">
-                              <div className="text-xs text-slate-700 font-semibold mb-1">Costo Producción</div>
-                              <div className="font-bold text-slate-800 text-sm">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-800">
+                              <div className="text-xs text-slate-300 font-semibold mb-1">Costo Producción</div>
+                              <div className="font-bold text-slate-200 text-sm">
                                 {formatCurrency(service.production_cost)}
                               </div>
                               {service.production_cost > 0 && (
@@ -437,7 +437,7 @@ export default function ServicesPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200 flex items-center justify-center">
+                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800 flex items-center justify-center">
                               <div className="text-center">
                                 <Calculator className="h-4 w-4 text-gray-400 mx-auto mb-1" />
                                 <div className="text-xs text-gray-500">Sin costo definido</div>
@@ -446,30 +446,30 @@ export default function ServicesPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-3 border border-amber-200">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-amber-800">
                           <div className="flex items-center gap-2 mb-1">
-                            <DollarSign className="h-4 w-4 text-amber-700" />
-                            <div className="text-xs text-amber-700 font-semibold">Precio Personalizado</div>
+                            <DollarSign className="h-4 w-4 text-amber-400" />
+                            <div className="text-xs text-amber-400 font-semibold">Precio Personalizado</div>
                           </div>
-                          <div className="text-sm text-amber-800">Se define en cada factura</div>
+                          <div className="text-sm text-amber-300">Se define en cada factura</div>
                         </div>
                       )}
 
                       {/* Duración y Garantía */}
                       <div className="grid grid-cols-2 gap-3">
                         {service.duration && (
-                          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-green-800">
                             <div className="flex items-center gap-2 mb-1">
-                              <Wrench className="h-4 w-4 text-green-700" />
-                              <div className="text-xs text-green-700 font-semibold">Duración</div>
+                              <Wrench className="h-4 w-4 text-green-400" />
+                              <div className="text-xs text-green-400 font-semibold">Duración</div>
                             </div>
-                            <div className="text-sm text-green-800 font-medium">{service.duration}</div>
+                            <div className="text-sm text-green-300 font-medium">{service.duration}</div>
                           </div>
                         )}
                         {service.warranty_months && service.warranty_months > 0 && (
-                          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-                            <div className="text-xs text-purple-700 font-semibold mb-1">Garantía</div>
-                            <div className="text-sm text-purple-800 font-medium">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-purple-800">
+                            <div className="text-xs text-purple-400 font-semibold mb-1">Garantía</div>
+                            <div className="text-sm text-purple-300 font-medium">
                               {service.warranty_months} {service.warranty_months === 1 ? 'mes' : 'meses'}
                             </div>
                           </div>
@@ -479,12 +479,12 @@ export default function ServicesPage() {
                       {/* Información adicional */}
                       <div className="space-y-2">
                         {service.requirements && (
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-slate-400">
                             <span className="font-medium">Requisitos:</span> {service.requirements}
                           </div>
                         )}
                         {service.includes && (
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-slate-400">
                             <span className="font-medium">Incluye:</span> {service.includes}
                           </div>
                         )}
@@ -493,17 +493,17 @@ export default function ServicesPage() {
                       {/* Badges adicionales */}
                       <div className="flex gap-2 flex-wrap">
                         {service.duration && (
-                          <Badge variant="outline" className="border-green-300 text-green-700 text-xs">
+                          <Badge variant="outline" className="border-green-300 text-green-400 text-xs">
                             ⏱️ {service.duration}
                           </Badge>
                         )}
                         {service.warranty_months && service.warranty_months > 0 && (
-                          <Badge variant="outline" className="border-purple-300 text-purple-700 text-xs">
+                          <Badge variant="outline" className="border-purple-300 text-purple-400 text-xs">
                             🛡️ {service.warranty_months}m garantía
                           </Badge>
                         )}
                         {service.price === null && (
-                          <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-xs">
+                          <Badge variant="outline" className="border-amber-300 text-amber-400 bg-amber-900/30 text-xs">
                             💰 Precio personalizado
                           </Badge>
                         )}
@@ -518,7 +518,7 @@ export default function ServicesPage() {
           {/* Paginación */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-6 border-t">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-400">
                 Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} servicios
               </div>
               <div className="flex gap-2">

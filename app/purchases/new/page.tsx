@@ -19,7 +19,7 @@ export default function NewPurchasePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-slate-950 py-8">
       <div className="container max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="mb-6">
@@ -33,14 +33,14 @@ export default function NewPurchasePage() {
           </Button>
           
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center">
               <ShoppingCart className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-slate-200">
                 Registrar Nueva Compra
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-slate-400 mt-1">
                 Clasifica tu compra como inventario o gasto operativo
               </p>
             </div>
@@ -49,8 +49,8 @@ export default function NewPurchasePage() {
 
         {/* Mensaje de éxito */}
         {showSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-            <div className="flex items-center gap-2 text-green-800">
+          <div className="mb-6 p-4 bg-green-900/30 border-2 border-green-300 rounded-lg">
+            <div className="flex items-center gap-2 text-green-300">
               <FileText className="h-5 w-5" />
               <p className="font-semibold">¡Compra registrada exitosamente!</p>
             </div>
@@ -58,14 +58,14 @@ export default function NewPurchasePage() {
         )}
 
         {/* Información importante */}
-        <Card className="mb-6 border-blue-200 bg-blue-50">
+        <Card className="mb-6 border-slate-700 bg-slate-900">
           <CardHeader>
             <CardTitle className="text-blue-900">¿Cómo clasificar tu compra?</CardTitle>
-            <CardDescription className="text-blue-700">
+            <CardDescription className="text-blue-400">
               Selecciona la opción correcta según el uso del artículo
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-blue-800">
+          <CardContent className="space-y-3 text-sm text-blue-300">
             <div className="flex gap-3">
               <div className="font-semibold min-w-[180px]">🏪 Producto para Venta:</div>
               <div>Artículos que vas a revender a tus clientes. Se registran en inventario y el costo se reconoce cuando se venden.</div>
@@ -78,7 +78,7 @@ export default function NewPurchasePage() {
         </Card>
 
         {/* Formulario */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-slate-900 rounded-lg shadow-sm p-6">
           <PurchaseClassificationForm 
             onSuccess={handleSuccess}
             onCancel={() => router.back()}
@@ -86,18 +86,18 @@ export default function NewPurchasePage() {
         </div>
 
         {/* Ejemplos */}
-        <Card className="mt-6 border-gray-200">
+        <Card className="mt-6 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-gray-900">Ejemplos de Clasificación</CardTitle>
+            <CardTitle className="text-slate-200">Ejemplos de Clasificación</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500"></span>
                   Inventario (Productos para Venta)
                 </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <ul className="space-y-2 text-sm text-slate-300">
                   <li>• Cemento, arena, grava (materiales de construcción)</li>
                   <li>• Varillas, blocks, ladrillos</li>
                   <li>• Herramientas para venta</li>
@@ -107,11 +107,11 @@ export default function NewPurchasePage() {
               </div>
               
               <div>
-                <h3 className="font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-orange-400 mb-3 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-orange-500"></span>
                   Gastos (Uso Interno/Operación)
                 </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <ul className="space-y-2 text-sm text-slate-300">
                   <li>• Combustible para vehículos</li>
                   <li>• Papelería y material de oficina</li>
                   <li>• Servicios (luz, agua, internet)</li>

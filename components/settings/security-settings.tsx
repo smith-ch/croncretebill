@@ -236,10 +236,10 @@ export function SecuritySettingsComponent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Configuración de Seguridad</h2>
-          <p className="text-slate-600 dark:text-slate-400">Administra la seguridad de tu cuenta y sesiones activas</p>
+          <h2 className="text-2xl font-bold text-slate-200 dark:text-slate-200">Configuración de Seguridad</h2>
+          <p className="text-slate-400 dark:text-slate-400">Administra la seguridad de tu cuenta y sesiones activas</p>
         </div>
-        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
+        <Badge variant="outline" className="bg-red-900/30 text-red-400 border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
           <Shield className="h-3 w-3 mr-1" />
           Configuración de Seguridad
         </Badge>
@@ -256,7 +256,7 @@ export function SecuritySettingsComponent() {
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="current_password" className="text-slate-700 dark:text-slate-300">Contraseña Actual</Label>
+              <Label htmlFor="current_password" className="text-slate-300 dark:text-slate-300">Contraseña Actual</Label>
               <div className="relative">
                 <Input
                   id="current_password"
@@ -280,7 +280,7 @@ export function SecuritySettingsComponent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="new_password" className="text-slate-700 dark:text-slate-300">Nueva Contraseña</Label>
+              <Label htmlFor="new_password" className="text-slate-300 dark:text-slate-300">Nueva Contraseña</Label>
               <div className="relative">
                 <Input
                   id="new_password"
@@ -304,7 +304,7 @@ export function SecuritySettingsComponent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirm_password" className="text-slate-700 dark:text-slate-300">Confirmar Contraseña</Label>
+              <Label htmlFor="confirm_password" className="text-slate-300 dark:text-slate-300">Confirmar Contraseña</Label>
               <div className="relative">
                 <Input
                   id="confirm_password"
@@ -328,8 +328,8 @@ export function SecuritySettingsComponent() {
             </div>
           </div>
 
-          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
-            <p className="text-sm text-amber-800 dark:text-amber-300">
+          <div className="p-4 bg-amber-900/30 rounded-lg border border-amber-800 dark:bg-amber-900/20 dark:border-amber-800">
+            <p className="text-sm text-amber-300 dark:text-amber-300">
               <strong>Requisitos de contraseña:</strong> Mínimo 8 caracteres, incluir mayúsculas, minúsculas, números y símbolos.
             </p>
           </div>
@@ -348,14 +348,14 @@ export function SecuritySettingsComponent() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <div className="flex items-center justify-between p-4 bg-slate-900 rounded-lg border border-slate-700 dark:bg-blue-900/20 dark:border-blue-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-full dark:bg-blue-900/30">
+              <div className="p-2 bg-slate-800 rounded-full dark:bg-blue-900/30">
                 <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <h4 className="font-medium text-blue-900 dark:text-blue-200">Protección Adicional</h4>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+                <p className="text-sm text-blue-400 dark:text-blue-300">
                   Mejora la seguridad de tu cuenta con 2FA (función en desarrollo)
                 </p>
               </div>
@@ -372,7 +372,7 @@ export function SecuritySettingsComponent() {
             </p>
           </div>
 
-          <Button variant="outline" className="w-full bg-white hover:bg-blue-50 border-blue-200 dark:bg-slate-800 dark:hover:bg-blue-900/30 dark:border-blue-600" disabled>
+          <Button variant="outline" className="w-full bg-slate-900 hover:bg-slate-900 border-slate-700 dark:bg-slate-800 dark:hover:bg-blue-900/30 dark:border-blue-600" disabled>
             <Smartphone className="h-4 w-4 mr-2" />
             Configurar Autenticación de Dos Factores
           </Button>
@@ -391,7 +391,7 @@ export function SecuritySettingsComponent() {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label className="text-slate-700 dark:text-slate-300">Alertas de Inicio de Sesión</Label>
+                <Label className="text-slate-300 dark:text-slate-300">Alertas de Inicio de Sesión</Label>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Notificar cuando se inicie sesión desde un nuevo dispositivo</p>
               </div>
               <Switch
@@ -402,7 +402,7 @@ export function SecuritySettingsComponent() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label className="text-slate-700 dark:text-slate-300">Expiración de Contraseña</Label>
+                <Label className="text-slate-300 dark:text-slate-300">Expiración de Contraseña</Label>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Requerir cambio de contraseña periódicamente</p>
               </div>
               <Switch
@@ -413,7 +413,7 @@ export function SecuritySettingsComponent() {
 
             {settings.password_expires && (
               <div className="space-y-2 ml-4">
-                <Label className="text-slate-700 dark:text-slate-300">Días para expiración</Label>
+                <Label className="text-slate-300 dark:text-slate-300">Días para expiración</Label>
                 <Input
                   type="number"
                   value={settings.password_expiry_days}
@@ -428,7 +428,7 @@ export function SecuritySettingsComponent() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label className="text-slate-700 dark:text-slate-300">Cambio de Contraseña Obligatorio</Label>
+                <Label className="text-slate-300 dark:text-slate-300">Cambio de Contraseña Obligatorio</Label>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Requerir cambio en el próximo inicio de sesión</p>
               </div>
               <Switch
@@ -448,7 +448,7 @@ export function SecuritySettingsComponent() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Tiempo de Sesión (minutos)</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Tiempo de Sesión (minutos)</Label>
               <Input
                 type="number"
                 value={settings.session_timeout}
@@ -462,7 +462,7 @@ export function SecuritySettingsComponent() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Límite de Intentos de Inicio</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Límite de Intentos de Inicio</Label>
               <Input
                 type="number"
                 value={settings.login_attempts_limit}
@@ -476,7 +476,7 @@ export function SecuritySettingsComponent() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Duración de Bloqueo (minutos)</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Duración de Bloqueo (minutos)</Label>
               <Input
                 type="number"
                 value={settings.account_lockout_duration}
@@ -496,16 +496,16 @@ export function SecuritySettingsComponent() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+        <Alert className="border-red-800 bg-red-900/30 dark:bg-red-900/20 dark:border-red-800">
           <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+          <AlertDescription className="text-red-300 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+        <Alert className="border-green-800 bg-green-900/30 dark:bg-green-900/20 dark:border-green-800">
           <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
+          <AlertDescription className="text-green-300 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
 

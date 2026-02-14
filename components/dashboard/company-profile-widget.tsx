@@ -121,20 +121,20 @@ export function CompanyProfileWidget() {
           {company && (
             <div className="p-6 border-b border-blue-100">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-100 rounded-xl">
+                <div className="p-3 bg-slate-800 rounded-xl">
                   <Building2 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-slate-800 text-lg">
+                    <h3 className="font-semibold text-slate-200 text-lg">
                       {company.company_name || "Sin nombre configurado"}
                     </h3>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                    <Badge variant="outline" className="bg-slate-900 text-blue-400 border-slate-700 text-xs">
                       {company.business_type || "Empresa"}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-400">
                     {company.company_email && (
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-slate-400" />
@@ -168,7 +168,7 @@ export function CompanyProfileWidget() {
                         href={company.company_website} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 hover:underline"
+                        className="text-blue-600 hover:text-blue-400 hover:underline"
                       >
                         {company.company_website}
                       </a>
@@ -183,31 +183,31 @@ export function CompanyProfileWidget() {
           {profile && (
             <div className="p-6">
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12 border-2 border-blue-200">
+                <Avatar className="h-12 w-12 border-2 border-slate-700">
                   <AvatarImage 
                     src={profile.avatar_url} 
                     alt={`${profile.first_name} ${profile.last_name}`} 
                   />
-                  <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                  <AvatarFallback className="bg-slate-800 text-blue-400 font-semibold">
                     {getInitials(profile.first_name, profile.last_name)}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-slate-800">
+                    <h4 className="font-semibold text-slate-200">
                       {profile.first_name && profile.last_name 
                         ? `${profile.first_name} ${profile.last_name}`
                         : "Perfil sin configurar"
                       }
                     </h4>
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+                    <Badge variant="outline" className="bg-amber-900/30 text-amber-400 border-amber-800 text-xs">
                       <Crown className="h-3 w-3 mr-1" />
                       Propietario
                     </Badge>
                   </div>
                   
-                  <div className="space-y-1 text-sm text-slate-600">
+                  <div className="space-y-1 text-sm text-slate-400">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-slate-400" />
                       <span>{profile.email}</span>
@@ -230,7 +230,7 @@ export function CompanyProfileWidget() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                className="w-full border-slate-700 text-blue-400 hover:bg-slate-900 hover:border-blue-300"
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Configurar Información

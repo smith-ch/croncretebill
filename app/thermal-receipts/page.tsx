@@ -151,20 +151,20 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
   }, [paymentMethod])
 
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-lg p-4 font-mono text-xs leading-tight max-w-xs mx-auto">
+    <div className="bg-slate-900 border-2 border-slate-800 rounded-lg p-4 font-mono text-xs leading-tight max-w-xs mx-auto">
       {/* Header de la empresa */}
-      <div className="text-center border-b-2 border-dashed border-gray-300 pb-2 mb-3">
+      <div className="text-center border-b-2 border-dashed border-slate-700 pb-2 mb-3">
         <div className="font-bold text-sm mb-1">
           {profile?.company_name || "MI EMPRESA"}
         </div>
         {profile?.tax_id && (
-          <div className="text-gray-600">RNC: {profile.tax_id}</div>
+          <div className="text-slate-400">RNC: {profile.tax_id}</div>
         )}
         {profile?.company_address && (
-          <div className="text-gray-600">{profile.company_address}</div>
+          <div className="text-slate-400">{profile.company_address}</div>
         )}
         {profile?.company_phone && (
-          <div className="text-gray-600">Tel: {profile.company_phone}</div>
+          <div className="text-slate-400">Tel: {profile.company_phone}</div>
         )}
       </div>
 
@@ -180,13 +180,13 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
 
       {/* Cliente */}
       {clientName && clientName !== 'Cliente General' && (
-        <div className="border-t border-dashed border-gray-300 pt-2 mb-3">
+        <div className="border-t border-dashed border-slate-700 pt-2 mb-3">
           <div>Cliente: {clientName}</div>
         </div>
       )}
 
       {/* Items */}
-      <div className="border-t border-dashed border-gray-300 pt-2 mb-3">
+      <div className="border-t border-dashed border-slate-700 pt-2 mb-3">
         {items.filter(item => item.item_name.trim() !== "" && item.line_total > 0).map((item, index) => (
           <div key={index} className="mb-2">
             <div>{item.item_name}</div>
@@ -199,7 +199,7 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
       </div>
 
       {/* Totales */}
-      <div className="border-t border-dashed border-gray-300 pt-2 mb-3">
+      <div className="border-t border-dashed border-slate-700 pt-2 mb-3">
         <div className="flex justify-between">
           <span>SUBTOTAL:</span>
           <span>{formatCurrency(subtotal)}</span>
@@ -216,7 +216,7 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
             <span>{formatCurrency(tax_amount)}</span>
           </div>
         )}
-        <div className="border-t border-dashed border-gray-300 pt-1 mt-1">
+        <div className="border-t border-dashed border-slate-700 pt-1 mt-1">
           <div className="flex justify-between font-bold">
             <span>TOTAL:</span>
             <span>{formatCurrency(total_amount)}</span>
@@ -225,7 +225,7 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
       </div>
 
       {/* Información de pago */}
-      <div className="border-t border-dashed border-gray-300 pt-2 mb-3">
+      <div className="border-t border-dashed border-slate-700 pt-2 mb-3">
         <div>Pago: {paymentMethodText}</div>
         {amountReceived > 0 && (
           <>
@@ -238,7 +238,7 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
       </div>
 
       {/* QR Code placeholder */}
-      <div className="border-t border-dashed border-gray-300 pt-2 mb-3 text-center">
+      <div className="border-t border-dashed border-slate-700 pt-2 mb-3 text-center">
         <div className="bg-gray-200 w-16 h-16 mx-auto mb-2 flex items-center justify-center">
           <QrCode className="h-8 w-8 text-gray-400" />
         </div>
@@ -247,14 +247,14 @@ const LivePreview: React.FC<LivePreviewProps> = React.memo(({
 
       {/* Notas */}
       {notes && notes.trim() && (
-        <div className="border-t border-dashed border-gray-300 pt-2 mb-3">
+        <div className="border-t border-dashed border-slate-700 pt-2 mb-3">
           <div className="font-bold">Notas:</div>
           <div>{notes}</div>
         </div>
       )}
 
       {/* Footer */}
-      <div className="border-t border-dashed border-gray-300 pt-2 text-center">
+      <div className="border-t border-dashed border-slate-700 pt-2 text-center">
         <div className="font-bold">¡GRACIAS POR SU COMPRA!</div>
         {profile?.company_website && (
           <div className="text-xs mt-1">{profile.company_website}</div>
@@ -901,7 +901,7 @@ export default function ThermalReceiptsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-blue-50">
+      <div className="flex items-center justify-center min-h-96 bg-slate-900">
         <div className="text-lg text-blue-600">Cargando facturas térmicas...</div>
       </div>
     )
@@ -911,10 +911,10 @@ export default function ThermalReceiptsPage() {
   const { subtotal, tax_amount, total_amount, change_amount } = calculateTotals()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-3 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 lg:space-y-6">
         {/* Header Principal Reorganizado */}
-        <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-white/20 shadow-xl p-4 lg:p-6 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-blue-50/30 to-purple-50/20 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-white/20 shadow-xl p-4 lg:p-6 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 rounded-2xl lg:rounded-3xl"></div>
           <div className="absolute top-0 right-0 w-32 h-32 lg:w-64 lg:h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full -translate-y-16 translate-x-16 lg:-translate-y-32 lg:translate-x-32"></div>
@@ -936,11 +936,11 @@ export default function ThermalReceiptsPage() {
                     <h1 className="text-xl lg:text-3xl font-black bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 bg-clip-text text-transparent leading-tight">
                       Recibos Térmicos
                     </h1>
-                    <p className="text-xs lg:text-sm text-gray-600 mt-1">Sistema profesional de facturación</p>
+                    <p className="text-xs lg:text-sm text-slate-400 mt-1">Sistema profesional de facturación</p>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-blue-100 px-2 lg:px-3 py-1 rounded-full flex-shrink-0">
+                  <div className="flex items-center gap-1.5 bg-slate-800 px-2 lg:px-3 py-1 rounded-full flex-shrink-0">
                     <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                    <span className="text-blue-700 text-xs lg:text-sm font-semibold">80mm</span>
+                    <span className="text-blue-400 text-xs lg:text-sm font-semibold">80mm</span>
                   </div>
                 </div>
               </div>
@@ -949,63 +949,63 @@ export default function ThermalReceiptsPage() {
             {/* Quick Stats - Reorganizado para móvil */}
             {receipts.length > 0 && (
               <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                <div className="bg-blue-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-blue-100">
+                <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-blue-100">
                   <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
                     <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4 text-blue-600 flex-shrink-0" />
                     <span className="text-[10px] lg:text-xs text-blue-600 font-medium">Recibos</span>
                   </div>
-                  <p className="text-sm lg:text-lg font-bold text-blue-700 truncate">{receipts.length}</p>
+                  <p className="text-sm lg:text-lg font-bold text-blue-400 truncate">{receipts.length}</p>
                 </div>
-                <div className="bg-green-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-green-100">
+                <div className="bg-green-900/30/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-green-100">
                   <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
                     <DollarSign className="h-3 w-3 lg:h-4 lg:w-4 text-green-600 flex-shrink-0" />
                     <span className="text-[10px] lg:text-xs text-green-600 font-medium">Total</span>
                   </div>
-                  <p className="text-xs lg:text-base font-bold text-green-700 truncate">{formatCurrency(receipts.reduce((sum, r) => sum + r.total_amount, 0))}</p>
+                  <p className="text-xs lg:text-base font-bold text-green-400 truncate">{formatCurrency(receipts.reduce((sum, r) => sum + r.total_amount, 0))}</p>
                 </div>
-                <div className="bg-purple-50/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-purple-100">
+                <div className="bg-purple-900/30/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-purple-100">
                   <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
                     <Clock className="h-3 w-3 lg:h-4 lg:w-4 text-purple-600 flex-shrink-0" />
                     <span className="text-[10px] lg:text-xs text-purple-600 font-medium">Hoy</span>
                   </div>
-                  <p className="text-sm lg:text-lg font-bold text-purple-700 truncate">{todayReceipts.length}</p>
+                  <p className="text-sm lg:text-lg font-bold text-purple-400 truncate">{todayReceipts.length}</p>
                 </div>
               </div>
             )}
 
             {/* Company Info - Reorganizado */}
             {profile ? (
-              <Card className="bg-gradient-to-r from-green-50/80 to-blue-50/80 backdrop-blur-sm border-green-200/50 shadow-sm">
+              <Card className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 border-slate-700 backdrop-blur-sm border-green-800/50 shadow-sm">
                 <CardContent className="p-3 lg:p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                      <div className="bg-slate-800 p-2 rounded-lg flex-shrink-0">
                         <Building2 className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-blue-600" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs text-gray-500">Empresa</p>
-                        <p className="font-semibold text-sm lg:text-base text-gray-800 truncate">{profile.company_name || "Sin nombre"}</p>
+                        <p className="font-semibold text-sm lg:text-base text-slate-200 truncate">{profile.company_name || "Sin nombre"}</p>
                       </div>
                     </div>
                     {profile.company_phone && (
                       <div className="flex items-center gap-2">
-                        <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
+                        <div className="bg-green-900/30 p-2 rounded-lg flex-shrink-0">
                           <Phone className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-green-600" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs text-gray-500">Teléfono</p>
-                          <p className="font-medium text-sm lg:text-base text-gray-800 truncate">{profile.company_phone}</p>
+                          <p className="font-medium text-sm lg:text-base text-slate-200 truncate">{profile.company_phone}</p>
                         </div>
                       </div>
                     )}
                     {profile.tax_id && (
                       <div className="flex items-center gap-2">
-                        <div className="bg-orange-100 p-2 rounded-lg flex-shrink-0">
+                        <div className="bg-orange-900/30 p-2 rounded-lg flex-shrink-0">
                           <FileText className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-orange-600" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs text-gray-500">RNC</p>
-                          <p className="font-medium text-sm lg:text-base text-gray-800 truncate">{profile.tax_id}</p>
+                          <p className="font-medium text-sm lg:text-base text-slate-200 truncate">{profile.tax_id}</p>
                         </div>
                       </div>
                     )}
@@ -1013,7 +1013,7 @@ export default function ThermalReceiptsPage() {
                 </CardContent>
               </Card>
               ) : (
-                <Card className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-orange-200/50 shadow-lg">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-orange-800/50 shadow-lg">
                   <CardContent className="p-4 lg:p-5">
                     <div className="flex items-start gap-3 lg:gap-4">
                       <div className="relative flex-shrink-0">
@@ -1021,23 +1021,23 @@ export default function ThermalReceiptsPage() {
                           <AlertCircle className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                         </div>
                         <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div>
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 space-y-3">
                         <div>
                           <h3 className="text-base lg:text-lg font-bold text-orange-900 mb-1">Configuración Inicial Requerida</h3>
-                          <p className="text-xs lg:text-sm text-orange-700 leading-relaxed">
+                          <p className="text-xs lg:text-sm text-orange-400 leading-relaxed">
                             Configura la información básica de tu empresa para comenzar a usar el sistema.
                           </p>
                         </div>
                         
-                        <div className="bg-orange-100/50 rounded-lg p-3 border border-orange-200">
-                          <h4 className="font-semibold text-xs lg:text-sm text-orange-800 mb-2 flex items-center">
+                        <div className="bg-orange-900/30/50 rounded-lg p-3 border border-orange-800">
+                          <h4 className="font-semibold text-xs lg:text-sm text-orange-300 mb-2 flex items-center">
                             <CheckCircle2 className="h-3.5 w-3.5 lg:h-4 lg:w-4 mr-1.5" />
                             Datos necesarios:
                           </h4>
-                          <ul className="text-xs text-orange-700 space-y-0.5 ml-4 lg:ml-5">
+                          <ul className="text-xs text-orange-400 space-y-0.5 ml-4 lg:ml-5">
                             <li>• Nombre de empresa</li>
                             <li>• RNC o identificación fiscal</li>
                             <li>• Dirección y teléfono</li>
@@ -1058,7 +1058,7 @@ export default function ThermalReceiptsPage() {
                           <Button 
                             size="sm"
                             variant="outline"
-                            className="border-orange-300 text-orange-700 hover:bg-orange-50 flex-1"
+                            className="border-orange-300 text-orange-400 hover:bg-orange-900/30 flex-1"
                             onClick={() => {
                               document.querySelector('[data-section="new-receipt"]')?.scrollIntoView({ behavior: 'smooth' })
                             }}
@@ -1112,7 +1112,7 @@ export default function ThermalReceiptsPage() {
                       }
                     }}
                   >
-                    <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                    <SelectTrigger className="border-slate-700 focus:border-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1134,7 +1134,7 @@ export default function ThermalReceiptsPage() {
                           setClientName(client ? client.name : "")
                         }}
                       >
-                        <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                        <SelectTrigger className="border-slate-700 focus:border-blue-500">
                           <SelectValue placeholder="Selecciona un cliente..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -1154,7 +1154,7 @@ export default function ThermalReceiptsPage() {
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
                         placeholder="Cliente General"
-                        className="border-blue-200 focus:border-blue-500"
+                        className="border-slate-700 focus:border-blue-500"
                       />
                     </div>
                   )}
@@ -1165,7 +1165,7 @@ export default function ThermalReceiptsPage() {
                 <div>
                   <Label htmlFor="paymentMethod">Método de Pago</Label>
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                    <SelectTrigger className="border-slate-700 focus:border-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1218,13 +1218,13 @@ export default function ThermalReceiptsPage() {
 
                 <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 p-3 border border-slate-700 rounded-lg bg-slate-900">
                       <div className="col-span-1 sm:col-span-2 lg:col-span-2">
                         <Input
                           placeholder="Nombre del producto/servicio"
                           value={item.item_name}
                           onChange={(e) => updateItem(index, "item_name", e.target.value)}
-                          className="border-blue-200 text-sm lg:text-base"
+                          className="border-slate-700 text-sm lg:text-base"
                         />
                         <Select onValueChange={(value) => {
                           const [type, id] = value.split('|')
@@ -1232,11 +1232,11 @@ export default function ThermalReceiptsPage() {
                             selectProductOrService(index, type as 'product' | 'service', id)
                           }
                         }}>
-                          <SelectTrigger className="mt-1 border-blue-200">
+                          <SelectTrigger className="mt-1 border-slate-700">
                             <SelectValue placeholder="Seleccionar producto/servicio" />
                           </SelectTrigger>
                           <SelectContent>
-                            <div className="p-2 border-b sticky top-0 bg-white z-10">
+                            <div className="p-2 border-b sticky top-0 bg-slate-900 z-10">
                               <Input
                                 placeholder="Buscar producto/servicio por código o nombre..."
                                 value={itemSearchTerms[index] || ""}
@@ -1271,9 +1271,9 @@ export default function ThermalReceiptsPage() {
                                           {product.product_code ? `[${product.product_code}] ` : ''}{product.name} - {formatCurrency(product.price)}
                                         </span>
                                         <span className={`ml-2 text-xs font-semibold px-2 py-0.5 rounded ${
-                                          isOutOfStock ? 'bg-red-100 text-red-700' : 
+                                          isOutOfStock ? 'bg-red-900/30 text-red-400' : 
                                           isLowStock ? 'bg-yellow-100 text-yellow-700' : 
-                                          'bg-green-100 text-green-700'
+                                          'bg-green-900/30 text-green-400'
                                         }`}>
                                           {isOutOfStock ? 'Agotado' : `${stock} disponible${stock !== 1 ? 's' : ''}`}
                                         </span>
@@ -1304,7 +1304,7 @@ export default function ThermalReceiptsPage() {
                           onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
-                          className="border-blue-200"
+                          className="border-slate-700"
                         />
                       </div>
                       <div>
@@ -1314,7 +1314,7 @@ export default function ThermalReceiptsPage() {
                             selectedPriceId={item.selected_price_id}
                             quantity={item.quantity}
                             onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(index, priceId, priceValue)}
-                            className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                            className="border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                           />
                         ) : item.service_id ? (
                           <ServicePriceDropdown
@@ -1322,7 +1322,7 @@ export default function ThermalReceiptsPage() {
                             selectedPriceId={item.selected_price_id}
                             quantity={item.quantity}
                             onPriceSelect={(priceId: string, priceValue: number) => handlePriceSelect(index, priceId, priceValue)}
-                            className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                            className="border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                           />
                         ) : (
                           <Input
@@ -1332,7 +1332,7 @@ export default function ThermalReceiptsPage() {
                             onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
-                            className="border-blue-200"
+                            className="border-slate-700"
                           />
                         )}
                       </div>
@@ -1340,7 +1340,7 @@ export default function ThermalReceiptsPage() {
                         <Input
                           value={formatCurrency(item.line_total)}
                           readOnly
-                          className="bg-blue-100 border-blue-200"
+                          className="bg-slate-800 border-slate-700"
                         />
                       </div>
                       <div>
@@ -1360,9 +1360,9 @@ export default function ThermalReceiptsPage() {
               </div>
 
               {/* Descuentos */}
-              <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="space-y-4 p-4 bg-green-900/30 rounded-lg border border-green-800">
                 <div>
-                  <Label className="text-green-700 font-semibold flex items-center">
+                  <Label className="text-green-400 font-semibold flex items-center">
                     <Percent className="h-4 w-4 mr-2" />
                     Descuentos
                   </Label>
@@ -1372,7 +1372,7 @@ export default function ThermalReceiptsPage() {
                   <div>
                     <Label htmlFor="discountType" className="text-sm">Tipo de Descuento</Label>
                     <Select value={generalDiscountType} onValueChange={(value) => setGeneralDiscountType(value as "percentage" | "amount")}>
-                      <SelectTrigger className="border-green-200 focus:border-green-500">
+                      <SelectTrigger className="border-green-800 focus:border-green-500">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1394,7 +1394,7 @@ export default function ThermalReceiptsPage() {
                         max="100"
                         step="0.1"
                         placeholder="0.0"
-                        className="border-green-200 focus:border-green-500"
+                        className="border-green-800 focus:border-green-500"
                       />
                     </div>
                   ) : (
@@ -1408,7 +1408,7 @@ export default function ThermalReceiptsPage() {
                         min="0"
                         step="0.01"
                         placeholder="0.00"
-                        className="border-green-200 focus:border-green-500"
+                        className="border-green-800 focus:border-green-500"
                       />
                     </div>
                   )}
@@ -1422,7 +1422,7 @@ export default function ThermalReceiptsPage() {
                         setGeneralDiscountPercentage(0)
                         setGeneralDiscountAmount(0)
                       }}
-                      className="border-green-200 text-green-600 hover:bg-green-50 w-full"
+                      className="border-green-800 text-green-600 hover:bg-green-900/30 w-full"
                     >
                       <X className="h-4 w-4 mr-2" />
                       Limpiar
@@ -1431,14 +1431,14 @@ export default function ThermalReceiptsPage() {
                 </div>
                 
                 {(generalDiscountPercentage > 0 || generalDiscountAmount > 0) && (
-                  <div className="text-sm text-green-700 bg-green-100 p-2 rounded">
+                  <div className="text-sm text-green-400 bg-green-900/30 p-2 rounded">
                     <strong>Descuento aplicado: {formatCurrency(calculateTotals().discountTotal)}</strong>
                   </div>
                 )}
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900 rounded-lg border border-slate-700">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
@@ -1470,7 +1470,7 @@ export default function ThermalReceiptsPage() {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
-                      className="border-blue-200 focus:border-blue-500"
+                      className="border-slate-700 focus:border-blue-500"
                     />
                   </div>
                   <div className="flex justify-between font-bold">
@@ -1491,7 +1491,7 @@ export default function ThermalReceiptsPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notas adicionales..."
                   rows={3}
-                  className="border-blue-200 focus:border-blue-500"
+                  className="border-slate-700 focus:border-blue-500"
                 />
               </div>
 
@@ -1511,7 +1511,7 @@ export default function ThermalReceiptsPage() {
                     setGeneralDiscountPercentage(0)
                     setGeneralDiscountAmount(0)
                   }}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   Limpiar
                 </Button>
@@ -1520,7 +1520,7 @@ export default function ThermalReceiptsPage() {
                   variant="outline"
                   onClick={generatePreview}
                   disabled={total_amount <= 0}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   Vista Previa
@@ -1538,9 +1538,9 @@ export default function ThermalReceiptsPage() {
           </div>
 
           {/* Columna derecha - Vista Previa */}
-          <div className="col-span-1 overflow-y-auto border-l-0 lg:border-l border-gray-200 pl-0 lg:pl-4 mt-4 lg:mt-0">
-            <div className="sticky top-0 bg-white pb-4 border-b border-gray-200 mb-4">
-              <h3 className="font-semibold text-gray-800 text-center">Vista Previa</h3>
+          <div className="col-span-1 overflow-y-auto border-l-0 lg:border-l border-slate-800 pl-0 lg:pl-4 mt-4 lg:mt-0">
+            <div className="sticky top-0 bg-slate-900 pb-4 border-b border-slate-800 mb-4">
+              <h3 className="font-semibold text-slate-200 text-center">Vista Previa</h3>
               <p className="text-xs text-gray-500 text-center">Actualización en tiempo real</p>
             </div>
             <LivePreview
@@ -1569,7 +1569,7 @@ export default function ThermalReceiptsPage() {
       <div className="space-y-6">
         {/* Welcome Message for New Users */}
         {receipts.length === 0 && profile && (
-          <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 shadow-xl">
+          <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-xl">
             <CardContent className="p-8">
               <div className="text-center space-y-4">
                 <div className="relative inline-block">
@@ -1581,8 +1581,8 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">¡Todo listo para empezar!</h2>
-                  <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                  <h2 className="text-2xl lg:text-3xl font-bold text-slate-200 mb-2">¡Todo listo para empezar!</h2>
+                  <p className="text-slate-400 text-lg max-w-2xl mx-auto">
                     Tu empresa <span className="font-semibold text-blue-600">{profile.company_name}</span> está 
                     configurada correctamente. Crea tu primer recibo térmico para comenzar.
                   </p>
@@ -1606,29 +1606,29 @@ export default function ThermalReceiptsPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-800 flex items-center">
+                <h2 className="text-xl lg:text-2xl font-bold text-slate-200 flex items-center">
                   <BarChart3 className="mr-2 lg:mr-3 h-5 lg:h-6 w-5 lg:w-6 text-blue-600" />
                   Panel de Control
                 </h2>
-                <p className="text-gray-600 mt-1 text-sm lg:text-base">Resumen de tu actividad de facturación</p>
+                <p className="text-slate-400 mt-1 text-sm lg:text-base">Resumen de tu actividad de facturación</p>
               </div>
-              <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
+              <div className="flex items-center space-x-2 bg-green-900/30 px-4 py-2 rounded-full">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-700 font-semibold text-sm">Datos actualizados</span>
+                <span className="text-green-400 font-semibold text-sm">Datos actualizados</span>
               </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/30 rounded-full -translate-y-10 translate-x-10"></div>
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-slate-800/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-                  <CardTitle className="text-sm font-semibold text-blue-700">Total Recibos</CardTitle>
-                  <div className="bg-blue-200 p-3 rounded-xl shadow-md">
+                  <CardTitle className="text-sm font-semibold text-blue-400">Total Recibos</CardTitle>
+                  <div className="bg-slate-800 p-3 rounded-xl shadow-md">
                     <Receipt className="h-5 w-5 text-blue-600" />
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-2xl lg:text-3xl font-bold text-blue-800 mb-1">{receipts.length}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-blue-300 mb-1">{receipts.length}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-blue-600 font-medium">📊 {todayReceipts.length} hoy</p>
                     {todayReceipts.length > 0 && (
@@ -1640,16 +1640,16 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-green-200/30 rounded-full -translate-y-10 translate-x-10"></div>
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-green-900/30/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-                  <CardTitle className="text-sm font-semibold text-green-700">Ingresos Hoy</CardTitle>
-                  <div className="bg-green-200 p-3 rounded-xl shadow-md">
+                  <CardTitle className="text-sm font-semibold text-green-400">Ingresos Hoy</CardTitle>
+                  <div className="bg-green-900/30 p-3 rounded-xl shadow-md">
                     <DollarSign className="h-5 w-5 text-green-600" />
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-2xl lg:text-3xl font-bold text-green-800 mb-1">{formatCurrency(todayAmount)}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-green-300 mb-1">{formatCurrency(todayAmount)}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-green-600 font-medium">💰 {todayReceipts.length} recibos</p>
                     {todayAmount > 0 && (
@@ -1661,16 +1661,16 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200/30 rounded-full -translate-y-10 translate-x-10"></div>
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-900/30/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-                  <CardTitle className="text-sm font-semibold text-purple-700">Última Semana</CardTitle>
-                  <div className="bg-purple-200 p-3 rounded-xl shadow-md">
+                  <CardTitle className="text-sm font-semibold text-purple-400">Última Semana</CardTitle>
+                  <div className="bg-purple-900/30 p-3 rounded-xl shadow-md">
                     <Calendar className="h-5 w-5 text-purple-600" />
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-2xl lg:text-3xl font-bold text-purple-800 mb-1">{formatCurrency(weeklyAmount)}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-purple-300 mb-1">{formatCurrency(weeklyAmount)}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-purple-600 font-medium">📅 {weeklyReceipts.length} recibos</p>
                     <div className="flex items-center space-x-1">
@@ -1680,7 +1680,7 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-200/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
                   <CardTitle className="text-sm font-semibold text-indigo-700">Este Mes</CardTitle>
@@ -1699,16 +1699,16 @@ export default function ThermalReceiptsPage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200/30 rounded-full -translate-y-10 translate-x-10"></div>
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-900/30/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-                  <CardTitle className="text-sm font-semibold text-orange-700">Efectivo</CardTitle>
-                  <div className="bg-orange-200 p-3 rounded-xl shadow-md">
+                  <CardTitle className="text-sm font-semibold text-orange-400">Efectivo</CardTitle>
+                  <div className="bg-orange-900/30 p-3 rounded-xl shadow-md">
                     <Wallet className="h-5 w-5 text-orange-600" />
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <div className="text-2xl lg:text-3xl font-bold text-orange-800 mb-1">{receipts.filter(r => r.payment_method === 'cash').length}</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-orange-300 mb-1">{receipts.filter(r => r.payment_method === 'cash').length}</div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-orange-600 font-medium">💵 {formatCurrency(receipts.filter(r => r.payment_method === 'cash').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <Banknote className="h-3 w-3 text-orange-500" />
@@ -1716,7 +1716,7 @@ export default function ThermalReceiptsPage() {
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-200/30 rounded-full -translate-y-10 translate-x-10"></div>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
                   <CardTitle className="text-sm font-semibold text-cyan-700">Tarjetas</CardTitle>
@@ -1741,11 +1741,11 @@ export default function ThermalReceiptsPage() {
       </div>
 
       {/* Search and Filters Mejorados */}
-      <Card className="bg-gradient-to-br from-white via-gray-50/50 to-blue-50/30 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
-        <CardHeader className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/80 rounded-t-2xl border-b border-blue-100/50 relative overflow-hidden">
+      <Card className="bg-gradient-to-br from-slate-900 via-gray-50/50 to-blue-50/30 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
+        <CardHeader className="bg-gradient-to-r from-slate-900/80 via-slate-800/60 to-slate-900/80 border-slate-700 rounded-t-2xl border-b border-blue-100/50 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5"></div>
           <div className="relative z-10">
-            <CardTitle className="text-gray-800 flex items-center justify-between">
+            <CardTitle className="text-slate-200 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg">
                   <Search className="h-6 w-6 text-white" />
@@ -1754,13 +1754,13 @@ export default function ThermalReceiptsPage() {
                   <span className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
                     Buscar y Filtrar Recibos
                   </span>
-                  <p className="text-gray-600 text-sm mt-1">Encuentra recibos específicos rápidamente</p>
+                  <p className="text-slate-400 text-sm mt-1">Encuentra recibos específicos rápidamente</p>
                 </div>
               </div>
               {receipts.length > 0 && (
-                <div className="flex items-center space-x-2 bg-blue-100 px-4 py-2 rounded-full">
+                <div className="flex items-center space-x-2 bg-slate-800 px-4 py-2 rounded-full">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-blue-700 font-semibold text-sm">{filteredReceipts.length} de {receipts.length}</span>
+                  <span className="text-blue-400 font-semibold text-sm">{filteredReceipts.length} de {receipts.length}</span>
                 </div>
               )}
             </CardTitle>
@@ -1769,7 +1769,7 @@ export default function ThermalReceiptsPage() {
         <CardContent className="pt-8 pb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-gray-700 font-semibold flex items-center">
+              <Label htmlFor="search" className="text-slate-300 font-semibold flex items-center">
                 <Search className="h-4 w-4 mr-2 text-blue-600" />
                 Buscar Recibo
               </Label>
@@ -1779,18 +1779,18 @@ export default function ThermalReceiptsPage() {
                   placeholder="Número de recibo, cliente..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 pl-10 py-3 rounded-xl shadow-sm"
+                  className="border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 pl-10 py-3 rounded-xl shadow-sm"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="statusFilter" className="text-gray-700 font-semibold flex items-center">
+              <Label htmlFor="statusFilter" className="text-slate-300 font-semibold flex items-center">
                 <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
                 Estado
               </Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 py-3 rounded-xl shadow-sm">
+                <SelectTrigger className="border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 py-3 rounded-xl shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1802,12 +1802,12 @@ export default function ThermalReceiptsPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="paymentFilter" className="text-gray-700 font-semibold flex items-center">
+              <Label htmlFor="paymentFilter" className="text-slate-300 font-semibold flex items-center">
                 <Wallet className="h-4 w-4 mr-2 text-purple-600" />
                 Método de Pago
               </Label>
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 py-3 rounded-xl shadow-sm">
+                <SelectTrigger className="border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 py-3 rounded-xl shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1827,7 +1827,7 @@ export default function ThermalReceiptsPage() {
                   setStatusFilter("all")
                   setPaymentFilter("all")
                 }}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 py-3 rounded-xl shadow-sm transition-all duration-200"
+                className="border-slate-700 text-slate-300 hover:bg-slate-950 hover:border-gray-400 py-3 rounded-xl shadow-sm transition-all duration-200"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Limpiar Filtros
@@ -1849,8 +1849,8 @@ export default function ThermalReceiptsPage() {
       </Card>
 
       {/* Receipts List */}
-      <Card className="border-blue-200">
-        <CardHeader className="bg-blue-50">
+      <Card className="border-slate-700">
+        <CardHeader className="bg-slate-900">
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-blue-600">Recibos Térmicos</CardTitle>
@@ -1859,7 +1859,7 @@ export default function ThermalReceiptsPage() {
               </CardDescription>
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" className="border-blue-200">
+              <Button variant="outline" size="sm" className="border-slate-700">
                 <Download className="h-4 w-4 mr-2" />
                 Exportar
               </Button>
@@ -1886,15 +1886,15 @@ export default function ThermalReceiptsPage() {
           ) : (
             <div className="space-y-4">
               {filteredReceipts.map((receipt) => (
-                <div key={receipt.id} className="flex items-center justify-between p-4 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <div key={receipt.id} className="flex items-center justify-between p-4 border border-slate-700 rounded-lg bg-slate-900 hover:bg-slate-800 transition-colors">
                   <div className="flex-1">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                       <div>
-                        <div className="font-semibold text-blue-700">{receipt.receipt_number}</div>
+                        <div className="font-semibold text-blue-400">{receipt.receipt_number}</div>
                         <div className="text-sm text-blue-600">{receipt.client_name}</div>
                       </div>
                       <div>
-                        <div className="font-medium text-blue-700">{formatCurrency(receipt.total_amount)}</div>
+                        <div className="font-medium text-blue-400">{formatCurrency(receipt.total_amount)}</div>
                         <div className="text-sm text-blue-600 capitalize flex items-center space-x-1">
                           {receipt.payment_method === 'cash' && <Banknote className="h-3 w-3" />}
                           {receipt.payment_method === 'card' && <CreditCard className="h-3 w-3" />}
@@ -1904,7 +1904,7 @@ export default function ThermalReceiptsPage() {
                       <div>
                         <Badge 
                           variant={receipt.status === 'active' ? 'default' : 'secondary'}
-                          className={receipt.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                          className={receipt.status === 'active' ? 'bg-green-900/30 text-green-300' : 'bg-slate-800 text-slate-200'}
                         >
                           {receipt.status === 'active' ? 'Activo' : 'Cancelado'}
                         </Badge>
@@ -1914,7 +1914,7 @@ export default function ThermalReceiptsPage() {
                         <div>{new Date(receipt.created_at).toLocaleTimeString()}</div>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-blue-700">
+                        <div className="text-sm font-medium text-blue-400">
                           {receipt.items?.length || 0} items
                         </div>
                         <div className="text-xs text-blue-600">
@@ -1928,7 +1928,7 @@ export default function ThermalReceiptsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => setSelectedReceipt(receipt)}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      className="border-slate-700 text-blue-600 hover:bg-slate-900"
                       title="Ver detalles"
                     >
                       <Eye className="h-4 w-4" />
@@ -1937,7 +1937,7 @@ export default function ThermalReceiptsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => handlePreviewReceipt(receipt)}
-                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                      className="border-purple-800 text-purple-600 hover:bg-purple-900/30"
                       title="Vista previa PDF"
                     >
                       <FileText className="h-4 w-4" />
@@ -1954,7 +1954,7 @@ export default function ThermalReceiptsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleDownloadReceipt(receipt)}
-                      className="border-green-200 text-green-600 hover:bg-green-50"
+                      className="border-green-800 text-green-600 hover:bg-green-900/30"
                       title="Descargar PDF"
                     >
                       <Download className="h-4 w-4" />
@@ -1964,7 +1964,7 @@ export default function ThermalReceiptsPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDeleteReceipt(receipt.id)}
-                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        className="border-red-800 text-red-600 hover:bg-red-900/30"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -1995,26 +1995,26 @@ export default function ThermalReceiptsPage() {
               {/* Receipt Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-blue-700 mb-3">Información del Recibo</h4>
+                  <h4 className="font-semibold text-blue-400 mb-3">Información del Recibo</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Cliente:</span>
+                      <span className="text-slate-400">Cliente:</span>
                       <span className="font-medium">{selectedReceipt.client_name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Fecha:</span>
+                      <span className="text-slate-400">Fecha:</span>
                       <span>{new Date(selectedReceipt.created_at).toLocaleDateString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Hora:</span>
+                      <span className="text-slate-400">Hora:</span>
                       <span>{new Date(selectedReceipt.created_at).toLocaleTimeString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Método de Pago:</span>
+                      <span className="text-slate-400">Método de Pago:</span>
                       <span className="capitalize">{selectedReceipt.payment_method}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Estado:</span>
+                      <span className="text-slate-400">Estado:</span>
                       <Badge variant={selectedReceipt.status === 'active' ? 'default' : 'secondary'}>
                         {selectedReceipt.status === 'active' ? 'Activo' : 'Cancelado'}
                       </Badge>
@@ -2023,9 +2023,9 @@ export default function ThermalReceiptsPage() {
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold text-blue-700 mb-3">Código QR</h4>
+                  <h4 className="font-semibold text-blue-400 mb-3">Código QR</h4>
                   <div className="text-center">
-                    <div className="w-32 h-32 mx-auto bg-white border-2 border-blue-200 rounded-lg flex items-center justify-center">
+                    <div className="w-32 h-32 mx-auto bg-slate-900 border-2 border-slate-700 rounded-lg flex items-center justify-center">
                       <QrCode size={80} className="text-blue-600" />
                     </div>
                     <div className="mt-2 text-xs text-blue-600">
@@ -2037,15 +2037,15 @@ export default function ThermalReceiptsPage() {
 
               {/* Items */}
               <div>
-                <h4 className="font-semibold text-blue-700 mb-3">Items del Recibo</h4>
-                <div className="border border-blue-200 rounded-lg overflow-hidden">
+                <h4 className="font-semibold text-blue-400 mb-3">Items del Recibo</h4>
+                <div className="border border-slate-700 rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-blue-50">
+                    <thead className="bg-slate-900">
                       <tr>
-                        <th className="text-left p-3 text-blue-700">Producto/Servicio</th>
-                        <th className="text-center p-3 text-blue-700">Cantidad</th>
-                        <th className="text-right p-3 text-blue-700">Precio</th>
-                        <th className="text-right p-3 text-blue-700">Total</th>
+                        <th className="text-left p-3 text-blue-400">Producto/Servicio</th>
+                        <th className="text-center p-3 text-blue-400">Cantidad</th>
+                        <th className="text-right p-3 text-blue-400">Precio</th>
+                        <th className="text-right p-3 text-blue-400">Total</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2058,18 +2058,18 @@ export default function ThermalReceiptsPage() {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-blue-50 border-t border-blue-200">
+                    <tfoot className="bg-slate-900 border-t border-slate-700">
                       <tr>
-                        <td colSpan={3} className="p-3 text-right font-semibold text-blue-700">Subtotal:</td>
+                        <td colSpan={3} className="p-3 text-right font-semibold text-blue-400">Subtotal:</td>
                         <td className="p-3 text-right font-semibold">{formatCurrency(selectedReceipt.subtotal)}</td>
                       </tr>
                       <tr>
-                        <td colSpan={3} className="p-3 text-right font-semibold text-blue-700">ITBIS (18%):</td>
+                        <td colSpan={3} className="p-3 text-right font-semibold text-blue-400">ITBIS (18%):</td>
                         <td className="p-3 text-right font-semibold">{formatCurrency(selectedReceipt.tax_amount)}</td>
                       </tr>
                       <tr>
-                        <td colSpan={3} className="p-3 text-right font-bold text-blue-700 text-lg">Total:</td>
-                        <td className="p-3 text-right font-bold text-blue-700 text-lg">{formatCurrency(selectedReceipt.total_amount)}</td>
+                        <td colSpan={3} className="p-3 text-right font-bold text-blue-400 text-lg">Total:</td>
+                        <td className="p-3 text-right font-bold text-blue-400 text-lg">{formatCurrency(selectedReceipt.total_amount)}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -2077,13 +2077,13 @@ export default function ThermalReceiptsPage() {
               </div>
 
               {/* Payment Info */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900 rounded-lg">
                 <div>
-                  <span className="text-sm text-gray-600">Monto Recibido:</span>
-                  <div className="font-semibold text-blue-700">{formatCurrency(selectedReceipt.amount_received)}</div>
+                  <span className="text-sm text-slate-400">Monto Recibido:</span>
+                  <div className="font-semibold text-blue-400">{formatCurrency(selectedReceipt.amount_received)}</div>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Cambio:</span>
+                  <span className="text-sm text-slate-400">Cambio:</span>
                   <div className="font-semibold text-green-600">{formatCurrency(selectedReceipt.change_amount)}</div>
                 </div>
               </div>
@@ -2091,17 +2091,17 @@ export default function ThermalReceiptsPage() {
               {/* Notes */}
               {selectedReceipt.notes && (
                 <div>
-                  <h4 className="font-semibold text-blue-700 mb-2">Notas</h4>
-                  <p className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{selectedReceipt.notes}</p>
+                  <h4 className="font-semibold text-blue-400 mb-2">Notas</h4>
+                  <p className="text-sm text-slate-400 p-3 bg-slate-950 rounded-lg">{selectedReceipt.notes}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex justify-end space-x-2 pt-4 border-t border-blue-200">
+              <div className="flex justify-end space-x-2 pt-4 border-t border-slate-700">
                 <Button
                   variant="outline"
                   onClick={() => handlePreviewReceipt(selectedReceipt)}
-                  className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                  className="border-purple-800 text-purple-600 hover:bg-purple-900/30"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Vista Previa
@@ -2109,7 +2109,7 @@ export default function ThermalReceiptsPage() {
                 <Button
                   variant="outline"
                   onClick={() => handlePrintReceipt(selectedReceipt)}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   <Printer className="h-4 w-4 mr-2" />
                   Imprimir
@@ -2117,7 +2117,7 @@ export default function ThermalReceiptsPage() {
                 <Button
                   variant="outline"
                   onClick={() => handleDownloadReceipt(selectedReceipt)}
-                  className="border-green-200 text-green-600 hover:bg-green-50"
+                  className="border-green-800 text-green-600 hover:bg-green-900/30"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Descargar
@@ -2126,7 +2126,7 @@ export default function ThermalReceiptsPage() {
                   <Button
                     variant="outline"
                     onClick={() => handleDeleteReceipt(selectedReceipt.id)}
-                    className="border-red-200 text-red-600 hover:bg-red-50"
+                    className="border-red-800 text-red-600 hover:bg-red-900/30"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Eliminar
@@ -2135,7 +2135,7 @@ export default function ThermalReceiptsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setSelectedReceipt(null)}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   Cerrar
                 </Button>
@@ -2161,37 +2161,37 @@ export default function ThermalReceiptsPage() {
             
             <div className="space-y-4">
               {/* Thermal Receipt Preview */}
-              <div className="border-2 border-blue-300 rounded-lg p-4 bg-white shadow-lg max-w-sm mx-auto" style={{width: '80mm', maxWidth: '300px'}}>
+              <div className="border-2 border-blue-300 rounded-lg p-4 bg-slate-900 shadow-lg max-w-sm mx-auto" style={{width: '80mm', maxWidth: '300px'}}>
                 {/* Header */}
-                <div className="text-center border-b border-gray-300 pb-3 mb-3">
+                <div className="text-center border-b border-slate-700 pb-3 mb-3">
                   <div className="mb-2">
-                    <div className="w-16 h-16 mx-auto bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="w-16 h-16 mx-auto bg-slate-800 rounded-lg flex items-center justify-center">
                       <Building2 className="h-8 w-8 text-blue-600" />
                     </div>
                   </div>
                   
-                  <div className="text-sm font-bold text-gray-800">
+                  <div className="text-sm font-bold text-slate-200">
                     {profile?.company_name || "MI EMPRESA"}
                   </div>
                   
                   {/* Always show RNC section with fallback */}
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-400">
                     RNC: {profile?.tax_id || "000-00000000-0"}
                   </div>
                   
                   {/* Always show address with fallback */}
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-400">
                     {profile?.company_address || "Dirección de la empresa"}
                   </div>
                   
                   {/* Always show phone with fallback */}
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-400">
                     Tel: {profile?.company_phone || "000-000-0000"}
                   </div>
                   
                   {/* Show email if available */}
                   {profile?.company_email && (
-                    <div className="text-xs text-gray-600">{profile.company_email}</div>
+                    <div className="text-xs text-slate-400">{profile.company_email}</div>
                   )}
                 </div>
 
@@ -2203,7 +2203,7 @@ export default function ThermalReceiptsPage() {
                 </div>
 
                 {/* Customer */}
-                <div className="border-b border-gray-200 pb-2 mb-2">
+                <div className="border-b border-slate-800 pb-2 mb-2">
                   <div className="text-xs">
                     <strong>Cliente:</strong> {previewData.client_name}
                   </div>
@@ -2216,7 +2216,7 @@ export default function ThermalReceiptsPage() {
                       <div className="flex justify-between">
                         <span className="flex-1">{item.item_name}</span>
                       </div>
-                      <div className="flex justify-between text-gray-600">
+                      <div className="flex justify-between text-slate-400">
                         <span>{item.quantity} x {formatCurrency(item.unit_price)}</span>
                         <span>{formatCurrency(item.line_total)}</span>
                       </div>
@@ -2225,7 +2225,7 @@ export default function ThermalReceiptsPage() {
                 </div>
 
                 {/* Totals */}
-                <div className="border-t border-gray-300 pt-2 space-y-1">
+                <div className="border-t border-slate-700 pt-2 space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Subtotal:</span>
                     <span>{formatCurrency(previewData.subtotal)}</span>
@@ -2240,14 +2240,14 @@ export default function ThermalReceiptsPage() {
                     <span>ITBIS (18%):</span>
                     <span>{formatCurrency(previewData.tax_amount)}</span>
                   </div>
-                  <div className="flex justify-between text-sm font-bold border-t border-gray-200 pt-1">
+                  <div className="flex justify-between text-sm font-bold border-t border-slate-800 pt-1">
                     <span>TOTAL:</span>
                     <span>{formatCurrency(previewData.total_amount)}</span>
                   </div>
                 </div>
 
                 {/* Payment */}
-                <div className="border-t border-gray-200 pt-2 mt-2 space-y-1">
+                <div className="border-t border-slate-800 pt-2 mt-2 space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Método:</span>
                     <span className="capitalize">{previewData.payment_method === 'cash' ? 'Efectivo' : previewData.payment_method === 'card' ? 'Tarjeta' : 'Transferencia'}</span>
@@ -2263,24 +2263,24 @@ export default function ThermalReceiptsPage() {
                 </div>
 
                 {/* QR and Verification */}
-                <div className="text-center mt-3 pt-2 border-t border-gray-200">
-                  <div className="w-16 h-16 mx-auto bg-white border border-gray-300 rounded flex items-center justify-center mb-2">
-                    <QrCode size={40} className="text-gray-600" />
+                <div className="text-center mt-3 pt-2 border-t border-slate-800">
+                  <div className="w-16 h-16 mx-auto bg-slate-900 border border-slate-700 rounded flex items-center justify-center mb-2">
+                    <QrCode size={40} className="text-slate-400" />
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-400">
                     Código: {previewData.verification_code}
                   </div>
                 </div>
 
                 {/* Notes */}
                 {previewData.notes && (
-                  <div className="text-center mt-2 pt-2 border-t border-gray-200">
-                    <div className="text-xs text-gray-600">{previewData.notes}</div>
+                  <div className="text-center mt-2 pt-2 border-t border-slate-800">
+                    <div className="text-xs text-slate-400">{previewData.notes}</div>
                   </div>
                 )}
 
                 {/* Footer */}
-                <div className="text-center mt-3 pt-2 border-t border-gray-200">
+                <div className="text-center mt-3 pt-2 border-t border-slate-800">
                   <div className="text-xs text-gray-500">¡Gracias por su compra!</div>
                   <div className="text-xs text-gray-500">www.miempresa.com</div>
                 </div>
@@ -2291,7 +2291,7 @@ export default function ThermalReceiptsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowPreview(false)}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   Volver a Editar
                 </Button>

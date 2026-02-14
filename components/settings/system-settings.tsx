@@ -224,10 +224,10 @@ export function SystemSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Configuración del Sistema</h2>
-          <p className="text-slate-600 dark:text-slate-400">Personaliza la apariencia y comportamiento de la aplicación</p>
+          <h2 className="text-2xl font-bold text-slate-200 dark:text-slate-200">Configuración del Sistema</h2>
+          <p className="text-slate-400 dark:text-slate-400">Personaliza la apariencia y comportamiento de la aplicación</p>
         </div>
-        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
+        <Badge variant="outline" className="bg-purple-900/30 text-purple-400 border-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
           <Settings className="h-3 w-3 mr-1" />
           Configuración de Sistema
         </Badge>
@@ -264,9 +264,9 @@ export function SystemSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Idioma de la Interfaz</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Idioma de la Interfaz</Label>
               <Select value={settings.language} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,9 +283,9 @@ export function SystemSettings() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Zona Horaria</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Zona Horaria</Label>
               <Select value={settings.timezone} onValueChange={(value) => updateSetting('timezone', value)}>
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -307,9 +307,9 @@ export function SystemSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Formato de Fecha</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Formato de Fecha</Label>
               <Select value={settings.dateFormat} onValueChange={(value) => updateSetting('dateFormat', value)}>
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +323,7 @@ export function SystemSettings() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-slate-700 dark:text-slate-300">Formato de Hora</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Formato de Hora</Label>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { value: '12h', label: '12 horas (2:30 PM)' },
@@ -335,8 +335,8 @@ export function SystemSettings() {
                     className={`
                       p-3 rounded-lg border-2 text-sm transition-all duration-200
                       ${settings.timeFormat === format.value 
-                        ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:border-green-400 dark:text-green-300' 
-                        : 'border-slate-200 hover:border-green-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:border-green-600 dark:hover:bg-slate-800/80'
+                        ? 'border-green-500 bg-green-900/30 text-green-400 dark:bg-green-900/30 dark:border-green-400 dark:text-green-300' 
+                        : 'border-slate-800 hover:border-green-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:border-green-600 dark:hover:bg-slate-800/80'
                       }
                     `}
                   >
@@ -362,7 +362,7 @@ export function SystemSettings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-700 dark:text-slate-300">Notificaciones Generales</Label>
+                  <Label className="text-slate-300 dark:text-slate-300">Notificaciones Generales</Label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Activar o desactivar todas las notificaciones</p>
                 </div>
                 <Switch
@@ -373,7 +373,7 @@ export function SystemSettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label className="text-slate-700 dark:text-slate-300">Notificaciones por Email</Label>
+                  <Label className="text-slate-300 dark:text-slate-300">Notificaciones por Email</Label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Recibir notificaciones importantes por correo</p>
                 </div>
                 <Switch
@@ -389,7 +389,7 @@ export function SystemSettings() {
                 <div className="space-y-1 flex items-center gap-2">
                   <Volume2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                   <div>
-                    <Label className="text-slate-700 dark:text-slate-300">Sonidos</Label>
+                    <Label className="text-slate-300 dark:text-slate-300">Sonidos</Label>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Reproducir sonidos para notificaciones</p>
                   </div>
                 </div>
@@ -404,7 +404,7 @@ export function SystemSettings() {
                 <div className="space-y-1 flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                   <div>
-                    <Label className="text-slate-700 dark:text-slate-300">Notificaciones de Escritorio</Label>
+                    <Label className="text-slate-300 dark:text-slate-300">Notificaciones de Escritorio</Label>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Mostrar notificaciones en el sistema</p>
                   </div>
                 </div>
@@ -430,7 +430,7 @@ export function SystemSettings() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-slate-700 dark:text-slate-300">Autenticación de Dos Factores</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Autenticación de Dos Factores</Label>
               <p className="text-sm text-slate-500 dark:text-slate-400">Agregar una capa extra de seguridad (próximamente)</p>
             </div>
             <Switch
@@ -442,7 +442,7 @@ export function SystemSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-slate-700 dark:text-slate-300">Alertas de Inicio de Sesión</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Alertas de Inicio de Sesión</Label>
               <p className="text-sm text-slate-500 dark:text-slate-400">Notificar cuando se inicie sesión</p>
             </div>
             <Switch
@@ -452,12 +452,12 @@ export function SystemSettings() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-700 dark:text-slate-300">Tiempo de Sesión (minutos)</Label>
+            <Label className="text-slate-300 dark:text-slate-300">Tiempo de Sesión (minutos)</Label>
             <Select 
               value={settings.session_timeout.toString()} 
               onValueChange={(value) => updateSetting('session_timeout', parseInt(value))}
             >
-              <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+              <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -474,16 +474,16 @@ export function SystemSettings() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/20">
+        <Alert className="border-red-800 bg-red-900/30 dark:border-red-900/50 dark:bg-red-900/20">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+          <AlertDescription className="text-red-300 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-900/20">
+        <Alert className="border-green-800 bg-green-900/30 dark:border-green-900/50 dark:bg-green-900/20">
           <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
+          <AlertDescription className="text-green-300 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
 

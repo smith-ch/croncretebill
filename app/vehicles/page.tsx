@@ -155,7 +155,7 @@ export default function VehiclesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex justify-between items-center">
@@ -211,8 +211,8 @@ export default function VehiclesPage() {
         className="flex justify-between items-center"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vehículos</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gestiona tu flota de vehículos</p>
+          <h1 className="text-3xl font-bold text-slate-200 dark:text-white">Vehículos</h1>
+          <p className="text-slate-400 dark:text-gray-400">Gestiona tu flota de vehículos</p>
         </div>
         <Dialog
           open={showForm}
@@ -281,8 +281,8 @@ export default function VehiclesPage() {
               </div>
 
               {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
+                <Alert className="border-red-800 bg-red-900/30">
+                  <AlertDescription className="text-red-300">{error}</AlertDescription>
                 </Alert>
               )}
 
@@ -318,8 +318,8 @@ export default function VehiclesPage() {
           {filteredVehicles.length === 0 ? (
             <div className="text-center py-12">
               <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay vehículos</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Comienza agregando tu primer vehículo</p>
+              <h3 className="text-lg font-medium text-slate-200 dark:text-white mb-2">No hay vehículos</h3>
+              <p className="text-slate-400 dark:text-gray-400 mb-4">Comienza agregando tu primer vehículo</p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo Vehículo
@@ -334,11 +334,11 @@ export default function VehiclesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-slate-900 to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">{vehicle.model}</h3>
+                          <h3 className="font-semibold text-slate-200 dark:text-white">{vehicle.model}</h3>
                           <p className="text-lg font-bold text-blue-600">{vehicle.plate}</p>
                         </div>
                         <div className="flex gap-1">
@@ -349,7 +349,7 @@ export default function VehiclesPage() {
                               setEditingVehicle(vehicle)
                               setShowForm(true)
                             }}
-                            className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            className="hover:bg-slate-800 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                             title="Editar vehículo"
                           >
                             <Edit className="h-4 w-4" />
@@ -359,7 +359,7 @@ export default function VehiclesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(vehicle.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              className="text-red-600 hover:text-red-400 hover:bg-red-900/30 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               title="Eliminar vehículo"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -369,12 +369,12 @@ export default function VehiclesPage() {
                       </div>
                       <div className="space-y-2 text-sm">
                         {vehicle.type && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Tipo:</span> {vehicle.type}
                           </p>
                         )}
                         {vehicle.capacity && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Capacidad:</span> {vehicle.capacity} m³
                           </p>
                         )}

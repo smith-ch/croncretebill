@@ -56,7 +56,7 @@ export function MobileListCard({
 }: MobileListCardProps) {
   return (
     <Card className={cn(
-      "border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-white/90 backdrop-blur-sm hover:bg-white",
+      "border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-slate-900/90 backdrop-blur-sm hover:bg-slate-900",
       onCardClick && "cursor-pointer hover:scale-[1.02]",
       className
     )}>
@@ -86,7 +86,7 @@ export function MobileListCard({
                     {title}
                   </h3>
                   {subtitle && (
-                    <p className="text-xs lg:text-sm text-gray-600 truncate">
+                    <p className="text-xs lg:text-sm text-slate-400 truncate">
                       {subtitle}
                     </p>
                   )}
@@ -106,7 +106,7 @@ export function MobileListCard({
               
               {/* Description */}
               {description && (
-                <p className="text-xs lg:text-sm text-gray-500 line-clamp-2">
+                <p className="text-xs lg:text-sm text-slate-400 line-clamp-2">
                   {description}
                 </p>
               )}
@@ -115,7 +115,7 @@ export function MobileListCard({
               {metadata.length > 0 && (
                 <div className="flex flex-wrap gap-3 pt-1">
                   {metadata.map((item, index) => (
-                    <div key={index} className="flex items-center gap-1 text-xs text-gray-600">
+                    <div key={index} className="flex items-center gap-1 text-xs text-slate-400">
                       {item.icon && (
                         <span className="text-gray-400">
                           {item.icon}
@@ -207,7 +207,7 @@ export function MobileEmptyState({ icon, title, description, action }: EmptyStat
         </div>
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4 max-w-sm mx-auto">{description}</p>
+      <p className="text-slate-400 mb-4 max-w-sm mx-auto">{description}</p>
       {action && (
         <Button
           onClick={action.onClick}

@@ -36,7 +36,7 @@ export default function EmployeeConfigPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{user_id: string, name: string} | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>("")
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
@@ -55,10 +55,10 @@ export default function EmployeeConfigPage() {
     displayName: "",
     department: "",
     jobPosition: "",
-    canCreateInvoices: true,  // Por defecto activado
-    canViewFinances: false,   // Por defecto desactivado
-    canManageInventory: false, // Por defecto desactivado (owner decide)
-    canManageClients: true    // Por defecto activado
+    canCreateInvoices: true,
+    canViewFinances: false,
+    canManageInventory: false,
+    canManageClients: true
   })
 
   useEffect(() => {
@@ -82,7 +82,6 @@ export default function EmployeeConfigPage() {
     try {
       setLoading(true)
       
-      // Obtener empleados del owner actual (usuarios con parent_user_id = current user)
       const { data, error } = await supabase
         .from('user_profiles')
         .select(`
@@ -106,7 +105,6 @@ export default function EmployeeConfigPage() {
 
       if (error) throw error
 
-      // Mapear los datos directamente sin llamar Admin API
       const employeesData = (data || []).map((emp) => ({
         id: emp.id,
         user_id: emp.user_id,
@@ -125,7 +123,6 @@ export default function EmployeeConfigPage() {
       refreshUsage()
     } catch (error: any) {
       console.error('Error loading employees:', error)
-      // No mostrar error si no hay empleados todavía
       setEmployees([])
     } finally {
       setLoading(false)
@@ -133,6 +130,7 @@ export default function EmployeeConfigPage() {
   }
 
   const handleCreateEmployee = async () => {
+    // Validación de campos requeridos
     if (!newEmployee.email || !newEmployee.displayName || !newEmployee.password) {
       toast({
         title: "Campos requeridos",
@@ -142,10 +140,32 @@ export default function EmployeeConfigPage() {
       return
     }
 
+    // Validación de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newEmployee.email)) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor ingresa un email válido",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validación de contraseña
     if (newEmployee.password.length < 6) {
       toast({
         title: "Contraseña débil",
         description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Verificar límite de usuarios
+    if (!canAddUsers()) {
+      toast({
+        title: "Límite alcanzado",
+        description: `Tu plan "${limits.planDisplayName}" no permite crear más empleados`,
         variant: "destructive"
       })
       return
@@ -160,6 +180,21 @@ export default function EmployeeConfigPage() {
         throw new Error('No hay sesión activa')
       }
 
+      // Preparar el payload
+      const payload = {
+        email: newEmployee.email.trim().toLowerCase(),
+        password: newEmployee.password,
+        displayName: newEmployee.displayName.trim(),
+        department: newEmployee.department?.trim() || null,
+        jobPosition: newEmployee.jobPosition?.trim() || null,
+        canCreateInvoices: newEmployee.canCreateInvoices,
+        canViewFinances: newEmployee.canViewFinances,
+        canManageInventory: newEmployee.canManageInventory,
+        canManageClients: newEmployee.canManageClients,
+      }
+
+      console.log('Enviando payload:', payload)
+
       // Llamar a la API de creación de empleado
       const response = await fetch('/api/employees/create', {
         method: 'POST',
@@ -167,23 +202,14 @@ export default function EmployeeConfigPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          email: newEmployee.email,
-          password: newEmployee.password,
-          displayName: newEmployee.displayName,
-          department: newEmployee.department || null,
-          jobPosition: newEmployee.jobPosition || null,
-          canCreateInvoices: newEmployee.canCreateInvoices,
-          canViewFinances: newEmployee.canViewFinances,
-          canManageInventory: newEmployee.canManageInventory,
-          canManageClients: newEmployee.canManageClients,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al crear el empleado')
+        console.error('Error response:', data)
+        throw new Error(data.error || data.message || 'Error al crear el empleado')
       }
 
       toast({
@@ -198,14 +224,15 @@ export default function EmployeeConfigPage() {
         displayName: "",
         department: "",
         jobPosition: "",
-        canCreateInvoices: true,  // Mantener permisos por defecto
+        canCreateInvoices: true,
         canViewFinances: false,
         canManageInventory: false,
         canManageClients: true
       })
 
-      // Recargar lista
-      loadEmployees()
+      // Recargar lista y actualizar límites
+      await loadEmployees()
+      await refreshUsage()
     } catch (error: any) {
       console.error('Error creating employee:', error)
       toast({
@@ -247,7 +274,6 @@ export default function EmployeeConfigPage() {
 
     setDeleting(true)
     try {
-      // Obtener el token de sesión
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         throw new Error('No hay sesión activa')
@@ -259,7 +285,7 @@ export default function EmployeeConfigPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ userId: deleteConfirm.id })
+        body: JSON.stringify({ userId: deleteConfirm.user_id })
       })
 
       const data = await response.json()
@@ -341,7 +367,6 @@ export default function EmployeeConfigPage() {
     )
   }
 
-  // Solo owners pueden acceder
   if (!permissions.isOwner) {
     return (
       <div className="container max-w-2xl mx-auto py-8">
@@ -349,7 +374,7 @@ export default function EmployeeConfigPage() {
           <CardContent className="p-8 text-center">
             <UserX className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Acceso Denegado</h2>
-            <p className="text-slate-600">
+            <p className="text-slate-400">
               Solo los propietarios pueden gestionar empleados.
             </p>
           </CardContent>
@@ -363,7 +388,7 @@ export default function EmployeeConfigPage() {
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Gestión de Empleados</h1>
-          <p className="text-slate-600">
+          <p className="text-slate-400">
             Administra los empleados de tu empresa y sus permisos de acceso.
           </p>
         </div>
@@ -388,10 +413,10 @@ export default function EmployeeConfigPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Alerta si no puede agregar empleados */}
-          {!canAddUsers && (
-            <Alert className="bg-amber-50 border-amber-200">
+          {!canAddUsers() && (
+            <Alert className="bg-amber-900/30 border-amber-800">
               <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
+              <AlertDescription className="text-amber-300">
                 <strong>Tu plan "{limits.planDisplayName}" no permite crear empleados.</strong>
                 <br />
                 Actualiza tu plan de suscripción para agregar empleados a tu equipo.
@@ -400,10 +425,10 @@ export default function EmployeeConfigPage() {
           )}
 
           {/* Mostrar límite alcanzado */}
-          {canAddUsers && remainingUsers <= 0 && (
-            <Alert className="bg-red-50 border-red-200">
+          {canAddUsers() && remainingUsers <= 0 && (
+            <Alert className="bg-red-900/30 border-red-800">
               <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
+              <AlertDescription className="text-red-300">
                 <strong>Has alcanzado el límite de {limits.maxUsers - 1} empleado(s).</strong>
                 <br />
                 Actualiza tu plan para agregar más empleados.
@@ -420,7 +445,7 @@ export default function EmployeeConfigPage() {
                 placeholder="empleado@ejemplo.com"
                 value={newEmployee.email}
                 onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-                disabled={!canAddUsers || remainingUsers <= 0}
+                disabled={!canAddUsers() || remainingUsers <= 0}
               />
             </div>
             <div className="space-y-2">
@@ -430,6 +455,7 @@ export default function EmployeeConfigPage() {
                 placeholder="Juan Pérez"
                 value={newEmployee.displayName}
                 onChange={(e) => setNewEmployee({...newEmployee, displayName: e.target.value})}
+                disabled={!canAddUsers() || remainingUsers <= 0}
               />
             </div>
           </div>
@@ -442,6 +468,7 @@ export default function EmployeeConfigPage() {
               placeholder="Mínimo 6 caracteres"
               value={newEmployee.password}
               onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
+              disabled={!canAddUsers() || remainingUsers <= 0}
             />
             <p className="text-xs text-slate-500">El empleado usará esta contraseña para iniciar sesión</p>
           </div>
@@ -454,6 +481,7 @@ export default function EmployeeConfigPage() {
                 placeholder="Ventas, Producción, etc."
                 value={newEmployee.department}
                 onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})}
+                disabled={!canAddUsers() || remainingUsers <= 0}
               />
             </div>
             <div className="space-y-2">
@@ -463,95 +491,96 @@ export default function EmployeeConfigPage() {
                 placeholder="Vendedor, Operador, etc."
                 value={newEmployee.jobPosition}
                 onChange={(e) => setNewEmployee({...newEmployee, jobPosition: e.target.value})}
+                disabled={!canAddUsers() || remainingUsers <= 0}
               />
             </div>
           </div>
 
           {/* Permisos */}
-          <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="space-y-3 p-4 bg-slate-900 border border-slate-700 rounded-lg">
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-blue-600" />
               <Label className="text-base font-semibold text-blue-900">Permisos del Empleado</Label>
             </div>
-            <p className="text-sm text-blue-800 mb-4">Selecciona los permisos que tendrá este empleado:</p>
+            <p className="text-sm text-blue-300 mb-4">Selecciona los permisos que tendrá este empleado:</p>
             
             <div className="space-y-3">
               {/* Permiso: Crear Facturas */}
-              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+              <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border border-blue-100">
                 <Checkbox 
                   id="canCreateInvoices"
                   checked={newEmployee.canCreateInvoices}
                   onCheckedChange={(checked) => 
                     setNewEmployee({...newEmployee, canCreateInvoices: checked as boolean})
                   }
-                  disabled={!canAddUsers || remainingUsers <= 0}
+                  disabled={!canAddUsers() || remainingUsers <= 0}
                 />
                 <div className="flex-1">
                   <Label htmlFor="canCreateInvoices" className="text-sm font-medium cursor-pointer">
                     Crear Facturas
                   </Label>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Permite crear, editar y eliminar facturas
                   </p>
                 </div>
               </div>
 
               {/* Permiso: Gestionar Clientes */}
-              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+              <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border border-blue-100">
                 <Checkbox 
                   id="canManageClients"
                   checked={newEmployee.canManageClients}
                   onCheckedChange={(checked) => 
                     setNewEmployee({...newEmployee, canManageClients: checked as boolean})
                   }
-                  disabled={!canAddUsers || remainingUsers <= 0}
+                  disabled={!canAddUsers() || remainingUsers <= 0}
                 />
                 <div className="flex-1">
                   <Label htmlFor="canManageClients" className="text-sm font-medium cursor-pointer">
                     Gestionar Clientes
                   </Label>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Permite ver, agregar y editar clientes
                   </p>
                 </div>
               </div>
 
               {/* Permiso: Gestionar Inventario */}
-              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+              <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border border-blue-100">
                 <Checkbox 
                   id="canManageInventory"
                   checked={newEmployee.canManageInventory}
                   onCheckedChange={(checked) => 
                     setNewEmployee({...newEmployee, canManageInventory: checked as boolean})
                   }
-                  disabled={!canAddUsers || remainingUsers <= 0}
+                  disabled={!canAddUsers() || remainingUsers <= 0}
                 />
                 <div className="flex-1">
                   <Label htmlFor="canManageInventory" className="text-sm font-medium cursor-pointer flex items-center">
                     <Package className="h-4 w-4 mr-1.5 text-indigo-600" />
                     Gestionar Inventario
                   </Label>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Permite ver stock, agregar productos y actualizar inventario
                   </p>
                 </div>
               </div>
 
               {/* Permiso: Ver Finanzas */}
-              <div className="flex items-start space-x-3 p-3 bg-white rounded border border-blue-100">
+              <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border border-blue-100">
                 <Checkbox 
                   id="canViewFinances"
                   checked={newEmployee.canViewFinances}
                   onCheckedChange={(checked) => 
                     setNewEmployee({...newEmployee, canViewFinances: checked as boolean})
                   }
-                  disabled={!canAddUsers || remainingUsers <= 0}
+                  disabled={!canAddUsers() || remainingUsers <= 0}
                 />
                 <div className="flex-1">
                   <Label htmlFor="canViewFinances" className="text-sm font-medium cursor-pointer">
                     Ver Finanzas
                   </Label>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Permite ver reportes financieros y estadísticas sensibles
                   </p>
                 </div>
@@ -560,18 +589,14 @@ export default function EmployeeConfigPage() {
           </div>
 
           <Button
-            onClick={() => {
-              if (!canAddUsers()) {
-                toast({
-                  title: "Empleados no permitidos",
-                  description: `Tu plan "${limits.planDisplayName}" no permite crear empleados. Actualiza tu plan para agregar empleados a tu equipo.`,
-                  variant: "destructive",
-                })
-              } else {
-                handleCreateEmployee()
-              }
-            }}
-            disabled={submitting || !newEmployee.email || !newEmployee.displayName || !newEmployee.password || !canAddUsers()}
+            onClick={handleCreateEmployee}
+            disabled={
+              submitting || 
+              !newEmployee.email || 
+              !newEmployee.displayName || 
+              !newEmployee.password || 
+              !canAddUsers()
+            }
             className="w-full"
           >
             {submitting ? (
@@ -590,9 +615,9 @@ export default function EmployeeConfigPage() {
       </Card>
 
       {!limits.isLoading && remainingUsers <= 1 && (
-        <Alert className={remainingUsers === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+        <Alert className={remainingUsers === 0 ? "border-red-500 bg-red-900/30" : "border-amber-500 bg-amber-900/30"}>
           <AlertCircle className={remainingUsers === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
-          <AlertDescription className={remainingUsers === 0 ? "text-red-800" : "text-amber-800"}>
+          <AlertDescription className={remainingUsers === 0 ? "text-red-300" : "text-amber-300"}>
             {remainingUsers === 0 ? (
               <span>
                 <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxUsers} usuarios de tu {limits.planDisplayName}. 
@@ -635,7 +660,7 @@ export default function EmployeeConfigPage() {
               {employees.map((employee) => (
                 <div
                   key={employee.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-900 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
@@ -647,22 +672,22 @@ export default function EmployeeConfigPage() {
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {employee.can_create_invoices && (
-                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                        <span className="text-xs px-2 py-1 bg-slate-800 text-blue-400 rounded">
                           Crear Facturas
                         </span>
                       )}
                       {employee.can_view_finances && (
-                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
+                        <span className="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded">
                           Ver Finanzas
                         </span>
                       )}
                       {employee.can_manage_inventory && (
-                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                        <span className="text-xs px-2 py-1 bg-purple-900/30 text-purple-400 rounded">
                           Inventario
                         </span>
                       )}
                       {employee.can_manage_clients && (
-                        <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                        <span className="text-xs px-2 py-1 bg-orange-900/30 text-orange-400 rounded">
                           Clientes
                         </span>
                       )}
@@ -697,8 +722,8 @@ export default function EmployeeConfigPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => setDeleteConfirm({ id: employee.user_id, name: employee.display_name })}
+                      className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
+                      onClick={() => setDeleteConfirm({ user_id: employee.user_id, name: employee.display_name })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -722,7 +747,7 @@ export default function EmployeeConfigPage() {
           
           <div className="space-y-3 py-4">
             {/* Permiso: Crear Facturas */}
-            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+            <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border">
               <Checkbox 
                 id="edit-canCreateInvoices"
                 checked={editPermissions.canCreateInvoices}
@@ -734,14 +759,14 @@ export default function EmployeeConfigPage() {
                 <Label htmlFor="edit-canCreateInvoices" className="text-sm font-medium cursor-pointer">
                   Crear Facturas
                 </Label>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Permite crear, editar y eliminar facturas
                 </p>
               </div>
             </div>
 
             {/* Permiso: Gestionar Clientes */}
-            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+            <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border">
               <Checkbox 
                 id="edit-canManageClients"
                 checked={editPermissions.canManageClients}
@@ -753,14 +778,14 @@ export default function EmployeeConfigPage() {
                 <Label htmlFor="edit-canManageClients" className="text-sm font-medium cursor-pointer">
                   Gestionar Clientes
                 </Label>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Permite ver, agregar y editar clientes
                 </p>
               </div>
             </div>
 
             {/* Permiso: Gestionar Inventario */}
-            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+            <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border">
               <Checkbox 
                 id="edit-canManageInventory"
                 checked={editPermissions.canManageInventory}
@@ -773,14 +798,14 @@ export default function EmployeeConfigPage() {
                   <Package className="h-4 w-4 mr-1.5 text-indigo-600" />
                   Gestionar Inventario
                 </Label>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Permite ver stock, agregar productos y actualizar inventario
                 </p>
               </div>
             </div>
 
             {/* Permiso: Ver Finanzas */}
-            <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded border">
+            <div className="flex items-start space-x-3 p-3 bg-slate-900 rounded border">
               <Checkbox 
                 id="edit-canViewFinances"
                 checked={editPermissions.canViewFinances}
@@ -792,7 +817,7 @@ export default function EmployeeConfigPage() {
                 <Label htmlFor="edit-canViewFinances" className="text-sm font-medium cursor-pointer">
                   Ver Finanzas
                 </Label>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Permite ver reportes financieros y estadísticas sensibles
                 </p>
               </div>
@@ -825,13 +850,13 @@ export default function EmployeeConfigPage() {
       </Dialog>
 
       {/* Información */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-slate-900 border-slate-700">
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-900 space-y-1">
               <p className="font-medium">Cómo funciona:</p>
-              <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <ul className="list-disc list-inside space-y-1 text-blue-300">
                 <li>Los empleados se crean inmediatamente con su email y contraseña</li>
                 <li>Pueden iniciar sesión de inmediato sin necesidad de confirmación por email</li>
                 <li>Tendrán acceso según los permisos que configures</li>
@@ -860,10 +885,10 @@ export default function EmployeeConfigPage() {
               <p className="text-sm">
                 ¿Estás seguro de que deseas eliminar a <strong>{deleteConfirm.name}</strong>?
               </p>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-400">
                 Se eliminará permanentemente:
               </p>
-              <ul className="text-sm text-slate-600 list-disc list-inside space-y-1">
+              <ul className="text-sm text-slate-400 list-disc list-inside space-y-1">
                 <li>Su cuenta de usuario</li>
                 <li>Su perfil y permisos</li>
                 <li>Su acceso al sistema</li>

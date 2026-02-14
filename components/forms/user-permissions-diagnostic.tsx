@@ -69,14 +69,14 @@ export function UserPermissionsDiagnostic() {
 
         {diagnosis && (
           <div className="space-y-4">
-            <Alert className={diagnosis.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+            <Alert className={diagnosis.success ? "border-green-800 bg-green-900/30" : "border-red-800 bg-red-900/30"}>
               <AlertDescription className="flex items-center gap-2">
                 {diagnosis.success ? (
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 ) : (
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 )}
-                <span className={diagnosis.success ? "text-green-800" : "text-red-800"}>
+                <span className={diagnosis.success ? "text-green-300" : "text-red-300"}>
                   {diagnosis.message}
                 </span>
               </AlertDescription>
@@ -113,7 +113,7 @@ export function UserPermissionsDiagnostic() {
                       {diagnosis.issues.map((issue: string, index: number) => (
                         <li key={index} className="flex items-center gap-2">
                           <AlertTriangle className="h-3 w-3 text-red-500" />
-                          <span className="font-mono text-red-700">{issue}</span>
+                          <span className="font-mono text-red-400">{issue}</span>
                         </li>
                       ))}
                     </ul>
@@ -125,7 +125,7 @@ export function UserPermissionsDiagnostic() {
                     <div className="font-medium text-blue-600">Recomendaciones:</div>
                     <ul className="pl-6 space-y-1 text-sm">
                       {diagnosis.diagnostics.recommendations.map((rec: string, index: number) => (
-                        <li key={index} className="text-blue-700">• {rec}</li>
+                        <li key={index} className="text-blue-400">• {rec}</li>
                       ))}
                     </ul>
                   </div>
@@ -150,8 +150,8 @@ export function UserPermissionsDiagnostic() {
         )}
 
         {repairResult && (
-          <Alert className={repairResult.success ? "border-green-200 bg-green-50" : "border-yellow-200 bg-yellow-50"}>
-            <AlertDescription className={repairResult.success ? "text-green-800" : "text-yellow-800"}>
+          <Alert className={repairResult.success ? "border-green-800 bg-green-900/30" : "border-yellow-200 bg-yellow-50"}>
+            <AlertDescription className={repairResult.success ? "text-green-300" : "text-yellow-800"}>
               {repairResult.message}
             </AlertDescription>
           </Alert>

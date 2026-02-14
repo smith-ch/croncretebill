@@ -603,7 +603,7 @@ export default function MonthlyReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="heading-responsive font-bold text-slate-900">Reportes Mensuales</h1>
-          <p className="text-responsive text-slate-600 mt-1">Análisis detallado de tu rendimiento financiero mensual con IA</p>
+          <p className="text-responsive text-slate-400 mt-1">Análisis detallado de tu rendimiento financiero mensual con IA</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
@@ -684,8 +684,8 @@ export default function MonthlyReportsPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="p-2 bg-blue-200 rounded-full">
-                      <DollarSign className="h-5 w-5 text-blue-700" />
+                    <div className="p-2 bg-slate-800 rounded-full">
+                      <DollarSign className="h-5 w-5 text-blue-400" />
                     </div>
                   </div>
                 </CardContent>
@@ -702,13 +702,13 @@ export default function MonthlyReportsPage() {
                       </p>
                       <div className="flex items-center space-x-1">
                         <Percent className="h-3 w-3 text-emerald-600" />
-                        <span className="text-xs text-emerald-700 font-medium">
+                        <span className="text-xs text-emerald-400 font-medium">
                           {kpiData.profitMargin.toFixed(1)}% margen
                         </span>
                       </div>
                     </div>
-                    <div className="p-2 bg-emerald-200 rounded-full">
-                      <TrendingUp className="h-5 w-5 text-emerald-700" />
+                    <div className="p-2 bg-emerald-900/30 rounded-full">
+                      <TrendingUp className="h-5 w-5 text-emerald-400" />
                     </div>
                   </div>
                 </CardContent>
@@ -725,14 +725,14 @@ export default function MonthlyReportsPage() {
                       </p>
                       <div className="flex items-center space-x-1">
                         <Award className="h-3 w-3 text-purple-600" />
-                        <span className="text-xs text-purple-700 font-medium">
+                        <span className="text-xs text-purple-400 font-medium">
                           {kpiData.businessHealthScore >= 75 ? 'Excelente' : 
                            kpiData.businessHealthScore >= 50 ? 'Bueno' : 'Atención'}
                         </span>
                       </div>
                     </div>
-                    <div className="p-2 bg-purple-200 rounded-full">
-                      <Zap className="h-5 w-5 text-purple-700" />
+                    <div className="p-2 bg-purple-900/30 rounded-full">
+                      <Zap className="h-5 w-5 text-purple-400" />
                     </div>
                   </div>
                 </CardContent>
@@ -749,11 +749,11 @@ export default function MonthlyReportsPage() {
                       </p>
                       <div className="flex items-center space-x-1">
                         <Activity className="h-3 w-3 text-amber-600" />
-                        <span className="text-xs text-amber-700 font-medium">promedio</span>
+                        <span className="text-xs text-amber-400 font-medium">promedio</span>
                       </div>
                     </div>
-                    <div className="p-2 bg-amber-200 rounded-full">
-                      <BarChart3 className="h-5 w-5 text-amber-700" />
+                    <div className="p-2 bg-amber-900/30 rounded-full">
+                      <BarChart3 className="h-5 w-5 text-amber-400" />
                     </div>
                   </div>
                 </CardContent>
@@ -870,13 +870,13 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-center p-4 bg-slate-900 rounded-lg">
                         <div className="text-2xl font-bold text-blue-600">{kpiData.businessHealthScore}</div>
-                        <div className="text-sm text-blue-700">Score de Salud</div>
+                        <div className="text-sm text-blue-400">Score de Salud</div>
                       </div>
-                      <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                      <div className="text-center p-4 bg-emerald-900/30 rounded-lg">
                         <div className="text-2xl font-bold text-emerald-600">{kpiData.consistencyScore}%</div>
-                        <div className="text-sm text-emerald-700">Consistencia</div>
+                        <div className="text-sm text-emerald-400">Consistencia</div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -940,7 +940,7 @@ export default function MonthlyReportsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-blue-800">
+                  <CardTitle className="flex items-center space-x-2 text-blue-300">
                     <Brain className="h-5 w-5" />
                     <span>Predicciones IA</span>
                   </CardTitle>
@@ -950,23 +950,23 @@ export default function MonthlyReportsPage() {
                     <div className="text-3xl font-bold text-blue-900">
                       {formatCurrency(aiInsights.predictions.nextMonthRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700">Próximo Mes</div>
+                    <div className="text-sm text-blue-400">Próximo Mes</div>
                     <div className="text-xs text-blue-600 mt-1">
                       Confianza: {aiInsights.predictions.confidenceLevel}%
                     </div>
                   </div>
                   <div className="text-center pt-2 border-t">
-                    <div className="text-xl font-bold text-blue-800">
+                    <div className="text-xl font-bold text-blue-300">
                       {formatCurrency(aiInsights.predictions.nextQuarterRevenue)}
                     </div>
-                    <div className="text-sm text-blue-700">Próximo Trimestre</div>
+                    <div className="text-sm text-blue-400">Próximo Trimestre</div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-emerald-800">
+                  <CardTitle className="flex items-center space-x-2 text-emerald-300">
                     <Lightbulb className="h-5 w-5" />
                     <span>Recomendaciones</span>
                   </CardTitle>
@@ -974,7 +974,7 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {aiInsights.recommendations.slice(0, 3).map((rec, index) => (
-                      <div key={index} className="p-3 bg-white rounded-lg border border-emerald-200">
+                      <div key={index} className="p-3 bg-slate-900 rounded-lg border border-emerald-800">
                         <div className="flex items-center justify-between mb-2">
                           <Badge 
                             variant={rec.priority === 'high' ? 'destructive' : 'secondary'}
@@ -994,7 +994,7 @@ export default function MonthlyReportsPage() {
 
               <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-amber-800">
+                  <CardTitle className="flex items-center space-x-2 text-amber-300">
                     <AlertTriangle className="h-5 w-5" />
                     <span>Alertas IA</span>
                   </CardTitle>
@@ -1003,7 +1003,7 @@ export default function MonthlyReportsPage() {
                   <div className="space-y-3">
                     {aiInsights.risks.length > 0 ? (
                       aiInsights.risks.slice(0, 3).map((risk, index) => (
-                        <div key={index} className="p-3 bg-white rounded-lg border border-amber-200">
+                        <div key={index} className="p-3 bg-slate-900 rounded-lg border border-amber-800">
                           <div className="flex items-center justify-between mb-2">
                             <Badge 
                               variant={risk.level === 'high' ? 'destructive' : 'secondary'}
@@ -1040,14 +1040,14 @@ export default function MonthlyReportsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {aiInsights.opportunities.map((opp, index) => (
-                      <div key={index} className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div key={index} className="p-4 bg-purple-900/30 rounded-lg border border-purple-800">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-purple-800 capitalize">{opp.area}</span>
+                          <span className="font-medium text-purple-300 capitalize">{opp.area}</span>
                           <Badge variant="outline" className="text-purple-600 border-purple-300">
                             Oportunidad
                           </Badge>
                         </div>
-                        <p className="text-sm text-purple-700 mb-2">{opp.potential}</p>
+                        <p className="text-sm text-purple-400 mb-2">{opp.potential}</p>
                         <p className="text-xs text-purple-600">{opp.action}</p>
                       </div>
                     ))}

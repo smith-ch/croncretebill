@@ -64,11 +64,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">Ha ocurrido un error inesperado. Por favor, intenta recargar la página.</p>
+            <p className="text-slate-400">Ha ocurrido un error inesperado. Por favor, intenta recargar la página.</p>
             {this.state.error && (
-              <details className="text-sm text-gray-500">
+              <details className="text-sm text-slate-400">
                 <summary>Detalles del error</summary>
-                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">{this.state.error.message}</pre>
+                <pre className="mt-2 p-2 bg-slate-800 rounded text-xs overflow-auto">{this.state.error.message}</pre>
               </details>
             )}
             <Button onClick={this.resetError} className="w-full">

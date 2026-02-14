@@ -97,7 +97,7 @@ export function LoadingSpinner({
       <div className="flex flex-col items-center gap-3">
         {renderSpinner()}
         <motion.p 
-          className="text-sm text-gray-600 font-medium"
+          className="text-sm text-slate-400 font-medium"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
@@ -129,7 +129,7 @@ export function Skeleton({
   }
 
   const animationClasses = {
-    pulse: "animate-pulse bg-gray-300",
+    pulse: "animate-pulse bg-slate-700",
     shimmer: "animate-shimmer bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200",
     wave: "animate-gradient-x bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200"
   }
@@ -137,7 +137,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "bg-gray-200",
+        "bg-slate-800",
         variantClasses[variant],
         animationClasses[animation],
         className
@@ -190,7 +190,7 @@ export function PageLoading({ text = "Cargando...", showLogo = true }: PageLoadi
         </motion.div>
         
         <motion.p 
-          className="text-gray-600 font-medium"
+          className="text-slate-400 font-medium"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
@@ -228,7 +228,7 @@ export function LoadingOverlay({
       exit={{ opacity: 0 }}
     >
       <motion.div
-        className="bg-white rounded-xl p-8 shadow-2xl"
+        className="bg-slate-900 rounded-xl p-8 shadow-2xl"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
@@ -236,7 +236,7 @@ export function LoadingOverlay({
       >
         <div className="flex flex-col items-center space-y-4">
           <LoadingSpinner variant="gradient" size="lg" />
-          <p className="text-gray-700 font-medium">{text}</p>
+          <p className="text-slate-300 font-medium">{text}</p>
         </div>
       </motion.div>
     </motion.div>

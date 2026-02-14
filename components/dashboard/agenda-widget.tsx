@@ -119,15 +119,15 @@ export function AgendaWidget() {
 
   const getStatusColor = (status: string, priority: string) => {
     if (status === "overdue") {
-      return "bg-red-100 text-red-800 border-red-200"
+      return "bg-red-900/30 text-red-300 border-red-800"
     }
     if (priority === "high") {
-      return "bg-orange-100 text-orange-800 border-orange-200"
+      return "bg-orange-900/30 text-orange-300 border-orange-800"
     }
     if (priority === "medium") {
-      return "bg-blue-100 text-blue-800 border-blue-200"
+      return "bg-slate-800 text-blue-300 border-slate-700"
     }
-    return "bg-gray-100 text-gray-800 border-gray-200"
+    return "bg-gray-100 text-slate-200 border-slate-800"
   }
 
   const getDaysUntil = (date: string) => {
@@ -182,12 +182,12 @@ export function AgendaWidget() {
               <Calendar className="h-5 w-5" />
               Agenda de Negocio
             </CardTitle>
-            <CardDescription className="text-purple-700">
+            <CardDescription className="text-purple-400">
               Próximas tareas importantes
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-white/70 text-purple-700 border-purple-300">
+            <Badge variant="outline" className="bg-slate-800/70 text-purple-400 border-purple-700">
               <Clock className="h-3 w-3 mr-1" />
               {agendaItems.length} pendientes
             </Badge>
@@ -201,7 +201,7 @@ export function AgendaWidget() {
             {agendaItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-xl hover:bg-white/80 transition-all duration-200 border border-white/20"
+                className="flex items-center justify-between p-3 bg-slate-800/60 backdrop-blur-sm rounded-xl hover:bg-slate-800/80 transition-all duration-200 border border-slate-700/20"
               >
                 <div className="flex items-center gap-3">
                   <div className="text-lg">{getItemIcon(item.type)}</div>
@@ -217,7 +217,7 @@ export function AgendaWidget() {
                         {getDaysUntil(item.due_date)}
                       </Badge>
                       {item.amount && (
-                        <span className="text-xs text-gray-600 font-medium">
+                        <span className="text-xs text-slate-400 font-medium">
                           {formatCurrency(item.amount)}
                         </span>
                       )}
@@ -235,7 +235,7 @@ export function AgendaWidget() {
               <Link href="/agenda">
                 <Button
                   variant="ghost"
-                  className="w-full text-purple-700 hover:text-purple-900 hover:bg-white/60 justify-between"
+                  className="w-full text-purple-400 hover:text-purple-300 hover:bg-slate-800/60 justify-between"
                 >
                   <span>Ver agenda completa</span>
                   <ArrowRight className="h-4 w-4" />
@@ -246,17 +246,17 @@ export function AgendaWidget() {
         ) : (
           <div className="text-center py-6">
             <CheckCircle className="h-12 w-12 mx-auto text-emerald-500 mb-3" />
-            <p className="text-sm font-medium text-gray-700 mb-2">
+            <p className="text-sm font-medium text-slate-300 mb-2">
               ¡Todo al día!
             </p>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-slate-400 mb-4">
               No tienes tareas pendientes esta semana
             </p>
             <Link href="/agenda">
               <Button
                 size="sm"
                 variant="outline"
-                className="bg-white/70 text-purple-700 border-purple-300 hover:bg-white/90"
+                className="bg-slate-800/70 text-purple-400 border-purple-700 hover:bg-slate-800/90"
               >
                 <Plus className="h-3 w-3 mr-1" />
                 Agregar tarea

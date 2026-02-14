@@ -27,177 +27,162 @@ export default function SystemInfoPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <Button variant="ghost" onClick={() => router.back()} className="hover:bg-slate-100">
+          <Button variant="ghost" onClick={() => router.back()} className="hover:bg-slate-800">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Información del Sistema
             </h1>
-            <p className="text-slate-600 mt-1">ConcreteBill - Sistema de Facturación y Gestión Empresarial</p>
+            <p className="text-slate-400 mt-1">ConcreteBill - Sistema de Facturación y Gestión Empresarial</p>
           </div>
         </div>
 
-        {/* Nueva Funcionalidad - Sistema de Clasificación de Compras */}
-        <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50">
+        {/* Migración de Tema y Paleta de Colores */}
+        <Card className="border-2 border-blue-500 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ShoppingCart className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <CheckCircle className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-2xl text-green-900 flex items-center gap-2">
+                <CardTitle className="text-2xl text-blue-300 flex items-center gap-2">
                   <CheckCircle className="h-6 w-6" />
-                  Nueva Funcionalidad: Clasificación de Compras
+                  Migración de Tema y Paleta de Colores
                 </CardTitle>
-                <p className="text-green-700 text-sm mt-1">Sistema inteligente para contabilidad correcta</p>
+                <p className="text-blue-400 text-sm mt-1">Sistema completamente renovado con tema oscuro profesional</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Problema que resuelve */}
-            <div className="bg-white rounded-lg p-5 border border-green-200">
+            {/* Antes del cambio */}
+            <div className="bg-slate-800 rounded-lg p-5 border border-slate-700">
               <div className="flex items-start gap-3 mb-4">
-                <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
+                <AlertCircle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-6 h-6 bg-red-100 text-red-600 rounded-full text-sm">X</span>
-                    Problema que resolvemos:
+                  <h3 className="font-bold text-lg text-slate-200 mb-2 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-amber-900/30 text-amber-400 rounded-full text-sm">⚠</span>
+                    Situación anterior:
                   </h3>
-                  <p className="text-gray-700 mb-3">
-                    <strong>Error contable grave:</strong> Cuando comprabas mercancía para revender (cemento, blocks, productos), 
-                    la registrabas como <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded font-semibold">gasto operativo</span> inmediato.
+                  <p className="text-slate-300 mb-3">
+                    El sistema utilizaba una <strong>paleta de colores pastel</strong> (azul-50, verde-50, rojo-50, etc.) con fondos claros 
+                    que no se ajustaban al tema oscuro del sidebar y navegación.
                   </p>
-                  <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                    <p className="font-semibold text-red-900 mb-2">Esto causaba:</p>
-                    <ul className="space-y-1 text-sm text-red-800">
+                  <div className="bg-amber-900/30 border-l-4 border-amber-400 p-4 rounded">
+                    <p className="font-semibold text-amber-300 mb-2">Problemas que causaba:</p>
+                    <ul className="space-y-1 text-sm text-amber-200">
                       <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        Gastos inflados artificialmente
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Fondos blancos y claros en páginas (from-blue-50, from-slate-50)
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        Utilidades subestimadas
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Cards con colores pastel (emerald-50, purple-50, cyan-50)
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        Inventario sin registrar
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Texto oscuro ilegible en tema oscuro (text-gray-700, text-slate-900)
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        Contabilidad incorrecta
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Inconsistencia visual entre componentes
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        Imposible saber cuánto inventario tienes
+                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Marco blanco visible alrededor del contenido
                       </li>
                     </ul>
                   </div>
                 </div>
               </div>
-
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mt-4">
-                <p className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Ejemplo del error:
-                </p>
-                <div className="space-y-2 text-sm text-yellow-800">
-                  <p className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></span>
-                    Compras <strong>$50,000</strong> en cemento para revender
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></span>
-                    Lo registrabas como "gasto" = Tu reporte mostraba <span className="text-red-600 font-bold">-$50,000 de pérdida</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></span>
-                    Vendías el cemento por <strong>$70,000</strong> = Utilidad aparente de $70,000
-                  </p>
-                  <p className="font-bold text-red-600 flex items-center gap-2 mt-2">
-                    <AlertCircle className="h-4 w-4" />
-                    ERROR: La utilidad real es $20,000, no $70,000
-                  </p>
-                </div>
-              </div>
             </div>
 
-            {/* Solución implementada */}
-            <div className="bg-white rounded-lg p-5 border border-green-300">
+            {/* Nueva paleta implementada */}
+            <div className="bg-slate-800 rounded-lg p-5 border border-blue-400">
               <div className="flex items-start gap-3 mb-4">
-                <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0 mt-1" />
+                <CheckCircle className="h-6 w-6 text-blue-400 flex-shrink-0 mt-1" />
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-6 h-6 bg-green-100 text-green-600 rounded-full">
+                  <h3 className="font-bold text-lg text-slate-200 mb-2 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-900/30 text-blue-400 rounded-full">
                       <CheckCircle className="h-4 w-4" />
                     </span>
-                    Solución implementada:
+                    Nueva paleta de colores Slate:
                   </h3>
-                  <p className="text-gray-700 mb-4">
-                    El sistema <strong>te pregunta al momento de comprar</strong> qué harás con lo que compraste:
+                  <p className="text-slate-300 mb-4">
+                    Migración completa de <strong>41 páginas</strong> y <strong>36 componentes</strong> a una paleta Slate oscura profesional:
                   </p>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Opción 1: Inventario */}
-                    <div className="border-2 border-green-400 rounded-lg p-4 bg-green-50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Package className="h-5 w-5 text-green-600" />
-                        <h4 className="font-bold text-green-900">Producto para la Venta</h4>
-                      </div>
-                      <ul className="space-y-2 text-sm text-green-800">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Lo vas a revender a clientes
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {/* Fondos */}
+                    <div className="border-2 border-slate-600 rounded-lg p-4 bg-slate-900/50">
+                      <h4 className="font-bold text-blue-300 mb-3 flex items-center gap-2">
+                        <div className="w-6 h-6 bg-slate-950 rounded border border-slate-700"></div>
+                        Fondos
+                      </h4>
+                      <ul className="space-y-2 text-sm text-slate-300">
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-slate-950 rounded border border-slate-700"></div>
+                          <span>slate-950: Fondo principal</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Se registra en <strong>INVENTARIO</strong> (activo)
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-slate-900 rounded border border-slate-700"></div>
+                          <span>slate-900: Cards primarias</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Se suma al stock disponible
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          El gasto NO se reconoce aún
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Solo cuando VENDES, se convierte en costo
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-slate-800 rounded border border-slate-700"></div>
+                          <span>slate-800: Cards anidadas</span>
                         </li>
                       </ul>
                     </div>
 
-                    {/* Opción 2: Gasto */}
-                    <div className="border-2 border-orange-400 rounded-lg p-4 bg-orange-50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Receipt className="h-5 w-5 text-orange-600" />
-                        <h4 className="font-bold text-orange-900">Uso Interno/Operación</h4>
-                      </div>
-                      <ul className="space-y-2 text-sm text-orange-800">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Es para usar en tu negocio
+                    {/* Textos */}
+                    <div className="border-2 border-slate-600 rounded-lg p-4 bg-slate-900/50">
+                      <h4 className="font-bold text-emerald-300 mb-3 flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Textos
+                      </h4>
+                      <ul className="space-y-2 text-sm text-slate-300">
+                        <li className="flex items-center gap-2">
+                          <span className="text-slate-200 font-semibold">Aa</span>
+                          <span>slate-200: Títulos</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Gasolina, papelería, servicios
+                        <li className="flex items-center gap-2">
+                          <span className="text-slate-300 font-semibold">Aa</span>
+                          <span>slate-300: Texto primario</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Se registra como <strong>GASTO</strong> inmediato
+                        <li className="flex items-center gap-2">
+                          <span className="text-slate-400 font-semibold">Aa</span>
+                          <span>slate-400: Texto secundario</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Se categoriza correctamente
+                      </ul>
+                    </div>
+
+                    {/* Acentos */}
+                    <div className="border-2 border-slate-600 rounded-lg p-4 bg-slate-900/50">
+                      <h4 className="font-bold text-purple-300 mb-3 flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Acentos
+                      </h4>
+                      <ul className="space-y-2 text-sm text-slate-300">
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                          <span>blue-400/500: Info</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          Aparece en reportes de gastos operativos
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-emerald-500 rounded"></div>
+                          <span>emerald-400: Éxito</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-red-500 rounded"></div>
+                          <span>red-400: Error</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-amber-500 rounded"></div>
+                          <span>amber-400: Advertencia</span>
                         </li>
                       </ul>
                     </div>
@@ -206,110 +191,148 @@ export default function SystemInfoPage() {
               </div>
             </div>
 
-            {/* Flujo correcto */}
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-5">
-              <h3 className="font-bold text-lg text-blue-900 mb-4 flex items-center gap-2">
+            {/* Cambios realizados */}
+            <div className="bg-slate-800 border-2 border-slate-600 rounded-lg p-5">
+              <h3 className="font-bold text-lg text-blue-300 mb-4 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                Flujo Correcto Ahora:
+                Cambios aplicados automáticamente:
               </h3>
               
-              <div className="space-y-4">
-                <div className="bg-white rounded-lg p-4 border border-green-200">
-                  <p className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                  <p className="font-semibold text-emerald-300 mb-3 flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
-                    Compra de mercancía para venta:
+                    Fondos principales:
                   </p>
-                  <div className="space-y-1 text-sm text-gray-700 font-mono bg-gray-50 p-3 rounded">
-                    <p>1. Compras $50,000 cemento = <span className="text-green-600 font-bold">Inventario +$50,000</span> (activo)</p>
-                    <p>2. Vendes por $70,000 = Gasto $50,000 + Ingreso $70,000</p>
-                    <p className="text-green-600 font-bold flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      = Utilidad $20,000
-                    </p>
+                  <div className="space-y-1 text-sm text-slate-300 font-mono bg-slate-950 p-3 rounded">
+                    <p className="text-red-400">- bg-gradient-to-br from-blue-50 via-white</p>
+                    <p className="text-green-400">+ bg-gradient-to-br from-slate-950 via-slate-900</p>
+                    <p className="text-slate-500 mt-2">✓ Aplicado en 41 páginas</p>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-4 border border-orange-200">
-                  <p className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                  <p className="font-semibold text-emerald-300 mb-3 flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
-                    Compra de uso interno:
+                    Cards y componentes:
                   </p>
-                  <div className="space-y-1 text-sm text-gray-700 font-mono bg-gray-50 p-3 rounded">
-                    <p>1. Compras $5,000 gasolina = <span className="text-orange-600 font-bold">Gasto $5,000</span> inmediato</p>
-                    <p>2. Aparece en reportes como costo operativo</p>
+                  <div className="space-y-1 text-sm text-slate-300 font-mono bg-slate-950 p-3 rounded">
+                    <p className="text-red-400">- from-emerald-50 to-emerald-100</p>
+                    <p className="text-green-400">+ from-slate-900 to-slate-800</p>
+                    <p className="text-slate-500 mt-2">✓ 36 componentes actualizados</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                  <p className="font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Textos legibles:
+                  </p>
+                  <div className="space-y-1 text-sm text-slate-300 font-mono bg-slate-950 p-3 rounded">
+                    <p className="text-red-400">- text-gray-700, text-slate-900</p>
+                    <p className="text-green-400">+ text-slate-300, text-slate-400</p>
+                    <p className="text-slate-500 mt-2">✓ Contraste optimizado</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                  <p className="font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Borders consistentes:
+                  </p>
+                  <div className="space-y-1 text-sm text-slate-300 font-mono bg-slate-950 p-3 rounded">
+                    <p className="text-red-400">- border-gray-300, border-slate-200</p>
+                    <p className="text-green-400">+ border-slate-700, border-slate-600</p>
+                    <p className="text-slate-500 mt-2">✓ Definición clara</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Beneficios */}
-            <div className="bg-white rounded-lg p-5 border border-blue-200">
-              <h3 className="font-bold text-lg text-blue-900 mb-4 flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-blue-600" />
-                Beneficios del sistema:
+            <div className="bg-slate-800 rounded-lg p-5 border border-slate-700">
+              <h3 className="font-bold text-lg text-blue-300 mb-4 flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-blue-400" />
+                Mejoras obtenidas:
               </h3>
               <div className="grid md:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Contabilidad correcta</p>
-                    <p className="text-sm text-gray-600">Separación clara entre activos y gastos</p>
+                    <p className="font-semibold text-slate-200">Consistencia visual total</p>
+                    <p className="text-sm text-slate-400">Todo el sistema en tema oscuro profesional</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Control de inventario</p>
-                    <p className="text-sm text-gray-600">Sabes exactamente qué tienes en stock</p>
+                    <p className="font-semibold text-slate-200">Mejor legibilidad</p>
+                    <p className="text-sm text-slate-400">Textos claros sobre fondos oscuros</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Utilidades reales</p>
-                    <p className="text-sm text-gray-600">Reportes financieros precisos</p>
+                    <p className="font-semibold text-slate-200">Reducción de fatiga visual</p>
+                    <p className="text-sm text-slate-400">Menos brillo, más confort</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Evita errores</p>
-                    <p className="text-sm text-gray-600">Interfaz guiada previene confusiones</p>
+                    <p className="font-semibold text-slate-200">Aspecto profesional moderno</p>
+                    <p className="text-sm text-slate-400">Diseño contemporáneo y elegante</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Historial completo</p>
-                    <p className="text-sm text-gray-600">Trazabilidad de todas las compras</p>
+                    <p className="font-semibold text-slate-200">Sin marcos blancos</p>
+                    <p className="text-sm text-slate-400">Experiencia inmersiva completa</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Análisis mejor</p>
-                    <p className="text-sm text-gray-600">Inversión en inventario vs operación</p>
+                    <p className="font-semibold text-slate-200">Acentos vibrantes efectivos</p>
+                    <p className="text-sm text-slate-400">Colores destacan sobre slate oscuro</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Scripts utilizados */}
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+              <h3 className="font-bold text-slate-200 mb-3 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-400" />
+                Scripts de migración automática:
+              </h3>
+              <div className="space-y-2 text-sm text-slate-300 font-mono bg-slate-950 p-3 rounded">
+                <p className="text-blue-400">✓ apply-dark-theme-all-pages.js</p>
+                <p className="text-slate-400 ml-4">→ 41 archivos page.tsx procesados</p>
+                <p className="text-blue-400">✓ apply-dark-theme-components.js</p>
+                <p className="text-slate-400 ml-4">→ 36 componentes .tsx actualizados</p>
+                <p className="text-blue-400">✓ globals.css</p>
+                <p className="text-slate-400 ml-4">→ Body background: slate-950</p>
               </div>
             </div>
 
             {/* Acceso rápido */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button 
-                onClick={() => router.push('/purchases/new')} 
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-12"
+                onClick={() => router.push('/dashboard')} 
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12"
               >
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Registrar Nueva Compra
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Ver Dashboard con Nuevo Tema
               </Button>
               <Button 
-                onClick={() => router.push('/purchases')} 
+                onClick={() => router.push('/settings')} 
                 variant="outline"
                 className="flex-1 h-12"
               >
                 <FileText className="h-5 w-5 mr-2" />
-                Ver Historial de Compras
+                Ir a Configuración
               </Button>
             </div>
           </CardContent>
@@ -327,12 +350,12 @@ export default function SystemInfoPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
                     <User className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">Smith Rodríguez</h3>
-                    <p className="text-sm text-slate-600">Desarrollador Full Stack</p>
+                    <p className="text-sm text-slate-400">Desarrollador Full Stack</p>
                   </div>
                 </div>
                 
@@ -340,7 +363,7 @@ export default function SystemInfoPage() {
                   <Award className="w-5 h-5 text-green-600" />
                   <div>
                     <p className="font-medium">Experiencia</p>
-                    <p className="text-sm text-slate-600">2 años de experiencia en desarrollo</p>
+                    <p className="text-sm text-slate-400">2 años de experiencia en desarrollo</p>
                   </div>
                 </div>
               </div>
@@ -350,15 +373,15 @@ export default function SystemInfoPage() {
                   <Mail className="w-5 h-5 text-red-600" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-sm text-slate-600">smithrodriguezz345@gmail.com</p>
+                    <p className="text-sm text-slate-400">smithrodriguezz345@gmail.com</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Linkedin className="w-5 h-5 text-blue-700" />
+                  <Linkedin className="w-5 h-5 text-blue-400" />
                   <div>
                     <p className="font-medium">LinkedIn</p>
-                    <p className="text-sm text-slate-600">Perfil de LinkedIn disponible</p>
+                    <p className="text-sm text-slate-400">Perfil de LinkedIn disponible</p>
                   </div>
                 </div>
               </div>
@@ -410,24 +433,24 @@ export default function SystemInfoPage() {
                 <h3 className="font-semibold text-lg mb-3">Información Técnica:</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Versión:</span>
+                    <span className="text-slate-400">Versión:</span>
                     <Badge variant="outline">v2.2.0</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Tecnología:</span>
+                    <span className="text-slate-400">Tecnología:</span>
                     <Badge variant="outline">Next.js 15</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Base de datos:</span>
+                    <span className="text-slate-400">Base de datos:</span>
                     <Badge variant="outline">Supabase PostgreSQL</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Última actualización:</span>
+                    <span className="text-slate-400">Última actualización:</span>
                     <Badge variant="outline">Enero 2026</Badge>
                   </div>
                   <div className="flex items-center gap-2 mt-4">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-slate-600">Sistema operativo</span>
+                    <span className="text-sm text-slate-400">Sistema operativo</span>
                   </div>
                 </div>
               </div>

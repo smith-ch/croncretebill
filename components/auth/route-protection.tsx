@@ -76,20 +76,20 @@ export function RouteProtection({
 
   if (!canAccessModule(moduleToCheck)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <Shield className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <CardTitle className="text-red-600">Acceso Denegado</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               No tienes permisos para acceder a esta sección.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               Tu rol: <span className="font-medium">{permissions.role}</span>
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               Módulo requerido: <span className="font-medium">{moduleToCheck}</span>
             </p>
             <div className="flex gap-2 justify-center">

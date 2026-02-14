@@ -206,7 +206,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -261,20 +261,20 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
         <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
           <div className="space-y-2">
             <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Catálogo de Productos
             </h1>
-            <p className="text-sm lg:text-base text-slate-600">Gestiona tu catálogo de productos y presupuestos</p>
+            <p className="text-sm lg:text-base text-slate-400">Gestiona tu catálogo de productos y presupuestos</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 w-full sm:w-auto">
             <Link href="/products/budgets" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-300 text-emerald-700 hover:text-emerald-800 shadow-md hover:shadow-lg transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-300 text-emerald-400 hover:text-emerald-300 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Calculator className="h-4 w-4 mr-2" />
                 Presupuestos
@@ -283,7 +283,7 @@ export default function ProductsPage() {
             <Link href="/products/multiple-prices-demo" className="w-full sm:w-auto">
               <Button
                 variant="outline" 
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-700 hover:text-purple-800 shadow-md hover:shadow-lg transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-400 hover:text-purple-300 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Package className="h-4 w-4 mr-2" />
                 Precios Múltiples
@@ -326,9 +326,9 @@ export default function ProductsPage() {
         </div>
 
         {!limits.isLoading && remainingProducts <= 5 && (
-          <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+          <Alert className={remainingProducts === 0 ? "border-red-500 bg-red-900/30" : "border-amber-500 bg-amber-900/30"}>
             <AlertCircle className={remainingProducts === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
-            <AlertDescription className={remainingProducts === 0 ? "text-red-800" : "text-amber-800"}>
+            <AlertDescription className={remainingProducts === 0 ? "text-red-300" : "text-amber-300"}>
               {remainingProducts === 0 ? (
                 <span>
                   <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos de tu {limits.planDisplayName}. 
@@ -344,7 +344,7 @@ export default function ProductsPage() {
           </Alert>
         )}
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-sm">
@@ -372,7 +372,7 @@ export default function ProductsPage() {
                   <Package className="h-10 w-10 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-medium text-slate-900 mb-2">No hay productos</h3>
-                <p className="text-slate-600 mb-4">Comienza agregando tu primer producto</p>
+                <p className="text-slate-400 mb-4">Comienza agregando tu primer producto</p>
                 <Button
                   onClick={() => {
                     if (canAddProducts()) {
@@ -397,7 +397,7 @@ export default function ProductsPage() {
                 {filteredProducts.map((product, index) => (
                   <Card
                     key={product.id}
-                    className="group card-hover transition-all duration-300 bg-white border-0 shadow-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50 animate-scale-in"
+                    className="group card-hover transition-all duration-300 bg-slate-900 border-0 shadow-lg hover:bg-slate-800/70 animate-scale-in"
                     style={{animationDelay: `${index * 0.05}s`}}
                   >
                     <CardContent className="p-6">
@@ -407,16 +407,16 @@ export default function ProductsPage() {
                             {product.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">                            {product.id.startsWith('temp_') && (
-                              <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+                              <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-900/30">
                                 ⏳ Pendiente
                               </Badge>
                             )}                            {product.product_code && (
-                              <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-700">
+                              <Badge variant="secondary" className="text-xs font-mono bg-slate-800 text-blue-400">
                                 {product.product_code}
                               </Badge>
                             )}
                             {product.categories?.name && (
-                              <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
+                              <Badge variant="outline" className="text-xs border-slate-700 text-slate-400">
                                 {product.categories.name}
                               </Badge>
                             )}
@@ -430,7 +430,7 @@ export default function ProductsPage() {
                               setEditingProduct(product)
                               setShowForm(true)
                             }}
-                            className="hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                            className="hover:bg-slate-800 text-blue-600 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                             aria-label={`Editar producto ${product.name}`}
                             title="Editar producto"
                             disabled={!canEdit('products')}
@@ -442,7 +442,7 @@ export default function ProductsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(product.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              className="text-red-600 hover:text-red-400 hover:bg-red-900/30 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               aria-label={`Eliminar producto ${product.name}`}
                               title="Eliminar producto"
                             >
@@ -453,23 +453,23 @@ export default function ProductsPage() {
                       </div>
                       
                       {product.description && (
-                        <p className="text-sm text-slate-600 mb-3 line-clamp-2">{product.description}</p>
+                        <p className="text-sm text-slate-400 mb-3 line-clamp-2">{product.description}</p>
                       )}
 
                       <div className="space-y-3">
                         {/* Precios */}
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                            <div className="text-xs text-blue-700 font-semibold mb-1">Precio Venta</div>
-                            <div className="font-bold text-blue-800 text-lg">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-slate-700">
+                            <div className="text-xs text-blue-400 font-semibold mb-1">Precio Venta</div>
+                            <div className="font-bold text-blue-300 text-lg">
                               {formatCurrency(product.unit_price)}
                             </div>
                             <div className="text-xs text-blue-600">por {product.unit}</div>
                           </div>
                           {product.cost_price ? (
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-200">
-                              <div className="text-xs text-slate-700 font-semibold mb-1">Costo</div>
-                              <div className="font-bold text-slate-800 text-sm">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-800">
+                              <div className="text-xs text-slate-300 font-semibold mb-1">Costo</div>
+                              <div className="font-bold text-slate-200 text-sm">
                                 {formatCurrency(product.cost_price)}
                               </div>
                               {product.cost_price > 0 && (
@@ -479,7 +479,7 @@ export default function ProductsPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200 flex items-center justify-center">
+                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800 flex items-center justify-center">
                               <div className="text-center">
                                 <Calculator className="h-4 w-4 text-gray-400 mx-auto mb-1" />
                                 <div className="text-xs text-gray-500">Sin costo definido</div>
@@ -491,10 +491,10 @@ export default function ProductsPage() {
                         {/* Stock */}
                         {((product.current_stock !== undefined && product.current_stock !== null) || 
                           (product.stock_quantity !== undefined && product.stock_quantity !== null)) && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800">
                             <div className="flex items-center gap-2">
-                              <Package className="h-4 w-4 text-gray-600" />
-                              <span className="text-sm font-semibold text-gray-700">Stock Disponible:</span>
+                              <Package className="h-4 w-4 text-slate-400" />
+                              <span className="text-sm font-semibold text-slate-300">Stock Disponible:</span>
                             </div>
                             <div className="flex items-center gap-2">
                               {(() => {
@@ -509,12 +509,12 @@ export default function ProductsPage() {
                                       {stock} {product.unit}
                                     </span>
                                     {stock <= 5 && stock > 0 && (
-                                      <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 bg-amber-50">
+                                      <Badge variant="outline" className="text-xs border-amber-400 text-amber-400 bg-amber-900/30">
                                         Bajo
                                       </Badge>
                                     )}
                                     {stock === 0 && (
-                                      <Badge variant="outline" className="text-xs border-red-400 text-red-700 bg-red-50">
+                                      <Badge variant="outline" className="text-xs border-red-400 text-red-400 bg-red-900/30">
                                         Agotado
                                       </Badge>
                                     )}
@@ -529,17 +529,17 @@ export default function ProductsPage() {
                         {(product.mix_type || product.resistance || product.slump) && (
                           <div className="flex gap-2 flex-wrap">
                             {product.mix_type && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                              <Badge variant="secondary" className="bg-green-900/30 text-green-300 border-green-800 text-xs">
                                 🏗️ {product.mix_type}
                               </Badge>
                             )}
                             {product.resistance && (
-                              <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                              <Badge variant="outline" className="border-orange-300 text-orange-400 text-xs">
                                 💪 {product.resistance}
                               </Badge>
                             )}
                             {product.slump && (
-                              <Badge variant="outline" className="border-purple-300 text-purple-700 text-xs">
+                              <Badge variant="outline" className="border-purple-300 text-purple-400 text-xs">
                                 📏 {product.slump}
                               </Badge>
                             )}
@@ -555,7 +555,7 @@ export default function ProductsPage() {
             {/* Paginación */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-6 pt-6 border-t">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-slate-400">
                   Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} de {totalItems} productos
                 </div>
                 <div className="flex gap-2">

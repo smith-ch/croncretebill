@@ -26,7 +26,7 @@ export function EmptyState({
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
         {title}
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+      <p className="text-slate-400 dark:text-gray-400 max-w-md mb-6">
         {description}
       </p>
       {actionLabel && onAction && (

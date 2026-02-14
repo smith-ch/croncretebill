@@ -67,6 +67,8 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     const { userId } = body;
 
+    console.log('Delete request received. userId:', userId);
+
     if (!userId) {
       return NextResponse.json(
         { error: 'ID de usuario requerido' },
@@ -74,17 +76,29 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Verificar que el empleado pertenece a este owner
-    const { data: employeeProfile } = await supabaseAdmin
+    // Verificar que el empleado pertenece a este owner (puede haber duplicados por el trigger)
+    const { data: employeeProfiles, error: employeeError } = await supabaseAdmin
       .from('user_profiles')
       .select('user_id, parent_user_id, display_name')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
 
-    if (!employeeProfile) {
+    console.log('Employee lookup result:', { employeeProfiles, employeeError });
+
+    if (employeeError || !employeeProfiles || employeeProfiles.length === 0) {
+      console.error('Employee not found. Error:', employeeError);
       return NextResponse.json(
         { error: 'Empleado no encontrado' },
         { status: 404 }
+      );
+    }
+
+    // Buscar un perfil que sea empleado (parent_user_id no null)
+    const employeeProfile = employeeProfiles.find(p => p.parent_user_id !== null);
+    
+    if (!employeeProfile) {
+      return NextResponse.json(
+        { error: 'Este usuario no es un empleado' },
+        { status: 400 }
       );
     }
 
@@ -96,8 +110,9 @@ export async function DELETE(request: Request) {
     }
 
     console.log('Deleting employee:', employeeProfile.display_name, userId);
+    console.log(`Found ${employeeProfiles.length} profile(s) to delete`);
 
-    // Eliminar el perfil del empleado primero
+    // Eliminar TODOS los perfiles con este user_id (incluyendo duplicados)
     const { error: deleteProfileError } = await supabaseAdmin
       .from('user_profiles')
       .delete()

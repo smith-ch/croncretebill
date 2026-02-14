@@ -775,12 +775,12 @@ export default function DGIIReportsPage() {
   // Check if user has permission to view financial reports
   if (!permissions.canViewFinances) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-2 border-red-200 bg-red-50">
+          <Card className="border-2 border-red-800 bg-red-900/30">
             <CardContent className="p-8 text-center">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-red-800 mb-2">Acceso Restringido</h2>
+                <h2 className="text-2xl font-bold text-red-300 mb-2">Acceso Restringido</h2>
                 <p className="text-red-600">
                   No tienes permisos para acceder a los reportes DGII. Esta función requiere permisos financieros.
                 </p>
@@ -2247,7 +2247,7 @@ export default function DGIIReportsPage() {
     <div className="container mx-auto py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-7xl px-3 sm:px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-200 dark:text-white">
             Reportes DGII
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -2273,11 +2273,11 @@ export default function DGIIReportsPage() {
 
       {/* Tarjetas de resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-green-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-green-700">Total Compras</p>
+                <p className="text-xs sm:text-sm font-medium text-green-400">Total Compras</p>
                 <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-900 truncate">
                   {formatCurrency(dgiiData?.totalCompras || 0)}
                 </p>
@@ -2290,11 +2290,11 @@ export default function DGIIReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-slate-700">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-blue-700">Total Ventas</p>
+                <p className="text-xs sm:text-sm font-medium text-blue-400">Total Ventas</p>
                 <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 truncate">
                   {formatCurrency(dgiiData?.totalVentas || 0)}
                 </p>
@@ -2307,11 +2307,11 @@ export default function DGIIReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-orange-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-orange-700">ITBIS Compras</p>
+                <p className="text-xs sm:text-sm font-medium text-orange-400">ITBIS Compras</p>
                 <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-900 truncate">
                   {formatCurrency(dgiiData?.itbisCompras || 0)}
                 </p>
@@ -2322,11 +2322,11 @@ export default function DGIIReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 border-purple-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-purple-700">ITBIS Ventas</p>
+                <p className="text-xs sm:text-sm font-medium text-purple-400">ITBIS Ventas</p>
                 <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-900 truncate">
                   {formatCurrency(dgiiData?.itbisVentas || 0)}
                 </p>
@@ -2353,7 +2353,7 @@ export default function DGIIReportsPage() {
 
       {/* Pestañas de reportes */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full overflow-x-auto flex lg:grid lg:grid-cols-9 bg-slate-100 p-1">
+        <TabsList className="w-full overflow-x-auto flex lg:grid lg:grid-cols-9 bg-slate-800 p-1">
           <TabsTrigger value="overview" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Resumen</TabsTrigger>
           <TabsTrigger value="606" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Reporte 606</TabsTrigger>
           <TabsTrigger value="607" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">Reporte 607</TabsTrigger>
@@ -2459,7 +2459,7 @@ export default function DGIIReportsPage() {
           </div>
 
           {/* Reportes IR-2 Simplificados */}
-          <Card className="border-green-200 bg-green-50">
+          <Card className="border-green-800 bg-green-900/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 📊 Reportes IR-2 para DGII
@@ -2496,7 +2496,7 @@ export default function DGIIReportsPage() {
                   Descargar Excel 608 (Ventas)
                 </Button>
               </div>
-              <p className="text-sm text-gray-600 mt-3">
+              <p className="text-sm text-slate-400 mt-3">
                 Los archivos se generarán con los datos del mes actual y se descargarán automáticamente.
               </p>
             </CardContent>
@@ -2514,7 +2514,7 @@ export default function DGIIReportsPage() {
             <CardContent>
               {dgiiData?.compras.length ? (
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-slate-400">
                     Total de registros: {dgiiData.compras.length}
                   </div>
                   <div className="max-h-96 overflow-y-auto">
@@ -2571,7 +2571,7 @@ export default function DGIIReportsPage() {
             <CardContent>
               {dgiiData?.ventas.length ? (
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-slate-400">
                     Total de facturas: {dgiiData.ventas.length}
                   </div>
                   <div className="max-h-96 overflow-y-auto">
@@ -2664,7 +2664,7 @@ export default function DGIIReportsPage() {
                   ) : (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="bg-slate-900 p-3 rounded-lg">
                           <div className="text-sm text-blue-600 font-medium">Total Compras</div>
                           <div className="text-lg font-bold text-blue-900">
                             {(dgiiData?.compras || []).reduce((sum, expense) => {
@@ -2673,7 +2673,7 @@ export default function DGIIReportsPage() {
                             }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
                           </div>
                         </div>
-                        <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="bg-green-900/30 p-3 rounded-lg">
                           <div className="text-sm text-green-600 font-medium">ITBIS Pagado</div>
                           <div className="text-lg font-bold text-green-900">
                             {(dgiiData?.compras || []).reduce((sum, expense) => {
@@ -2730,7 +2730,7 @@ export default function DGIIReportsPage() {
                   ) : (
                     <>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-purple-50 p-3 rounded-lg">
+                        <div className="bg-purple-900/30 p-3 rounded-lg">
                           <div className="text-sm text-purple-600 font-medium">Total Ventas</div>
                           <div className="text-lg font-bold text-purple-900">
                             {(dgiiData?.ventas || []).reduce((sum, invoice) => {
@@ -2739,7 +2739,7 @@ export default function DGIIReportsPage() {
                             }, 0).toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
                           </div>
                         </div>
-                        <div className="bg-orange-50 p-3 rounded-lg">
+                        <div className="bg-orange-900/30 p-3 rounded-lg">
                           <div className="text-sm text-orange-600 font-medium">ITBIS Cobrado</div>
                           <div className="text-lg font-bold text-orange-900">
                             {(dgiiData?.ventas || []).reduce((sum, invoice) => {
@@ -2792,8 +2792,8 @@ export default function DGIIReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-slate-50 p-4 rounded-lg text-center">
-                  <div className="text-sm text-slate-600 font-medium">Ingresos Brutos</div>
+                <div className="bg-slate-900 p-4 rounded-lg text-center">
+                  <div className="text-sm text-slate-400 font-medium">Ingresos Brutos</div>
                   <div className="text-xl font-bold text-slate-900">
                     {(dgiiData?.ventas || [])
                       .filter(invoice => new Date(invoice.created_at || invoice.fecha || invoice.date).getFullYear().toString() === selectedYear)
@@ -2801,8 +2801,8 @@ export default function DGIIReportsPage() {
                       .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-lg text-center">
-                  <div className="text-sm text-slate-600 font-medium">Gastos Deducibles</div>
+                <div className="bg-slate-900 p-4 rounded-lg text-center">
+                  <div className="text-sm text-slate-400 font-medium">Gastos Deducibles</div>
                   <div className="text-xl font-bold text-slate-900">
                     {(dgiiData?.compras || [])
                       .filter(expense => new Date(expense.created_at || expense.fecha || expense.date).getFullYear().toString() === selectedYear)
@@ -2810,7 +2810,7 @@ export default function DGIIReportsPage() {
                       .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
                   </div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
+                <div className="bg-green-900/30 p-4 rounded-lg text-center">
                   <div className="text-sm text-green-600 font-medium">Balance ITBIS</div>
                   <div className="text-xl font-bold text-green-900">
                     {((dgiiData?.ventas || [])
@@ -2822,7 +2822,7 @@ export default function DGIIReportsPage() {
                       .toLocaleString('es-DO', { style: 'currency', currency: 'DOP' })}
                   </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <div className="bg-slate-900 p-4 rounded-lg text-center">
                   <div className="text-sm text-blue-600 font-medium">Utilidad Bruta</div>
                   <div className="text-xl font-bold text-blue-900">
                     {((dgiiData?.ventas || [])
@@ -2900,7 +2900,7 @@ export default function DGIIReportsPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Generar Reporte Excel - Métodos de Pago
               </Button>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-400">
                 <p>Este reporte genera un Excel con:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Cantidad de facturas por método de pago</li>
@@ -2932,7 +2932,7 @@ export default function DGIIReportsPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Generar Reporte Excel - Facturas Fiscales
               </Button>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-400">
                 <p>Este reporte genera un Excel con:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Todas las facturas con NCF del período seleccionado</li>
@@ -2957,7 +2957,7 @@ export default function DGIIReportsPage() {
                   {Object.entries(TIPOS_GASTO_DGII).map(([codigo, descripcion]) => (
                     <div key={codigo} className="flex justify-between">
                       <span className="font-mono text-blue-600">{codigo}</span>
-                      <span className="text-gray-700">{descripcion}</span>
+                      <span className="text-slate-300">{descripcion}</span>
                     </div>
                   ))}
                 </div>
@@ -2974,7 +2974,7 @@ export default function DGIIReportsPage() {
                   {Object.entries(TIPOS_COMPROBANTE_FISCAL).map(([codigo, descripcion]) => (
                     <div key={codigo} className="flex justify-between">
                       <span className="font-mono text-blue-600">{codigo}</span>
-                      <span className="text-gray-700">{descripcion}</span>
+                      <span className="text-slate-300">{descripcion}</span>
                     </div>
                   ))}
                 </div>
@@ -2991,7 +2991,7 @@ export default function DGIIReportsPage() {
                   {Object.entries(FORMAS_PAGO_DGII).map(([codigo, descripcion]) => (
                     <div key={codigo} className="flex justify-between">
                       <span className="font-mono text-blue-600">{codigo}</span>
-                      <span className="text-gray-700">{descripcion}</span>
+                      <span className="text-slate-300">{descripcion}</span>
                     </div>
                   ))}
                 </div>
@@ -3009,28 +3009,28 @@ export default function DGIIReportsPage() {
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                     <div>
                       <p className="font-medium">Validación de RNC/Cédula</p>
-                      <p className="text-gray-600">9 dígitos para RNC, 11 para cédula</p>
+                      <p className="text-slate-400">9 dígitos para RNC, 11 para cédula</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                     <div>
                       <p className="font-medium">Validación de NCF</p>
-                      <p className="text-gray-600">11 caracteres con prefijo B o E</p>
+                      <p className="text-slate-400">11 caracteres con prefijo B o E</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                     <div>
                       <p className="font-medium">Clasificación Automática</p>
-                      <p className="text-gray-600">Tipos de gasto según descripción</p>
+                      <p className="text-slate-400">Tipos de gasto según descripción</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                     <div>
                       <p className="font-medium">Formato DGII</p>
-                      <p className="text-gray-600">Estructura oficial para archivos TXT</p>
+                      <p className="text-slate-400">Estructura oficial para archivos TXT</p>
                     </div>
                   </div>
                 </div>
@@ -3157,7 +3157,7 @@ export default function DGIIReportsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-50 p-4 rounded-lg font-mono text-sm">
+                <div className="bg-slate-950 p-4 rounded-lg font-mono text-sm">
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div><strong>RNC:</strong> {manualExpense.provider_rnc || "Sin RNC"}</div>
                     <div><strong>Tipo:</strong> {manualExpense.description ? `${determinarTipoGasto(manualExpense.description)} - ${obtenerDescripcionTipoGasto(determinarTipoGasto(manualExpense.description))}` : "09 - Compras y Gastos"}</div>
@@ -3170,9 +3170,9 @@ export default function DGIIReportsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="mt-4 p-3 bg-slate-900 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Clasificación Automática:</h4>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-blue-400">
                     {manualExpense.description ? 
                       `"${manualExpense.description}" → Tipo ${determinarTipoGasto(manualExpense.description)} (${obtenerDescripcionTipoGasto(determinarTipoGasto(manualExpense.description))})` :
                       "Ingresa una descripción para ver la clasificación automática"
@@ -3311,7 +3311,7 @@ export default function DGIIReportsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-50 p-4 rounded-lg font-mono text-sm">
+                <div className="bg-slate-950 p-4 rounded-lg font-mono text-sm">
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div><strong>RNC Cliente:</strong> {manualInvoice.client_rnc || "REQUERIDO"}</div>
                     <div><strong>Cliente:</strong> {manualInvoice.client_name || "Sin nombre"}</div>
@@ -3324,18 +3324,18 @@ export default function DGIIReportsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                <div className="mt-4 p-3 bg-green-900/30 rounded-lg">
                   <h4 className="font-medium text-green-900 mb-2">Validación:</h4>
                   <div className="text-sm space-y-1">
-                    <div className={`flex items-center gap-2 ${manualInvoice.client_rnc ? 'text-green-700' : 'text-red-700'}`}>
+                    <div className={`flex items-center gap-2 ${manualInvoice.client_rnc ? 'text-green-400' : 'text-red-400'}`}>
                       <div className={`w-2 h-2 rounded-full ${manualInvoice.client_rnc ? 'bg-green-500' : 'bg-red-500'}`}></div>
                       RNC del cliente {manualInvoice.client_rnc ? '✓' : '(Requerido)'}
                     </div>
-                    <div className={`flex items-center gap-2 ${manualInvoice.ncf ? 'text-green-700' : 'text-red-700'}`}>
+                    <div className={`flex items-center gap-2 ${manualInvoice.ncf ? 'text-green-400' : 'text-red-400'}`}>
                       <div className={`w-2 h-2 rounded-full ${manualInvoice.ncf ? 'bg-green-500' : 'bg-red-500'}`}></div>
                       NCF {manualInvoice.ncf ? '✓' : '(Requerido)'}
                     </div>
-                    <div className={`flex items-center gap-2 ${parseFloat(manualInvoice.total || "0") > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    <div className={`flex items-center gap-2 ${parseFloat(manualInvoice.total || "0") > 0 ? 'text-green-400' : 'text-red-400'}`}>
                       <div className={`w-2 h-2 rounded-full ${parseFloat(manualInvoice.total || "0") > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
                       Total mayor a 0 {parseFloat(manualInvoice.total || "0") > 0 ? '✓' : '(Requerido)'}
                     </div>

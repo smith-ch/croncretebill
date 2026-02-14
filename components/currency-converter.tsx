@@ -50,24 +50,24 @@ export function CurrencyConverter({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-800 rounded-lg">
       <Button
         type="button"
         variant={showUSD ? "default" : "outline"}
         size="sm"
         onClick={handleToggle}
-        className={showUSD ? "bg-green-600 hover:bg-green-700" : "border-green-300 hover:bg-green-100"}
+        className={showUSD ? "bg-green-600 hover:bg-green-700" : "border-green-300 hover:bg-green-900/30"}
       >
         <DollarSign className="h-4 w-4 mr-2" />
         {showUSD ? "Mostrando en USD" : "Convertir a USD"}
       </Button>
       
       <div className="flex items-center gap-2 text-sm">
-        <Badge variant="outline" className="bg-white">
+        <Badge variant="outline" className="bg-slate-900">
           Tasa: 1 USD = {exchangeRate.toFixed(2)} {currentCurrency}
         </Badge>
         {showUSD && (
-          <span className="text-xs text-green-700 flex items-center gap-1">
+          <span className="text-xs text-green-400 flex items-center gap-1">
             <RefreshCw className="h-3 w-3" />
             Precios convertidos
           </span>
@@ -118,7 +118,7 @@ export function DualCurrencyDisplay({
         <span className={`${sizeClasses[size]} font-semibold text-gray-900`}>
           {formatDOP(amount)}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-slate-400">
           {formatUSD(usdAmount)}
         </span>
       </div>

@@ -125,49 +125,76 @@ export async function POST(request: Request) {
 
     console.log('Creating user with email:', email);
 
-    // Usar la función de base de datos para crear el empleado
-    const { data: result, error: rpcError } = await supabaseAdmin
-      .rpc('create_employee_direct', {
-        employee_email: email,
-        employee_password: password,
-        employee_display_name: displayName,
-        owner_user_id: user.id, // Pasar el ID del owner
-        employee_can_create_invoices: canCreateInvoices || false,
-        employee_can_view_finances: canViewFinances || false,
-        employee_can_manage_inventory: canManageInventory || false,
-        employee_can_manage_clients: canManageClients || false,
-        employee_department: department || null,
-        employee_job_position: jobPosition || null,
+    // NUEVO MÉTODO: Usar Admin API oficial de Supabase (más confiable)
+    const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+      email: email.toLowerCase().trim(),
+      password: password,
+      email_confirm: true, // Email confirmado automáticamente
+      user_metadata: {
+        display_name: displayName,
+      },
+    });
+
+    if (createUserError || !newUser.user) {
+      console.error('Error creating user with Admin API:', createUserError);
+      return NextResponse.json(
+        { error: `Error al crear el usuario: ${createUserError?.message || 'Error desconocido'}` },
+        { status: 400 }
+      );
+    }
+
+    const newUserId = newUser.user.id;
+    console.log('User created successfully with Admin API:', newUserId);
+
+    // Obtener role_id de employee
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('id')
+      .eq('name', 'employee')
+      .single();
+
+    const employeeRoleId = roleData?.id;
+
+    // Crear perfil del empleado en user_profiles
+    const { error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .insert({
+        user_id: newUserId,
+        parent_user_id: user.id,
+        root_owner_id: user.id,
+        role_id: employeeRoleId,
+        email: email.toLowerCase().trim(),
+        display_name: displayName,
+        department: department || null,
+        job_position: jobPosition || null,
+        can_create_invoices: canCreateInvoices || false,
+        can_view_finances: canViewFinances || false,
+        can_manage_inventory: canManageInventory || false,
+        can_manage_clients: canManageClients || false,
+        can_manage_users: false,
+        is_active: true,
+        allowed_modules: ['invoices', 'clients', 'products', 'inventory'],
       });
 
-    if (rpcError) {
-      console.error('Error calling RPC function:', rpcError);
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      // Si falla el perfil, eliminar el usuario creado
+      await supabaseAdmin.auth.admin.deleteUser(newUserId);
       return NextResponse.json(
-        { error: `Error al crear el empleado: ${rpcError.message}` },
+        { error: `Error al crear el perfil: ${profileError.message}` },
         { status: 400 }
       );
     }
 
-    // Verificar el resultado de la función
-    if (!result || !result.success) {
-      console.error('Function returned error:', result);
-      return NextResponse.json(
-        { error: result?.error || 'Error desconocido al crear el empleado' },
-        { status: 400 }
-      );
-    }
-
-    const newUserId = result.user_id;
-    console.log('User created successfully:', newUserId);
-    console.log('Function result:', result.message);
+    console.log('Profile created successfully for user:', newUserId);
 
     // Retornar éxito
     return NextResponse.json({
       success: true,
       user_id: newUserId,
-      email: result.email,
-      display_name: result.display_name,
-      message: result.message,
+      email: email.toLowerCase().trim(),
+      display_name: displayName,
+      message: 'Empleado creado exitosamente. Puede iniciar sesión inmediatamente.',
     });
   } catch (error: any) {
     console.error('Unexpected error:', error);

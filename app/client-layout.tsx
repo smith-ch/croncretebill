@@ -36,63 +36,53 @@ export default function ClientLayout({
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null)
   const pathname = usePathname()
 
-  // Función para verificar suscripción
+  // Función para verificar suscripción usando la nueva función mejorada
   const checkSubscription = async (userId: string) => {
     try {
-      console.log('🔍 Verificando suscripción para userId:', userId)
+      console.log('🔍 Verificando acceso de suscripción para userId:', userId)
       
-      // Verificar si el usuario es subscription_manager (siempre tiene acceso)
-      const { data: isManager, error: managerError } = await supabase
-        .rpc('is_subscription_manager', { p_user_id: userId })
+      // Usar la nueva función que maneja empleados y owners correctamente
+      const { data: accessCheck, error: accessError } = await supabase
+        .rpc('check_user_subscription_access', { p_user_id: userId })
       
-      console.log('🔍 Resultado subscription_manager:', { userId, isManager, managerError })
+      console.log('🔍 Resultado check_user_subscription_access:', { accessCheck, accessError })
       
-      if (managerError) {
-        console.error('❌ Error verificando rol de manager:', managerError)
-        // Si hay error verificando el rol, permitir acceso temporalmente
-        console.log('⚠️ Permitiendo acceso debido a error en verificación de rol')
-        setSubscriptionError(null)
-        return true
-      } else if (isManager) {
-        console.log('✅ Usuario es subscription_manager - acceso garantizado')
-        setSubscriptionError(null)
-        return true // Subscription managers siempre tienen acceso
-      }
-
-      console.log('🔍 Usuario no es manager, verificando suscripción...')
-      const { data: subscription, error: subError } = await supabase
-        .from('user_subscriptions')
-        .select('status, end_date, subscription_plans!plan_id(display_name)')
-        .eq('user_id', userId)
-        .maybeSingle()
-
-      console.log('🔍 Resultado suscripción:', { subscription, subError })
-
-      if (subError && subError.code !== 'PGRST116') {
-        console.error('❌ Error verificando suscripción:', subError)
-        // Permitir acceso si hay error técnico
-        console.log('⚠️ Permitiendo acceso debido a error en verificación de suscripción')
+      if (accessError) {
+        console.error('❌ Error verificando acceso:', accessError)
+        // Si hay error técnico, permitir acceso para evitar bloqueos
+        console.log('⚠️ Permitiendo acceso debido a error técnico')
         setSubscriptionError(null)
         return true
       }
 
-      // Si no tiene suscripción o está inactiva
-      if (!subscription || subscription.status !== 'active') {
-        console.log('❌ Sin suscripción activa:', subscription?.status)
-        setSubscriptionError(
-          subscription 
-            ? `Tu suscripción está ${subscription.status === 'expired' ? 'expirada' : 'inactiva'}. Contacta al administrador.`
-            : "No tienes una suscripción activa. Contacta al administrador para activar tu cuenta."
-        )
-        // No cerrar sesión automáticamente, solo mostrar error
-        return false
-      }
+      // accessCheck es un array con un solo elemento
+      const access = Array.isArray(accessCheck) ? accessCheck[0] : accessCheck
       
-      console.log('✅ Suscripción activa encontrada')
-      setSubscriptionError(null)
-      return true
+      if (!access) {
+        console.log('⚠️ No se pudo obtener información de acceso, permitiendo por defecto')
+        setSubscriptionError(null)
+        return true // Permitir en caso de duda
+      }
+
+      console.log('📊 Resultado del acceso:', {
+        hasAccess: access.has_access,
+        status: access.subscription_status,
+        isEmployee: access.is_employee,
+        message: access.message
+      })
+
+      // Verificar si tiene acceso
+      if (access.has_access) {
+        console.log('✅ Usuario tiene acceso:', access.message)
+        setSubscriptionError(null)
+        return true
+      } else {
+        console.log('❌ Usuario sin acceso:', access.message)
+        setSubscriptionError(access.message || 'No tienes acceso activo')
+        return false // Solo bloquear cuando definitivamente no tiene acceso
+      }
     } catch (error) {
-      console.error('❌ Error inesperado verificando suscripción:', error)
+      console.error('❌ Error inesperado verificando acceso:', error)
       // Permitir acceso si hay error verificando (evitar bloqueos por errores técnicos)
       setSubscriptionError(null)
       return true
@@ -108,7 +98,7 @@ export default function ClientLayout({
   useKeyboardShortcuts()
 
   useEffect(() => {
-    // Get initial session - SIN verificar suscripción aquí
+    // Get initial session - simplificado
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
@@ -118,14 +108,9 @@ export default function ClientLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // La verificación de suscripción se hace en modern-auth-form.tsx
-        setUser(session.user)
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
+      setUser(session?.user ?? null)
+      if (event === 'SIGNED_OUT') {
         setSubscriptionError(null)
-      } else {
-        setUser(session?.user ?? null)
       }
       setLoading(false)
     })
@@ -137,10 +122,10 @@ export default function ClientLayout({
     return (
       <html lang="es">
         <body className={inter.className}>
-          <div className="pwa-container min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
+          <div className="pwa-container min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-sm text-gray-600">Cargando ConcreteBill...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+              <p className="text-sm text-slate-300">Cargando ConcreteBill...</p>
             </div>
           </div>
         </body>
@@ -161,7 +146,7 @@ export default function ClientLayout({
               <div className="pwa-container">
                 <ModernAuthForm />
                 {subscriptionError && (
-                  <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-50 border border-red-200 text-red-800 px-6 py-3 rounded-lg shadow-lg max-w-md text-center z-50">
+                  <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/30 border border-red-800 text-red-300 px-6 py-3 rounded-lg shadow-lg max-w-md text-center z-50">
                     <p className="font-semibold mb-1">⚠️ Suscripción Requerida</p>
                     <p className="text-sm">{subscriptionError}</p>
                   </div>
@@ -202,7 +187,7 @@ export default function ClientLayout({
           <NotificationProvider>
             {/* Barra de progreso de navegación */}
             <NavigationProgress />
-            <div className="pwa-container flex h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="pwa-container flex h-screen bg-slate-950 dark:bg-slate-950">
               {/* Desktop Sidebar - Hidden on mobile */}
               <div className="hidden lg:block">
                 <Sidebar />

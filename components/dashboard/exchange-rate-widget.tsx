@@ -106,7 +106,7 @@ export function ExchangeRateWidget() {
             size="sm"
             onClick={handleUpdateRate}
             disabled={loading}
-            className="bg-white text-green-700 hover:bg-green-50"
+            className="bg-slate-900 text-green-400 hover:bg-green-900/30"
           >
             {loading ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -125,7 +125,7 @@ export function ExchangeRateWidget() {
           <div className="text-4xl font-bold text-green-600">
             {currentRate ? `RD$${currentRate.toFixed(2)}` : "..."}
           </div>
-          <div className="text-sm text-gray-500 mt-1">Por 1 USD</div>
+          <div className="text-sm text-slate-400 mt-1">Por 1 USD</div>
           {trend && (
             <div className="flex items-center justify-center gap-2 mt-2">
               {trend.isPositive ? (
@@ -147,7 +147,7 @@ export function ExchangeRateWidget() {
 
         {/* Última actualización */}
         {lastUpdate && (
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
             <Calendar className="h-3 w-3" />
             Actualizado: {formatDate(lastUpdate)}
           </div>
@@ -156,14 +156,14 @@ export function ExchangeRateWidget() {
         {/* Mini historial */}
         {history.length > 0 && (
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-gray-600">Historial (últimos 7 días)</div>
+            <div className="text-xs font-semibold text-slate-400">Historial (últimos 7 días)</div>
             <div className="space-y-1">
               {history.slice(0, 3).map((record, index) => (
                 <div
                   key={record.id}
                   className="flex justify-between items-center text-xs p-2 bg-gray-50 rounded"
                 >
-                  <span className="text-gray-600">{formatDate(record.fetched_at)}</span>
+                  <span className="text-slate-400">{formatDate(record.fetched_at)}</span>
                   <Badge variant="outline">RD${record.rate.toFixed(2)}</Badge>
                 </div>
               ))}

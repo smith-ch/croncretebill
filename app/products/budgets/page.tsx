@@ -114,15 +114,15 @@ export default function BudgetsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "borrador":
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-slate-800 text-slate-200 border-slate-800"
       case "enviado":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-slate-800 text-blue-300 border-slate-700"
       case "aprobado":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-emerald-900/30 text-emerald-300 border-emerald-800"
       case "rechazado":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-900/30 text-red-300 border-red-800"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-slate-800 text-slate-200 border-slate-800"
     }
   }
 
@@ -159,7 +159,7 @@ export default function BudgetsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
             Presupuestos
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Gestiona todos tus presupuestos</p>
+          <p className="text-slate-400 dark:text-gray-400 text-sm sm:text-base">Gestiona todos tus presupuestos</p>
         </div>
         <Button
           asChild
@@ -172,7 +172,7 @@ export default function BudgetsPage() {
         </Button>
       </motion.div>
 
-      <Card className="shadow-lg border-0 bg-white dark:bg-gray-900">
+      <Card className="shadow-lg border-0 bg-slate-900 dark:bg-gray-900">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-900/20 dark:to-slate-900/20">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative flex-1 w-full max-w-sm">
@@ -181,7 +181,7 @@ export default function BudgetsPage() {
                 placeholder="Buscar presupuestos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 border-slate-700 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             <CurrencyConverter 
@@ -196,8 +196,8 @@ export default function BudgetsPage() {
           {filteredBudgets.length === 0 ? (
             <div className="text-center py-16 px-4">
               <Calculator className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay presupuestos</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm sm:text-base">
+              <h3 className="text-lg font-medium text-slate-200 dark:text-white mb-2">No hay presupuestos</h3>
+              <p className="text-slate-400 dark:text-gray-400 mb-6 text-sm sm:text-base">
                 Comienza creando tu primer presupuesto
               </p>
               <Button
@@ -218,19 +218,19 @@ export default function BudgetsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="p-4 sm:p-6 hover:bg-slate-950 dark:hover:bg-gray-800/50 transition-colors"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg truncate">
+                        <h3 className="font-semibold text-slate-200 dark:text-white text-lg truncate">
                           {budget.budget_number || `#${budget.id.slice(0, 8)}`}
                         </h3>
                         <Badge className={`${getStatusColor(budget.status || "borrador")} text-xs font-medium w-fit`}>
                           {budget.status || "borrador"}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-slate-400 dark:text-gray-400">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">Cliente:</span>
                           <span className="truncate">{budget.clients?.name || "Sin cliente"}</span>
@@ -283,7 +283,7 @@ export default function BudgetsPage() {
                           variant="outline"
                           size="sm"
                           asChild
-                          className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 bg-transparent"
+                          className="hover:bg-slate-900 hover:text-blue-600 hover:border-blue-300 transition-all duration-200 bg-transparent"
                         >
                           <Link href={`/products/budgets/${budget.id}/edit`}>
                             <Edit className="h-4 w-4" />
@@ -292,7 +292,7 @@ export default function BudgetsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-200 bg-transparent"
+                          className="text-red-600 hover:bg-red-900/30 hover:text-red-400 hover:border-red-300 transition-all duration-200 bg-transparent"
                           onClick={() => handleDelete(budget.id)}
                         >
                           <Trash2 className="h-4 w-4" />

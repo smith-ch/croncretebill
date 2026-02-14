@@ -234,8 +234,8 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
           </div>
 
           {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <Alert className="border-red-800 bg-red-900/30">
+              <AlertDescription className="text-red-300">{error}</AlertDescription>
             </Alert>
           )}
 

@@ -206,10 +206,10 @@ export function RolePasswordVerification({ onVerified, children, action = 'switc
             </Alert>
           )}
 
-          <div className="bg-red-50 p-3 rounded-md border border-red-200">
+          <div className="bg-red-900/30 p-3 rounded-md border border-red-800">
             <div className="flex items-start space-x-2">
               <Shield className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-red-800">
+              <div className="text-sm text-red-300">
                 <div className="font-semibold mb-1">🔐 Contraseña de Administración</div>
                 <ul className="text-xs space-y-1">
                   <li>• Independiente de tu contraseña de usuario</li>

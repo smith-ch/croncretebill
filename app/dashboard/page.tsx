@@ -766,22 +766,22 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-2 sm:p-3 lg:p-6">
         <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
           {/* Header Skeleton */}
           <Card className="border-0 shadow-lg skeleton">
             <CardContent className="p-3 sm:p-4">
               <div className="flex flex-wrap justify-between items-center gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-xl skeleton"></div>
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-700 rounded-xl skeleton"></div>
                   <div className="space-y-2">
-                    <div className="h-6 sm:h-8 bg-gray-300 rounded w-32 sm:w-48"></div>
-                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-40 sm:w-64 hidden sm:block"></div>
+                    <div className="h-6 sm:h-8 bg-slate-700 rounded w-32 sm:w-48"></div>
+                    <div className="h-3 sm:h-4 bg-slate-800 rounded w-40 sm:w-64 hidden sm:block"></div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <div className="h-8 sm:h-10 bg-gray-300 rounded w-24 sm:w-32"></div>
-                  <div className="h-8 sm:h-10 bg-gray-200 rounded w-20 sm:w-28"></div>
+                  <div className="h-8 sm:h-10 bg-slate-700 rounded w-24 sm:w-32"></div>
+                  <div className="h-8 sm:h-10 bg-slate-800 rounded w-20 sm:w-28"></div>
                 </div>
               </div>
             </CardContent>
@@ -791,17 +791,17 @@ export default function DashboardPage() {
           <Card className="border-0 shadow-xl skeleton animate-scale-in">
             <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
-                <div className="h-6 bg-gray-300 rounded w-48"></div>
+                <div className="h-6 bg-slate-700 rounded w-48"></div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[1,2,3,4].map((i) => (
                     <div key={i} className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                      <div className="h-8 bg-gray-300 rounded w-32"></div>
+                      <div className="h-4 bg-slate-800 rounded w-24"></div>
+                      <div className="h-8 bg-slate-700 rounded w-32"></div>
                     </div>
                   ))}
                 </div>
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-                <div className="h-8 bg-gray-300 rounded w-full"></div>
+                <div className="h-3 bg-slate-800 rounded w-full"></div>
+                <div className="h-8 bg-slate-700 rounded w-full"></div>
               </div>
             </CardContent>
           </Card>
@@ -813,11 +813,11 @@ export default function DashboardPage() {
                 <CardContent className="p-3 sm:p-4">
                   <div className="space-y-2 sm:space-y-3">
                     <div className="flex justify-between items-start">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                      <div className="h-8 w-8 bg-gray-300 rounded-lg"></div>
+                      <div className="h-4 bg-slate-800 rounded w-20"></div>
+                      <div className="h-8 w-8 bg-slate-700 rounded-lg"></div>
                     </div>
-                    <div className="h-7 sm:h-8 bg-gray-300 rounded w-24"></div>
-                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                    <div className="h-7 sm:h-8 bg-slate-700 rounded w-24"></div>
+                    <div className="h-3 bg-slate-800 rounded w-16"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -831,12 +831,12 @@ export default function DashboardPage() {
                 <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
                   <CardContent className="p-4">
                     <div className="space-y-3">
-                      <div className="h-5 bg-gray-300 rounded w-32"></div>
+                      <div className="h-5 bg-slate-700 rounded w-32"></div>
                       <div className="space-y-2">
                         {[1,2,3].map((j) => (
                           <div key={j} className="flex justify-between items-center">
-                            <div className="h-4 bg-gray-200 rounded w-24"></div>
-                            <div className="h-4 bg-gray-300 rounded w-16"></div>
+                            <div className="h-4 bg-slate-800 rounded w-24"></div>
+                            <div className="h-4 bg-slate-700 rounded w-16"></div>
                           </div>
                         ))}
                       </div>
@@ -848,14 +848,14 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               <Card className="border-0 shadow-xl skeleton animate-scale-in" style={{animationDelay: '0.3s'}}>
                 <CardContent className="p-6">
-                  <div className="h-80 bg-gray-200 rounded"></div>
+                  <div className="h-80 bg-slate-800 rounded"></div>
                 </CardContent>
               </Card>
               <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
                 {[1,2].map((i) => (
                   <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${0.4 + i * 0.1}s`}}>
                     <CardContent className="p-6">
-                      <div className="h-64 bg-gray-200 rounded"></div>
+                      <div className="h-64 bg-slate-800 rounded"></div>
                     </CardContent>
                   </Card>
                 ))}
@@ -877,7 +877,7 @@ export default function DashboardPage() {
   const showEmployeeView = isEmployeeMode
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-2 sm:p-3 lg:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-2 sm:p-3 lg:p-4">
       {/* Enhanced Welcome Animation */}
       {showWelcome && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -898,7 +898,7 @@ export default function DashboardPage() {
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
             
             {/* Card content */}
-            <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gradient-to-r from-blue-200 via-purple-200 to-pink-200 p-8 max-w-xl mx-4 overflow-hidden">
+            <div className="relative bg-slate-900/98 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-slate-700 p-8 max-w-xl mx-4 overflow-hidden">
               {/* Efecto de brillo animado en el fondo */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shimmer"></div>
               
@@ -927,7 +927,7 @@ export default function DashboardPage() {
                     </h2>
                     <span className="text-2xl animate-bounce">✨</span>
                   </div>
-                  <p className="text-xl text-gray-800 font-semibold animate-in slide-in-from-left duration-700" style={{animationDelay: '100ms'}}>
+                  <p className="text-xl text-slate-200 font-semibold animate-in slide-in-from-left duration-700" style={{animationDelay: '100ms'}}>
                     {userName}
                   </p>
                 </div>
@@ -950,17 +950,17 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <p className="text-xs font-semibold text-amber-600 mb-1 flex items-center gap-1">
                       FRASE DEL DÍA
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-[10px] font-bold text-purple-700">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-slate-800 to-slate-700 text-[10px] font-bold text-purple-400">
                         <span className="animate-pulse">✨</span> Powered by Groq AI
                       </span>
                     </p>
                     {quoteLoading ? (
                       <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                        <div className="h-4 bg-slate-800 rounded animate-pulse"></div>
+                        <div className="h-4 bg-slate-800 rounded animate-pulse w-3/4"></div>
                       </div>
                     ) : (
-                      <p className="text-base text-gray-700 leading-relaxed italic font-medium">
+                      <p className="text-base text-slate-300 leading-relaxed italic font-medium">
                         "{dailyQuote}"
                       </p>
                     )}
@@ -985,17 +985,17 @@ export default function DashboardPage() {
         {showEmployeeView ? (
           <div className="space-y-6">
             {/* Header Simple para Empleado con Botones */}
-            <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 p-4">
+            <div className="bg-slate-900/95 backdrop-blur-md rounded-xl shadow-lg border border-slate-700/50 p-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl shadow-md">
                     <DollarSign className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-emerald-800 to-green-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-200 via-emerald-400 to-green-400 bg-clip-text text-transparent">
                       Venta de Hoy
                     </h1>
-                    <p className="text-sm text-gray-600">Panel de ventas</p>
+                    <p className="text-sm text-slate-400">Panel de ventas</p>
                   </div>
                 </div>
 
@@ -1015,7 +1015,7 @@ export default function DashboardPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all duration-300"
+                      className="bg-slate-800 hover:bg-emerald-900/30 text-emerald-400 border-emerald-800 hover:border-emerald-600 shadow-sm hover:shadow-md transition-all duration-300"
                     >
                       <Receipt className="h-4 w-4 mr-2" />
                       Recibo Térmico
@@ -1028,7 +1028,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       fetchStats()
                     }}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-200 shadow-sm hover:shadow-md transition-all duration-300"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Actualizar
@@ -1047,7 +1047,7 @@ export default function DashboardPage() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-300/20 to-green-400/30 rounded-full -translate-y-16 translate-x-16"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-4 relative">
                 <div className="flex-1">
-                  <CardTitle className="text-lg font-bold text-emerald-700 uppercase tracking-wide mb-2">Ingresos del Día</CardTitle>
+                  <CardTitle className="text-lg font-bold text-emerald-400 uppercase tracking-wide mb-2">Ingresos del Día</CardTitle>
                   <p className="text-sm text-emerald-600">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg">
@@ -1059,7 +1059,7 @@ export default function DashboardPage() {
                   <span className="text-5xl font-bold text-emerald-900 mb-4">{formatCurrency(stats.todayRevenue)}</span>
                   <div className="flex items-center gap-2">
                     <Activity className="h-5 w-5 text-emerald-600" />
-                    <span className="text-sm text-emerald-700">Total de ventas generadas hoy</span>
+                    <span className="text-sm text-emerald-400">Total de ventas generadas hoy</span>
                   </div>
                 </div>
               </CardContent>
@@ -1069,17 +1069,17 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-1 w-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                <h2 className="text-xl font-bold text-gray-800">Actividad Reciente</h2>
+                <h2 className="text-xl font-bold text-slate-200">Actividad Reciente</h2>
               </div>
-              <Card className="shadow-lg border-0 bg-white relative overflow-hidden">
+              <Card className="shadow-lg border border-slate-800 bg-slate-900 relative overflow-hidden">
                 <CardContent className="p-4 relative">
                   {stats.recentActivity.length > 0 ? (
                     <div className="space-y-2">
                       {stats.recentActivity.slice(0, 10).map((activity, index) => (
                         <div
                           key={activity.id}
-                          className={`flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors ${
-                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-50' : ''
+                          className={`flex items-center gap-2 p-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition-colors ${
+                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-900/30' : ''
                           }`}
                         >
                           <div
@@ -1100,7 +1100,7 @@ export default function DashboardPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1 overflow-hidden">
-                            <p className="font-semibold text-gray-900 text-sm truncate">
+                            <p className="font-semibold text-slate-200 text-sm truncate">
                               {activity.type === "invoice" 
                                 ? `Factura #${activity.number}` 
                                 : activity.type === "thermal_receipt"
@@ -1140,7 +1140,7 @@ export default function DashboardPage() {
           /* Vista completa para usuarios con permisos */
           <>
         {/* Barra de Acciones Flotante - Sticky - Mobile Optimized */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 p-2 sm:p-3">
+        <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md rounded-xl shadow-lg border border-slate-800/50 p-2 sm:p-3">
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
             {/* Título del Dashboard */}
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1151,7 +1151,7 @@ export default function DashboardPage() {
                 <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <p className="text-xs text-gray-600 hidden sm:block">Panel de control empresarial</p>
+                <p className="text-xs text-slate-400 hidden sm:block">Panel de control empresarial</p>
               </div>
             </div>
 
@@ -1173,7 +1173,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white hover:bg-red-50 text-red-700 border-red-200 hover:border-red-400 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm"
+                    className="bg-slate-800 hover:bg-red-900/30 text-red-400 border-red-800 hover:border-red-600 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm"
                   >
                     <Receipt className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
                     <span className="hidden sm:inline">Nuevo Gasto</span>
@@ -1188,7 +1188,7 @@ export default function DashboardPage() {
                 onClick={() => {
                   fetchStats()
                 }}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hidden sm:flex"
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 shadow-sm hover:shadow-md transition-all duration-300 hidden sm:flex"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Actualizar
@@ -1199,7 +1199,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white hover:bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm hidden sm:flex"
+                    className="bg-slate-800 hover:bg-emerald-900/30 text-emerald-400 border-emerald-800 hover:border-emerald-600 shadow-sm hover:shadow-md transition-all duration-300 text-xs sm:text-sm hidden sm:flex"
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Reportes
@@ -1211,12 +1211,12 @@ export default function DashboardPage() {
               <div className="h-8 w-px bg-gray-300 mx-1 hidden lg:block"></div>
 
               {/* Controles de Vista - Optimized for mobile */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-0.5 sm:p-1">
+              <div className="flex items-center bg-slate-800 rounded-lg p-0.5 sm:p-1">
                 <Button
                   variant={viewMode === 'overview' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('overview')}
-                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'overview' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'overview' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800'}`}
                 >
                   <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1" />
                   <span className="hidden sm:inline">Resumen</span>
@@ -1225,7 +1225,7 @@ export default function DashboardPage() {
                   variant={viewMode === 'detailed' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('detailed')}
-                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'detailed' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+                  className={`rounded-md text-xs h-6 sm:h-7 px-2 sm:px-3 transition-all duration-200 ${viewMode === 'detailed' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800'}`}
                 >
                   <BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1" />
                   <span className="hidden sm:inline">Detallado</span>
@@ -1238,15 +1238,15 @@ export default function DashboardPage() {
         {/* Layout principal - Reorganizado y optimizado para móvil */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3 mb-3 sm:mb-4">
           {/* Meta Mensual - Stack completo en mobile, 1 columna en desktop */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 card-hover animate-scale-in">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in">
             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
+                  <div className="p-1.5 sm:p-2 bg-blue-600 rounded-lg">
                     <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-base sm:text-lg font-bold text-blue-900 flex items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg font-bold text-blue-300 flex items-center gap-2">
                       Meta Mensual
                       <Badge className={`${
                         monthlyProgress >= 100 ? 'bg-emerald-500' :
@@ -1256,7 +1256,7 @@ export default function DashboardPage() {
                         {monthlyProgress.toFixed(1)}%
                       </Badge>
                     </CardTitle>
-                    <p className="text-xs text-blue-600">
+                    <p className="text-xs text-blue-400">
                       {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
@@ -1268,7 +1268,7 @@ export default function DashboardPage() {
                     console.log("Botón de configuración clickeado, showTargetSettings actual:", showTargetSettings)
                     setShowTargetSettings(!showTargetSettings)
                   }}
-                  className="text-blue-700 hover:bg-blue-100 rounded-lg p-1.5 sm:p-2"
+                  className="text-blue-400 hover:bg-slate-800 rounded-lg p-1.5 sm:p-2"
                   title="Configurar meta mensual"
                 >
                   <Settings className="h-4 w-4" />
@@ -1278,20 +1278,20 @@ export default function DashboardPage() {
             <CardContent className="pt-2 p-3 sm:p-6">
               <div className="space-y-2 sm:space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/60 rounded-lg p-2 sm:p-3">
-                    <div className="text-xs text-blue-600">Alcanzado</div>
-                    <div className="text-base sm:text-lg font-bold text-blue-800">{formatCurrency(stats.monthlyRevenue)}</div>
+                  <div className="bg-slate-800/60 rounded-lg p-2 sm:p-3">
+                    <div className="text-xs text-blue-400">Alcanzado</div>
+                    <div className="text-base sm:text-lg font-bold text-blue-300">{formatCurrency(stats.monthlyRevenue)}</div>
                   </div>
-                  <div className="bg-white/60 rounded-lg p-2 sm:p-3">
-                    <div className="text-xs text-blue-600">Meta</div>
-                    <div className="text-base sm:text-lg font-bold text-blue-800">{formatCurrency(stats.monthlyTarget)}</div>
+                  <div className="bg-slate-800/60 rounded-lg p-2 sm:p-3">
+                    <div className="text-xs text-blue-400">Meta</div>
+                    <div className="text-base sm:text-lg font-bold text-blue-300">{formatCurrency(stats.monthlyTarget)}</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
-                    <span className="text-blue-600">Progreso</span>
-                    <span className="text-blue-800 font-semibold">
+                    <span className="text-blue-400">Progreso</span>
+                    <span className="text-blue-300 font-semibold">
                       {monthlyProgress >= 100 ? '¡Meta Superada! 🎉' : 
                        `Falta: ${formatCurrency(Math.max(0, stats.monthlyTarget - stats.monthlyRevenue))}`}
                     </span>
@@ -1300,19 +1300,19 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-white/50 rounded-lg p-2">
-                    <div className="text-xs text-amber-600">Facturas</div>
-                    <div className="text-sm font-bold text-amber-900">{formatNumber(stats.monthlyInvoices)}</div>
+                  <div className="bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-xs text-slate-400">Facturas</div>
+                    <div className="text-sm font-bold text-slate-200">{formatNumber(stats.monthlyInvoices)}</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-2">
-                    <div className="text-xs text-amber-600">Promedio</div>
-                    <div className="text-sm font-bold text-amber-900">
+                  <div className="bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-xs text-slate-400">Promedio</div>
+                    <div className="text-sm font-bold text-slate-200">
                       {stats.monthlyInvoices > 0 ? formatCurrency(stats.monthlyRevenue / stats.monthlyInvoices) : formatCurrency(0)}
                     </div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-2">
-                    <div className="text-xs text-amber-600">Días resto</div>
-                    <div className="text-sm font-bold text-amber-900">
+                  <div className="bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-xs text-slate-400">Días resto</div>
+                    <div className="text-sm font-bold text-slate-200">
                       {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate()}
                     </div>
                   </div>
@@ -1322,31 +1322,31 @@ export default function DashboardPage() {
           </Card>
 
           {/* Facturas Pendientes - Mobile Optimized */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
             <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-amber-500 rounded-lg">
+                <div className="p-1.5 sm:p-2 bg-amber-600 rounded-lg">
                   <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <CardTitle className="text-base sm:text-lg font-bold text-amber-800">Pendientes</CardTitle>
+                <CardTitle className="text-base sm:text-lg font-bold text-amber-300">Pendientes</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
               <div className="space-y-2 sm:space-y-3">
-                <div className="text-center bg-white/60 rounded-lg p-2 sm:p-3">
-                  <div className="text-2xl sm:text-3xl font-bold text-amber-800">
+                <div className="text-center bg-slate-800/60 rounded-lg p-2 sm:p-3">
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-400">
                     {formatCurrency(stats.pendingRevenue)}
                   </div>
-                  <div className="text-xs sm:text-sm text-amber-600">Total por cobrar</div>
+                  <div className="text-xs sm:text-sm text-amber-400">Total por cobrar</div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="bg-white/50 rounded-lg p-2">
-                    <div className="text-lg sm:text-xl font-bold text-amber-700">{formatNumber(stats.pendingInvoices)}</div>
-                    <div className="text-xs text-amber-600">Facturas</div>
+                  <div className="bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-lg sm:text-xl font-bold text-amber-400">{formatNumber(stats.pendingInvoices)}</div>
+                    <div className="text-xs text-slate-400">Facturas</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-2">
-                    <div className="text-lg sm:text-xl font-bold text-red-700">{stats.overdueInvoices}</div>
+                  <div className="bg-slate-800/50 rounded-lg p-2">
+                    <div className="text-lg sm:text-xl font-bold text-red-400">{stats.overdueInvoices}</div>
                     <div className="text-xs text-red-600">Vencidas</div>
                   </div>
                 </div>
@@ -1355,60 +1355,60 @@ export default function DashboardPage() {
           </Card>
 
           {/* Rendimiento Semanal/Hoy - Mobile Optimized */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
-            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-300/20 to-green-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
+            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-600/20 to-green-600/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
             <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-2 sm:p-2.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                  <div className="p-2 sm:p-2.5 bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl shadow-lg">
                     <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg font-bold text-emerald-900">
+                  <CardTitle className="text-base sm:text-lg font-bold text-emerald-300">
                     {showWeekly ? 'Esta Semana' : 'Hoy'}
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-emerald-700 font-medium">Hoy</span>
+                  <span className="text-xs text-emerald-400 font-medium">Hoy</span>
                   <Switch
                     checked={showWeekly}
                     onCheckedChange={setShowWeekly}
                     className="data-[state=checked]:bg-emerald-600"
                   />
-                  <span className="text-xs text-emerald-700 font-medium">Semana</span>
+                  <span className="text-xs text-emerald-400 font-medium">Semana</span>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="relative pt-0 p-3 sm:p-6">
               <div className="space-y-2 sm:space-y-3">
-                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-emerald-200/50">
-                  <div className="text-2xl sm:text-3xl font-bold text-emerald-800">
+                <div className="text-center bg-slate-800/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-slate-700/50">
+                  <div className="text-2xl sm:text-3xl font-bold text-emerald-400">
                     {formatCurrency(showWeekly ? stats.weeklyRevenue : stats.todayRevenue)}
                   </div>
-                  <div className="text-xs sm:text-sm text-emerald-600 font-medium">
+                  <div className="text-xs sm:text-sm text-emerald-400 font-medium">
                     {showWeekly ? 'Ingresos semanales' : 'Ingresos de hoy'}
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/50 rounded-lg p-2 text-center">
-                    <div className="text-lg sm:text-xl font-bold text-emerald-700">
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-emerald-400">
                       {formatNumber(showWeekly ? stats.weeklyInvoices : stats.todayInvoices)}
                     </div>
-                    <div className="text-xs text-emerald-600">Facturas</div>
+                    <div className="text-xs text-slate-400">Facturas</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-2 text-center">
-                    <div className="text-lg sm:text-xl font-bold text-emerald-700">
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-emerald-400">
                       {formatCurrency(showWeekly ? stats.weeklyExpenseAmount : stats.todayExpenseAmount)}
                     </div>
-                    <div className="text-xs text-emerald-600">Gastos</div>
+                    <div className="text-xs text-slate-400">Gastos</div>
                   </div>
                 </div>
 
-                <div className="bg-white/50 rounded-lg p-2">
-                  <div className="text-xs text-emerald-600">
+                <div className="bg-slate-800/50 rounded-lg p-2">
+                  <div className="text-xs text-slate-400">
                     {showWeekly ? 'Balance neto semanal' : 'Balance neto de hoy'}
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-emerald-800">
+                  <div className="text-base sm:text-lg font-bold text-emerald-400">
                     {formatCurrency(showWeekly 
                       ? (stats.weeklyRevenue - stats.weeklyExpenseAmount) 
                       : (stats.todayRevenue - stats.todayExpenseAmount)
@@ -1434,44 +1434,44 @@ export default function DashboardPage() {
         {/* Segunda fila - Gastos del Mes - Mobile Optimized */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3 mb-3 sm:mb-4">
           {/* Gastos del Mes - Tarjeta completa */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-red-300/20 to-rose-300/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-red-600/20 to-rose-600/20 rounded-full -translate-y-8 sm:-translate-y-12 translate-x-8 sm:translate-x-12"></div>
             <CardHeader className="relative pb-2 sm:pb-3 p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-2 sm:p-2.5 bg-gradient-to-r from-red-500 to-rose-500 rounded-xl shadow-lg">
+                <div className="p-2 sm:p-2.5 bg-gradient-to-r from-red-600 to-rose-600 rounded-xl shadow-lg">
                   <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white transform rotate-180" />
                 </div>
-                <CardTitle className="text-base sm:text-lg font-bold text-red-900">Gastos del Mes</CardTitle>
+                <CardTitle className="text-base sm:text-lg font-bold text-red-300">Gastos del Mes</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="relative pt-0 p-3 sm:p-6">
               <div className="space-y-2 sm:space-y-3">
-                <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-red-200/50">
-                  <div className="text-2xl sm:text-3xl font-bold text-red-800">
+                <div className="text-center bg-slate-800/70 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-slate-700/50">
+                  <div className="text-2xl sm:text-3xl font-bold text-red-400">
                     {formatCurrency(stats.monthlyExpenseAmount)}
                   </div>
-                  <div className="text-xs sm:text-sm text-red-600 font-medium">Total gastado</div>
+                  <div className="text-xs sm:text-sm text-red-400 font-medium">Total gastado</div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/50 rounded-lg p-2 text-center">
-                    <div className="text-lg sm:text-xl font-bold text-red-700">{formatNumber(stats.monthlyExpenses)}</div>
-                    <div className="text-xs text-red-600">Registros</div>
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-red-400">{formatNumber(stats.monthlyExpenses)}</div>
+                    <div className="text-xs text-slate-400">Registros</div>
                   </div>
-                  <div className="bg-white/50 rounded-lg p-2 text-center">
-                    <div className="text-lg sm:text-xl font-bold text-red-700">
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-lg sm:text-xl font-bold text-red-400">
                       {stats.monthlyExpenses > 0 ? formatCurrency(stats.monthlyExpenseAmount / stats.monthlyExpenses) : formatCurrency(0)}
                     </div>
-                    <div className="text-xs text-red-600">Promedio</div>
+                    <div className="text-xs text-slate-400">Promedio</div>
                   </div>
                 </div>
 
-                <div className="bg-white/50 rounded-lg p-2">
-                  <div className="text-xs text-red-600">Margen bruto</div>
-                  <div className="text-base sm:text-lg font-bold text-red-800">
+                <div className="bg-slate-800/50 rounded-lg p-2">
+                  <div className="text-xs text-slate-400">Margen bruto</div>
+                  <div className="text-base sm:text-lg font-bold text-red-400">
                     {formatCurrency(stats.monthlyRevenue - stats.monthlyExpenseAmount)}
                   </div>
-                  <div className="text-xs text-red-500">
+                  <div className="text-xs text-red-400">
                     {stats.monthlyRevenue > 0 ? 
                       `${(((stats.monthlyRevenue - stats.monthlyExpenseAmount) / stats.monthlyRevenue) * 100).toFixed(1)}% margen` 
                       : '0% margen'
@@ -1483,39 +1483,39 @@ export default function DashboardPage() {
           </Card>
 
           {/* Resumen General - Mobile Optimized Vertical Stack */}
-          <Card className="lg:col-span-2 border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-100">
+          <Card className="lg:col-span-2 border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
             <CardHeader className="pb-3 p-3 sm:p-4">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-r from-slate-600 to-gray-700 rounded-lg">
+                <div className="p-1.5 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg">
                   <BarChart3 className="h-4 w-4 text-white" />
                 </div>
-                <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Resumen General</CardTitle>
+                <CardTitle className="text-sm sm:text-base font-bold text-slate-200">Resumen General</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-3 sm:p-4">
               <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                <div className="bg-slate-800/70 rounded-lg p-3 sm:p-4">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Clientes</span>
-                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalClients)}</span>
+                    <span className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Clientes</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-200">{formatNumber(stats.totalClients)}</span>
                   </div>
                 </div>
-                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                <div className="bg-slate-800/70 rounded-lg p-3 sm:p-4">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Productos</span>
-                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalProducts)}</span>
+                    <span className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Productos</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-200">{formatNumber(stats.totalProducts)}</span>
                   </div>
                 </div>
-                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                <div className="bg-slate-800/70 rounded-lg p-3 sm:p-4">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Proyectos</span>
-                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalProjects)}</span>
+                    <span className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Proyectos</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-200">{formatNumber(stats.totalProjects)}</span>
                   </div>
                 </div>
-                <div className="bg-white/70 rounded-lg p-3 sm:p-4">
+                <div className="bg-slate-800/70 rounded-lg p-3 sm:p-4">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Facturas</span>
-                    <span className="text-xl sm:text-2xl font-bold text-slate-800">{formatNumber(stats.totalInvoices)}</span>
+                    <span className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Facturas</span>
+                    <span className="text-xl sm:text-2xl font-bold text-slate-200">{formatNumber(stats.totalInvoices)}</span>
                   </div>
                 </div>
               </div>
@@ -1525,9 +1525,9 @@ export default function DashboardPage() {
         
         {/* Configuración de Meta */}
         {showTargetSettings && (
-          <Card className="border-2 border-blue-200 shadow-xl bg-white mb-4 animate-in slide-in-from-top-2 duration-300">
+          <Card className="border-2 border-slate-800 shadow-xl bg-slate-900 mb-4 animate-in slide-in-from-top-2 duration-300">
             <CardHeader className="pb-2">
-              <CardTitle className="text-blue-800 flex items-center gap-2">
+              <CardTitle className="text-blue-300 flex items-center gap-2">
                 <Settings className="h-5 w-5" />
                 Configurar Meta Mensual
               </CardTitle>
@@ -1535,7 +1535,7 @@ export default function DashboardPage() {
             <CardContent className="p-4 pt-2">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <Label htmlFor="monthly-target" className="text-gray-700 font-semibold">
+                  <Label htmlFor="monthly-target" className="text-slate-300 font-semibold">
                     Nueva Meta Mensual ({formatCurrency(newTarget)})
                   </Label>
                   <Input
@@ -1551,7 +1551,7 @@ export default function DashboardPage() {
                       }
                     }}
                     placeholder="Ingresa tu meta mensual"
-                    className="mt-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="mt-2 border-slate-700 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -1570,7 +1570,7 @@ export default function DashboardPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => setShowTargetSettings(false)}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
                   >
                     Cancelar
                   </Button>
@@ -1586,14 +1586,14 @@ export default function DashboardPage() {
           <>
             {/* Estadísticas Principales */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
                 Resumen General
               </h2>
               {loadingStates.basicStats ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div key={i} className="h-24 bg-slate-800 rounded-lg animate-pulse"></div>
                   ))}
                 </div>
               ) : (
@@ -1603,9 +1603,9 @@ export default function DashboardPage() {
 
             {/* Banner Nueva Funcionalidad - Sistema de Clasificación de Compras */}
             <div className="mb-6 lg:mb-8 animate-in slide-in-from-top duration-700">
-              <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+              <Card className="border-2 border-green-600 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
                 {/* Efecto de brillo animado */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-green-400/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-600/10 rounded-full blur-3xl animate-pulse"></div>
                 
                 <CardContent className="p-4 lg:p-6 relative">
                   <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
@@ -1628,24 +1628,24 @@ export default function DashboardPage() {
                         <Badge className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs font-bold">
                           NUEVA FUNCIONALIDAD
                         </Badge>
-                        <Badge variant="outline" className="border-green-600 text-green-700 px-2 py-0.5 text-xs">
+                        <Badge variant="outline" className="border-green-600 text-green-400 px-2 py-0.5 text-xs">
                           Contabilidad
                         </Badge>
                       </div>
                       
-                      <h3 className="text-lg lg:text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 text-green-600" />
+                      <h3 className="text-lg lg:text-2xl font-bold text-slate-200 mb-2 flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 text-green-400" />
                         Sistema de Clasificación de Compras
                       </h3>
                       
-                      <p className="text-sm lg:text-base text-gray-700 mb-3 lg:mb-4">
+                      <p className="text-sm lg:text-base text-slate-300 mb-3 lg:mb-4">
                         <strong>Evita errores contables:</strong> Ahora puedes clasificar tus compras correctamente como 
-                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-green-100 text-green-800 rounded font-semibold">
+                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-green-900/30 text-green-300 rounded font-semibold">
                           <Package className="h-3 w-3" />
                           Inventario
                         </span> 
                         (productos para venta) o
-                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-orange-100 text-orange-800 rounded font-semibold">
+                        <span className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 bg-orange-900/30 text-orange-300 rounded font-semibold">
                           <Receipt className="h-3 w-3" />
                           Gastos
                         </span>
@@ -1654,19 +1654,19 @@ export default function DashboardPage() {
 
                       {/* Beneficios rápidos */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-400 bg-slate-800/50 rounded-lg p-2">
                           <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
                           <span className="font-medium">Contabilidad correcta</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-400 bg-slate-800/50 rounded-lg p-2">
                           <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
                           <span className="font-medium">Control de stock</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-400 bg-slate-800/50 rounded-lg p-2">
                           <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
                           <span className="font-medium">Utilidades reales</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-700 bg-white/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-green-400 bg-slate-800/50 rounded-lg p-2">
                           <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
                           <span className="font-medium">Sin errores</span>
                         </div>
@@ -1683,7 +1683,7 @@ export default function DashboardPage() {
                         </Button>
                       </Link>
                       <Link href="/system-info" className="w-full lg:w-auto">
-                        <Button variant="outline" size="sm" className="w-full lg:w-auto border-green-600 text-green-700 hover:bg-green-50">
+                        <Button variant="outline" size="sm" className="w-full lg:w-auto border-green-600 text-green-400 hover:bg-green-900/30">
                           <Info className="h-4 w-4 mr-2" />
                           Ver más detalles
                         </Button>
@@ -1699,20 +1699,20 @@ export default function DashboardPage() {
               <div className="mb-6 lg:mb-8 animate-in slide-in-from-left duration-500">
                 <div className="flex items-center gap-2 lg:gap-3 mb-4">
                   <div className="h-1 w-8 lg:w-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-full animate-pulse"></div>
-                  <h3 className="text-lg lg:text-xl font-bold text-red-700">Alertas Importantes</h3>
+                  <h3 className="text-lg lg:text-xl font-bold text-red-400">Alertas Importantes</h3>
                   <AlertCircle className="h-4 w-4 lg:h-5 lg:w-5 text-red-500 animate-pulse" />
                 </div>
                 <div className="grid gap-3 lg:gap-4 md:grid-cols-2">
                   {stats.overdueInvoices > 0 && (
-                    <Card className="border-l-4 border-l-red-500 bg-red-50/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <Card className="border-l-4 border-l-red-500 bg-slate-900/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                       <CardContent className="p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4">
-                          <div className="p-2 lg:p-3 bg-red-100 rounded-full flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 lg:h-6 lg:w-6 text-red-600" />
+                          <div className="p-2 lg:p-3 bg-red-900/30 rounded-full flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 lg:h-6 lg:w-6 text-red-400" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-red-900 text-base lg:text-lg">{stats.overdueInvoices} facturas vencidas</p>
-                            <p className="text-sm lg:text-base text-red-700">Requieren atención inmediata</p>
+                            <p className="font-bold text-red-400 text-base lg:text-lg">{stats.overdueInvoices} facturas vencidas</p>
+                            <p className="text-sm lg:text-base text-red-400">Requieren atención inmediata</p>
                           </div>
                           <Link href="/invoices" className="w-full sm:w-auto">
                             <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto hover:scale-105 transition-transform">
@@ -1724,18 +1724,18 @@ export default function DashboardPage() {
                     </Card>
                   )}
                   {stats.pendingInvoices > 5 && (
-                    <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <Card className="border-l-4 border-l-amber-500 bg-slate-900/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                       <CardContent className="p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4">
-                          <div className="p-2 lg:p-3 bg-amber-100 rounded-full flex-shrink-0">
-                            <Clock className="h-5 w-5 lg:h-6 lg:w-6 text-amber-600" />
+                          <div className="p-2 lg:p-3 bg-amber-900/30 rounded-full flex-shrink-0">
+                            <Clock className="h-5 w-5 lg:h-6 lg:w-6 text-amber-400" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-amber-900 text-base lg:text-lg">{formatNumber(stats.pendingInvoices)} facturas pendientes</p>
-                            <p className="text-sm lg:text-base text-amber-700">Considera hacer seguimiento</p>
+                            <p className="font-bold text-amber-400 text-base lg:text-lg">{formatNumber(stats.pendingInvoices)} facturas pendientes</p>
+                            <p className="text-sm lg:text-base text-amber-400">Considera hacer seguimiento</p>
                           </div>
                           <Link href="/invoices" className="w-full sm:w-auto">
-                            <Button size="sm" variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-50 w-full sm:w-auto hover:scale-105 transition-transform">
+                            <Button size="sm" variant="outline" className="border-amber-300 text-amber-300 hover:bg-amber-900/30 w-full sm:w-auto hover:scale-105 transition-transform">
                               Revisar
                             </Button>
                           </Link>
@@ -1752,7 +1752,7 @@ export default function DashboardPage() {
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="h-1 w-10 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-gray-800">Análisis Rápido</h2>
+                  <h2 className="text-2xl font-bold text-slate-200">Análisis Rápido</h2>
                 </div>
                 <div className="grid gap-6 lg:grid-cols-3">
                   <FinancialHealthWidget
@@ -1796,7 +1796,7 @@ export default function DashboardPage() {
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-1 w-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
-                <h2 className="text-2xl font-bold text-gray-800">Estadísticas Detalladas</h2>
+                <h2 className="text-2xl font-bold text-slate-200">Estadísticas Detalladas</h2>
               </div>
               <StatsCards {...stats} />
             </div>
@@ -1806,7 +1806,7 @@ export default function DashboardPage() {
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="h-1 w-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-gray-800">Análisis Avanzado</h2>
+                  <h2 className="text-2xl font-bold text-slate-200">Análisis Avanzado</h2>
                 </div>
                 <div className="grid gap-6 lg:grid-cols-3">
                   <FinancialHealthWidget
@@ -1850,23 +1850,23 @@ export default function DashboardPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-1 w-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-gray-800">Análisis Visual</h2>
+              <h2 className="text-2xl font-bold text-slate-200">Análisis Visual</h2>
             </div>
             <div className="grid gap-6 lg:grid-cols-2">
             {/* Revenue Trend Chart */}
-            <Card className="shadow-2xl border-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-teal-600/5"></div>
               <CardHeader className="relative">
                 <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+                  <div className="p-4 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl shadow-lg">
                     <TrendingUp className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold text-emerald-900 flex items-center gap-2">
+                    <CardTitle className="text-2xl font-bold text-emerald-300 flex items-center gap-2">
                       Tendencia de Ingresos
-                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                      <TrendingUp className="h-5 w-5 text-emerald-400" />
                     </CardTitle>
-                    <CardDescription className="text-emerald-700 text-base font-medium">
+                    <CardDescription className="text-emerald-400 text-base font-medium">
                       Evolución de ingresos últimos 7 días
                     </CardDescription>
                   </div>
@@ -1889,19 +1889,19 @@ export default function DashboardPage() {
             </Card>
 
           {/* Expense Chart */}
-          <Card className="shadow-2xl border-0 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/5"></div>
+          <Card className="shadow-2xl border-0 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-rose-600/5"></div>
             <CardHeader className="relative">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl shadow-lg">
+                <div className="p-4 bg-gradient-to-r from-red-600 to-rose-600 rounded-2xl shadow-lg">
                   <Receipt className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold text-red-900 flex items-center gap-2">
+                  <CardTitle className="text-2xl font-bold text-red-300 flex items-center gap-2">
                     Gastos por Categoría
-                    <PieChart className="h-5 w-5 text-red-600" />
+                    <PieChart className="h-5 w-5 text-red-400" />
                   </CardTitle>
-                  <CardDescription className="text-red-700 text-base font-medium">
+                  <CardDescription className="text-red-400 text-base font-medium">
                     Distribución de gastos del mes
                   </CardDescription>
                 </div>
@@ -1949,19 +1949,19 @@ export default function DashboardPage() {
 
         {/* Comparison Chart - Solo para usuarios con permisos financieros */}
         {permissions.canViewFinances && (
-          <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5"></div>
+          <Card className="shadow-2xl border-0 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-indigo-600/5"></div>
             <CardHeader className="relative">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
+                <div className="p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg">
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold text-purple-900 flex items-center gap-2">
+                  <CardTitle className="text-2xl font-bold text-purple-300 flex items-center gap-2">
                     Comparación Mensual
-                    <BarChart3 className="h-5 w-5 text-purple-600" />
+                    <BarChart3 className="h-5 w-5 text-purple-400" />
                   </CardTitle>
-                  <CardDescription className="text-purple-700 text-base font-medium">
+                  <CardDescription className="text-purple-400 text-base font-medium">
                     Ingresos vs Gastos del mes actual
                   </CardDescription>
                 </div>
@@ -2000,17 +2000,17 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-1 w-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                <h2 className="text-base sm:text-xl font-bold text-gray-800">Actividad Reciente</h2>
+                <h2 className="text-base sm:text-xl font-bold text-slate-200">Actividad Reciente</h2>
               </div>
-              <Card className="shadow-lg border-0 bg-white relative overflow-hidden">
+              <Card className="shadow-lg border border-slate-800 bg-slate-900 relative overflow-hidden">
                 <CardContent className="p-2 sm:p-4 relative">
                   {stats.recentActivity.length > 0 ? (
                     <div className="space-y-2">
                       {stats.recentActivity.slice(0, 8).map((activity, index) => (
                         <div
                           key={activity.id}
-                          className={`flex items-center gap-2 p-2 bg-gray-50 rounded-lg ${
-                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-50' : ''
+                          className={`flex items-center gap-2 p-2 bg-slate-800 rounded-lg ${
+                            index === 0 ? 'border-l-2 border-l-emerald-500 bg-emerald-900/30' : ''
                           }`}
                         >
                           <div
@@ -2031,7 +2031,7 @@ export default function DashboardPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1 overflow-hidden">
-                            <p className="font-semibold text-gray-900 text-xs truncate">
+                            <p className="font-semibold text-slate-200 text-xs truncate">
                               {activity.type === "invoice" 
                                 ? `#${activity.number}` 
                                 : activity.type === "thermal_receipt"
@@ -2067,15 +2067,15 @@ export default function DashboardPage() {
             {/* Enhanced Analytics Cards - Ultra Compact Mobile */}
             <div className="grid gap-3 sm:gap-6 grid-cols-1 md:grid-cols-2">
               {/* Top Clients - Ultra Compact */}
-              <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5"></div>
                 <CardHeader className="p-3 sm:p-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                    <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
                       <Users className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div className="overflow-hidden">
-                      <CardTitle className="text-blue-900 text-sm sm:text-xl font-bold">Mejores Clientes</CardTitle>
+                      <CardTitle className="text-blue-300 text-sm sm:text-xl font-bold">Mejores Clientes</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
@@ -2083,7 +2083,7 @@ export default function DashboardPage() {
                   {stats.topClients.length > 0 ? (
                     <div className="space-y-2">
                       {stats.topClients.map((client, index) => (
-                        <div key={client.name} className="flex items-center gap-2 p-2 bg-white/80 rounded-lg shadow-sm">
+                        <div key={client.name} className="flex items-center gap-2 p-2 bg-slate-800/80 rounded-lg shadow-sm">
                           <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-lg shadow-lg flex-shrink-0 ${
                             index === 0 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
                             index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
@@ -2093,34 +2093,34 @@ export default function DashboardPage() {
                             {index + 1}
                           </div>
                           <div className="min-w-0 flex-1 overflow-hidden">
-                            <p className="font-bold text-gray-900 text-xs sm:text-base truncate">{client.name}</p>
-                            <p className="text-xs text-gray-600">{client.invoices} fact.</p>
+                            <p className="font-bold text-slate-200 text-xs sm:text-base truncate">{client.name}</p>
+                            <p className="text-xs text-slate-400">{client.invoices} fact.</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="font-bold text-blue-700 text-xs sm:text-base whitespace-nowrap">{formatCurrency(client.total)}</p>
+                            <p className="font-bold text-blue-400 text-xs sm:text-base whitespace-nowrap">{formatCurrency(client.total)}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                      <p className="text-xs text-gray-600">Sin datos</p>
+                      <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                      <p className="text-xs text-slate-400">Sin datos</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
               {/* Expenses by Category - Ultra Compact */}
-              <Card className="shadow-xl border-0 bg-gradient-to-br from-red-50 to-rose-50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/5"></div>
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-rose-600/5"></div>
                 <CardHeader className="p-3 sm:p-6">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl shadow-lg">
+                    <div className="p-2 bg-gradient-to-r from-red-600 to-rose-600 rounded-xl shadow-lg">
                       <PieChart className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div className="overflow-hidden">
-                      <CardTitle className="text-red-900 text-sm sm:text-xl font-bold">Gastos</CardTitle>
+                      <CardTitle className="text-red-300 text-sm sm:text-xl font-bold">Gastos</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
@@ -2130,7 +2130,7 @@ export default function DashboardPage() {
                       {stats.expensesByCategory.map((category, index) => (
                         <div
                           key={category.category}
-                          className="flex items-center gap-2 p-2 bg-white/80 rounded-lg shadow-sm"
+                          className="flex items-center gap-2 p-2 bg-slate-800/80 rounded-lg shadow-sm"
                         >
                           <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-lg flex-shrink-0 ${
                             index === 0 ? 'bg-gradient-to-r from-red-500 to-pink-600' :
@@ -2141,19 +2141,19 @@ export default function DashboardPage() {
                             <Receipt className="h-3 w-3 sm:h-5 sm:w-5" />
                           </div>
                           <div className="min-w-0 flex-1 overflow-hidden">
-                            <p className="font-bold text-gray-900 text-xs sm:text-base truncate">{category.category}</p>
-                            <p className="text-xs text-gray-600">{category.count} reg.</p>
+                            <p className="font-bold text-slate-200 text-xs sm:text-base truncate">{category.category}</p>
+                            <p className="text-xs text-slate-400">{category.count} reg.</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="font-bold text-red-700 text-xs sm:text-base whitespace-nowrap">{formatCurrency(category.amount)}</p>
+                            <p className="font-bold text-red-400 text-xs sm:text-base whitespace-nowrap">{formatCurrency(category.amount)}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <Receipt className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                      <p className="text-xs text-gray-600">Sin gastos</p>
+                      <Receipt className="h-8 w-8 text-red-400 mx-auto mb-2" />
+                      <p className="text-xs text-slate-400">Sin gastos</p>
                     </div>
                   )}
                 </CardContent>

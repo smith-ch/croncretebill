@@ -255,7 +255,7 @@ export function ServicePriceDropdown({
                     </Badge>
                   )}
                   {!isApplicable && (
-                    <Badge variant="outline" className="text-xs h-4 bg-orange-50 text-orange-700">
+                    <Badge variant="outline" className="text-xs h-4 bg-orange-900/30 text-orange-400">
                       Condiciones no cumplen
                     </Badge>
                   )}

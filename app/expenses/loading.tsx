@@ -20,7 +20,7 @@ export default function ExpensesLoading() {
       </div>
 
       {/* Categories Summary */}
-      <div className="bg-white rounded-lg shadow-lg border-0">
+      <div className="bg-slate-900 rounded-lg shadow-lg border-0">
         <div className="h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-t-lg animate-pulse"></div>
         <div className="p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -32,7 +32,7 @@ export default function ExpensesLoading() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-lg border-0 p-6">
+      <div className="bg-slate-900 rounded-lg shadow-lg border-0 p-6">
         <div className="flex flex-wrap gap-4">
           <div className="h-10 bg-gray-200 rounded flex-1 min-w-64 animate-pulse"></div>
           <div className="h-10 bg-gray-200 rounded w-48 animate-pulse"></div>
@@ -41,11 +41,11 @@ export default function ExpensesLoading() {
       </div>
 
       {/* Expenses List */}
-      <div className="bg-white rounded-lg shadow-lg border-0">
+      <div className="bg-slate-900 rounded-lg shadow-lg border-0">
         <div className="h-16 bg-gradient-to-r from-pink-600 to-rose-600 rounded-t-lg animate-pulse"></div>
         <div className="p-6 space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+            <div key={i} className="bg-slate-900 rounded-lg shadow-md p-6 animate-pulse">
               <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-3">
@@ -78,12 +78,12 @@ export default function ExpensesLoading() {
       </div>
 
       {/* Categories Management */}
-      <div className="bg-white rounded-lg shadow-lg border-0">
+      <div className="bg-slate-900 rounded-lg shadow-lg border-0">
         <div className="h-16 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-lg animate-pulse"></div>
         <div className="p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm p-4 animate-pulse">
+              <div key={i} className="bg-slate-900 rounded-lg shadow-sm p-4 animate-pulse">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 bg-gray-200 rounded-full"></div>

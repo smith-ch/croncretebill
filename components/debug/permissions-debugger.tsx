@@ -81,7 +81,7 @@ export function PermissionsDebugger() {
           {/* Permisos del Hook */}
           <div>
             <h3 className="font-bold text-lg mb-2">📦 Permisos del Hook (Frontend)</h3>
-            <div className="bg-gray-100 p-4 rounded text-sm font-mono">
+            <div className="bg-slate-800 p-4 rounded text-sm font-mono">
               <p><strong>isOwner:</strong> <Badge variant={permissions.isOwner ? "default" : "secondary"}>{String(permissions.isOwner)}</Badge></p>
               <p><strong>role:</strong> <Badge>{permissions.role}</Badge></p>
               <p><strong>wasOriginallyOwner:</strong> {String(permissions.wasOriginallyOwner)}</p>
@@ -96,7 +96,7 @@ export function PermissionsDebugger() {
           <div>
             <h3 className="font-bold text-lg mb-2">🗄️ Perfil de Base de Datos</h3>
             {dbProfile ? (
-              <div className="bg-gray-100 p-4 rounded text-sm font-mono">
+              <div className="bg-slate-800 p-4 rounded text-sm font-mono">
                 <p><strong>user_id:</strong> {dbProfile.user_id}</p>
                 <p><strong>parent_user_id:</strong> {dbProfile.parent_user_id || 'NULL (ES OWNER)'}</p>
                 <p><strong>display_name:</strong> {dbProfile.display_name}</p>
@@ -115,7 +115,7 @@ export function PermissionsDebugger() {
           <div>
             <h3 className="font-bold text-lg mb-2">⚡ Resultado del RPC</h3>
             {rpcResult ? (
-              <div className="bg-gray-100 p-4 rounded text-sm font-mono">
+              <div className="bg-slate-800 p-4 rounded text-sm font-mono">
                 <pre>{JSON.stringify(rpcResult, null, 2)}</pre>
               </div>
             ) : (
@@ -126,7 +126,7 @@ export function PermissionsDebugger() {
           {/* LocalStorage */}
           <div>
             <h3 className="font-bold text-lg mb-2">💾 LocalStorage</h3>
-            <div className="bg-gray-100 p-4 rounded text-sm font-mono">
+            <div className="bg-slate-800 p-4 rounded text-sm font-mono">
               {Object.entries(localStorage_data).map(([key, value]) => (
                 <p key={key}><strong>{key}:</strong> {value || 'null'}</p>
               ))}
@@ -138,20 +138,20 @@ export function PermissionsDebugger() {
             <h3 className="font-bold text-lg mb-2">🎯 Análisis</h3>
             <div className="space-y-2">
               {dbProfile?.parent_user_id && permissions.isOwner && (
-                <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded">
+                <div className="bg-red-900/30 border border-red-400 text-red-400 p-4 rounded">
                   <p className="font-bold">❌ ERROR DETECTADO</p>
                   <p>Este usuario tiene parent_user_id (es empleado) pero isOwner es TRUE</p>
                   <p>Esto indica que hay un problema de caché o lógica.</p>
                 </div>
               )}
               {dbProfile?.parent_user_id && !permissions.isOwner && (
-                <div className="bg-green-100 border border-green-400 text-green-700 p-4 rounded">
+                <div className="bg-green-900/30 border border-green-400 text-green-400 p-4 rounded">
                   <p className="font-bold">✅ CORRECTO</p>
                   <p>Este es un empleado y los permisos están correctos (isOwner: false)</p>
                 </div>
               )}
               {!dbProfile?.parent_user_id && permissions.isOwner && (
-                <div className="bg-green-100 border border-green-400 text-green-700 p-4 rounded">
+                <div className="bg-green-900/30 border border-green-400 text-green-400 p-4 rounded">
                   <p className="font-bold">✅ CORRECTO</p>
                   <p>Este es un owner y los permisos están correctos (isOwner: true)</p>
                 </div>

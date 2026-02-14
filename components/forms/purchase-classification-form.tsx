@@ -335,7 +335,7 @@ export function PurchaseClassificationForm({ onSuccess, onCancel }: PurchaseForm
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Clasificación del tipo de compra */}
-      <Card className="border-2 border-blue-200 bg-blue-50">
+      <Card className="border-2 border-slate-700 bg-slate-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-900">
             <AlertCircle className="h-5 w-5" />
@@ -345,27 +345,27 @@ export function PurchaseClassificationForm({ onSuccess, onCancel }: PurchaseForm
         <CardContent>
           <RadioGroup value={purchaseType} onValueChange={(value: any) => setPurchaseType(value)}>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-4 border-2 border-green-300 bg-white rounded-lg cursor-pointer hover:bg-green-50">
+              <div className="flex items-center space-x-3 p-4 border-2 border-green-300 bg-slate-900 rounded-lg cursor-pointer hover:bg-green-900/30">
                 <RadioGroupItem value="inventory" id="inventory" />
                 <Label htmlFor="inventory" className="flex-1 cursor-pointer">
                   <div className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-green-600" />
                     <div>
                       <div className="font-semibold text-green-900">Producto para la Venta</div>
-                      <div className="text-sm text-green-700">Se registra en inventario • El gasto se reconoce al vender</div>
+                      <div className="text-sm text-green-400">Se registra en inventario • El gasto se reconoce al vender</div>
                     </div>
                   </div>
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-3 p-4 border-2 border-orange-300 bg-white rounded-lg cursor-pointer hover:bg-orange-50">
+              <div className="flex items-center space-x-3 p-4 border-2 border-orange-300 bg-slate-900 rounded-lg cursor-pointer hover:bg-orange-900/30">
                 <RadioGroupItem value="expense" id="expense" />
                 <Label htmlFor="expense" className="flex-1 cursor-pointer">
                   <div className="flex items-center gap-2">
                     <Receipt className="h-5 w-5 text-orange-600" />
                     <div>
                       <div className="font-semibold text-orange-900">Uso Interno / Operación</div>
-                      <div className="text-sm text-orange-700">Se registra como gasto inmediato</div>
+                      <div className="text-sm text-orange-400">Se registra como gasto inmediato</div>
                     </div>
                   </div>
                 </Label>
@@ -374,9 +374,9 @@ export function PurchaseClassificationForm({ onSuccess, onCancel }: PurchaseForm
           </RadioGroup>
 
           {purchaseType === 'inventory' && (
-            <Alert className="mt-4 border-green-300 bg-green-50">
+            <Alert className="mt-4 border-green-300 bg-green-900/30">
               <Info className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
+              <AlertDescription className="text-green-300">
                 <strong>Importante:</strong> La mercancía para venta se registra como inventario y solo se convierte en gasto (costo de venta) cuando se vende.
               </AlertDescription>
             </Alert>
@@ -394,7 +394,7 @@ export function PurchaseClassificationForm({ onSuccess, onCancel }: PurchaseForm
             <div className="md:col-span-2">
               <Label htmlFor="description">
                 Descripción *
-                {purchaseType === 'inventory' && <span className="text-sm text-gray-500 ml-2">(Nombre del producto)</span>}
+                {purchaseType === 'inventory' && <span className="text-sm text-slate-400 ml-2">(Nombre del producto)</span>}
               </Label>
               <Input
                 id="description"
@@ -467,9 +467,9 @@ export function PurchaseClassificationForm({ onSuccess, onCancel }: PurchaseForm
 
                 {formData.amount && formData.quantity && parseFloat(formData.quantity) > 0 && (
                   <div className="md:col-span-2">
-                    <Alert className="border-blue-300 bg-blue-50">
+                    <Alert className="border-blue-300 bg-slate-900">
                       <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                      <AlertDescription className="text-blue-800">
+                      <AlertDescription className="text-blue-300">
                         <strong>Costo unitario:</strong> {formatCurrency(parseFloat(formData.amount) / parseFloat(formData.quantity))} por {formData.unit}
                       </AlertDescription>
                     </Alert>

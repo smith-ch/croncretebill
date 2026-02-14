@@ -136,22 +136,22 @@ export default function PWAStatusPage() {
   return (
     <div className="container max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="text-3xl font-bold text-slate-200 dark:text-white mb-2">
           Estado PWA - ConcreteBill
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">
+        <p className="text-slate-400 dark:text-gray-300">
           Verificación de requisitos para Progressive Web App
         </p>
       </div>
 
       {canInstall && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
+        <Card className="border-green-800 bg-green-900/30 dark:bg-green-900/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Download className="h-8 w-8 text-green-600" />
                 <div>
-                  <h3 className="font-semibold text-green-800 dark:text-green-200">
+                  <h3 className="font-semibold text-green-300 dark:text-green-200">
                     ¡PWA Lista para Instalar!
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-300">
@@ -190,7 +190,7 @@ export default function PWAStatusPage() {
                   )}
                   <div>
                     <h4 className="font-medium">{check.name}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <p className="text-sm text-slate-400 dark:text-gray-300">
                       {check.description}
                     </p>
                   </div>
@@ -211,19 +211,19 @@ export default function PWAStatusPage() {
         <CardContent className="space-y-4">
           <div>
             <h4 className="font-medium mb-2">Chrome/Edge (Escritorio):</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-slate-400 dark:text-gray-300">
               Busca el ícono de instalación en la barra de direcciones o ve a Menú → Instalar ConcreteBill
             </p>
           </div>
           <div>
             <h4 className="font-medium mb-2">Safari (iOS):</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-slate-400 dark:text-gray-300">
               Toca el botón Compartir → Añadir a pantalla de inicio
             </p>
           </div>
           <div>
             <h4 className="font-medium mb-2">Chrome (Android):</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-slate-400 dark:text-gray-300">
               Toca el menú (⋮) → Añadir a pantalla de inicio
             </p>
           </div>

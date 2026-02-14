@@ -80,14 +80,14 @@ export function MobileSearchFilters({
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 h-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+            className="pl-10 pr-4 h-11 bg-slate-900 border-slate-800 focus:border-blue-500 focus:ring-blue-500/20"
           />
           {searchValue && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onSearchChange("")}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 rounded-full"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-slate-800 rounded-full"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -98,9 +98,9 @@ export function MobileSearchFilters({
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
           className={cn(
-            "h-11 px-3 border-gray-200 relative transition-colors",
-            showFilters && "bg-blue-50 border-blue-200",
-            hasActiveFilters && "border-blue-500 text-blue-700"
+            "h-11 px-3 border-slate-800 relative transition-colors",
+            showFilters && "bg-slate-900 border-slate-700",
+            hasActiveFilters && "border-blue-500 text-blue-400"
           )}
         >
           <Filter className="h-4 w-4" />
@@ -114,7 +114,7 @@ export function MobileSearchFilters({
 
       {/* Panel de filtros expandible */}
       {showFilters && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4" />
@@ -125,7 +125,7 @@ export function MobileSearchFilters({
                 variant="ghost"
                 size="sm"
                 onClick={onClearFilters}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
+                className="text-red-600 hover:text-red-400 hover:bg-red-900/30 text-xs"
               >
                 Limpiar todo
               </Button>
@@ -136,9 +136,9 @@ export function MobileSearchFilters({
             {/* Filtro de estado */}
             {statusOptions && onStatusFilterChange && (
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-700">Estado</label>
+                <label className="text-xs font-medium text-slate-300">Estado</label>
                 <Select value={statusFilter || "all"} onValueChange={onStatusFilterChange}>
-                  <SelectTrigger className="h-9 bg-white border-gray-200">
+                  <SelectTrigger className="h-9 bg-slate-900 border-slate-800">
                     <SelectValue placeholder="Todos los estados" />
                   </SelectTrigger>
                   <SelectContent>
@@ -167,12 +167,12 @@ export function MobileSearchFilters({
             {/* Filtro de fecha */}
             {dateOptions && onDateFilterChange && (
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                <label className="text-xs font-medium text-slate-300 flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   Período
                 </label>
                 <Select value={dateFilter || "all"} onValueChange={onDateFilterChange}>
-                  <SelectTrigger className="h-9 bg-white border-gray-200">
+                  <SelectTrigger className="h-9 bg-slate-900 border-slate-800">
                     <SelectValue placeholder="Todas las fechas" />
                   </SelectTrigger>
                   <SelectContent>
@@ -190,9 +190,9 @@ export function MobileSearchFilters({
             {/* Filtros personalizados */}
             {customFilters.map((filter) => (
               <div key={filter.key} className="space-y-2">
-                <label className="text-xs font-medium text-gray-700">{filter.label}</label>
+                <label className="text-xs font-medium text-slate-300">{filter.label}</label>
                 <Select value={filter.value} onValueChange={filter.onChange}>
-                  <SelectTrigger className="h-9 bg-white border-gray-200">
+                  <SelectTrigger className="h-9 bg-slate-900 border-slate-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -214,12 +214,12 @@ export function MobileSearchFilters({
             ))}
           </div>
 
-          <div className="flex justify-end pt-2 border-t border-gray-200">
+          <div className="flex justify-end pt-2 border-t border-slate-800">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(false)}
-              className="text-gray-600"
+              className="text-slate-400"
             >
               Cerrar
             </Button>

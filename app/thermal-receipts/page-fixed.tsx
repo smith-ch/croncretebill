@@ -324,7 +324,7 @@ export default function ThermalReceiptsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-blue-50">
+      <div className="flex items-center justify-center min-h-96 bg-slate-900">
         <div className="text-lg text-blue-600">Cargando facturas térmicas...</div>
       </div>
     )
@@ -359,13 +359,13 @@ export default function ThermalReceiptsPage() {
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Cliente General"
-                    className="border-blue-200 focus:border-blue-500"
+                    className="border-slate-700 focus:border-blue-500"
                   />
                 </div>
                 <div>
                   <Label htmlFor="paymentMethod">Método de Pago</Label>
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger className="border-blue-200 focus:border-blue-500">
+                    <SelectTrigger className="border-slate-700 focus:border-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -401,13 +401,13 @@ export default function ThermalReceiptsPage() {
 
                 <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-6 gap-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                    <div key={index} className="grid grid-cols-6 gap-2 p-3 border border-slate-700 rounded-lg bg-slate-900">
                       <div className="col-span-2">
                         <Input
                           placeholder="Nombre del producto/servicio"
                           value={item.item_name}
                           onChange={(e) => updateItem(index, "item_name", e.target.value)}
-                          className="border-blue-200"
+                          className="border-slate-700"
                         />
                         <Select onValueChange={(value) => {
                           const [type, id] = value.split('|')
@@ -415,7 +415,7 @@ export default function ThermalReceiptsPage() {
                             selectProductOrService(index, type as 'product' | 'service', id)
                           }
                         }}>
-                          <SelectTrigger className="mt-1 border-blue-200">
+                          <SelectTrigger className="mt-1 border-slate-700">
                             <SelectValue placeholder="Seleccionar producto/servicio" />
                           </SelectTrigger>
                           <SelectContent>
@@ -450,7 +450,7 @@ export default function ThermalReceiptsPage() {
                           onChange={(e) => updateItem(index, "quantity", parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
-                          className="border-blue-200"
+                          className="border-slate-700"
                         />
                       </div>
                       <div>
@@ -461,14 +461,14 @@ export default function ThermalReceiptsPage() {
                           onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
-                          className="border-blue-200"
+                          className="border-slate-700"
                         />
                       </div>
                       <div>
                         <Input
                           value={formatCurrency(item.line_total)}
                           readOnly
-                          className="bg-blue-100 border-blue-200"
+                          className="bg-slate-800 border-slate-700"
                         />
                       </div>
                       <div>
@@ -488,7 +488,7 @@ export default function ThermalReceiptsPage() {
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900 rounded-lg border border-slate-700">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
@@ -515,7 +515,7 @@ export default function ThermalReceiptsPage() {
                       onChange={(e) => setAmountReceived(parseFloat(e.target.value) || 0)}
                       min="0"
                       step="0.01"
-                      className="border-blue-200 focus:border-blue-500"
+                      className="border-slate-700 focus:border-blue-500"
                     />
                   </div>
                   <div className="flex justify-between font-bold">
@@ -536,7 +536,7 @@ export default function ThermalReceiptsPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notas adicionales..."
                   rows={3}
-                  className="border-blue-200 focus:border-blue-500"
+                  className="border-slate-700 focus:border-blue-500"
                 />
               </div>
 
@@ -553,7 +553,7 @@ export default function ThermalReceiptsPage() {
                     setIncludeItbis(true)
                     setItems([{ item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
                   }}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-slate-700 text-blue-600 hover:bg-slate-900"
                 >
                   Limpiar
                 </Button>
@@ -588,44 +588,44 @@ export default function ThermalReceiptsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-blue-200">
+        <Card className="border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Total Recibos</CardTitle>
             <Receipt className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">{receipts.length}</div>
+            <div className="text-2xl font-bold text-blue-400">{receipts.length}</div>
           </CardContent>
         </Card>
-        <Card className="border-blue-200">
+        <Card className="border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Efectivo</CardTitle>
             <Banknote className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">
+            <div className="text-2xl font-bold text-blue-400">
               {receipts.filter(r => r.payment_method === 'cash').length}
             </div>
           </CardContent>
         </Card>
-        <Card className="border-blue-200">
+        <Card className="border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Tarjeta</CardTitle>
             <CreditCard className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">
+            <div className="text-2xl font-bold text-blue-400">
               {receipts.filter(r => r.payment_method === 'card').length}
             </div>
           </CardContent>
         </Card>
-        <Card className="border-blue-200">
+        <Card className="border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Total Vendido</CardTitle>
             <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">
+            <div className="text-2xl font-bold text-blue-400">
               {formatCurrency(receipts.reduce((sum, r) => sum + r.total_amount, 0))}
             </div>
           </CardContent>
@@ -633,8 +633,8 @@ export default function ThermalReceiptsPage() {
       </div>
 
       {/* Receipts List */}
-      <Card className="border-blue-200">
-        <CardHeader className="bg-blue-50">
+      <Card className="border-slate-700">
+        <CardHeader className="bg-slate-900">
           <CardTitle className="text-blue-600">Recibos Térmicos Recientes</CardTitle>
           <CardDescription>
             Lista de todos los recibos térmicos generados
@@ -648,15 +648,15 @@ export default function ThermalReceiptsPage() {
           ) : (
             <div className="space-y-4">
               {receipts.map((receipt) => (
-                <div key={receipt.id} className="flex items-center justify-between p-4 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <div key={receipt.id} className="flex items-center justify-between p-4 border border-slate-700 rounded-lg bg-slate-900 hover:bg-slate-800 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
                       <div>
-                        <div className="font-semibold text-blue-700">{receipt.receipt_number}</div>
+                        <div className="font-semibold text-blue-400">{receipt.receipt_number}</div>
                         <div className="text-sm text-blue-600">{receipt.client_name}</div>
                       </div>
                       <div>
-                        <div className="font-medium text-blue-700">{formatCurrency(receipt.total_amount)}</div>
+                        <div className="font-medium text-blue-400">{formatCurrency(receipt.total_amount)}</div>
                         <div className="text-sm text-blue-600 capitalize">{receipt.payment_method}</div>
                       </div>
                       <div className="text-sm text-blue-600">
@@ -669,7 +669,7 @@ export default function ThermalReceiptsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => setSelectedReceipt(receipt)}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      className="border-slate-700 text-blue-600 hover:bg-slate-900"
                     >
                       <QrCode className="h-4 w-4 mr-2" />
                       Ver QR
@@ -701,13 +701,13 @@ export default function ThermalReceiptsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="text-center">
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <div className="w-48 h-48 mx-auto bg-white border-2 border-blue-200 rounded-lg flex items-center justify-center">
+              <div className="mb-4 p-4 bg-slate-900 rounded-lg">
+                <div className="w-48 h-48 mx-auto bg-slate-900 border-2 border-slate-700 rounded-lg flex items-center justify-center">
                   <QrCode size={120} className="text-blue-600" />
                 </div>
               </div>
               <div className="text-sm text-blue-600">
-                Código de verificación: <strong className="text-blue-700">{selectedReceipt.verification_code}</strong>
+                Código de verificación: <strong className="text-blue-400">{selectedReceipt.verification_code}</strong>
               </div>
             </div>
           </DialogContent>

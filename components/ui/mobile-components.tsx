@@ -21,7 +21,7 @@ export function MobileCard({
 }: MobileCardProps) {
   return (
     <Card className={cn(
-      "border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white/90 backdrop-blur-sm",
+      "border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-slate-900/90 backdrop-blur-sm",
       className
     )}>
       {title && (
@@ -90,19 +90,19 @@ export function MobileStatsCard({
   const colorClasses = {
     blue: {
       bg: 'from-blue-50 to-blue-100',
-      text: 'text-blue-700',
+      text: 'text-blue-400',
       valueBg: 'text-blue-900',
       iconBg: 'from-blue-500 to-blue-600'
     },
     green: {
       bg: 'from-emerald-50 to-emerald-100',
-      text: 'text-emerald-700',
+      text: 'text-emerald-400',
       valueBg: 'text-emerald-900',
       iconBg: 'from-emerald-500 to-emerald-600'
     },
     red: {
       bg: 'from-red-50 to-red-100',
-      text: 'text-red-700',
+      text: 'text-red-400',
       valueBg: 'text-red-900',
       iconBg: 'from-red-500 to-red-600'
     },
@@ -114,7 +114,7 @@ export function MobileStatsCard({
     },
     purple: {
       bg: 'from-purple-50 to-purple-100',
-      text: 'text-purple-700',
+      text: 'text-purple-400',
       valueBg: 'text-purple-900',
       iconBg: 'from-purple-500 to-purple-600'
     }

@@ -304,8 +304,8 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Presupuesto no encontrado</h1>
-          <p className="text-gray-600 mb-4">El presupuesto que buscas no existe o no tienes permisos para verlo.</p>
+          <h1 className="text-2xl font-bold text-slate-200 mb-2">Presupuesto no encontrado</h1>
+          <p className="text-slate-400 mb-4">El presupuesto que buscas no existe o no tienes permisos para verlo.</p>
           <Button onClick={() => router.push("/products/budgets")}>Volver a Presupuestos</Button>
         </div>
       </div>
@@ -325,7 +325,7 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
             Editar Presupuesto
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-400 dark:text-gray-400">
             Editando presupuesto {budget.budget_number || `#${budget.id.slice(0, 8)}`}
           </p>
         </div>
@@ -346,7 +346,7 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
                     <Input
                       value={budget.budget_number || `#${budget.id.slice(0, 8)}`}
                       disabled
-                      className="bg-gray-50 font-medium"
+                      className="bg-slate-950 font-medium"
                     />
                   </div>
                   <div className="space-y-2">
@@ -480,7 +480,7 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
                       variant="outline"
                       size="sm"
                       onClick={() => addBudgetItem("product")}
-                      className="bg-orange-50 hover:bg-orange-100 text-orange-600 border-orange-300"
+                      className="bg-orange-900/30 hover:bg-orange-900/30 text-orange-600 border-orange-300"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Producto
@@ -490,7 +490,7 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
                       variant="outline"
                       size="sm"
                       onClick={() => addBudgetItem("service")}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-300"
+                      className="bg-slate-900 hover:bg-slate-800 text-blue-600 border-blue-300"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Servicio
@@ -510,7 +510,7 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeBudgetItem(item.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-400"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -671,8 +671,8 @@ export default function EditBudgetPage({ params }: { params: { id: string } }) {
                 </div>
 
                 {error && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">{error}</AlertDescription>
+                  <Alert className="border-red-800 bg-red-900/30">
+                    <AlertDescription className="text-red-300">{error}</AlertDescription>
                   </Alert>
                 )}
 

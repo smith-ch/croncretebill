@@ -304,17 +304,17 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "hidden lg:flex h-full flex-col bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 transition-all duration-500 ease-in-out shadow-xl backdrop-blur-sm",
+        "hidden lg:flex h-full flex-col bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl",
         isCollapsed ? "w-16" : "w-80",
       )}
     >
-      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200 bg-gradient-to-r from-white to-blue-50 shadow-sm">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/50 bg-slate-900/80 backdrop-blur-sm shadow-sm">
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center space-x-2 group">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center shadow-md transform group-hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-slate-700 to-slate-600 flex items-center justify-center shadow-md transform group-hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/25 border border-slate-600/50">
               <span className="text-white font-bold text-sm">CB</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-900 transition-all duration-300">
+            <span className="text-xl font-bold text-white hover:text-slate-300 transition-all duration-300">
               ConcreteBill
             </span>
           </Link>
@@ -323,9 +323,9 @@ export function Sidebar() {
           variant="ghost" 
           size="sm" 
           onClick={() => setIsCollapsed(!isCollapsed)} 
-          className="h-8 w-8 p-0 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:scale-110 transition-all duration-300 rounded-lg"
+          className="h-8 w-8 p-0 hover:bg-slate-800/50 hover:scale-110 transition-all duration-300 rounded-lg"
         >
-          {isCollapsed ? <Menu className="h-4 w-4 text-slate-600" /> : <X className="h-4 w-4 text-slate-600" />}
+          {isCollapsed ? <Menu className="h-4 w-4 text-slate-400" /> : <X className="h-4 w-4 text-slate-400" />}
         </Button>
       </div>
 
@@ -351,9 +351,9 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-700 transition-all duration-300 rounded-lg transform hover:scale-105 shadow-sm hover:shadow-md animate-fade-in",
+                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-105 shadow-sm hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                          "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-r-2 border-blue-600 shadow-md",
+                          "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-r-2 border-blue-600 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -367,15 +367,15 @@ export function Sidebar() {
                       </div>
                     </Button>
                     <div className="absolute left-full top-0 ml-2 hidden group-hover:block z-50 animate-slide-in-right">
-                      <div className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg shadow-xl p-3 min-w-48 glass">
-                        <div className="font-medium text-sm mb-3 text-slate-800 border-b border-slate-200 pb-2">{item.name}</div>
+                      <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-lg shadow-xl p-3 min-w-48 glass">
+                        <div className="font-medium text-sm mb-3 text-slate-200 border-b border-slate-800 pb-2">{item.name}</div>
                         {filteredChildren?.map((child, childIndex) => (
                           <Link key={child.href} href={child.href}>
                             <Button
                               variant="ghost"
                               className={cn(
-                                "w-full justify-start px-3 py-2 text-sm font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-700 transition-all duration-300 rounded-md transform hover:scale-105 animate-fade-in",
-                                isActive(child.href) && "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 shadow-sm",
+                                "w-full justify-start px-3 py-2 text-sm font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-300 transition-all duration-300 rounded-md transform hover:scale-105 animate-fade-in",
+                                isActive(child.href) && "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 shadow-sm",
                               )}
                               style={{ animationDelay: `${childIndex * 0.05}s` }}
                             >
@@ -396,9 +396,9 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-between px-3 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-700 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md animate-fade-in",
+                        "w-full justify-between px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                          "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-r-2 border-blue-600 shadow-md",
+                          "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -422,9 +422,9 @@ export function Sidebar() {
                         <Button
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start px-3 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-600 transition-all duration-300 rounded-lg transform hover:scale-[1.02] animate-fade-in",
+                            "w-full justify-start px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-400 transition-all duration-300 rounded-lg transform hover:scale-[1.02] animate-fade-in",
                             isActive(child.href) &&
-                              "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-r-2 border-blue-600 shadow-sm",
+                              "bg-slate-800 text-white border-r-2 border-slate-600 shadow-sm",
                           )}
                           style={{ animationDelay: `${childIndex * 0.05}s` }}
                         >
@@ -443,10 +443,10 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full px-3 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-700 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md animate-fade-in",
+                    "w-full px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive(item.href) &&
-                      "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-r-2 border-blue-600 shadow-md",
+                      "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
                   )}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   title={isCollapsed ? item.name : undefined}
@@ -481,12 +481,12 @@ export function Sidebar() {
 
       {!isCollapsed && (
         <>
-          <Separator className="bg-slate-200" />
-          <div className="p-4 bg-gradient-to-r from-white to-blue-50">
+          <Separator className="bg-slate-700" />
+          <div className="p-4 bg-gradient-to-r from-slate-900 to-blue-50">
             <div className="rounded-lg bg-gradient-to-r from-blue-100 to-blue-200 p-4 text-center border border-blue-300 shadow-md hover:shadow-lg transition-all duration-300 glass backdrop-blur-sm">
-              <p className="text-sm font-bold text-blue-800 text-gradient">ConcreteBill Pro</p>
+              <p className="text-sm font-bold text-blue-300 text-gradient">ConcreteBill Pro</p>
               <p className="text-xs text-blue-600 mt-1 font-medium">Sistema de Facturación</p>
-              <div className="mt-2 w-full bg-blue-200 rounded-full h-1">
+              <div className="mt-2 w-full bg-slate-800 rounded-full h-1">
                 <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 rounded-full animate-gradient-x" style={{ width: '85%' }}></div>
               </div>
             </div>
@@ -495,11 +495,11 @@ export function Sidebar() {
       )}
 
       {!isCollapsed && (
-        <div className="p-4 border-t border-slate-200 bg-gradient-to-r from-white to-red-50">
+        <div className="p-4 border-t border-slate-800 bg-gradient-to-r from-slate-900 to-red-50">
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start px-3 py-2 text-left font-medium hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 text-red-600 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md"
+            className="w-full justify-start px-3 py-2 text-left font-medium hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-400 text-red-600 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md"
           >
             <LogOut className="h-5 w-5 mr-3" />
             <span>Cerrar Sesión</span>

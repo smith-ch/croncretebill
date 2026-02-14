@@ -237,8 +237,8 @@ export default function EditProductPage() {
   if (!canEdit('products')) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Alert className="border-red-200 bg-red-50">
-          <AlertDescription className="text-red-700">
+        <Alert className="border-red-800 bg-red-900/30">
+          <AlertDescription className="text-red-400">
             No tienes permisos para editar productos.
           </AlertDescription>
         </Alert>
@@ -265,7 +265,7 @@ export default function EditProductPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Editar Producto</h1>
-            <p className="text-gray-600">Modifica la información del producto</p>
+            <p className="text-slate-400">Modifica la información del producto</p>
           </div>
         </div>
       </div>

@@ -77,32 +77,32 @@ export default function ServiceMultiplePricesPage() {
 
   if (selectedService) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <div className="container mx-auto px-4 py-8">
           <Button 
             variant="outline" 
             onClick={handleBackToList}
-            className="mb-6 bg-white shadow-sm"
+            className="mb-6 bg-slate-900 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a la lista
           </Button>
           
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 bg-white rounded-full px-6 py-3 shadow-lg mb-4">
+            <div className="inline-flex items-center gap-3 bg-slate-900 rounded-full px-6 py-3 shadow-lg mb-4">
               <Wrench className="w-6 h-6 text-blue-500" />
-              <span className="font-semibold text-slate-700">{selectedService.name}</span>
+              <span className="font-semibold text-slate-300">{selectedService.name}</span>
             </div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">
+            <h1 className="text-4xl font-bold text-slate-200 mb-2">
               Gestión de Precios
             </h1>
-            <p className="text-slate-600">
+            <p className="text-slate-400">
               Código: {selectedService.service_code} | 
               {selectedService.price && selectedService.price > 0 ? (
                 ` Precio base: ${formatCurrency(selectedService.price)}`
               ) : (
                 <span className="ml-1">
-                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600 border-orange-200">
+                  <Badge variant="outline" className="text-xs bg-orange-900/30 text-orange-600 border-orange-800">
                     Servicio Personalizado
                   </Badge>
                 </span>
@@ -117,18 +117,18 @@ export default function ServiceMultiplePricesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="container mx-auto px-4 py-8">
         {/* Header con diseño mejorado */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-white rounded-full px-6 py-3 shadow-lg mb-4">
+          <div className="inline-flex items-center gap-3 bg-slate-900 rounded-full px-6 py-3 shadow-lg mb-4">
             <Wrench className="w-6 h-6 text-blue-500" />
-            <span className="font-semibold text-slate-700">Gestión de Precios</span>
+            <span className="font-semibold text-slate-300">Gestión de Precios</span>
           </div>
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">
+          <h1 className="text-4xl font-bold text-slate-200 mb-2">
             Precios Múltiples de Servicios
           </h1>
-          <p className="text-slate-600 max-w-2xl mx-auto">
+          <p className="text-slate-400 max-w-2xl mx-auto">
             Busca servicios y gestiona sus precios múltiples
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function ServiceMultiplePricesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Panel de búsqueda y selección */}
           <div className="lg:col-span-2">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="w-5 h-5" />
@@ -170,7 +170,7 @@ export default function ServiceMultiplePricesPage() {
                       <div
                         key={service.id}
                         onClick={() => handleServiceSelect(service)}
-                        className="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 bg-white shadow-sm"
+                        className="p-4 border rounded-lg cursor-pointer hover:bg-slate-900 hover:border-slate-700 transition-all duration-200 bg-slate-900 shadow-sm"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
@@ -179,7 +179,7 @@ export default function ServiceMultiplePricesPage() {
                                 {service.service_code}
                               </Badge>
                             </div>
-                            <h3 className="font-semibold text-sm text-slate-800 truncate">
+                            <h3 className="font-semibold text-sm text-slate-200 truncate">
                               {service.name}
                             </h3>
                             {service.description && (
@@ -198,7 +198,7 @@ export default function ServiceMultiplePricesPage() {
                               </div>
                             ) : (
                               <div className="flex items-center gap-1 text-orange-500">
-                                <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600 border-orange-200">
+                                <Badge variant="outline" className="text-xs bg-orange-900/30 text-orange-600 border-orange-800">
                                   Personalizado
                                 </Badge>
                               </div>
@@ -215,7 +215,7 @@ export default function ServiceMultiplePricesPage() {
 
           {/* Panel de información */}
           <div className="lg:col-span-3">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 h-full">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 h-full">
               <CardContent className="p-8 flex items-center justify-center h-full">
                 <div className="text-center text-slate-500">
                   <Wrench className="w-16 h-16 mx-auto mb-4 text-slate-300" />

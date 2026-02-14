@@ -112,19 +112,19 @@ export default function InvoicesPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "borrador":
-        return "bg-slate-100 text-slate-800 border-slate-200"
+        return "bg-slate-100 text-slate-200 border-slate-800"
       case "pendiente":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-slate-800 text-blue-300 border-slate-700"
       case "enviada":
         return "bg-red-500 text-white border-red-600"
       case "pagada":
         return "bg-green-500 text-white border-green-600"
       case "vencida":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-900/30 text-red-300 border-red-800"
       case "cancelada":
         return "bg-yellow-500 text-white border-yellow-600"
       default:
-        return "bg-slate-100 text-slate-800 border-slate-200"
+        return "bg-slate-100 text-slate-200 border-slate-800"
     }
   }
 
@@ -226,7 +226,7 @@ export default function InvoicesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6 overflow-x-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6 overflow-x-hidden">
         <div className="max-w-7xl mx-auto space-y-6 overflow-x-hidden">
           {/* Header skeleton */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -285,14 +285,14 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4 lg:p-6 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8 overflow-x-hidden">
         <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
           <div className="space-y-2">
             <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
               Gestión de Facturas
             </h1>
-            <p className="text-sm lg:text-base text-slate-600">Administra y controla todas tus facturas</p>
+            <p className="text-sm lg:text-base text-slate-400">Administra y controla todas tus facturas</p>
           </div>
           {canAddInvoices() ? (
             <Button
@@ -322,9 +322,9 @@ export default function InvoicesPage() {
         </div>
 
         {!limits.isLoading && remainingInvoices <= 2 && (
-          <Alert className={remainingInvoices === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+          <Alert className={remainingInvoices === 0 ? "border-red-500 bg-red-900/30" : "border-amber-500 bg-amber-900/30"}>
             <AlertCircle className={remainingInvoices === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
-            <AlertDescription className={remainingInvoices === 0 ? "text-red-800" : "text-amber-800"}>
+            <AlertDescription className={remainingInvoices === 0 ? "text-red-300" : "text-amber-300"}>
               {remainingInvoices === 0 ? (
                 <span>
                   <strong>Límite alcanzado:</strong> Has usado todas las {limits.maxInvoices} facturas de tu {limits.planDisplayName} este mes. 
@@ -341,11 +341,11 @@ export default function InvoicesPage() {
         )}
 
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 card-hover animate-scale-in">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Total Facturas</p>
+                  <p className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">Total Facturas</p>
                   <p className="text-xl sm:text-2xl font-bold text-blue-900">{totalInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
@@ -355,11 +355,11 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide mb-1">Monto Total</p>
+                  <p className="text-xs font-medium text-emerald-400 uppercase tracking-wide mb-1">Monto Total</p>
                   <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(totalAmount)}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
@@ -369,11 +369,11 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-green-700 uppercase tracking-wide mb-1">Pagadas</p>
+                  <p className="text-xs font-medium text-green-400 uppercase tracking-wide mb-1">Pagadas</p>
                   <p className="text-xl sm:text-2xl font-bold text-green-900">{paidInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
@@ -383,11 +383,11 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 card-hover animate-scale-in" style={{animationDelay: '0.3s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.3s'}}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-1">Pendientes</p>
+                  <p className="text-xs font-medium text-amber-400 uppercase tracking-wide mb-1">Pendientes</p>
                   <p className="text-xl sm:text-2xl font-bold text-amber-900">{pendingInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
@@ -398,9 +398,9 @@ export default function InvoicesPage() {
           </Card>
         </div>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 overflow-hidden">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-slate-800 flex items-center gap-2">
+            <CardTitle className="text-slate-200 flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Filtros y Búsqueda
             </CardTitle>
@@ -413,12 +413,12 @@ export default function InvoicesPage() {
                   placeholder="Buscar por número, cliente o RNC..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500 w-full"
+                  className="pl-10 border-slate-800 focus:border-blue-500 focus:ring-blue-500 w-full"
                 />
               </div>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full lg:w-48 border-slate-200 min-w-0">
+                <SelectTrigger className="w-full lg:w-48 border-slate-800 min-w-0">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -433,7 +433,7 @@ export default function InvoicesPage() {
               </Select>
 
               <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className="w-full lg:w-48 border-slate-200">
+                <SelectTrigger className="w-full lg:w-48 border-slate-800">
                   <SelectValue placeholder="Período" />
                 </SelectTrigger>
                 <SelectContent>
@@ -456,7 +456,7 @@ export default function InvoicesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50 overflow-hidden">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 overflow-hidden">
           <CardContent className="p-6 w-full overflow-x-hidden">
             {filteredInvoices.length === 0 ? (
               <div className="text-center py-12">
@@ -468,7 +468,7 @@ export default function InvoicesPage() {
                     ? "No se encontraron facturas"
                     : "No hay facturas"}
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-400 mb-4">
                   {searchTerm || statusFilter !== "all" || dateFilter !== "all"
                     ? "Intenta ajustar los filtros de búsqueda"
                     : "Comienza creando tu primera factura"}
@@ -488,7 +488,7 @@ export default function InvoicesPage() {
                 {filteredInvoices.map((invoice, index) => (
                   <div
                     key={invoice.id}
-                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up w-full"
+                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-800 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up w-full"
                     style={{animationDelay: `${index * 0.05}s`}}
                   >
                     <div className="flex-1 min-w-0 overflow-x-hidden">
@@ -505,22 +505,22 @@ export default function InvoicesPage() {
                           </Badge>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600 w-full">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm text-slate-400 w-full">
                         <div className="min-w-0 overflow-hidden">
-                          <span className="font-medium text-slate-700 block text-xs">Cliente:</span>
+                          <span className="font-medium text-slate-300 block text-xs">Cliente:</span>
                           <p className="truncate">{invoice.clients?.name || "Sin cliente"}</p>
                         </div>
                         <div className="min-w-0 overflow-hidden">
-                          <span className="font-medium text-slate-700 block text-xs">Fecha:</span>
+                          <span className="font-medium text-slate-300 block text-xs">Fecha:</span>
                           <p className="truncate">{new Date(invoice.invoice_date || invoice.issue_date).toLocaleDateString()}</p>
                         </div>
                         <div className="min-w-0 overflow-hidden">
-                          <span className="font-medium text-slate-700 block text-xs">Vencimiento:</span>
+                          <span className="font-medium text-slate-300 block text-xs">Vencimiento:</span>
                           <p className="truncate">{new Date(invoice.due_date).toLocaleDateString()}</p>
                         </div>
                         {invoice.projects?.name && (
                           <div className="min-w-0">
-                            <span className="font-medium text-slate-700 block text-xs">Proyecto:</span>
+                            <span className="font-medium text-slate-300 block text-xs">Proyecto:</span>
                             <p className="truncate">{invoice.projects.name}</p>
                           </div>
                         )}
@@ -555,7 +555,7 @@ export default function InvoicesPage() {
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-slate-800 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                             title="Editar factura"
                           >
                             <Link href={`/invoices/${invoice.id}/edit`}>
@@ -571,7 +571,7 @@ export default function InvoicesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => downloadInvoicePDF(invoice.id)}
-                          className="hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                          className="hover:bg-emerald-900/30 hover:text-emerald-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                           title="Descargar PDF"
                         >
                           <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -581,7 +581,7 @@ export default function InvoicesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
-                            className="hover:bg-green-100 hover:text-green-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-green-900/30 hover:text-green-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                             title="Marcar como pagada"
                           >
                             <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -591,7 +591,7 @@ export default function InvoicesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="hover:bg-red-100 hover:text-red-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            className="hover:bg-red-900/30 hover:text-red-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target h-8 w-8 sm:h-9 sm:w-9 p-0"
                             onClick={() => handleDelete(invoice.id)}
                             title="Eliminar factura"
                           >

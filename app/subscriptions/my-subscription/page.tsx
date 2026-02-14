@@ -408,7 +408,7 @@ export default function MySubscriptionPage() {
     const config = {
       active: { label: "Activa", variant: "default" as const, icon: CheckCircle, color: "text-green-600" },
       expired: { label: "Expirada", variant: "destructive" as const, icon: XCircle, color: "text-red-600" },
-      cancelled: { label: "Cancelada", variant: "secondary" as const, icon: XCircle, color: "text-gray-600" },
+      cancelled: { label: "Cancelada", variant: "secondary" as const, icon: XCircle, color: "text-slate-400" },
       suspended: { label: "Suspendida", variant: "secondary" as const, icon: Clock, color: "text-orange-600" },
     }
     const conf = config[status as keyof typeof config] || config.active
@@ -435,11 +435,11 @@ export default function MySubscriptionPage() {
     
     if (days <= 3) {
       return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+        <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
           <div>
             <h4 className="font-semibold text-red-900">¡Atención! Tu suscripción expira en {days} día(s)</h4>
-            <p className="text-sm text-red-700 mt-1">
+            <p className="text-sm text-red-400 mt-1">
               Realiza tu pago lo antes posible para evitar la interrupción del servicio.
             </p>
           </div>
@@ -447,11 +447,11 @@ export default function MySubscriptionPage() {
       )
     } else if (days <= 7) {
       return (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+        <div className="bg-orange-900/30 border border-orange-800 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
           <div>
             <h4 className="font-semibold text-orange-900">Tu suscripción expira en {days} días</h4>
-            <p className="text-sm text-orange-700 mt-1">
+            <p className="text-sm text-orange-400 mt-1">
               Te recomendamos renovar pronto para mantener el servicio sin interrupciones.
             </p>
           </div>
@@ -478,7 +478,7 @@ export default function MySubscriptionPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-sm text-gray-600">Cargando suscripción...</p>
+          <p className="text-sm text-slate-400">Cargando suscripción...</p>
         </div>
       </div>
     )
@@ -489,8 +489,8 @@ export default function MySubscriptionPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center py-12">
           <XCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sin suscripción activa</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-slate-200 mb-2">Sin suscripción activa</h2>
+          <p className="text-slate-400 mb-6">
             No tienes una suscripción asignada. Contacta al administrador para activar tu cuenta.
           </p>
           <Button onClick={() => window.location.href = "mailto:smithrodriguez345@gmail.com"}>
@@ -505,8 +505,8 @@ export default function MySubscriptionPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Mi Suscripción</h1>
-        <p className="text-gray-600 mt-2">Gestiona y visualiza el estado de tu suscripción</p>
+        <h1 className="text-3xl font-bold text-slate-200">Mi Suscripción</h1>
+        <p className="text-slate-400 mt-2">Gestiona y visualiza el estado de tu suscripción</p>
       </div>
 
       {getExpiryWarning()}
@@ -516,17 +516,17 @@ export default function MySubscriptionPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-slate-200">
                 Plan {subscription.subscription_plans?.display_name || subscription.subscription_plans?.name || 'Desconocido'}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">{subscription.subscription_plans?.description || ''}</p>
+              <p className="text-sm text-slate-400 mt-1">{subscription.subscription_plans?.description || ''}</p>
             </div>
             {getStatusBadge(subscription.status)}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <div className="flex items-center gap-2 text-gray-600 mb-2">
+              <div className="flex items-center gap-2 text-slate-400 mb-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-sm font-medium">Fecha de inicio</span>
               </div>
@@ -541,7 +541,7 @@ export default function MySubscriptionPage() {
 
             {subscription.end_date && (
               <div>
-                <div className="flex items-center gap-2 text-gray-600 mb-2">
+                <div className="flex items-center gap-2 text-slate-400 mb-2">
                   <Calendar className="h-4 w-4" />
                   <span className="text-sm font-medium">Fecha de expiración</span>
                 </div>
@@ -553,7 +553,7 @@ export default function MySubscriptionPage() {
                   })}
                 </p>
                 {getDaysUntilExpiry() !== null && getDaysUntilExpiry()! > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-slate-400 mt-1">
                     ({getDaysUntilExpiry()} días restantes)
                   </p>
                 )}
@@ -564,31 +564,31 @@ export default function MySubscriptionPage() {
 
         {/* Límites de la Suscripción */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Límites del Plan</h3>
+          <h3 className="text-lg font-semibold text-slate-200 mb-4">Límites del Plan</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-center p-4 bg-slate-900 rounded-lg">
               <p className="text-2xl font-bold text-blue-600">
                 {subscription.current_max_users === null ? "∞" : subscription.current_max_users}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Usuarios</p>
+              <p className="text-sm text-slate-400 mt-1">Usuarios</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-green-900/30 rounded-lg">
               <p className="text-2xl font-bold text-green-600">
                 {subscription.current_max_invoices === null ? "∞" : subscription.current_max_invoices}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Facturas/mes</p>
+              <p className="text-sm text-slate-400 mt-1">Facturas/mes</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-center p-4 bg-purple-900/30 rounded-lg">
               <p className="text-2xl font-bold text-purple-600">
                 {subscription.current_max_products === null ? "∞" : subscription.current_max_products}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Productos</p>
+              <p className="text-sm text-slate-400 mt-1">Productos</p>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
+            <div className="text-center p-4 bg-orange-900/30 rounded-lg">
               <p className="text-2xl font-bold text-orange-600">
                 {subscription.current_max_clients === null ? "∞" : subscription.current_max_clients}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Clientes</p>
+              <p className="text-sm text-slate-400 mt-1">Clientes</p>
             </div>
           </div>
         </Card>
@@ -596,19 +596,19 @@ export default function MySubscriptionPage() {
         {/* Uso Actual vs Límites */}
         {!limits.isLoading && (
           <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Uso Actual de Recursos</h3>
-            <p className="text-sm text-gray-600 mb-6">Monitorea tu consumo mensual y límites disponibles</p>
+            <h3 className="text-lg font-semibold text-slate-200 mb-1">Uso Actual de Recursos</h3>
+            <p className="text-sm text-slate-400 mb-6">Monitorea tu consumo mensual y límites disponibles</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Usuarios/Empleados */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-100 rounded-lg">
+                    <div className="p-2 bg-slate-800 rounded-lg">
                       <Users className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Usuarios</p>
+                      <p className="font-semibold text-slate-200">Usuarios</p>
                       <p className="text-xs text-gray-500">Empleados activos</p>
                     </div>
                   </div>
@@ -618,7 +618,7 @@ export default function MySubscriptionPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Disponibles</span>
+                    <span className="text-slate-400">Disponibles</span>
                     <span className={`font-semibold ${remainingUsers <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {remainingUsers}
                     </span>
@@ -637,14 +637,14 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Facturas */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-green-100 rounded-lg">
+                    <div className="p-2 bg-green-900/30 rounded-lg">
                       <FileText className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Facturas</p>
+                      <p className="font-semibold text-slate-200">Facturas</p>
                       <p className="text-xs text-gray-500">Este mes</p>
                     </div>
                   </div>
@@ -654,7 +654,7 @@ export default function MySubscriptionPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Disponibles</span>
+                    <span className="text-slate-400">Disponibles</span>
                     <span className={`font-semibold ${remainingInvoices <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {remainingInvoices}
                     </span>
@@ -673,14 +673,14 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Productos */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-purple-100 rounded-lg">
+                    <div className="p-2 bg-purple-900/30 rounded-lg">
                       <Package className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Productos</p>
+                      <p className="font-semibold text-slate-200">Productos</p>
                       <p className="text-xs text-gray-500">Total en catálogo</p>
                     </div>
                   </div>
@@ -690,7 +690,7 @@ export default function MySubscriptionPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Disponibles</span>
+                    <span className="text-slate-400">Disponibles</span>
                     <span className={`font-semibold ${remainingProducts <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {remainingProducts}
                     </span>
@@ -709,14 +709,14 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Clientes */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-orange-100 rounded-lg">
+                    <div className="p-2 bg-orange-900/30 rounded-lg">
                       <UserCheck className="h-5 w-5 text-orange-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">Clientes</p>
+                      <p className="font-semibold text-slate-200">Clientes</p>
                       <p className="text-xs text-gray-500">Total registrados</p>
                     </div>
                   </div>
@@ -726,7 +726,7 @@ export default function MySubscriptionPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Disponibles</span>
+                    <span className="text-slate-400">Disponibles</span>
                     <span className={`font-semibold ${remainingClients <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {remainingClients}
                     </span>
@@ -746,12 +746,12 @@ export default function MySubscriptionPage() {
             </div>
 
             {(remainingUsers <= 0 || remainingInvoices <= 0 || remainingProducts <= 0 || remainingClients <= 0) && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mt-6 p-4 bg-red-900/30 border border-red-800 rounded-lg">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-red-900">Has alcanzado el límite en algunos recursos</p>
-                    <p className="text-sm text-red-700 mt-1">
+                    <p className="text-sm text-red-400 mt-1">
                       Considera actualizar tu plan para continuar usando el sistema sin restricciones.
                     </p>
                   </div>
@@ -764,14 +764,14 @@ export default function MySubscriptionPage() {
         {/* Características del Plan */}
         {subscription.subscription_plans?.features && Object.keys(subscription.subscription_plans.features).length > 0 && (
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Características Incluidas</h3>
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">Características Incluidas</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {Object.entries(subscription.subscription_plans.features).map(([key, value]) => {
                 if (typeof value === 'boolean' && value) {
                   return (
                     <div key={key} className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-gray-700 capitalize">
+                      <span className="text-sm text-slate-300 capitalize">
                         {key.replace(/_/g, ' ')}
                       </span>
                     </div>
@@ -785,25 +785,25 @@ export default function MySubscriptionPage() {
 
         {/* Precios */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Opciones de Pago</h3>
+          <h3 className="text-lg font-semibold text-slate-200 mb-4">Opciones de Pago</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-1">Pago Mensual</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-slate-400 mb-1">Pago Mensual</p>
+              <p className="text-3xl font-bold text-slate-200">
                 ${(subscription.subscription_plans?.price_monthly || 0).toFixed(2)}
-                <span className="text-sm text-gray-600 font-normal">/mes</span>
+                <span className="text-sm text-slate-400 font-normal">/mes</span>
               </p>
             </div>
-            <div className="border rounded-lg p-4 bg-blue-50">
+            <div className="border rounded-lg p-4 bg-slate-900">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm text-gray-600">Pago Anual</p>
+                <p className="text-sm text-slate-400">Pago Anual</p>
                 <Badge variant="secondary" className="text-xs">Ahorra</Badge>
               </div>
               <p className="text-3xl font-bold text-blue-600">
                 ${(subscription.subscription_plans?.price_yearly || 0).toFixed(2)}
-                <span className="text-sm text-gray-600 font-normal">/año</span>
+                <span className="text-sm text-slate-400 font-normal">/año</span>
               </p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 (${((subscription.subscription_plans?.price_yearly || 0) / 12).toFixed(2)}/mes)
               </p>
             </div>
@@ -812,20 +812,20 @@ export default function MySubscriptionPage() {
 
         {/* Notas del Administrador */}
         {subscription.notes && (
-          <Card className="p-6 bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Notas</h3>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{subscription.notes}</p>
+          <Card className="p-6 bg-slate-950">
+            <h3 className="text-lg font-semibold text-slate-200 mb-2">Notas</h3>
+            <p className="text-sm text-slate-300 whitespace-pre-wrap">{subscription.notes}</p>
           </Card>
         )}
 
         {/* Botón de Pago */}
-        <Card className="p-6 bg-gradient-to-r from-blue-50 to-blue-100">
+        <Card className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-lg font-semibold text-slate-200 mb-1">
                 ¿Ya realizaste tu pago?
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-slate-400">
                 Notifica al administrador para que extienda tu suscripción
               </p>
             </div>
@@ -841,25 +841,25 @@ export default function MySubscriptionPage() {
         </Card>
 
         {/* Opciones de Gestión de Suscripción */}
-        <Card className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">
+        <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700">
+          <h3 className="text-xl font-bold text-slate-200 mb-4">
             Gestiona tu Suscripción
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Solicitar Upgrade */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100">
+            <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-purple-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm">⬆️</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Mejorar Plan</h4>
+                <h4 className="font-semibold text-slate-200">Mejorar Plan</h4>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-slate-400 mb-3">
                 Actualiza a un plan superior con más recursos
               </p>
               <Button
                 variant="outline"
-                className="w-full border-purple-300 hover:bg-purple-50"
+                className="w-full border-purple-300 hover:bg-purple-900/30"
                 onClick={() => setShowUpgradeDialog(true)}
               >
                 Ver Planes Superiores
@@ -867,19 +867,19 @@ export default function MySubscriptionPage() {
             </div>
 
             {/* Extender Suscripción */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+            <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-blue-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <Calendar className="h-4 w-4 text-white" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Extender Tiempo</h4>
+                <h4 className="font-semibold text-slate-200">Extender Tiempo</h4>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-slate-400 mb-3">
                 Añade más meses a tu suscripción actual
               </p>
               <Button
                 variant="outline"
-                className="w-full border-blue-300 hover:bg-blue-50"
+                className="w-full border-blue-300 hover:bg-slate-900"
                 onClick={() => setShowExtendDialog(true)}
               >
                 Solicitar Extensión
@@ -887,19 +887,19 @@ export default function MySubscriptionPage() {
             </div>
 
             {/* Cambiar Ciclo */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+            <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-green-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm">💰</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Cambiar Ciclo</h4>
+                <h4 className="font-semibold text-slate-200">Cambiar Ciclo</h4>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-slate-400 mb-3">
                 {subscription?.billing_cycle === 'monthly' ? 'Cambia a pago anual y ahorra' : 'Cambia a pago mensual'}
               </p>
               <Button
                 variant="outline"
-                className="w-full border-green-300 hover:bg-green-50"
+                className="w-full border-green-300 hover:bg-green-900/30"
                 onClick={() => setShowCycleChangeDialog(true)}
               >
                 {subscription?.billing_cycle === 'monthly' ? 'Cambiar a Anual' : 'Cambiar a Mensual'}
@@ -907,19 +907,19 @@ export default function MySubscriptionPage() {
             </div>
 
             {/* Solicitud Personalizada */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100">
+            <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-amber-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
                   <Send className="h-4 w-4 text-white" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Solicitud Especial</h4>
+                <h4 className="font-semibold text-slate-200">Solicitud Especial</h4>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-slate-400 mb-3">
                 Necesitas algo específico? Contáctanos
               </p>
               <Button
                 variant="outline"
-                className="w-full border-amber-300 hover:bg-amber-50"
+                className="w-full border-amber-300 hover:bg-amber-900/30"
                 onClick={() => setShowCustomDialog(true)}
               >
                 Enviar Solicitud
@@ -995,8 +995,8 @@ export default function MySubscriptionPage() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="bg-slate-900 p-3 rounded-lg">
+              <p className="text-sm text-blue-300">
                 <strong>Plan Actual:</strong> {subscription?.subscription_plans?.display_name || 'N/A'}
               </p>
             </div>
@@ -1013,8 +1013,8 @@ export default function MySubscriptionPage() {
                     onClick={() => setSelectedUpgradePlan(plan.id)}
                     className={`text-left p-4 rounded-lg border-2 transition-all ${
                       selectedUpgradePlan === plan.id
-                        ? 'border-purple-600 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
+                        ? 'border-purple-600 bg-purple-900/30'
+                        : 'border-slate-800 hover:border-purple-300'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -1023,7 +1023,7 @@ export default function MySubscriptionPage() {
                         ${plan.price_monthly}/mes
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
+                    <p className="text-sm text-slate-400 mb-3">{plan.description}</p>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex items-center gap-1">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -1106,8 +1106,8 @@ export default function MySubscriptionPage() {
               />
             </div>
 
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="bg-slate-900 p-3 rounded-lg">
+              <p className="text-sm text-blue-300">
                 💡 Tu suscripción actual expira el {subscription?.end_date ? new Date(subscription.end_date).toLocaleDateString() : 'N/A'}
               </p>
             </div>
@@ -1143,17 +1143,17 @@ export default function MySubscriptionPage() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className={`p-4 rounded-lg border-2 ${
-                subscription?.billing_cycle === 'monthly' ? 'border-gray-300 bg-gray-50' : 'border-blue-600 bg-blue-50'
+                subscription?.billing_cycle === 'monthly' ? 'border-slate-700 bg-slate-950' : 'border-blue-600 bg-slate-900'
               }`}>
                 <h4 className="font-bold mb-1">Actual</h4>
                 <p className="text-2xl font-bold mb-1">
                   ${subscription?.subscription_plans?.price_monthly.toFixed(2)}
                 </p>
-                <p className="text-sm text-gray-600">por mes</p>
+                <p className="text-sm text-slate-400">por mes</p>
               </div>
 
               <div className={`p-4 rounded-lg border-2 ${
-                subscription?.billing_cycle === 'yearly' ? 'border-gray-300 bg-gray-50' : 'border-green-600 bg-green-50'
+                subscription?.billing_cycle === 'yearly' ? 'border-slate-700 bg-slate-950' : 'border-green-600 bg-green-900/30'
               }`}>
                 <h4 className="font-bold mb-1">Nuevo</h4>
                 <p className="text-2xl font-bold mb-1">
@@ -1161,15 +1161,15 @@ export default function MySubscriptionPage() {
                     ? subscription?.subscription_plans?.price_yearly.toFixed(2)
                     : subscription?.subscription_plans?.price_monthly.toFixed(2)}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-slate-400">
                   por {subscription?.billing_cycle === 'monthly' ? 'año' : 'mes'}
                 </p>
               </div>
             </div>
 
             {subscription?.billing_cycle === 'monthly' && (
-              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                <p className="text-sm text-green-800">
+              <div className="bg-green-900/30 p-3 rounded-lg border border-green-800">
+                <p className="text-sm text-green-300">
                   💰 Ahorro: ${((subscription.subscription_plans?.price_monthly * 12) - (subscription.subscription_plans?.price_yearly || 0)).toFixed(2)} al año
                 </p>
               </div>
@@ -1210,8 +1210,8 @@ export default function MySubscriptionPage() {
               />
             </div>
 
-            <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-              <p className="text-sm text-amber-800">
+            <div className="bg-amber-900/30 p-3 rounded-lg border border-amber-800">
+              <p className="text-sm text-amber-300">
                 💡 <strong>Tip:</strong> Sé lo más específico posible. El administrador revisará tu solicitud y se pondrá en contacto contigo.
               </p>
             </div>

@@ -449,10 +449,10 @@ export function CompanySettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Configuración de Empresa</h2>
-          <p className="text-slate-600 dark:text-slate-400">Administra la información de tu empresa</p>
+          <h2 className="text-2xl font-bold text-slate-200 dark:text-slate-200">Configuración de Empresa</h2>
+          <p className="text-slate-400 dark:text-slate-400">Administra la información de tu empresa</p>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+        <Badge variant="outline" className="bg-slate-900 text-blue-400 border-slate-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
           <Building2 className="h-3 w-3 mr-1" />
           Configuración Empresarial
         </Badge>
@@ -470,7 +470,7 @@ export function CompanySettings() {
           <div
             className={cn(
               "border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300",
-              dragOver ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+              dragOver ? "border-blue-500 bg-slate-900 dark:bg-blue-900/20" : "border-slate-700 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-800 dark:hover:bg-slate-800/80"
             )}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -496,11 +496,11 @@ export function CompanySettings() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Logo cargado correctamente</p>
+                  <p className="text-sm font-medium text-slate-300 dark:text-slate-300">Logo cargado correctamente</p>
                   <Button
                     variant="outline"
                     onClick={() => document.getElementById('logo-upload')?.click()}
-                    className="bg-white hover:bg-slate-50"
+                    className="bg-slate-900 hover:bg-slate-900"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Cambiar Logo
@@ -509,11 +509,11 @@ export function CompanySettings() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="mx-auto w-16 h-16 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                <div className="mx-auto w-16 h-16 bg-slate-800 dark:bg-slate-700 rounded-full flex items-center justify-center">
                   <Upload className="h-8 w-8 text-slate-400 dark:text-slate-500" />
                 </div>
                 <div>
-                  <p className="text-lg font-medium text-slate-700 dark:text-slate-300">Sube el logo de tu empresa</p>
+                  <p className="text-lg font-medium text-slate-300 dark:text-slate-300">Sube el logo de tu empresa</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Arrastra y suelta una imagen o haz clic para seleccionar</p>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">PNG, JPG, GIF hasta 5MB</p>
                 </div>
@@ -550,7 +550,7 @@ export function CompanySettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="company_name" className="text-slate-700 dark:text-slate-300">Nombre de la Empresa *</Label>
+              <Label htmlFor="company_name" className="text-slate-300 dark:text-slate-300">Nombre de la Empresa *</Label>
               <Input
                 id="company_name"
                 value={settings.company_name}
@@ -563,7 +563,7 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tax_id" className="text-slate-700 dark:text-slate-300">RNC/NIT *</Label>
+              <Label htmlFor="tax_id" className="text-slate-300 dark:text-slate-300">RNC/NIT *</Label>
               <div className="relative">
                 <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -579,12 +579,12 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="business_type" className="text-slate-700 dark:text-slate-300">Tipo de Negocio</Label>
+              <Label htmlFor="business_type" className="text-slate-300 dark:text-slate-300">Tipo de Negocio</Label>
               <Select
                 value={settings.business_type}
                 onValueChange={(value) => setSettings(prev => ({ ...prev, business_type: value }))}
               >
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue placeholder="Seleccionar tipo de negocio" />
                 </SelectTrigger>
                 <SelectContent>
@@ -596,12 +596,12 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="industry" className="text-slate-700 dark:text-slate-300">Industria</Label>
+              <Label htmlFor="industry" className="text-slate-300 dark:text-slate-300">Industria</Label>
               <Select
                 value={settings.industry}
                 onValueChange={(value) => setSettings(prev => ({ ...prev, industry: value }))}
               >
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue placeholder="Seleccionar industria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -614,7 +614,7 @@ export function CompanySettings() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="foundation_year" className="text-slate-700 dark:text-slate-300">Año de Fundación</Label>
+                <Label htmlFor="foundation_year" className="text-slate-300 dark:text-slate-300">Año de Fundación</Label>
                 <Input
                   id="foundation_year"
                   type="number"
@@ -628,7 +628,7 @@ export function CompanySettings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="employee_count" className="text-slate-700 dark:text-slate-300">Número de Empleados</Label>
+                <Label htmlFor="employee_count" className="text-slate-300 dark:text-slate-300">Número de Empleados</Label>
                 <Input
                   id="employee_count"
                   value={settings.employee_count}
@@ -651,14 +651,14 @@ export function CompanySettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="company_address" className="text-slate-700 dark:text-slate-300">Dirección *</Label>
+              <Label htmlFor="company_address" className="text-slate-300 dark:text-slate-300">Dirección *</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Textarea
                   id="company_address"
                   value={settings.company_address}
                   onChange={(e) => setSettings(prev => ({ ...prev, company_address: e.target.value }))}
-                  className="pl-10 bg-white border-slate-300 dark:border-slate-600 dark:text-slate-100 dark:bg-slate-800 dark:placeholder:text-slate-500"
+                  className="pl-10 bg-slate-900 border-slate-700 dark:border-slate-600 dark:text-slate-100 dark:bg-slate-800 dark:placeholder:text-slate-500"
                   placeholder="Av. Principal #123, Santo Domingo"
                   rows={3}
                   required
@@ -667,7 +667,7 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company_phone" className="text-slate-700 dark:text-slate-300">Teléfono *</Label>
+              <Label htmlFor="company_phone" className="text-slate-300 dark:text-slate-300">Teléfono *</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -684,7 +684,7 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company_email" className="text-slate-700 dark:text-slate-300">Email *</Label>
+              <Label htmlFor="company_email" className="text-slate-300 dark:text-slate-300">Email *</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -701,7 +701,7 @@ export function CompanySettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company_website" className="text-slate-700 dark:text-slate-300">Sitio Web</Label>
+              <Label htmlFor="company_website" className="text-slate-300 dark:text-slate-300">Sitio Web</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -730,7 +730,7 @@ export function CompanySettings() {
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="text-slate-700">Color Principal</Label>
+              <Label className="text-slate-300">Color Principal</Label>
               <div className="flex gap-2">
                 <Input
                   type="color"
@@ -748,7 +748,7 @@ export function CompanySettings() {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-slate-700">Color Secundario</Label>
+              <Label className="text-slate-300">Color Secundario</Label>
               <div className="flex gap-2">
                 <Input
                   type="color"
@@ -767,12 +767,12 @@ export function CompanySettings() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-700">Formato de Factura</Label>
+            <Label className="text-slate-300">Formato de Factura</Label>
             <Select 
               value={settings.invoice_format || "standard"}
               onValueChange={(value) => setSettings(prev => ({ ...prev, invoice_format: value }))}
             >
-              <SelectTrigger className="bg-white border-slate-300">
+              <SelectTrigger className="bg-slate-900 border-slate-700">
                 <SelectValue placeholder="Seleccionar formato" />
               </SelectTrigger>
               <SelectContent>
@@ -785,11 +785,11 @@ export function CompanySettings() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-700">Mensaje Personalizado (Pie de Factura)</Label>
+            <Label className="text-slate-300">Mensaje Personalizado (Pie de Factura)</Label>
             <Textarea
               value={settings.invoice_footer_message || ""}
               onChange={(e) => setSettings(prev => ({ ...prev, invoice_footer_message: e.target.value }))}
-              className="bg-white border-slate-300"
+              className="bg-slate-900 border-slate-700"
               placeholder="Ej: Gracias por su preferencia. Para dudas contactar al..."
               rows={3}
             />
@@ -798,7 +798,7 @@ export function CompanySettings() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="space-y-1">
-                <Label className="text-slate-700">Mostrar Logo</Label>
+                <Label className="text-slate-300">Mostrar Logo</Label>
                 <p className="text-xs text-slate-500">Incluir logo en facturas</p>
               </div>
               <Switch
@@ -809,7 +809,7 @@ export function CompanySettings() {
 
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="space-y-1">
-                <Label className="text-slate-700">Numeración Automática</Label>
+                <Label className="text-slate-300">Numeración Automática</Label>
                 <p className="text-xs text-slate-500">Auto-incrementar números</p>
               </div>
               <Switch
@@ -819,8 +819,8 @@ export function CompanySettings() {
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
+            <p className="text-sm text-blue-300">
               <strong>Vista Previa:</strong> Los cambios de personalización se reflejarán en todas las facturas nuevas que generes.
             </p>
           </div>
@@ -838,9 +838,9 @@ export function CompanySettings() {
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="currency" className="text-slate-700 dark:text-slate-300">Moneda *</Label>
+              <Label htmlFor="currency" className="text-slate-300 dark:text-slate-300">Moneda *</Label>
               <Select value={settings.currency_code} onValueChange={handleCurrencyChange}>
-                <SelectTrigger className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
+                <SelectTrigger className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100">
                   <SelectValue placeholder="Seleccionar moneda" />
                 </SelectTrigger>
                 <SelectContent>
@@ -853,18 +853,18 @@ export function CompanySettings() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-700 dark:text-slate-300">Símbolo de Moneda</Label>
+              <Label className="text-slate-300 dark:text-slate-300">Símbolo de Moneda</Label>
               <Input 
                 value={settings.currency_symbol} 
                 disabled 
-                className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-100"
               />
             </div>
           </div>
 
           {/* Tasa de cambio USD */}
           <div className="space-y-2">
-            <Label htmlFor="usd_exchange_rate" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <Label htmlFor="usd_exchange_rate" className="text-slate-300 dark:text-slate-300 flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Tasa de Cambio USD (para conversión en documentos)
             </Label>
@@ -877,7 +877,7 @@ export function CompanySettings() {
                   min="0"
                   value={settings.usd_exchange_rate || 58.50}
                   onChange={(e) => setSettings({ ...settings, usd_exchange_rate: parseFloat(e.target.value) || 58.50 })}
-                  className="bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600"
+                  className="bg-slate-900 border-slate-700 dark:bg-slate-800 dark:border-slate-600"
                   placeholder="58.50"
                 />
               </div>
@@ -885,14 +885,14 @@ export function CompanySettings() {
                 1 USD = {settings.usd_exchange_rate || 58.50} {settings.currency_code}
               </Badge>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-slate-400">
               Esta tasa se usará para mostrar precios en USD en facturas, presupuestos y recibos térmicos
             </p>
           </div>
 
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              <strong className="text-blue-800 dark:text-blue-300">Ejemplo:</strong> {settings.currency_symbol}1,234.56
+          <div className="p-4 bg-slate-900 dark:bg-blue-900/20 rounded-lg border border-slate-700 dark:border-blue-800">
+            <p className="text-sm text-blue-300 dark:text-blue-300">
+              <strong className="text-blue-300 dark:text-blue-300">Ejemplo:</strong> {settings.currency_symbol}1,234.56
             </p>
           </div>
         </CardContent>
@@ -900,16 +900,16 @@ export function CompanySettings() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+        <Alert className="border-red-800 bg-red-900/30 dark:bg-red-900/20 dark:border-red-800">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+          <AlertDescription className="text-red-300 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+        <Alert className="border-green-800 bg-green-900/30 dark:bg-green-900/20 dark:border-green-800">
           <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
+          <AlertDescription className="text-green-300 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
 

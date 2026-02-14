@@ -604,10 +604,10 @@ export default function EditInvoicePage() {
 
   if (fetchLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-slate-600">Cargando factura...</p>
+          <p className="text-slate-400">Cargando factura...</p>
         </div>
       </div>
     )
@@ -615,13 +615,13 @@ export default function EditInvoicePage() {
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="p-4 bg-red-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+          <div className="p-4 bg-red-900/30 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
             <AlertCircle className="h-10 w-10 text-red-600" />
           </div>
           <h2 className="text-xl font-semibold text-slate-900 mb-2">Factura no encontrada</h2>
-          <p className="text-slate-600 mb-4">La factura que buscas no existe o no tienes permisos para verla</p>
+          <p className="text-slate-400 mb-4">La factura que buscas no existe o no tienes permisos para verla</p>
           <Button onClick={() => router.push("/invoices")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Facturas
@@ -644,7 +644,7 @@ export default function EditInvoicePage() {
       case "pendiente":
         return "bg-blue-500 text-white"
       default:
-        return "bg-gray-500 text-white"
+        return "bg-slate-9500 text-white"
     }
   }
 
@@ -663,12 +663,12 @@ export default function EditInvoicePage() {
   const total = discountedSubtotal + itbisAmount
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => router.back()} className="hover:bg-slate-100">
+              <Button variant="ghost" onClick={() => router.back()} className="hover:bg-slate-800">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
@@ -676,7 +676,7 @@ export default function EditInvoicePage() {
                   Editar Factura
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
-                  <Badge variant="outline" className="text-blue-700 border-blue-300">
+                  <Badge variant="outline" className="text-blue-400 border-blue-300">
                     <FileText className="h-3 w-3 mr-1" />
                     {invoice.invoice_number}
                   </Badge>
@@ -687,7 +687,7 @@ export default function EditInvoicePage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => router.push("/invoices")} className="hover:bg-slate-100">
+            <Button variant="outline" onClick={() => router.push("/invoices")} className="hover:bg-slate-800">
               Cancelar
             </Button>
             <Button
@@ -706,7 +706,7 @@ export default function EditInvoicePage() {
         <div className="grid gap-8 grid-cols-1 xl:grid-cols-2">
           <div className="space-y-8">
             <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border border-slate-800">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -716,15 +716,15 @@ export default function EditInvoicePage() {
             <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-slate-700 font-medium">Número de Factura</Label>
+                  <Label className="text-slate-300 font-medium">Número de Factura</Label>
                   <Input
                     value={invoice.invoice_number}
                     disabled
-                    className="bg-slate-50 border-slate-200 text-slate-600"
+                    className="bg-slate-900 border-slate-800 text-slate-400"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="invoice_date" className="text-slate-700 font-medium">
+                  <Label htmlFor="invoice_date" className="text-slate-300 font-medium">
                     Fecha de Factura *
                   </Label>
                   <Input
@@ -733,14 +733,14 @@ export default function EditInvoicePage() {
                     type="date"
                     defaultValue={invoice.invoice_date ? invoice.invoice_date.split("T")[0] : ""}
                     required
-                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="border-slate-800 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="due_date" className="text-slate-700 font-medium">
+                  <Label htmlFor="due_date" className="text-slate-300 font-medium">
                     Fecha de Vencimiento *
                   </Label>
                   <Input
@@ -749,15 +749,15 @@ export default function EditInvoicePage() {
                     type="date"
                     defaultValue={invoice.due_date ? invoice.due_date.split("T")[0] : ""}
                     required
-                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="border-slate-800 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status" className="text-slate-700 font-medium">
+                  <Label htmlFor="status" className="text-slate-300 font-medium">
                     Estado
                   </Label>
                   <Select name="status" defaultValue={invoice.status}>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -774,11 +774,11 @@ export default function EditInvoicePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="client_id" className="text-slate-700 font-medium">
+                  <Label htmlFor="client_id" className="text-slate-300 font-medium">
                     Cliente *
                   </Label>
                   <Select name="client_id" value={selectedClient} onValueChange={setSelectedClient} required>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar cliente" />
                     </SelectTrigger>
                     <SelectContent>
@@ -791,11 +791,11 @@ export default function EditInvoicePage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="project_id" className="text-slate-700 font-medium">
+                  <Label htmlFor="project_id" className="text-slate-300 font-medium">
                     Proyecto
                   </Label>
                   <Select name="project_id" defaultValue={invoice.project_id || ""}>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar proyecto" />
                     </SelectTrigger>
                     <SelectContent>
@@ -811,11 +811,11 @@ export default function EditInvoicePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="payment_method" className="text-slate-700 font-medium">
+                  <Label htmlFor="payment_method" className="text-slate-300 font-medium">
                     Forma de Pago
                   </Label>
                   <Select name="payment_method" value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar forma de pago" />
                     </SelectTrigger>
                     <SelectContent>
@@ -829,7 +829,7 @@ export default function EditInvoicePage() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-200 pt-6 space-y-4">
+              <div className="border-t border-slate-800 pt-6 space-y-4">
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id="include_itbis"
@@ -840,17 +840,17 @@ export default function EditInvoicePage() {
                         setNcf("")
                       }
                     }}
-                    className="border-slate-300"
+                    className="border-slate-700"
                   />
-                  <Label htmlFor="include_itbis" className="text-slate-700 font-medium">
+                  <Label htmlFor="include_itbis" className="text-slate-300 font-medium">
                     ¿Incluir ITBIS (18%)?
                   </Label>
                 </div>
 
                 {includeItbis && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="bg-amber-900/30 border border-amber-800 rounded-lg p-4">
                     <div className="space-y-2">
-                      <Label htmlFor="ncf" className="text-amber-800 font-medium">
+                      <Label htmlFor="ncf" className="text-amber-300 font-medium">
                         Comprobante Fiscal (NCF) *
                       </Label>
                       <Input
@@ -859,9 +859,9 @@ export default function EditInvoicePage() {
                         onChange={(e) => setNcf(e.target.value)}
                         placeholder="Ej: B0100000001"
                         required={includeItbis}
-                        className="border-amber-300 focus:border-amber-500 focus:ring-amber-500 bg-white"
+                        className="border-amber-300 focus:border-amber-500 focus:ring-amber-500 bg-slate-900"
                       />
-                      <p className="text-xs text-amber-700">El NCF es obligatorio cuando se incluye ITBIS</p>
+                      <p className="text-xs text-amber-400">El NCF es obligatorio cuando se incluye ITBIS</p>
                     </div>
                   </div>
                 )}
@@ -869,7 +869,7 @@ export default function EditInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
             <CardHeader className="bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-t-lg">
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
@@ -880,7 +880,7 @@ export default function EditInvoicePage() {
                   type="button"
                   onClick={addItem}
                   variant="secondary"
-                  className="bg-white text-slate-700 hover:bg-slate-100"
+                  className="bg-slate-900 text-slate-300 hover:bg-slate-800"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar Item
@@ -889,13 +889,13 @@ export default function EditInvoicePage() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               {items.map((item, index) => (
-                <div key={index} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-4">
+                <div key={index} className="bg-slate-800 border border-slate-700 rounded-lg p-4 shadow-sm space-y-4">
                   {/* Fila 1: Tipo y Producto/Servicio */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium">Tipo</Label>
+                      <Label className="text-slate-300 font-medium">Tipo</Label>
                       <Select value={item.type} onValueChange={(value) => updateItem(index, "type", value)}>
-                        <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -906,7 +906,7 @@ export default function EditInvoicePage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium">
+                      <Label className="text-slate-300 font-medium">
                         {item.type === "product" ? "Producto" : "Servicio"}
                       </Label>
                       <Select
@@ -927,7 +927,7 @@ export default function EditInvoicePage() {
                           }
                         }}
                       >
-                        <SelectTrigger className="border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                           <SelectValue
                             placeholder={`Seleccionar ${item.type === "product" ? "producto" : "servicio"}`}
                           />
@@ -984,7 +984,7 @@ export default function EditInvoicePage() {
                         (item.type === "service" &&
                           item.service_id &&
                           !services.some((s) => String(s.id) === String(item.service_id)))) && (
-                        <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                        <p className="text-xs text-amber-600 bg-amber-900/30 p-2 rounded">
                           ⚠️ Este {item.type === "product" ? "producto" : "servicio"} ya no está disponible. Puedes
                           mantenerlo o seleccionar uno nuevo.
                         </p>
@@ -995,7 +995,7 @@ export default function EditInvoicePage() {
                   {/* Fila 2: Cantidad, Precio y Total */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium">Cantidad</Label>
+                      <Label className="text-slate-300 font-medium">Cantidad</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -1004,27 +1004,27 @@ export default function EditInvoicePage() {
                         onChange={(e) =>
                           updateItem(index, "quantity", Math.max(Number.parseFloat(e.target.value) || 0, 0.01))
                         }
-                        className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="border-slate-800 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium">Precio Unitario</Label>
+                      <Label className="text-slate-300 font-medium">Precio Unitario</Label>
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
                         value={item.unit_price}
                         onChange={(e) => updateItem(index, "unit_price", Number.parseFloat(e.target.value) || 0)}
-                        className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="border-slate-800 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium">Total</Label>
+                      <Label className="text-slate-300 font-medium">Total</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           value={formatCurrency(item.quantity * item.unit_price)}
                           disabled
-                          className="bg-slate-50 border-slate-200 text-slate-600 font-medium"
+                          className="bg-slate-900 border-slate-800 text-slate-400 font-medium"
                         />
                         {items.length > 1 && (
                           <Button
@@ -1032,7 +1032,7 @@ export default function EditInvoicePage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeItem(index)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1043,9 +1043,9 @@ export default function EditInvoicePage() {
                 </div>
               ))}
 
-              <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+              <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700 border-orange-800">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-orange-800 flex items-center gap-2">
+                  <CardTitle className="text-orange-300 flex items-center gap-2">
                     <Percent className="h-5 w-5" />
                     Descuentos
                   </CardTitle>
@@ -1053,7 +1053,7 @@ export default function EditInvoicePage() {
                 <CardContent className="space-y-6">
                   {/* Tipo de descuento */}
                   <div>
-                    <Label className="text-orange-700 font-medium mb-3 block">Tipo de Descuento</Label>
+                    <Label className="text-orange-400 font-medium mb-3 block">Tipo de Descuento</Label>
                     <RadioGroup
                       value={discountType}
                       onValueChange={(value: "percentage" | "fixed") => {
@@ -1082,7 +1082,7 @@ export default function EditInvoicePage() {
                   {/* Valores del descuento */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-orange-700 font-medium">
+                      <Label className="text-orange-400 font-medium">
                         {discountType === "percentage" ? "Porcentaje (%)" : "Monto"}
                       </Label>
                       <Input
@@ -1106,31 +1106,31 @@ export default function EditInvoicePage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-orange-700 font-medium">Descuento Aplicado</Label>
+                      <Label className="text-orange-400 font-medium">Descuento Aplicado</Label>
                       <Input
                         value={formatCurrency(discountAmount)}
                         disabled
-                        className="bg-orange-100 font-medium text-orange-800 border-orange-300"
+                        className="bg-orange-900/30 font-medium text-orange-300 border-orange-300"
                       />
                     </div>
                   </div>
 
                   {/* Mensaje informativo */}
                   {discountAmount > 0 && (
-                    <div className="text-sm text-orange-700 bg-orange-100 p-3 rounded border border-orange-200">
+                    <div className="text-sm text-orange-400 bg-orange-900/30 p-3 rounded border border-orange-800">
                       💰 Se aplicará un descuento de <strong>{formatCurrency(discountAmount)}</strong> al subtotal
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <div className="border-t border-slate-200 pt-6">
-                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-6">
+              <div className="border-t border-slate-800 pt-6">
+                <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700 rounded-lg p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div></div>
                     <div></div>
                     <div className="space-y-3">
-                      <div className="flex justify-between text-slate-700">
+                      <div className="flex justify-between text-slate-300">
                         <span>Subtotal:</span>
                         <span className="font-medium">{formatCurrency(subtotal)}</span>
                       </div>
@@ -1141,18 +1141,18 @@ export default function EditInvoicePage() {
                         </div>
                       )}
                       {discountAmount > 0 && (
-                        <div className="flex justify-between text-slate-700">
+                        <div className="flex justify-between text-slate-300">
                           <span>Subtotal con descuento:</span>
                           <span className="font-medium">{formatCurrency(discountedSubtotal)}</span>
                         </div>
                       )}
                       {includeItbis && (
-                        <div className="flex justify-between text-slate-700">
+                        <div className="flex justify-between text-slate-300">
                           <span>ITBIS (18%):</span>
                           <span className="font-medium">{formatCurrency(itbisAmount)}</span>
                         </div>
                       )}
-                      <div className="border-t border-slate-300 pt-3">
+                      <div className="border-t border-slate-700 pt-3">
                         <div className="flex justify-between text-lg font-bold text-slate-900">
                           <span>Total:</span>
                           <span>{formatCurrency(total)}</span>
@@ -1165,9 +1165,9 @@ export default function EditInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
             <CardHeader>
-              <CardTitle className="text-slate-800">Notas Adicionales</CardTitle>
+              <CardTitle className="text-slate-200">Notas Adicionales</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -1177,15 +1177,15 @@ export default function EditInvoicePage() {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 placeholder="Agregar notas, términos y condiciones, o información adicional..."
-                className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                className="border-slate-800 focus:border-blue-500 focus:ring-blue-500"
               />
             </CardContent>
           </Card>
 
           {error && (
-            <Alert className="border-red-200 bg-red-50">
+            <Alert className="border-red-800 bg-red-900/30">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+              <AlertDescription className="text-red-300">{error}</AlertDescription>
             </Alert>
           )}
             </form>
@@ -1233,18 +1233,18 @@ export default function EditInvoicePage() {
 function getStatusColor(status: string) {
   switch (status) {
     case "borrador":
-      return "bg-slate-100 text-slate-800 border-slate-200"
+      return "bg-slate-100 text-slate-200 border-slate-800"
     case "pendiente":
-      return "bg-blue-100 text-blue-800 border-blue-200"
+      return "bg-slate-800 text-blue-300 border-slate-700"
     case "enviada":
-      return "bg-amber-100 text-amber-800 border-amber-200"
+      return "bg-amber-900/30 text-amber-300 border-amber-800"
     case "pagada":
-      return "bg-emerald-100 text-emerald-800 border-emerald-200"
+      return "bg-emerald-900/30 text-emerald-300 border-emerald-800"
     case "vencida":
-      return "bg-red-100 text-red-800 border-red-200"
+      return "bg-red-900/30 text-red-300 border-red-800"
     case "cancelada":
-      return "bg-gray-100 text-gray-800 border-gray-200"
+      return "bg-slate-800 text-slate-200 border-slate-800"
     default:
-      return "bg-slate-100 text-slate-800 border-slate-200"
+      return "bg-slate-100 text-slate-200 border-slate-800"
   }
 }

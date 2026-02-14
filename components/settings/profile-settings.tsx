@@ -243,7 +243,7 @@ export function ProfileSettings() {
   return (
     <div className="space-y-8">
       {/* Header with Avatar */}
-      <Card variant="elevated" className="border-0 shadow-2xl bg-gradient-to-r from-white to-blue-50">
+      <Card variant="elevated" className="border-0 shadow-2xl bg-gradient-to-r from-slate-900 to-blue-50">
         <CardContent className="p-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative group">
@@ -276,23 +276,23 @@ export function ProfileSettings() {
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   {profile.first_name} {profile.last_name}
                 </h2>
-                <p className="text-slate-600 dark:text-slate-300 text-lg">{profile.email}</p>
+                <p className="text-slate-400 dark:text-slate-300 text-lg">{profile.email}</p>
                 {profile.bio && (
                   <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-md">{profile.bio}</p>
                 )}
               </div>
               
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                <Badge variant="secondary" className="bg-slate-800 text-blue-400 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
                   <User className="h-3 w-3 mr-1" />
                   Administrador
                 </Badge>
-                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+                <Badge variant="secondary" className="bg-green-900/30 text-green-400 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
                   <Star className="h-3 w-3 mr-1" />
                   Plan Pro
                 </Badge>
                 {profile.location && (
-                  <Badge variant="outline" className="bg-white/80 dark:bg-slate-800/80 dark:border-slate-600 dark:text-slate-100">
+                  <Badge variant="outline" className="bg-slate-800/80 dark:bg-slate-800/80 dark:border-slate-600 dark:text-slate-100">
                     <MapPin className="h-3 w-3 mr-1" />
                     {profile.location}
                   </Badge>
@@ -346,37 +346,37 @@ export function ProfileSettings() {
           <CardContent className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="first_name" className="text-slate-700 dark:text-slate-300">Nombre</Label>
+                <Label htmlFor="first_name" className="text-slate-300 dark:text-slate-300">Nombre</Label>
                 <Input
                   id="first_name"
                   value={profile.first_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn(!editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name" className="text-slate-700 dark:text-slate-300">Apellido</Label>
+                <Label htmlFor="last_name" className="text-slate-300 dark:text-slate-300">Apellido</Label>
                 <Input
                   id="last_name"
                   value={profile.last_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn(!editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-slate-700 dark:text-slate-300">Biografía</Label>
+              <Label htmlFor="bio" className="text-slate-300 dark:text-slate-300">Biografía</Label>
               <Textarea
                 id="bio"
                 value={profile.bio}
                 onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
                 disabled={!editing}
-                className={cn(!editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:bg-slate-800 dark:placeholder:text-slate-500")}
+                className={cn(!editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:bg-slate-800 dark:placeholder:text-slate-500")}
                 placeholder="Cuéntanos algo sobre ti..."
                 rows={3}
               />
@@ -393,7 +393,7 @@ export function ProfileSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email</Label>
+              <Label htmlFor="email" className="text-slate-300 dark:text-slate-300">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -403,13 +403,13 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn("pl-10", !editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300">Teléfono</Label>
+              <Label htmlFor="phone" className="text-slate-300 dark:text-slate-300">Teléfono</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -419,14 +419,14 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn("pl-10", !editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-slate-700 dark:text-slate-300">Ubicación</Label>
+              <Label htmlFor="location" className="text-slate-300 dark:text-slate-300">Ubicación</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -435,14 +435,14 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, location: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn("pl-10", !editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="Santo Domingo, República Dominicana"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website" className="text-slate-700 dark:text-slate-300">Sitio Web</Label>
+              <Label htmlFor="website" className="text-slate-300 dark:text-slate-300">Sitio Web</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 h-4 w-4" />
                 <Input
@@ -452,7 +452,7 @@ export function ProfileSettings() {
                   onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
                   disabled={!editing}
                   variant={editing ? "modern" : "default"}
-                  className={cn("pl-10", !editing && "bg-slate-50 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
+                  className={cn("pl-10", !editing && "bg-slate-900 dark:bg-slate-800", "dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500")}
                   placeholder="https://www.ejemplo.com"
                 />
               </div>
@@ -473,7 +473,7 @@ export function ProfileSettings() {
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="space-y-1">
               <h4 className="font-medium text-slate-900 dark:text-slate-100">Notificaciones por Email</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Recibir notificaciones importantes por correo electrónico</p>
+              <p className="text-sm text-slate-400 dark:text-slate-400">Recibir notificaciones importantes por correo electrónico</p>
             </div>
             <Switch
               checked={profile.email_notifications}
@@ -485,7 +485,7 @@ export function ProfileSettings() {
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="space-y-1">
               <h4 className="font-medium text-slate-900 dark:text-slate-100">Emails de Marketing</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Recibir noticias, actualizaciones y ofertas especiales</p>
+              <p className="text-sm text-slate-400 dark:text-slate-400">Recibir noticias, actualizaciones y ofertas especiales</p>
             </div>
             <Switch
               checked={profile.marketing_emails}
@@ -498,16 +498,16 @@ export function ProfileSettings() {
 
       {/* Alerts */}
       {error && (
-        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+        <Alert className="border-red-800 bg-red-900/30 dark:bg-red-900/20 dark:border-red-800">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-          <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+          <AlertDescription className="text-red-300 dark:text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+        <Alert className="border-green-800 bg-green-900/30 dark:bg-green-900/20 dark:border-green-800">
           <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertDescription className="text-green-800 dark:text-green-300">{success}</AlertDescription>
+          <AlertDescription className="text-green-300 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
     </div>

@@ -12,13 +12,13 @@ export default function BudgetsLoading() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg border-0">
+      <div className="bg-slate-900 rounded-lg shadow-lg border-0">
         <div className="h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-t-lg flex items-center px-6">
           <div className="h-10 bg-white/20 rounded w-64 animate-pulse"></div>
         </div>
         <div className="p-6 space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+            <div key={i} className="bg-slate-900 rounded-lg shadow-md p-6 animate-pulse">
               <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-3">

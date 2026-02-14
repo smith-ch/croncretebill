@@ -194,8 +194,8 @@ export default function EditDeliveryNotePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Editar Conduce</h1>
-        <p className="text-gray-600 dark:text-gray-400">Conduce: {deliveryNote.delivery_number}</p>
+        <h1 className="text-3xl font-bold text-slate-200 dark:text-white">Editar Conduce</h1>
+        <p className="text-slate-400 dark:text-gray-400">Conduce: {deliveryNote.delivery_number}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -207,7 +207,7 @@ export default function EditDeliveryNotePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Número de Conduce</Label>
-                <Input value={deliveryNote.delivery_number} disabled className="bg-gray-50" />
+                <Input value={deliveryNote.delivery_number} disabled className="bg-slate-950" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="delivery_date">Fecha de Entrega *</Label>
@@ -446,7 +446,7 @@ export default function EditDeliveryNotePage() {
                 <div className="space-y-2">
                   <Label>Total</Label>
                   <div className="flex items-center gap-2">
-                    <Input value={(item.quantity * item.unit_price).toFixed(2)} disabled className="bg-gray-50" />
+                    <Input value={(item.quantity * item.unit_price).toFixed(2)} disabled className="bg-slate-950" />
                     {items.length > 1 && (
                       <Button
                         type="button"
@@ -475,8 +475,8 @@ export default function EditDeliveryNotePage() {
         </Card>
 
         {error && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
+          <Alert className="border-red-800 bg-red-900/30">
+            <AlertDescription className="text-red-300">{error}</AlertDescription>
           </Alert>
         )}
 

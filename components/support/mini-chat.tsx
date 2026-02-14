@@ -119,12 +119,12 @@ const FAQS: FAQ[] = [
 ]
 
 const CATEGORIES = [
-  { name: "Facturas", icon: FileText, color: "text-blue-600 bg-blue-100" },
-  { name: "Clientes", icon: Users, color: "text-green-600 bg-green-100" },
-  { name: "Productos", icon: Package, color: "text-purple-600 bg-purple-100" },
-  { name: "Pagos", icon: CreditCard, color: "text-orange-600 bg-orange-100" },
-  { name: "Configuración", icon: Settings, color: "text-slate-600 bg-slate-100" },
-  { name: "Reportes", icon: FileText, color: "text-pink-600 bg-pink-100" },
+  { name: "Facturas", icon: FileText, color: "text-blue-600 bg-slate-800" },
+  { name: "Clientes", icon: Users, color: "text-green-600 bg-green-900/30" },
+  { name: "Productos", icon: Package, color: "text-purple-600 bg-purple-900/30" },
+  { name: "Pagos", icon: CreditCard, color: "text-orange-600 bg-orange-900/30" },
+  { name: "Configuración", icon: Settings, color: "text-slate-400 bg-slate-800" },
+  { name: "Reportes", icon: FileText, color: "text-pink-600 bg-pink-900/30" },
 ]
 
 interface Message {
@@ -633,8 +633,8 @@ export function MiniChat() {
                     className={cn(
                       "flex-1 py-3 text-sm font-medium transition-colors border-b-2",
                       showChat 
-                        ? "border-blue-600 text-blue-600 bg-blue-50" 
-                        : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "border-blue-600 text-blue-600 bg-slate-900" 
+                        : "border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-900"
                     )}
                   >
                     💬 Chat
@@ -644,8 +644,8 @@ export function MiniChat() {
                     className={cn(
                       "flex-1 py-3 text-sm font-medium transition-colors border-b-2",
                       !showChat 
-                        ? "border-blue-600 text-blue-600 bg-blue-50" 
-                        : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "border-blue-600 text-blue-600 bg-slate-900" 
+                        : "border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-900"
                     )}
                   >
                     📚 FAQs
@@ -655,7 +655,7 @@ export function MiniChat() {
                 {showChat ? (
                   <>
                     {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900">
                       {messages.length === 1 && (
                         <div className="space-y-2 mb-4">
                           <p className="text-xs text-slate-500 text-center mb-2">Preguntas frecuentes:</p>
@@ -664,7 +664,7 @@ export function MiniChat() {
                               <motion.button
                                 key={idx}
                                 onClick={() => handleQuickSuggestion(suggestion)}
-                                className="text-left p-2 text-xs bg-white border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
+                                className="text-left p-2 text-xs bg-slate-900 border border-slate-800 rounded-lg hover:border-blue-300 hover:bg-slate-900 transition-all"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
@@ -691,7 +691,7 @@ export function MiniChat() {
                               "max-w-[80%] rounded-lg px-4 py-3 shadow-sm",
                               message.sender === 'user'
                                 ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
-                                : "bg-white text-slate-900 border border-slate-200"
+                                : "bg-slate-900 text-slate-900 border border-slate-800"
                             )}
                           >
                             {message.sender === 'bot' ? (
@@ -733,7 +733,7 @@ export function MiniChat() {
                           animate={{ opacity: 1, y: 0 }}
                           className="flex justify-start"
                         >
-                          <div className="bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm">
+                          <div className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 shadow-sm">
                             <div className="flex gap-1">
                               <motion.div
                                 className="w-2 h-2 bg-slate-400 rounded-full"
@@ -759,7 +759,7 @@ export function MiniChat() {
                     </div>
 
                     {/* Input Area */}
-                    <div className="border-t p-3 bg-white">
+                    <div className="border-t p-3 bg-slate-900">
                       <div className="flex gap-2">
                         <Input
                           placeholder="Escribe tu pregunta aquí..."
@@ -803,7 +803,7 @@ export function MiniChat() {
                         {messages.length > 2 && (
                           <button
                             onClick={() => setMessages(messages.slice(0, 1))}
-                            className="text-xs text-slate-500 hover:text-slate-700"
+                            className="text-xs text-slate-500 hover:text-slate-300"
                           >
                             🗑️ Limpiar chat
                           </button>
@@ -813,7 +813,7 @@ export function MiniChat() {
                   </>
                 ) : !selectedFAQ ? (
                   /* FAQ List View */
-                  <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                  <div className="flex-1 overflow-y-auto p-4 bg-slate-900">
                     <div className="space-y-3">
                       {Object.entries(
                         FAQS.reduce((acc, faq) => {
@@ -823,7 +823,7 @@ export function MiniChat() {
                         }, {} as Record<string, typeof FAQS>)
                       ).map(([category, faqs]) => (
                         <div key={category} className="space-y-2">
-                          <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
                             {category}
                           </h3>
                           <div className="space-y-2">
@@ -831,7 +831,7 @@ export function MiniChat() {
                               <button
                                 key={faq.id}
                                 onClick={() => handleFAQClick(faq)}
-                                className="w-full text-left p-3 bg-white rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-sm"
+                                className="w-full text-left p-3 bg-slate-900 rounded-lg border border-slate-800 hover:border-blue-300 hover:bg-slate-900 transition-all text-sm"
                               >
                                 {faq.question}
                               </button>
@@ -843,19 +843,19 @@ export function MiniChat() {
                   </div>
                 ) : (
                   /* FAQ Detail View */
-                  <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                  <div className="flex-1 overflow-y-auto p-4 bg-slate-900">
                     <button
                       onClick={handleBack}
-                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mb-4"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-400 mb-4"
                     >
                       <ChevronRight className="h-4 w-4 rotate-180" />
                       Volver
                     </button>
-                    <div className="bg-white rounded-lg border border-slate-200 p-4">
+                    <div className="bg-slate-900 rounded-lg border border-slate-800 p-4">
                       <h3 className="font-semibold text-lg text-slate-900 mb-2">
                         {selectedFAQ.question}
                       </h3>
-                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
                         {selectedFAQ.answer}
                       </p>
                     </div>
@@ -865,10 +865,10 @@ export function MiniChat() {
 
               {/* Footer - Only show in FAQ views */}
               {!showChat && (
-                <div className="border-t p-3 bg-white">
+                <div className="border-t p-3 bg-slate-900">
                   <button
                     onClick={switchToChat}
-                    className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="w-full py-2 text-sm text-blue-600 hover:text-blue-400 font-medium"
                   >
                     💬 Ir al Chat
                   </button>

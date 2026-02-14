@@ -196,15 +196,15 @@ export function RoleSecuritySettings() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Información actual */}
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-slate-900 p-4 rounded-lg">
           <div className="flex items-start gap-3">
             <Lock className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900">Estado de Contraseña de Role</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm text-blue-400 mt-1">
                 Esta contraseña es independiente de tu contraseña de usuario y se usa específicamente para cambiar entre modos de visualización.
               </p>
-              <div className="mt-2 font-mono text-sm bg-white px-2 py-1 rounded border flex items-center justify-between">
+              <div className="mt-2 font-mono text-sm bg-slate-900 px-2 py-1 rounded border flex items-center justify-between">
                 <span>••••••••••••</span>
                 <span className="text-green-600 text-xs font-semibold">
                   {currentRolePassword && currentRolePassword !== 'admin123' ? '✓ Personalizada' : '⚠️ Por Defecto'}
@@ -218,7 +218,7 @@ export function RoleSecuritySettings() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Cambiar Contraseña de Role</h3>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
               <Shield className="h-4 w-4" />
               <span>Contraseñas ocultas por seguridad</span>
             </div>
@@ -226,25 +226,25 @@ export function RoleSecuritySettings() {
 
           {/* Estado de seguridad */}
           {securityInfo.attempts > 0 || securityInfo.lockedUntil || securityInfo.lastChanged && (
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+            <div className="bg-amber-900/30 p-4 rounded-lg border border-amber-800">
               <div className="space-y-2 text-sm">
                 {securityInfo.lastChanged && (
-                  <div className="text-amber-800">
+                  <div className="text-amber-300">
                     <strong>Último cambio:</strong> {securityInfo.lastChanged}
                   </div>
                 )}
                 {securityInfo.attempts > 0 && (
-                  <div className="text-red-700">
+                  <div className="text-red-400">
                     <strong>Intentos fallidos:</strong> {securityInfo.attempts}/3
                   </div>
                 )}
                 {securityInfo.lockedUntil && (
-                  <div className="text-red-700 font-semibold">
+                  <div className="text-red-400 font-semibold">
                     <strong>🔒 Bloqueado hasta:</strong> {securityInfo.lockedUntil}
                   </div>
                 )}
                 {!securityInfo.canChange && !securityInfo.lockedUntil && (
-                  <div className="text-amber-700">
+                  <div className="text-amber-400">
                     <strong>⏱️ Espera:</strong> Debes esperar 5 minutos entre cambios de contraseña
                   </div>
                 )}
@@ -263,7 +263,7 @@ export function RoleSecuritySettings() {
                 placeholder="Contraseña de tu cuenta de usuario"
                 disabled={!securityInfo.canChange}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-400">
                 Se requiere para verificar tu identidad antes del cambio
               </p>
             </div>
@@ -332,12 +332,12 @@ export function RoleSecuritySettings() {
         </div>
 
         {/* Información de seguridad mejorada */}
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <div className="bg-green-900/30 p-4 rounded-lg border border-green-800">
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-green-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-green-900">Medidas de Seguridad Implementadas</h3>
-              <ul className="text-sm text-green-800 mt-1 space-y-1">
+              <ul className="text-sm text-green-300 mt-1 space-y-1">
                 <li>• ✅ Verificación de contraseña de usuario</li>
                 <li>• ✅ Contraseña mínima de 8 caracteres</li>
                 <li>• ✅ Cooldown de 5 minutos entre cambios</li>
@@ -350,12 +350,12 @@ export function RoleSecuritySettings() {
           </div>
         </div>
 
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+        <div className="bg-red-900/30 p-4 rounded-lg border border-red-800">
           <div className="flex items-start gap-3">
             <Lock className="h-5 w-5 text-red-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-red-900">⚠️ Importante</h3>
-              <ul className="text-sm text-red-800 mt-1 space-y-1">
+              <ul className="text-sm text-red-300 mt-1 space-y-1">
                 <li>• Esta contraseña controla el acceso a funciones administrativas</li>
                 <li>• NO la compartas con empleados</li>
                 <li>• Usa una contraseña fuerte y única</li>

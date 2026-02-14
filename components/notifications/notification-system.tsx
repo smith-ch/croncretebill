@@ -169,7 +169,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
           colors: 'from-emerald-500 to-green-600',
           bgColors: 'from-emerald-50 to-green-50',
           textColors: 'text-emerald-900',
-          borderColors: 'border-emerald-200',
+          borderColors: 'border-emerald-800',
         }
       case 'error':
         return {
@@ -177,7 +177,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
           colors: 'from-red-500 to-pink-600',
           bgColors: 'from-red-50 to-pink-50',
           textColors: 'text-red-900',
-          borderColors: 'border-red-200',
+          borderColors: 'border-red-800',
         }
       case 'warning':
         return {
@@ -185,7 +185,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
           colors: 'from-amber-500 to-orange-600',
           bgColors: 'from-amber-50 to-orange-50',
           textColors: 'text-amber-900',
-          borderColors: 'border-amber-200',
+          borderColors: 'border-amber-800',
         }
       default:
         return {
@@ -193,7 +193,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
           colors: 'from-blue-500 to-indigo-600',
           bgColors: 'from-blue-50 to-indigo-50',
           textColors: 'text-blue-900',
-          borderColors: 'border-blue-200',
+          borderColors: 'border-slate-700',
         }
     }
   }
@@ -253,7 +253,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
           </div>
           <motion.button
             onClick={onRemove}
-            className={`${config.textColors} hover:bg-white/50 p-1 rounded-lg transition-colors flex-shrink-0`}
+            className={`${config.textColors} hover:bg-slate-800/50 p-1 rounded-lg transition-colors flex-shrink-0`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >

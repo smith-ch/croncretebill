@@ -47,23 +47,23 @@ const getTypeConfig = (type: ItemCardProps['type']) => {
 
 const getStatusColor = (status?: string) => {
   if (!status) {
-    return 'bg-gray-100 text-gray-800'
+    return 'bg-gray-100 text-slate-200'
   }
   
   switch (status.toLowerCase()) {
     case 'activo':
     case 'active':
     case 'pagada':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-900/30 text-green-300'
     case 'pendiente':
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-yellow-900/30 text-yellow-300'
     case 'inactivo':
     case 'inactive':
     case 'cancelada':
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-900/30 text-red-300'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-slate-800 text-slate-300'
   }
 }
 
@@ -128,7 +128,7 @@ export function ItemCard({
               
               {/* Subtitle */}
               {subtitle && (
-                <p className="text-xs lg:text-sm text-gray-600 truncate mb-2">
+                <p className="text-xs lg:text-sm text-slate-400 truncate mb-2">
                   {subtitle}
                 </p>
               )}
@@ -148,7 +148,7 @@ export function ItemCard({
                   {metadata.map((item, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center text-xs text-gray-500 bg-white/60 rounded-full px-2 py-1"
+                      className="inline-flex items-center text-xs text-slate-400 bg-slate-800/60 rounded-full px-2 py-1"
                     >
                       {item}
                     </span>
@@ -165,7 +165,7 @@ export function ItemCard({
                 variant="ghost"
                 size="sm"
                 onClick={onView}
-                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/80"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-slate-800/80"
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -175,7 +175,7 @@ export function ItemCard({
                 variant="ghost"
                 size="sm"
                 onClick={onEdit}
-                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/80"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-slate-800/80"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -185,7 +185,7 @@ export function ItemCard({
                 variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-50 text-red-600"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-900/30 text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

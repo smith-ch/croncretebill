@@ -300,7 +300,7 @@ export default function NewBudgetPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
             Nuevo Presupuesto
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Crea un nuevo presupuesto para tu cliente</p>
+          <p className="text-slate-400 dark:text-gray-400">Crea un nuevo presupuesto para tu cliente</p>
         </div>
       </div>
 
@@ -425,7 +425,7 @@ export default function NewBudgetPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => addBudgetItem("product")}
-                      className="bg-orange-50 hover:bg-orange-100 text-orange-600 border-orange-300"
+                      className="bg-orange-900/30 hover:bg-orange-900/30 text-orange-600 border-orange-300"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Producto
@@ -435,7 +435,7 @@ export default function NewBudgetPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => addBudgetItem("service")}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-300"
+                      className="bg-slate-900 hover:bg-slate-800 text-blue-600 border-blue-300"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Servicio
@@ -455,7 +455,7 @@ export default function NewBudgetPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeBudgetItem(item.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-400"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -502,7 +502,7 @@ export default function NewBudgetPage() {
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <div className="p-2 border-b sticky top-0 bg-white z-10">
+                              <div className="p-2 border-b sticky top-0 bg-slate-900 z-10">
                                 <Input
                                   placeholder={`Buscar ${item.item_type === "product" ? "producto" : "servicio"} por código o nombre...`}
                                   value={item.item_type === "product" ? productSearchTerms[item.id] || "" : serviceSearchTerms[item.id] || ""}
@@ -659,8 +659,8 @@ export default function NewBudgetPage() {
                 </div>
 
                 {error && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">{error}</AlertDescription>
+                  <Alert className="border-red-800 bg-red-900/30">
+                    <AlertDescription className="text-red-300">{error}</AlertDescription>
                   </Alert>
                 )}
 

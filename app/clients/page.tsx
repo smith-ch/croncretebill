@@ -173,7 +173,7 @@ export default function ClientsPage() {
                 <h1 className="text-2xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
                   Clientes
                 </h1>
-                <p className="text-sm lg:text-lg text-gray-600 font-medium">Gestiona tu cartera de clientes</p>
+                <p className="text-sm lg:text-lg text-slate-400 font-medium">Gestiona tu cartera de clientes</p>
               </div>
             </div>
           </div>
@@ -212,9 +212,9 @@ export default function ClientsPage() {
         </motion.div>
 
         {!limits.isLoading && remainingClients <= 2 && (
-          <Alert className={remainingClients === 0 ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
+          <Alert className={remainingClients === 0 ? "border-red-500 bg-red-900/30" : "border-amber-500 bg-amber-900/30"}>
             <AlertCircle className={remainingClients === 0 ? "h-4 w-4 text-red-600" : "h-4 w-4 text-amber-600"} />
-            <AlertDescription className={remainingClients === 0 ? "text-red-800" : "text-amber-800"}>
+            <AlertDescription className={remainingClients === 0 ? "text-red-300" : "text-amber-300"}>
               {remainingClients === 0 ? (
                 <span>
                   <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxClients} clientes de tu {limits.planDisplayName}. 
@@ -231,7 +231,7 @@ export default function ClientsPage() {
         )}
 
         <Card variant="elevated" className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-white to-purple-50 border-b border-purple-100">
+          <CardHeader className="bg-gradient-to-r from-slate-900 to-purple-50 border-b border-purple-100">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -239,7 +239,7 @@ export default function ClientsPage() {
                   placeholder="Buscar clientes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-purple-200 focus:border-purple-400 focus:ring-purple-400"
+                  className="pl-10 border-purple-800 focus:border-purple-400 focus:ring-purple-400"
                   variant="modern"
                 />
               </div>
@@ -251,8 +251,8 @@ export default function ClientsPage() {
                 <div className="mb-6 mx-auto w-24 h-24 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
                   <Users className="h-12 w-12 text-purple-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No hay clientes registrados</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">Comienza a construir tu cartera de clientes agregando tu primer cliente</p>
+                <h3 className="text-2xl font-bold text-slate-200 mb-3">No hay clientes registrados</h3>
+                <p className="text-slate-400 mb-6 max-w-md mx-auto">Comienza a construir tu cartera de clientes agregando tu primer cliente</p>
                 <Button 
                   onClick={() => {
                     if (canAddClients()) {
@@ -280,10 +280,10 @@ export default function ClientsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-white to-purple-50/30 overflow-hidden group animate-slide-up" style={{animationDelay: `${index * 0.05}s`}}>
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-slate-900 to-purple-50/30 overflow-hidden group animate-slide-up" style={{animationDelay: `${index * 0.05}s`}}>
                     <CardContent className="p-4 lg:p-6">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-purple-700 transition-colors truncate">{client.name}</h3>
+                        <h3 className="font-bold text-lg text-slate-200 dark:text-white group-hover:text-purple-400 transition-colors truncate">{client.name}</h3>
                         <div className="flex gap-1">
                           {canEdit('clients') && (
                             <Button
@@ -293,7 +293,7 @@ export default function ClientsPage() {
                                 setEditingClient(client)
                                 setShowForm(true)
                               }}
-                              className="hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              className="hover:bg-slate-800 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               title="Editar cliente"
                             >
                               <Edit className="h-4 w-4" />
@@ -304,7 +304,7 @@ export default function ClientsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(client.id)}
-                              className="text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              className="text-red-600 hover:bg-red-900/30 hover:text-red-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
                               title="Eliminar cliente"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -314,33 +314,33 @@ export default function ClientsPage() {
                       </div>
                       <div className="space-y-2 text-sm">
                         {client.rnc && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">RNC:</span> {client.rnc}
                           </p>
                         )}
                         {client.cedula && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Cédula:</span> {client.cedula}
                           </p>
                         )}
                         {client.contact_person && (
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Contacto:</span> {client.contact_person}
                           </p>
                         )}
                         {client.email && (
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-slate-400 dark:text-gray-400">
                             <Mail className="h-4 w-4" />
                             <span>{client.email}</span>
                           </div>
                         )}
                         {client.phone && (
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-slate-400 dark:text-gray-400">
                             <Phone className="h-4 w-4" />
                             <span>{client.phone}</span>
                           </div>
                         )}
-                        {client.address && <p className="text-gray-600 dark:text-gray-400 text-xs">{client.address}</p>}
+                        {client.address && <p className="text-slate-400 dark:text-gray-400 text-xs">{client.address}</p>}
                       </div>
                     </CardContent>
                   </Card>
