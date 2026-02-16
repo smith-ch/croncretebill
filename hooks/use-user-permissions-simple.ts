@@ -6,7 +6,7 @@ import { isRealEmployeeByEmail } from '@/lib/employee-config'
 
 interface UserPermissions {
   canCreateInvoices: boolean
-  canViewFinances: boolean  
+  canViewFinances: boolean
   canManageInventory: boolean
   canManageClients: boolean
   maxInvoiceAmount: number | null
@@ -86,7 +86,7 @@ export function useUserPermissions() {
     // *** LISTENER DE AUTH STATE CHANGE - Detectar login/logout en tiempo real ***
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event, 'User:', session?.user?.email)
-      
+
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Re-verificar permisos inmediatamente al login o refresh
         console.log('🔄 Re-cargando permisos por cambio de auth...')
@@ -142,7 +142,7 @@ export function useUserPermissions() {
 
   const loadUserPermissions = async () => {
     // NO usar cache para detección de empleado - siempre consultar DB primero
-    
+
     // Verificar si hay override de emergencia
     const emergencyOverride = localStorage.getItem('emergency-override') === 'true'
     if (emergencyOverride) {
@@ -179,14 +179,14 @@ export function useUserPermissions() {
       setLoading(false)
       return
     }
-    
+
     // Timeout de seguridad para evitar loading infinito
     let timeoutId: ReturnType<typeof setTimeout> | undefined
-    
+
     try {
       timeoutId = setTimeout(async () => {
         console.warn('Permission loading timeout - verificando si es empleado antes de establecer permisos')
-        
+
         // CRITICAL: Incluso en timeout, verificar si es empleado
         let isTimeoutEmployee = false
         try {
@@ -197,13 +197,13 @@ export function useUserPermissions() {
               .select('parent_user_id')
               .eq('user_id', session.user.id)
               .single()
-            
+
             isTimeoutEmployee = profile?.parent_user_id !== null
           }
         } catch (e) {
           console.error('Error verificando empleado en timeout:', e)
         }
-        
+
         // Establecer permisos según si es empleado o no
         setPermissions({
           canCreateInvoices: !isTimeoutEmployee,
@@ -236,7 +236,7 @@ export function useUserPermissions() {
         })
         setLoading(false)
       }, 3000) // 3 segundos máximo - más rápido
-      
+
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) {
@@ -248,7 +248,7 @@ export function useUserPermissions() {
       // *** PASO 1: SIEMPRE consultar base de datos PRIMERO para detección de empleado ***
       let isRealEmployee = false
       let isOwner = false
-      
+
       if (user.id) {
         // Consultar user_profiles para ver si tiene un parent_user_id (es empleado)
         const { data: profile } = await supabase
@@ -256,7 +256,7 @@ export function useUserPermissions() {
           .select('parent_user_id, is_active')
           .eq('user_id', user.id)
           .single()
-        
+
         if (profile) {
           if (profile.parent_user_id !== null && profile.is_active) {
             // Tiene parent_user_id = ES EMPLEADO
@@ -309,7 +309,7 @@ export function useUserPermissions() {
       if (error) {
         console.error('Error loading permissions:', error)
         // CRITICAL: En caso de error, NO asumir owner si es empleado real
-        
+
         let defaultPermissions: UserPermissions = {
           canCreateInvoices: !isRealEmployee,
           canViewFinances: !isRealEmployee,
@@ -349,7 +349,7 @@ export function useUserPermissions() {
           defaultPermissions = {
             canCreateInvoices: false, // Por defecto NO, debe estar en DB
             canViewFinances: false, // Por defecto NO
-            canManageInventory: false, // Por defecto NO, debe estar en DB
+            canManageInventory: true, // PERMITIDO: Empleados pueden gestionar inventario (stock)
             canManageClients: false, // Por defecto NO, debe estar en DB
             maxInvoiceAmount: 15000, // Límite bajo para empleados
             role: 'employee',
@@ -381,16 +381,16 @@ export function useUserPermissions() {
 
         setPermissions(defaultPermissions)
       } else if (permissionsData) {
-        
+
         // CRITICAL FIX: Si es empleado real (parent_user_id !== null), NUNCA es owner
         // Solo verificar isOwner del RPC, que se basa en parent_user_id de la DB
         const originalIsOwner = Boolean(
           !isRealEmployee && // Si es empleado real, NUNCA es owner
-          ((permissionsData as any)?.isOwner || 
-          (permissionsData as any)?.role === 'owner' || 
-          (permissionsData as any)?.role === 'admin')
+          ((permissionsData as any)?.isOwner ||
+            (permissionsData as any)?.role === 'owner' ||
+            (permissionsData as any)?.role === 'admin')
         )
-        
+
         // Guardar si es owner originalmente para el RoleSwitcher
         // PERO: Si es empleado real, NUNCA guardar como owner
         if (!isRealEmployee) {
@@ -398,7 +398,7 @@ export function useUserPermissions() {
         } else {
           localStorage.removeItem('was-originally-owner')
         }
-        
+
         let finalPermissions = {
           canCreateInvoices: (permissionsData as any)?.canCreateInvoices || false,
           canViewFinances: (permissionsData as any)?.canViewFinances || false,
@@ -433,7 +433,7 @@ export function useUserPermissions() {
 
         // VERIFICAR si está en modo empleado (role-switcher)
         const isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
-        
+
         // FORZAR: Si está en modo empleado O es empleado real O no es owner confirmado, aplicar restricciones ESTRICTAS
         if (isEmployeeMode || isRealEmployee || !originalIsOwner) {
           // USAR PERMISOS REALES DE LA BASE DE DATOS, no hardcodear
@@ -441,7 +441,7 @@ export function useUserPermissions() {
             ...finalPermissions,
             canCreateInvoices: (permissionsData as any)?.canCreateInvoices || false,  // Usar permisos de DB
             canViewFinances: (permissionsData as any)?.canViewFinances || false,   // Usar permisos de DB
-            canManageInventory: (permissionsData as any)?.canManageInventory || false, // Usar permisos de DB
+            canManageInventory: true, // PERMITIDO: Empleados pueden gestionar inventario
             canManageClients: (permissionsData as any)?.canManageClients || false,   // Usar permisos de DB
             maxInvoiceAmount: (permissionsData as any)?.maxInvoiceAmount || 15000,   // Límite de empleados
             role: 'employee',
@@ -508,19 +508,19 @@ export function useUserPermissions() {
         }
 
         setPermissions(finalPermissions)
-        
+
         // Cache permissions for faster subsequent loads
         localStorage.setItem('cached-permissions', JSON.stringify(finalPermissions))
         localStorage.setItem('permissions-cache-time', Date.now().toString())
       } else {
         // No hay datos de permisos específicos
         // CRITICAL: NO asumir owner si es empleado real
-        
+
         // Solo guardar como owner si NO es empleado real
         if (!isRealEmployee) {
           localStorage.setItem('was-originally-owner', 'true')
         }
-        
+
         let ownerPermissions = {
           canCreateInvoices: !isRealEmployee,
           canViewFinances: !isRealEmployee,
@@ -558,7 +558,7 @@ export function useUserPermissions() {
           ownerPermissions = {
             canCreateInvoices: true,
             canViewFinances: false,
-            canManageInventory: false, // NO pueden crear/gestionar productos ni servicios
+            canManageInventory: true, // PERMITIDO: Empleados pueden gestionar inventario
             canManageClients: true,    // SÍ pueden gestionar clientes
             maxInvoiceAmount: 50000,
             role: 'employee',
@@ -588,7 +588,7 @@ export function useUserPermissions() {
         }
 
         setPermissions(ownerPermissions)
-        
+
         // Cache permissions for faster subsequent loads
         localStorage.setItem('cached-permissions', JSON.stringify(ownerPermissions))
         localStorage.setItem('permissions-cache-time', Date.now().toString())
@@ -651,7 +651,7 @@ export function useUserPermissions() {
     if (!permissions.isOwner && (entity === 'products' || entity === 'services')) {
       return false
     }
-    
+
     const permissionMap = {
       invoices: permissions.canDeleteInvoices,
       clients: permissions.canDeleteClients,
@@ -663,7 +663,7 @@ export function useUserPermissions() {
       agendaEvents: permissions.canDeleteAgendaEvents,
       expenses: permissions.canDeleteExpenses
     }
-    
+
     return Boolean(permissionMap[entity])
   }
 
@@ -678,7 +678,7 @@ export function useUserPermissions() {
     if (!permissions.isOwner && (entity === 'products' || entity === 'services')) {
       return false
     }
-    
+
     const permissionMap = {
       invoices: permissions.canEditInvoices,
       clients: permissions.canEditClients,
@@ -690,14 +690,14 @@ export function useUserPermissions() {
       agendaEvents: permissions.canEditAgendaEvents,
       expenses: permissions.canEditExpenses
     }
-    
+
     return Boolean(permissionMap[entity])
   }
 
   const canAccessModule = (module: string): boolean => {
     // Si está en modo empleado, actuar como empleado (ignorar wasOriginallyOwner)
     const isEmployeeMode = localStorage.getItem('employee-view-mode') === 'true'
-    
+
     // Solo dar acceso total si es owner Y NO está en modo empleado
     if ((permissions.isOwner || permissions.wasOriginallyOwner) && !isEmployeeMode) {
       return true
@@ -708,41 +708,41 @@ export function useUserPermissions() {
     switch (module) {
       case 'dashboard':
         return true // Dashboard básico siempre permitido
-      
+
       case 'invoices':
       case 'invoices/new':
         return permissions.canCreateInvoices // Solo crear facturas, NO editar
-      
+
       case 'clients':
         return permissions.canManageClients // Solo gestión básica, NO editar/eliminar
-      
+
       case 'products':
         return true // EMPLEADOS SÍ pueden crear productos (solo crear, no editar/eliminar)
-      
+
       case 'budgets':
         return true // Los empleados pueden crear presupuestos
-      
+
       case 'services':
         return true // EMPLEADOS SÍ pueden crear servicios (solo crear, no editar/eliminar)
-      
+
       case 'thermal-receipts':
       case 'payment-receipts':
       case 'recibos':
       case 'comprobantes':
         return true // EMPLEADOS SÍ pueden acceder a comprobantes (crear, descargar, no editar ni eliminar)
-      
+
       case 'agenda':
         return false // EMPLEADOS NO pueden acceder a agenda - COMPLETAMENTE BLOQUEADO
-      
+
       case 'faq':
         return true // FAQ siempre accesible
-      
+
       // MÓDULOS CON ACCESO LIMITADO PARA EMPLEADOS
       case 'inventory':
       case 'productos':
       case 'servicios':
         return true // EMPLEADOS SÍ pueden crear productos y servicios (solo crear, no editar/eliminar)
-      
+
       case 'projects':
       case 'proyectos':
       case 'expenses':
@@ -758,7 +758,7 @@ export function useUserPermissions() {
       case 'drivers':
       case 'conductores':
         return false // TOTALMENTE BLOQUEADOS para empleados
-      
+
       default:
         return false // Por defecto, denegar acceso
     }

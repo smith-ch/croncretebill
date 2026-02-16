@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Package, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  Warehouse, 
+import {
+  Package,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  Warehouse,
   DollarSign,
   Activity,
   Plus,
@@ -110,12 +110,12 @@ export default function UnifiedInventoryPage() {
         .select('parent_user_id')
         .eq('user_id', userId)
         .maybeSingle()
-      
+
       if (error) {
         console.error('Error getting owner user id:', error)
         return userId
       }
-      
+
       // Si tiene parent_user_id, es un empleado, usar el ID del owner
       // Si no tiene parent_user_id o no hay perfil, es el owner, usar userId
       return profile?.parent_user_id || userId
@@ -180,7 +180,7 @@ export default function UnifiedInventoryPage() {
       // Si no tiene almacenes activos, crear uno por defecto
       if (!existingWarehouses || existingWarehouses.length === 0) {
         console.log('Creating default warehouse for user:', ownerUserId)
-        
+
         const { data: newWarehouse, error: createError } = await (supabase as any)
           .from('warehouses')
           .insert({
@@ -209,7 +209,7 @@ export default function UnifiedInventoryPage() {
             .from('warehouses')
             .update({ is_active: true })
             .eq('id', warehousesData[0].id)
-          
+
           console.log('Activated warehouse:', warehousesData[0].id, 'Error:', activateError)
         }
       }
@@ -260,9 +260,9 @@ export default function UnifiedInventoryPage() {
 
       // OPTIMIZACIÓN: Obtener todos los datos de stock en UNA SOLA QUERY en lugar de N queries
       const warehouseIds = data?.map(w => w.id) || []
-      
+
       let stockDataByWarehouse: { [key: string]: { count: number, value: number } } = {}
-      
+
       if (warehouseIds.length > 0) {
         const { data: allStockData } = await supabase
           .from('product_warehouse_stock')
@@ -306,7 +306,7 @@ export default function UnifiedInventoryPage() {
     setLoading(true)
     // NO sincronizar en cada carga - solo cuando sea necesario
     // await syncProductsWithWarehouse() // REMOVIDO para mejorar rendimiento
-    
+
     await Promise.all([
       fetchSummary(),
       fetchStockItems(),
@@ -341,11 +341,11 @@ export default function UnifiedInventoryPage() {
 
     // Validación adicional para salidas
     if (movementFormData.movement_type === 'salida') {
-      const selectedStock = stockItems.find(item => 
-        item.product?.id === movementFormData.product_id && 
+      const selectedStock = stockItems.find(item =>
+        item.product?.id === movementFormData.product_id &&
         item.warehouse?.id === movementFormData.warehouse_id
       )
-      
+
       if (selectedStock && selectedStock.current_stock < movementFormData.quantity) {
         setMovementFormError(`Stock insuficiente. Disponible: ${formatNumber(selectedStock.current_stock)}`)
         return
@@ -364,14 +364,40 @@ export default function UnifiedInventoryPage() {
         throw new Error('Usuario no autenticado')
       }
 
-      // 1. Registrar el movimiento
+      // 1. Obtener stock actual ANTES del movimiento (para registro correcto)
+      const { data: existingStock, error: stockCheckError } = await supabase
+        .from('product_warehouse_stock')
+        .select(`
+          id, 
+          current_stock,
+          product:products(cost_price)
+        `)
+        .eq('product_id', movementFormData.product_id)
+        .eq('warehouse_id', movementFormData.warehouse_id)
+        .maybeSingle()
+
+      if (stockCheckError) {
+        throw stockCheckError
+      }
+
+      const currentStock = existingStock?.current_stock || 0
+      // @ts-ignore
+      const unitCost = existingStock?.product?.cost_price || 0
+      const quantityChange = movementFormData.movement_type === 'entrada' ? movementFormData.quantity : -movementFormData.quantity
+      const newStock = Math.max(0, currentStock + quantityChange)
+
+      // 2. Registrar el movimiento
       const { error: movementError } = await (supabase as any)
         .from('stock_movements')
         .insert({
           product_id: movementFormData.product_id,
           warehouse_id: movementFormData.warehouse_id,
           movement_type: movementFormData.movement_type,
-          quantity_change: movementFormData.movement_type === 'entrada' ? movementFormData.quantity : -movementFormData.quantity,
+          quantity_change: quantityChange,
+          quantity_before: currentStock,
+          quantity_after: newStock,
+          unit_cost: unitCost,
+          total_cost: unitCost * Math.abs(quantityChange),
           notes: movementFormData.notes,
           movement_date: new Date().toISOString(),
           user_id: user.id
@@ -381,24 +407,10 @@ export default function UnifiedInventoryPage() {
         throw movementError
       }
 
-      // 2. Actualizar el stock en product_warehouse_stock
-      const { data: existingStock, error: stockCheckError } = await supabase
-        .from('product_warehouse_stock')
-        .select('id, current_stock')
-        .eq('product_id', movementFormData.product_id)
-        .eq('warehouse_id', movementFormData.warehouse_id)
-        .single()
-
-      if (stockCheckError && stockCheckError.code !== 'PGRST116') {
-        throw stockCheckError
-      }
-
-      const quantityChange = movementFormData.movement_type === 'entrada' ? movementFormData.quantity : -movementFormData.quantity
-
+      // 3. Actualizar el stock en product_warehouse_stock
       if (existingStock) {
         // Actualizar stock existente
         const stockData = existingStock as any
-        const newStock = Math.max(0, stockData.current_stock + quantityChange)
         const { error: updateError } = await supabase
           .from('product_warehouse_stock')
           .update({
@@ -444,7 +456,7 @@ export default function UnifiedInventoryPage() {
         console.error('Error fetching warehouse stock:', fetchStockError)
       }
 
-      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => 
+      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) =>
         sum + (stock.current_stock || 0), 0) || 0
 
       console.log(`📊 Stock calculation for product ${movementFormData.product_id}:`, {
@@ -454,7 +466,7 @@ export default function UnifiedInventoryPage() {
 
       const { error: productUpdateError } = await supabase
         .from('products')
-        .update({ 
+        .update({
           current_stock: totalStock,
           available_stock: totalStock,
           updated_at: new Date().toISOString()
@@ -513,8 +525,6 @@ export default function UnifiedInventoryPage() {
           warehouse:warehouses!inner (name, user_id)
         `)
         .eq('id', stockItemId)
-        .eq('product.user_id', user.id)
-        .eq('warehouse.user_id', user.id)
         .single()
 
       if (stockItemError || !stockItem) {
@@ -569,7 +579,7 @@ export default function UnifiedInventoryPage() {
       }
 
       // Calcular total solo de almacenes activos
-      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) => 
+      const totalStock = (allWarehouseStock as any)?.reduce((sum: number, stock: any) =>
         sum + (stock.current_stock || 0), 0) || 0
 
       console.log(`📊 Stock calculation for product ${stockData.product_id}:`, {
@@ -581,7 +591,7 @@ export default function UnifiedInventoryPage() {
       // Actualizar products.current_stock y available_stock
       const { error: productUpdateError } = await supabase
         .from('products')
-        .update({ 
+        .update({
           current_stock: totalStock,
           available_stock: totalStock,
           updated_at: new Date().toISOString()
@@ -665,7 +675,7 @@ export default function UnifiedInventoryPage() {
         address: ''
       })
       setShowWarehouseForm(false)
-      
+
       // Recargar datos
       fetchAllData()
 
@@ -736,9 +746,9 @@ export default function UnifiedInventoryPage() {
         title: "Almacén eliminado",
         description: `El almacén "${deleteConfirm.name}" ha sido eliminado exitosamente`,
       })
-      
+
       setDeleteConfirm({ show: false, id: null, name: '' })
-      
+
       // Recargar datos
       fetchAllData()
 
@@ -820,7 +830,7 @@ export default function UnifiedInventoryPage() {
 
       // OPTIMIZACIÓN: Obtener TODO el stock existente en UNA query en lugar de 209 queries
       const productIds = (products as any[])?.map(p => p.id) || []
-      
+
       const { data: existingStockData } = await supabase
         .from('product_warehouse_stock')
         .select('product_id, id, current_stock')
@@ -953,8 +963,8 @@ export default function UnifiedInventoryPage() {
                   No tienes permisos para acceder al inventario. Esta función requiere permisos de gestión de inventario.
                 </p>
               </div>
-              <Button 
-                onClick={() => window.history.back()} 
+              <Button
+                onClick={() => window.history.back()}
                 className="bg-red-600 hover:bg-red-700"
               >
                 Volver
@@ -1083,7 +1093,7 @@ export default function UnifiedInventoryPage() {
         const stockValue = item.current_stock * (item.product?.cost_price || 0)
         const isLowStock = item.current_stock <= (item.product?.reorder_point || 0) && item.current_stock > 0
         const isOutOfStock = item.current_stock === 0
-        
+
         let stockStatus = 'in_stock'
         if (isOutOfStock) stockStatus = 'out_of_stock'
         else if (isLowStock) stockStatus = 'low_stock'
@@ -1239,8 +1249,8 @@ export default function UnifiedInventoryPage() {
             <RefreshCw className="w-4 h-4 mr-2" />
             Actualizar
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={async () => {
               toast({
                 title: "Sincronizando...",
@@ -1573,7 +1583,7 @@ export default function UnifiedInventoryPage() {
                           ) : (
                             <div className="flex items-center justify-end gap-2">
                               <span>{formatNumber(item.current_stock)} {item.product?.unit}</span>
-                              {canEdit('products') && (
+                              {(canEdit('products') || permissions.canManageInventory) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -1605,7 +1615,7 @@ export default function UnifiedInventoryPage() {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* Paginación */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -1658,7 +1668,7 @@ export default function UnifiedInventoryPage() {
                   </div>
                 </div>
               )}
-              
+
               {loadingStock && (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
@@ -1797,9 +1807,9 @@ export default function UnifiedInventoryPage() {
                             <Package className="w-4 h-4 mr-2" />
                             Ver Stock
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => deleteWarehouse(warehouse.id, warehouse.name)}
                             className="text-red-600 hover:text-red-400 hover:bg-red-900/30"
                           >
@@ -1833,12 +1843,12 @@ export default function UnifiedInventoryPage() {
                 {movementFormError}
               </div>
             )}
-            
+
             <div>
               <Label htmlFor="movement-product">Producto</Label>
-              <Select 
+              <Select
                 value={movementFormData.product_id}
-                onValueChange={(value) => setMovementFormData(prev => ({...prev, product_id: value}))}
+                onValueChange={(value) => setMovementFormData(prev => ({ ...prev, product_id: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar producto" />
@@ -1855,9 +1865,9 @@ export default function UnifiedInventoryPage() {
 
             <div>
               <Label htmlFor="movement-warehouse">Almacén</Label>
-              <Select 
+              <Select
                 value={movementFormData.warehouse_id}
-                onValueChange={(value) => setMovementFormData(prev => ({...prev, warehouse_id: value}))}
+                onValueChange={(value) => setMovementFormData(prev => ({ ...prev, warehouse_id: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar almacén" />
@@ -1874,9 +1884,9 @@ export default function UnifiedInventoryPage() {
 
             <div>
               <Label htmlFor="movement-type">Tipo de Movimiento</Label>
-              <Select 
+              <Select
                 value={movementFormData.movement_type}
-                onValueChange={(value) => setMovementFormData(prev => ({...prev, movement_type: value}))}
+                onValueChange={(value) => setMovementFormData(prev => ({ ...prev, movement_type: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -1896,7 +1906,7 @@ export default function UnifiedInventoryPage() {
                 type="number"
                 min="1"
                 value={movementFormData.quantity}
-                onChange={(e) => setMovementFormData(prev => ({...prev, quantity: parseInt(e.target.value) || 0}))}
+                onChange={(e) => setMovementFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 0 }))}
                 placeholder="Cantidad"
               />
             </div>
@@ -1906,7 +1916,7 @@ export default function UnifiedInventoryPage() {
               <Input
                 id="movement-notes"
                 value={movementFormData.notes}
-                onChange={(e) => setMovementFormData(prev => ({...prev, notes: e.target.value}))}
+                onChange={(e) => setMovementFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Razón del movimiento"
               />
             </div>
@@ -1918,7 +1928,7 @@ export default function UnifiedInventoryPage() {
             )}
 
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => setShowMovementForm(false)}
                 variant="outline"
                 className="flex-1"
@@ -1926,7 +1936,7 @@ export default function UnifiedInventoryPage() {
               >
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={createStockMovement}
                 className="flex-1"
                 disabled={movementFormLoading}
@@ -1954,33 +1964,33 @@ export default function UnifiedInventoryPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="warehouse-name">Nombre del Almacén</Label>
-              <Input 
-                id="warehouse-name" 
+              <Input
+                id="warehouse-name"
                 placeholder="Almacén Principal"
                 value={newWarehouse.name}
-                onChange={(e) => setNewWarehouse(prev => ({...prev, name: e.target.value}))}
+                onChange={(e) => setNewWarehouse(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div>
               <Label htmlFor="warehouse-description">Descripción</Label>
-              <Input 
-                id="warehouse-description" 
+              <Input
+                id="warehouse-description"
                 placeholder="Descripción del almacén"
                 value={newWarehouse.description}
-                onChange={(e) => setNewWarehouse(prev => ({...prev, description: e.target.value}))}
+                onChange={(e) => setNewWarehouse(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
             <div>
               <Label htmlFor="warehouse-address">Dirección</Label>
-              <Input 
-                id="warehouse-address" 
+              <Input
+                id="warehouse-address"
                 placeholder="Dirección física"
                 value={newWarehouse.address}
-                onChange={(e) => setNewWarehouse(prev => ({...prev, address: e.target.value}))}
+                onChange={(e) => setNewWarehouse(prev => ({ ...prev, address: e.target.value }))}
               />
             </div>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => {
                   setShowWarehouseForm(false)
                   setNewWarehouse({ name: '', description: '', address: '' })
@@ -1990,7 +2000,7 @@ export default function UnifiedInventoryPage() {
               >
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={createWarehouse}
                 className="flex-1"
               >
