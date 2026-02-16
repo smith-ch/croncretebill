@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Shield, Save, Lock, CheckCircle } from "lucide-react"
+import {
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Lock,
+  Key,
+  History,
+  AlertTriangle,
+  CheckCircle2,
+  Save
+} from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 
@@ -46,15 +56,15 @@ export function RoleSecuritySettings() {
 
       if (data) {
         setCurrentRolePassword(data.role_switch_password || 'admin123')
-        
+
         const now = new Date()
         const lockedUntil = data.role_password_locked_until ? new Date(data.role_password_locked_until) : null
         const lastChanged = data.role_password_changed_at ? new Date(data.role_password_changed_at) : null
-        
+
         // Verificar si puede cambiar (no está bloqueado y han pasado al menos 5 minutos del último cambio)
         const isLocked = lockedUntil && lockedUntil > now
         const recentChange = lastChanged && (now.getTime() - lastChanged.getTime()) < 5 * 60 * 1000 // 5 minutos
-        
+
         setSecurityInfo({
           lastChanged: lastChanged?.toLocaleString(),
           attempts: data.role_password_attempts || 0,
@@ -124,12 +134,12 @@ export function RoleSecuritySettings() {
         // Incrementar intentos fallidos
         await supabase
           .from('company_settings')
-          .update({ 
+          .update({
             role_password_attempts: securityInfo.attempts + 1,
             role_password_locked_until: securityInfo.attempts >= 2 ? new Date(Date.now() + 30 * 60 * 1000) : null // Bloquear 30 min después de 3 intentos
           } as any)
           .eq('user_id', user.id)
-        
+
         throw new Error('Contraseña de usuario incorrecta')
       }
 
@@ -147,7 +157,7 @@ export function RoleSecuritySettings() {
       // 3. Actualizar contraseña de role
       const { error } = await supabase
         .from('company_settings')
-        .update({ 
+        .update({
           role_switch_password: newPassword,
           role_password_changed_at: new Date().toISOString(),
           role_password_attempts: 0,
@@ -164,16 +174,16 @@ export function RoleSecuritySettings() {
       setCurrentRolePassword(newPassword)
       setNewPassword("")
       setConfirmPassword("")
-      
+
       // Actualizar info de seguridad
       await fetchSecurityInfo()
-      
+
       setMessage({ type: 'success', text: 'Contraseña de role actualizada correctamente. Los cambios tomarán efecto inmediatamente.' })
 
     } catch (error: any) {
       console.error('Error updating password:', error)
       setMessage({ type: 'error', text: error.message || 'Error al actualizar la contraseña' })
-      
+
       // Actualizar info de seguridad para reflejar intentos fallidos
       await fetchSecurityInfo()
     } finally {
@@ -207,7 +217,11 @@ export function RoleSecuritySettings() {
               <div className="mt-2 font-mono text-sm bg-slate-900 px-2 py-1 rounded border flex items-center justify-between">
                 <span>••••••••••••</span>
                 <span className="text-green-600 text-xs font-semibold">
-                  {currentRolePassword && currentRolePassword !== 'admin123' ? '✓ Personalizada' : '⚠️ Por Defecto'}
+                  {currentRolePassword && currentRolePassword !== 'admin123' ? (
+                    <span className="flex items-center gap-1"><CheckCircle2 className="h-4 w-4" /> Personalizada</span>
+                  ) : (
+                    <span className="flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> Por Defecto</span>
+                  )}
                 </span>
               </div>
             </div>
@@ -338,13 +352,13 @@ export function RoleSecuritySettings() {
             <div>
               <h3 className="font-medium text-green-900">Medidas de Seguridad Implementadas</h3>
               <ul className="text-sm text-green-300 mt-1 space-y-1">
-                <li>• ✅ Verificación de contraseña de usuario</li>
-                <li>• ✅ Contraseña mínima de 8 caracteres</li>
-                <li>• ✅ Cooldown de 5 minutos entre cambios</li>
-                <li>• ✅ Bloqueo tras 3 intentos fallidos (30 min)</li>
-                <li>• ✅ Registro de cambios con timestamp</li>
-                <li>• ✅ Independiente de contraseña de usuario</li>
-                <li>• ✅ <strong>Contraseñas nunca visibles</strong></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Verificación de contraseña de usuario</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Contraseña mínima de 8 caracteres</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Cooldown de 5 minutos entre cambios</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Bloqueo tras 3 intentos fallidos (30 min)</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Registro de cambios con timestamp</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Independiente de contraseña de usuario</div></li>
+                <li><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> <strong>Contraseñas nunca visibles</strong></div></li>
               </ul>
             </div>
           </div>
@@ -354,7 +368,7 @@ export function RoleSecuritySettings() {
           <div className="flex items-start gap-3">
             <Lock className="h-5 w-5 text-red-600 mt-0.5" />
             <div>
-              <h3 className="font-medium text-red-900">⚠️ Importante</h3>
+              <h3 className="font-medium text-red-900 flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Importante</h3>
               <ul className="text-sm text-red-300 mt-1 space-y-1">
                 <li>• Esta contraseña controla el acceso a funciones administrativas</li>
                 <li>• NO la compartas con empleados</li>

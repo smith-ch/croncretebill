@@ -172,8 +172,8 @@ export default function BudgetsPage() {
         </Button>
       </motion.div>
 
-      <Card className="shadow-lg border-0 bg-slate-900 dark:bg-gray-900">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-900/20 dark:to-slate-900/20">
+      <Card className="shadow-lg border-0 bg-slate-900 dark:bg-gray-900 border-slate-700">
+        <CardHeader className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative flex-1 w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

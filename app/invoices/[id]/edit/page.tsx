@@ -620,7 +620,7 @@ export default function EditInvoicePage() {
           <div className="p-4 bg-red-900/30 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
             <AlertCircle className="h-10 w-10 text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Factura no encontrada</h2>
+          <h2 className="text-xl font-semibold text-slate-100 mb-2">Factura no encontrada</h2>
           <p className="text-slate-400 mb-4">La factura que buscas no existe o no tienes permisos para verla</p>
           <Button onClick={() => router.push("/invoices")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -869,7 +869,7 @@ export default function EditInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader className="bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-t-lg">
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
@@ -1153,7 +1153,7 @@ export default function EditInvoicePage() {
                         </div>
                       )}
                       <div className="border-t border-slate-700 pt-3">
-                        <div className="flex justify-between text-lg font-bold text-slate-900">
+                        <div className="flex justify-between text-lg font-bold text-slate-100">
                           <span>Total:</span>
                           <span>{formatCurrency(total)}</span>
                         </div>
@@ -1165,7 +1165,7 @@ export default function EditInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader>
               <CardTitle className="text-slate-200">Notas Adicionales</CardTitle>
             </CardHeader>

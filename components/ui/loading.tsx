@@ -154,7 +154,7 @@ interface PageLoadingProps {
 export function PageLoading({ text = "Cargando...", showLogo = true }: PageLoadingProps) {
   return (
     <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50"
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

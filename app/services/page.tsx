@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, AlertCircle } from "lucide-react"
+import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, Clock, ShieldCheck } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useToast } from "@/hooks/use-toast"
@@ -50,7 +50,7 @@ export default function ServicesPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, id: string | null }>({ show: false, id: null })
   const [isDeleting, setIsDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
@@ -108,8 +108,8 @@ export default function ServicesPage() {
                   No tienes permisos para acceder a los servicios. Esta función requiere permisos de gestión de inventario.
                 </p>
               </div>
-              <Button 
-                onClick={() => window.history.back()} 
+              <Button
+                onClick={() => window.history.back()}
                 className="bg-red-600 hover:bg-red-700"
               >
                 Volver
@@ -160,23 +160,23 @@ export default function ServicesPage() {
           .range(from, to)
 
         if (error) throw error
-        
+
         setTotalItems(count || 0)
-        
+
         // Guardar en cache para uso offline
         if (data) {
           for (const service of data) {
             await offlineCache.set('services', dataUserId, service, 'VERY_LONG')
           }
         }
-        
+
         setServices(data || [])
       } catch (error) {
         // Si falla (sin internet o error), cargar desde cache
         console.log("🔧 Loading services from cache (offline mode)")
         const cachedServices = await offlineCache.getAll<Service>('services', dataUserId)
         setServices(cachedServices)
-        
+
         if (cachedServices.length === 0) {
           toast({
             title: "🔧 Modo offline",
@@ -201,8 +201,8 @@ export default function ServicesPage() {
       })
       return
     }
-    
-    setDeleteConfirm({show: true, id})
+
+    setDeleteConfirm({ show: true, id })
   }
 
   const confirmDelete = async () => {
@@ -212,7 +212,7 @@ export default function ServicesPage() {
     try {
       const { error } = await supabase.from("services").delete().eq("id", deleteConfirm.id)
       if (error) throw error
-      
+
       toast({
         title: "Servicio eliminado",
         description: "El servicio ha sido eliminado exitosamente"
@@ -227,7 +227,7 @@ export default function ServicesPage() {
       })
     } finally {
       setIsDeleting(false)
-      setDeleteConfirm({show: false, id: null})
+      setDeleteConfirm({ show: false, id: null })
     }
   }
 
@@ -267,7 +267,7 @@ export default function ServicesPage() {
           </Button>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 onClick={(e) => {
                   if (!canAddProducts()) {
                     e.preventDefault()
@@ -304,12 +304,12 @@ export default function ServicesPage() {
           <AlertDescription className={remainingProducts === 0 ? "text-red-300" : "text-amber-300"}>
             {remainingProducts === 0 ? (
               <span>
-                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}. 
+                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}.
                 <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
               </span>
             ) : (
               <span>
-                <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s)/servicio(s) de {limits.maxProducts} en tu {limits.planDisplayName}. 
+                <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s)/servicio(s) de {limits.maxProducts} en tu {limits.planDisplayName}.
                 <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
               </span>
             )}
@@ -317,7 +317,7 @@ export default function ServicesPage() {
         </Alert>
       )}
 
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-slate-900 to-gray-50">
+      <Card className="shadow-lg border-0 bg-slate-900 border-slate-700">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 lg:p-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
@@ -326,7 +326,7 @@ export default function ServicesPage() {
                 placeholder="Buscar servicios..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30 text-sm lg:text-base"
+                className="pl-10 bg-slate-800/50 border-slate-600/50 text-white placeholder:text-slate-400 focus:bg-slate-700/50 text-sm lg:text-base"
               />
             </div>
           </div>
@@ -408,16 +408,16 @@ export default function ServicesPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     {service.description && (
                       <p className="text-sm text-slate-400 dark:text-gray-400 mb-3 line-clamp-2">{service.description}</p>
                     )}
-                    
+
                     <div className="space-y-3">
                       {/* Precios */}
                       {service.price !== null ? (
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-slate-700">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-3 border border-slate-700">
                             <div className="text-xs text-blue-400 font-semibold mb-1">Precio Venta</div>
                             <div className="font-bold text-blue-300 text-lg">
                               {formatCurrency(service.price)}
@@ -437,16 +437,16 @@ export default function ServicesPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800 flex items-center justify-center">
+                            <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/50 rounded-lg p-3 border border-slate-600 flex items-center justify-center">
                               <div className="text-center">
-                                <Calculator className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-                                <div className="text-xs text-gray-500">Sin costo definido</div>
+                                <Calculator className="h-4 w-4 text-slate-400 mx-auto mb-1" />
+                                <div className="text-xs text-slate-400">Sin costo definido</div>
                               </div>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-amber-800">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-3 border border-amber-800">
                           <div className="flex items-center gap-2 mb-1">
                             <DollarSign className="h-4 w-4 text-amber-400" />
                             <div className="text-xs text-amber-400 font-semibold">Precio Personalizado</div>
@@ -458,7 +458,7 @@ export default function ServicesPage() {
                       {/* Duración y Garantía */}
                       <div className="grid grid-cols-2 gap-3">
                         {service.duration && (
-                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-green-800">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-3 border border-green-800">
                             <div className="flex items-center gap-2 mb-1">
                               <Wrench className="h-4 w-4 text-green-400" />
                               <div className="text-xs text-green-400 font-semibold">Duración</div>
@@ -467,7 +467,7 @@ export default function ServicesPage() {
                           </div>
                         )}
                         {service.warranty_months && service.warranty_months > 0 && (
-                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-purple-800">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-3 border border-purple-800">
                             <div className="text-xs text-purple-400 font-semibold mb-1">Garantía</div>
                             <div className="text-sm text-purple-300 font-medium">
                               {service.warranty_months} {service.warranty_months === 1 ? 'mes' : 'meses'}
@@ -494,17 +494,17 @@ export default function ServicesPage() {
                       <div className="flex gap-2 flex-wrap">
                         {service.duration && (
                           <Badge variant="outline" className="border-green-300 text-green-400 text-xs">
-                            ⏱️ {service.duration}
+                            <Clock className="h-3 w-3 mr-1" /> {service.duration}
                           </Badge>
                         )}
                         {service.warranty_months && service.warranty_months > 0 && (
                           <Badge variant="outline" className="border-purple-300 text-purple-400 text-xs">
-                            🛡️ {service.warranty_months}m garantía
+                            <ShieldCheck className="h-3 w-3 mr-1" /> {service.warranty_months}m garantía
                           </Badge>
                         )}
                         {service.price === null && (
                           <Badge variant="outline" className="border-amber-300 text-amber-400 bg-amber-900/30 text-xs">
-                            💰 Precio personalizado
+                            <DollarSign className="h-3 w-3 mr-1" /> Precio personalizado
                           </Badge>
                         )}
                       </div>
@@ -514,7 +514,7 @@ export default function ServicesPage() {
               ))}
             </div>
           )}
-          
+
           {/* Paginación */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-6 border-t">
@@ -569,10 +569,10 @@ export default function ServicesPage() {
           )}
         </CardContent>
       </Card>
-      
+
       <ConfirmDialog
         open={deleteConfirm.show}
-        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
+        onOpenChange={(isOpen) => setDeleteConfirm({ show: isOpen, id: null })}
         title="Eliminar Servicio"
         description="¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"

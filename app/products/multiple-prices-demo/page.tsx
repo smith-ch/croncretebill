@@ -86,7 +86,7 @@ export default function MultiplePricesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Panel de búsqueda y selección */}
           <div className="lg:col-span-2">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+            <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="w-5 h-5" />

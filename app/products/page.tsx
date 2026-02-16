@@ -274,7 +274,7 @@ export default function ProductsPage() {
             <Link href="/products/budgets" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-300 text-emerald-400 hover:text-emerald-300 shadow-md hover:shadow-lg transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-900/50 to-emerald-800/50 hover:from-emerald-800/60 hover:to-emerald-700/60 border-emerald-700/50 text-emerald-300 hover:text-emerald-200 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Calculator className="h-4 w-4 mr-2" />
                 Presupuestos
@@ -283,7 +283,7 @@ export default function ProductsPage() {
             <Link href="/products/multiple-prices-demo" className="w-full sm:w-auto">
               <Button
                 variant="outline" 
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-300 text-purple-400 hover:text-purple-300 shadow-md hover:shadow-lg transition-all duration-300"
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-900/50 to-purple-800/50 hover:from-purple-800/60 hover:to-purple-700/60 border-purple-700/50 text-purple-300 hover:text-purple-200 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 <Package className="h-4 w-4 mr-2" />
                 Precios Múltiples
@@ -344,7 +344,7 @@ export default function ProductsPage() {
           </Alert>
         )}
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+        <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-sm">
@@ -368,10 +368,10 @@ export default function ProductsPage() {
             </div>
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-700 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                   <Package className="h-10 w-10 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">No hay productos</h3>
+                <h3 className="text-lg font-medium text-slate-100 mb-2">No hay productos</h3>
                 <p className="text-slate-400 mb-4">Comienza agregando tu primer producto</p>
                 <Button
                   onClick={() => {
@@ -403,7 +403,7 @@ export default function ProductsPage() {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
+                          <h3 className="font-semibold text-slate-100 group-hover:text-blue-400 transition-colors truncate">
                             {product.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">                            {product.id.startsWith('temp_') && (
@@ -459,7 +459,7 @@ export default function ProductsPage() {
                       <div className="space-y-3">
                         {/* Precios */}
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 rounded-lg p-3 border border-slate-700">
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg p-3 border border-slate-700">
                             <div className="text-xs text-blue-400 font-semibold mb-1">Precio Venta</div>
                             <div className="font-bold text-blue-300 text-lg">
                               {formatCurrency(product.unit_price)}
@@ -479,10 +479,10 @@ export default function ProductsPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800 flex items-center justify-center">
+                            <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/50 rounded-lg p-3 border border-slate-600 flex items-center justify-center">
                               <div className="text-center">
-                                <Calculator className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-                                <div className="text-xs text-gray-500">Sin costo definido</div>
+                                <Calculator className="h-4 w-4 text-slate-400 mx-auto mb-1" />
+                                <div className="text-xs text-slate-400">Sin costo definido</div>
                               </div>
                             </div>
                           )}
@@ -491,7 +491,7 @@ export default function ProductsPage() {
                         {/* Stock */}
                         {((product.current_stock !== undefined && product.current_stock !== null) || 
                           (product.stock_quantity !== undefined && product.stock_quantity !== null)) && (
-                          <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-slate-800">
+                          <div className="flex items-center justify-between bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-3 border border-slate-600">
                             <div className="flex items-center gap-2">
                               <Package className="h-4 w-4 text-slate-400" />
                               <span className="text-sm font-semibold text-slate-300">Stock Disponible:</span>

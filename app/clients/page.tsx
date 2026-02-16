@@ -106,7 +106,7 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-4 lg:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -157,7 +157,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-3 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-3 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 lg:space-y-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -166,11 +166,11 @@ export default function ClientsPage() {
         >
           <div className="space-y-2 lg:space-y-3">
             <div className="flex items-center gap-2 lg:gap-3">
-              <div className="p-2 lg:p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl lg:rounded-2xl shadow-lg">
+              <div className="p-2 lg:p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl lg:rounded-2xl shadow-lg">
                 <Users className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl lg:text-4xl xl:text-5xl font-bold text-slate-200">
                   Clientes
                 </h1>
                 <p className="text-sm lg:text-lg text-slate-400 font-medium">Gestiona tu cartera de clientes</p>
@@ -230,8 +230,8 @@ export default function ClientsPage() {
           </Alert>
         )}
 
-        <Card variant="elevated" className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-slate-900 to-purple-50 border-b border-purple-100">
+        <Card variant="elevated" className="border-0 shadow-2xl bg-slate-900/80 backdrop-blur-sm border-slate-700">
+          <CardHeader className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

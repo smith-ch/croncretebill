@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { Loader2, Plus, Edit, Trash2, Ban, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Ban, CheckCircle, XCircle, Package, Calendar, Crown, User, Power, ShieldCheck } from 'lucide-react'
 
 interface SubscriptionPlan {
   id: string
@@ -119,7 +119,7 @@ export default function SubscriptionsManagementPage() {
   const [history, setHistory] = useState<SubscriptionHistory[]>([])
   const [paymentNotifications, setPaymentNotifications] = useState<PaymentNotification[]>([])
   const [subscriptionRequests, setSubscriptionRequests] = useState<SubscriptionRequest[]>([])
-  const [allUsers, setAllUsers] = useState<{user_id: string, email: string, display_name: string}[]>([])
+  const [allUsers, setAllUsers] = useState<{ user_id: string, email: string, display_name: string }[]>([])
   const [selectedSubscription, setSelectedSubscription] = useState<UserSubscription | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null)
   const [selectedNotification, setSelectedNotification] = useState<PaymentNotification | null>(null)
@@ -175,7 +175,7 @@ export default function SubscriptionsManagementPage() {
   async function checkManagerPermissions() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         router.push('/login')
         return
@@ -229,7 +229,7 @@ export default function SubscriptionsManagementPage() {
         .order('email')
 
       if (profilesError) throw profilesError
-      
+
       // Filter out employees (those with parent_user_id set)
       const nonEmployees = (allProfiles || []).filter(profile => !profile.parent_user_id)
       setAllUsers(nonEmployees)
@@ -288,7 +288,7 @@ export default function SubscriptionsManagementPage() {
       const formattedSubs = allProfiles.map((profile: any) => {
         const subscription = subscriptionsByUserId.get(profile.user_id)
         const plan = subscription ? plansData?.find(p => p.id === subscription.plan_id) : null
-        
+
         if (subscription) {
           // Usuario con suscripción
           return {
@@ -320,9 +320,9 @@ export default function SubscriptionsManagementPage() {
           }
         }
       })
-      
+
       console.log('✅ Total usuarios mostrados (con y sin suscripción):', formattedSubs.length)
-      
+
       setSubscriptions(formattedSubs)
 
       // Cargar historial reciente
@@ -347,14 +347,14 @@ export default function SubscriptionsManagementPage() {
         .order('created_at', { ascending: false })
 
       if (notificationsError) throw notificationsError
-      
+
       // Incluir notificaciones de todos los usuarios
       const formattedNotifications = (notificationsData || [])
         .filter((notif: any) => allUserIds.includes(notif.user_id)) // Todos los usuarios
         .map((notif: any) => {
           // Buscar el plan en la lista de planes que ya tenemos
           const plan = plans.find(p => p.id === notif.subscription?.plan_id)
-          
+
           return {
             ...notif,
             subscription: notif.subscription ? {
@@ -363,7 +363,7 @@ export default function SubscriptionsManagementPage() {
             } : undefined
           }
         })
-      
+
       setPaymentNotifications(formattedNotifications)
 
       // Cargar solicitudes de suscripción pendientes (de todos los usuarios)
@@ -375,10 +375,11 @@ export default function SubscriptionsManagementPage() {
       if (requestsError) throw requestsError
 
       // Obtener información de usuarios y planes para las solicitudes (solo owners)
+      const ownerProfiles = allProfiles.filter(p => !p.parent_user_id) // Only owners
       const formattedRequests = await Promise.all((requestsData || []).map(async (request: any) => {
         const profile = ownerProfiles?.find((p: any) => p.user_id === request.user_id)
         const plan = plansData?.find(p => p.id === request.plan_id)
-        
+
         return {
           ...request,
           user_email: profile?.email || 'Sin email',
@@ -414,7 +415,7 @@ export default function SubscriptionsManagementPage() {
     setSubmitting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       console.log('📤 Enviando datos a create_manual_subscription:', {
         p_user_email: newSubEmail,
         p_plan_name: newSubPlan,
@@ -425,7 +426,7 @@ export default function SubscriptionsManagementPage() {
         p_manager_email: user?.email || 'smithrodriguez345@gmail.com',
         p_notes: newSubNotes || null
       })
-      
+
       const { data, error } = await supabase.rpc('create_manual_subscription', {
         p_user_email: newSubEmail,
         p_plan_name: newSubPlan,
@@ -482,7 +483,7 @@ export default function SubscriptionsManagementPage() {
     setSubmitting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       // Si el usuario no tiene suscripción (sin plan_id o plan_name === 'Ninguno'), crear una automáticamente
       if (!subscription.plan_id || subscription.plan_name === 'Ninguno' || subscription.plan_display_name === 'Sin Plan') {
         const { data: createData, error: createError } = await supabase.rpc('create_manual_subscription', {
@@ -581,7 +582,7 @@ export default function SubscriptionsManagementPage() {
       setSelectedSubscription(null)
       setEditReason('')
       setEditEndDate('')
-      
+
       await loadData()
     } catch (error: any) {
       console.error('Error updating status:', error)
@@ -597,7 +598,7 @@ export default function SubscriptionsManagementPage() {
 
   async function handleUpdatePlan() {
     if (!selectedPlan) return
-    
+
     setSubmitting(true)
     try {
       const { error } = await supabase
@@ -638,12 +639,12 @@ export default function SubscriptionsManagementPage() {
 
   async function handleChangePlan() {
     if (!selectedSubscription || !changePlanNewPlan) return
-    
+
     setSubmitting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const newPlan = plans.find(p => p.name === changePlanNewPlan)
-      
+
       if (!newPlan) throw new Error('Plan no encontrado')
 
       const { error } = await supabase
@@ -685,7 +686,7 @@ export default function SubscriptionsManagementPage() {
 
   async function handleExtendSubscription() {
     if (!selectedSubscription) return
-    
+
     setSubmitting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -776,7 +777,7 @@ export default function SubscriptionsManagementPage() {
 
       toast({
         title: "✅ Notificación Procesada",
-        description: processPaymentAction === 'approve' 
+        description: processPaymentAction === 'approve'
           ? `Pago aprobado. Suscripción extendida por ${processPaymentMonths} mes(es).`
           : "Notificación rechazada"
       })
@@ -1081,7 +1082,7 @@ export default function SubscriptionsManagementPage() {
                           {sub.user_email}
                           {sub.is_employee && (
                             <Badge variant="outline" className="text-xs">
-                              👤 Empleado
+                              <User className="h-3 w-3" /> Empleado
                             </Badge>
                           )}
                         </div>
@@ -1119,7 +1120,7 @@ export default function SubscriptionsManagementPage() {
                               setShowChangePlanDialog(true)
                             }}
                           >
-                            📦
+                            <Package className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1131,7 +1132,7 @@ export default function SubscriptionsManagementPage() {
                               setShowExtendDialog(true)
                             }}
                           >
-                            📅
+                            <Calendar className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -1176,10 +1177,13 @@ export default function SubscriptionsManagementPage() {
                         <TableCell>
                           <Badge variant={
                             request.status === 'pending' ? 'default' :
-                            request.status === 'approved' ? 'default' :
-                            request.status === 'rejected' ? 'destructive' :
-                            'secondary'
+                              request.status === 'approved' ? 'default' :
+                                request.status === 'rejected' ? 'destructive' :
+                                  'secondary'
                           }>
+                            {request.status === 'approved' ? <CheckCircle className="h-4 w-4 mr-1" /> :
+                              request.status === 'rejected' ? <XCircle className="h-4 w-4 mr-1" /> :
+                                request.status === 'cancelled' ? <Ban className="h-4 w-4 mr-1" /> : null}
                             {request.status.toUpperCase()}
                           </Badge>
                         </TableCell>
@@ -1214,8 +1218,8 @@ export default function SubscriptionsManagementPage() {
                           {request.status !== 'pending' && (
                             <span className="text-sm text-muted-foreground">
                               {request.status === 'approved' ? '✅ Aprobada' :
-                               request.status === 'rejected' ? '❌ Rechazada' :
-                               '🚫 Cancelada'}
+                                request.status === 'rejected' ? '❌ Rechazada' :
+                                  '🚫 Cancelada'}
                             </span>
                           )}
                         </TableCell>
@@ -1353,14 +1357,14 @@ export default function SubscriptionsManagementPage() {
                         <TableCell>
                           <Badge variant={
                             notification.status === 'pending' ? 'default' :
-                            notification.status === 'processed' ? 'secondary' :
-                            notification.status === 'rejected' ? 'destructive' :
-                            'outline'
+                              notification.status === 'processed' ? 'secondary' :
+                                notification.status === 'rejected' ? 'destructive' :
+                                  'outline'
                           }>
                             {notification.status === 'pending' ? '⏳ Pendiente' :
-                             notification.status === 'processed' ? '✅ Procesado' :
-                             notification.status === 'rejected' ? '❌ Rechazado' :
-                             notification.status}
+                              notification.status === 'processed' ? '✅ Procesado' :
+                                notification.status === 'rejected' ? '❌ Rechazado' :
+                                  notification.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -1523,7 +1527,7 @@ export default function SubscriptionsManagementPage() {
                 <Input value={editPlanName} disabled />
               </div>
             </div>
-            
+
             <div className="grid gap-2">
               <Label>Descripción</Label>
               <Textarea
@@ -1670,9 +1674,9 @@ export default function SubscriptionsManagementPage() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label>Fecha de Vencimiento Actual</Label>
-              <Input 
-                value={selectedSubscription?.end_date ? new Date(selectedSubscription.end_date).toLocaleDateString() : 'Sin límite'} 
-                disabled 
+              <Input
+                value={selectedSubscription?.end_date ? new Date(selectedSubscription.end_date).toLocaleDateString() : 'Sin límite'}
+                disabled
               />
             </div>
             <div className="grid gap-2">
@@ -1793,8 +1797,8 @@ export default function SubscriptionsManagementPage() {
             <Button variant="outline" onClick={() => setShowProcessPaymentDialog(false)}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleProcessPayment} 
+            <Button
+              onClick={handleProcessPayment}
               disabled={submitting}
               variant={processPaymentAction === 'approve' ? 'default' : 'destructive'}
             >

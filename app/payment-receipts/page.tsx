@@ -986,7 +986,7 @@ export default function PaymentReceiptsPage() {
     <div className="container-responsive py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="heading-responsive font-bold text-slate-900 flex items-center gap-3">
+          <h1 className="heading-responsive font-bold text-slate-100 flex items-center gap-3">
             <CheckCircle className="h-8 w-8 text-emerald-600" />
             Comprobantes de Pago
           </h1>
@@ -1003,7 +1003,7 @@ export default function PaymentReceiptsPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-emerald-600 font-medium text-xs uppercase tracking-wide mb-1">Total Recaudado</p>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(stats.totalPaid)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-300 truncate">{formatCurrency(stats.totalPaid)}</p>
               </div>
               <div className="hidden sm:block p-2 bg-emerald-900/30 rounded-full flex-shrink-0 ml-2">
                 <TrendingUp className="h-5 w-5 text-emerald-400" />
@@ -1017,7 +1017,7 @@ export default function PaymentReceiptsPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-blue-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Emitidos</p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-900">{stats.totalReceipts}</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-300">{stats.totalReceipts}</p>
               </div>
               <div className="hidden sm:block p-2 bg-slate-800 rounded-full flex-shrink-0 ml-2">
                 <Receipt className="h-5 w-5 text-blue-400" />
@@ -1031,7 +1031,7 @@ export default function PaymentReceiptsPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-purple-600 font-medium text-xs uppercase tracking-wide mb-1">Comprobantes Hoy</p>
-                <p className="text-xl sm:text-2xl font-bold text-purple-900">{stats.todayReceipts}</p>
+                <p className="text-xl sm:text-2xl font-bold text-purple-300">{stats.todayReceipts}</p>
               </div>
               <div className="hidden sm:block p-2 bg-purple-900/30 rounded-full flex-shrink-0 ml-2">
                 <Calendar className="h-5 w-5 text-purple-400" />
@@ -1045,7 +1045,7 @@ export default function PaymentReceiptsPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-orange-600 font-medium text-xs uppercase tracking-wide mb-1">Método Más Usado</p>
-                <p className="text-base sm:text-lg font-bold text-orange-900 truncate">
+                <p className="text-base sm:text-lg font-bold text-orange-300 truncate">
                   {mostUsedMethodLabel}
                 </p>
               </div>
@@ -1084,7 +1084,7 @@ export default function PaymentReceiptsPage() {
 
         {/* Lista de Comprobantes */}
         <TabsContent value="receipts-list" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -1109,7 +1109,7 @@ export default function PaymentReceiptsPage() {
               {paymentReceipts.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-2">
                     No hay comprobantes emitidos
                   </h3>
                   <p className="text-slate-400 mb-6">
@@ -1129,7 +1129,7 @@ export default function PaymentReceiptsPage() {
                           {getPaymentMethodIcon(receipt.payment_method)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-slate-900 text-sm sm:text-base truncate">
+                          <div className="font-medium text-slate-100 text-sm sm:text-base truncate">
                             {formatReceiptNumber(receipt.receipt_number)}
                           </div>
                           <div className="text-xs sm:text-sm text-slate-400 truncate">
@@ -1284,10 +1284,10 @@ export default function PaymentReceiptsPage() {
                                         <p className="font-medium">{getPaymentMethodLabel(selectedReceipt.payment_method)}</p>
                                       </div>
                                     </div>
-                                    <div className="mt-4 pt-4 border-t border-slate-400 bg-slate-300 -mx-4 -mb-4 px-4 pb-4 rounded-b-lg">
+                                    <div className="mt-4 pt-4 border-t border-slate-700 bg-slate-800 -mx-4 -mb-4 px-4 pb-4 rounded-b-lg">
                                       <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-slate-200">Total Pagado:</span>
-                                        <span className="text-xl font-bold text-slate-900">{formatCurrency(selectedReceipt.amount_paid)}</span>
+                                        <span className="text-xl font-bold text-emerald-300">{formatCurrency(selectedReceipt.amount_paid)}</span>
                                       </div>
                                     </div>
                                     {selectedReceipt.notes && (
@@ -1315,7 +1315,7 @@ export default function PaymentReceiptsPage() {
                                             <div key={index} className="flex justify-between items-start p-3 bg-slate-900 rounded border border-slate-800">
                                               <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                  <span className="font-medium text-slate-900">{itemName}</span>
+                                                  <span className="font-medium text-slate-100">{itemName}</span>
                                                   <Badge variant="outline" className="text-xs">
                                                     {itemType}
                                                   </Badge>
@@ -1329,7 +1329,7 @@ export default function PaymentReceiptsPage() {
                                                 </div>
                                               </div>
                                               <div className="text-right">
-                                                <span className="font-semibold text-slate-900">
+                                                <span className="font-semibold text-emerald-300">
                                                   {formatCurrency(item.total)}
                                                 </span>
                                               </div>
@@ -1355,7 +1355,7 @@ export default function PaymentReceiptsPage() {
 
         {/* Generar Comprobante Manual */}
         <TabsContent value="manual-receipt" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader className="pb-4">
               <CardTitle className="text-slate-200 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-emerald-600" />
@@ -1723,23 +1723,23 @@ export default function PaymentReceiptsPage() {
 
                   {selectedExpense && (
                     <div className="p-4 bg-red-900/30 rounded-lg border border-red-800">
-                      <h3 className="font-semibold mb-2 text-red-900">Resumen del Gasto</h3>
+                      <h3 className="font-semibold mb-2 text-red-300">Resumen del Gasto</h3>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                           <span className="text-red-400">Descripción:</span>
-                          <span className="text-red-900 font-medium">{selectedExpense.description}</span>
+                          <span className="text-red-300 font-medium">{selectedExpense.description}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-red-400">Fecha:</span>
-                          <span className="text-red-900">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
+                          <span className="text-red-300">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-red-400">Categoría:</span>
-                          <span className="text-red-900">{selectedExpense.category || 'Sin categoría'}</span>
+                          <span className="text-red-300">{selectedExpense.category || 'Sin categoría'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-red-400">Monto:</span>
-                          <span className="font-medium text-red-900">{formatCurrency(selectedExpense.amount)}</span>
+                          <span className="font-medium text-red-300">{formatCurrency(selectedExpense.amount)}</span>
                         </div>
                       </div>
                     </div>

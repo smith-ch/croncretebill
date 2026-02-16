@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useSubscriptionLimits } from "@/hooks/use-subscription-limits"
-import { Calendar, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard, Send, Users, FileText, Package, UserCheck } from "lucide-react"
+import { Calendar, CheckCircle, XCircle, Clock, AlertTriangle, CreditCard, Send, Users, FileText, Package, UserCheck, ArrowUp, DollarSign, Sparkles } from "lucide-react"
 
 interface Subscription {
   id: string
@@ -54,21 +54,21 @@ export default function MySubscriptionPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([])
-  
+
   // Diálogos
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [showExtendDialog, setShowExtendDialog] = useState(false)
   const [showCycleChangeDialog, setShowCycleChangeDialog] = useState(false)
   const [showCustomDialog, setShowCustomDialog] = useState(false)
-  
+
   // Estados de formularios
   const [paymentNote, setPaymentNote] = useState("")
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<string>("")
   const [extendMonths, setExtendMonths] = useState<string>("1")
   const [extendReason, setExtendReason] = useState("")
   const [customRequest, setCustomRequest] = useState("")
-  
+
   const [sending, setSending] = useState(false)
   const { toast } = useToast()
   const { limits, usage, remainingUsers, remainingInvoices, remainingProducts, remainingClients } = useSubscriptionLimits()
@@ -105,7 +105,7 @@ export default function MySubscriptionPage() {
     try {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.user) {
         toast({
           title: "Error",
@@ -285,7 +285,7 @@ export default function MySubscriptionPage() {
 
   const handleCycleChange = async () => {
     const newCycle = subscription?.billing_cycle === 'monthly' ? 'yearly' : 'monthly'
-    
+
     try {
       setSending(true)
 
@@ -432,13 +432,13 @@ export default function MySubscriptionPage() {
   const getExpiryWarning = () => {
     const days = getDaysUntilExpiry()
     if (days === null || days < 0) return null
-    
+
     if (days <= 3) {
       return (
         <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-red-900">¡Atención! Tu suscripción expira en {days} día(s)</h4>
+            <h4 className="font-semibold text-red-300">¡Atención! Tu suscripción expira en {days} día(s)</h4>
             <p className="text-sm text-red-400 mt-1">
               Realiza tu pago lo antes posible para evitar la interrupción del servicio.
             </p>
@@ -450,7 +450,7 @@ export default function MySubscriptionPage() {
         <div className="bg-orange-900/30 border border-orange-800 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-orange-900">Tu suscripción expira en {days} días</h4>
+            <h4 className="font-semibold text-orange-300">Tu suscripción expira en {days} días</h4>
             <p className="text-sm text-orange-400 mt-1">
               Te recomendamos renovar pronto para mantener el servicio sin interrupciones.
             </p>
@@ -595,13 +595,13 @@ export default function MySubscriptionPage() {
 
         {/* Uso Actual vs Límites */}
         {!limits.isLoading && (
-          <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+          <Card className="p-6 bg-slate-900/50 border-slate-800">
             <h3 className="text-lg font-semibold text-slate-200 mb-1">Uso Actual de Recursos</h3>
             <p className="text-sm text-slate-400 mb-6">Monitorea tu consumo mensual y límites disponibles</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Usuarios/Empleados */}
-              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-slate-800 rounded-lg">
@@ -624,12 +624,11 @@ export default function MySubscriptionPage() {
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        remainingUsers <= 0 ? 'bg-red-500' : 
-                        remainingUsers <= 1 ? 'bg-amber-500' : 
-                        'bg-blue-500'
-                      }`}
+                    <div
+                      className={`h-2 rounded-full transition-all ${remainingUsers <= 0 ? 'bg-red-500' :
+                        remainingUsers <= 1 ? 'bg-amber-500' :
+                          'bg-blue-500'
+                        }`}
                       style={{ width: `${Math.min((usage.users / limits.maxUsers) * 100, 100)}%` }}
                     />
                   </div>
@@ -637,7 +636,7 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Facturas */}
-              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-green-900/30 rounded-lg">
@@ -660,12 +659,11 @@ export default function MySubscriptionPage() {
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        remainingInvoices <= 0 ? 'bg-red-500' : 
-                        remainingInvoices <= 2 ? 'bg-amber-500' : 
-                        'bg-green-500'
-                      }`}
+                    <div
+                      className={`h-2 rounded-full transition-all ${remainingInvoices <= 0 ? 'bg-red-500' :
+                        remainingInvoices <= 2 ? 'bg-amber-500' :
+                          'bg-green-500'
+                        }`}
                       style={{ width: `${Math.min((usage.invoices / limits.maxInvoices) * 100, 100)}%` }}
                     />
                   </div>
@@ -673,7 +671,7 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Productos */}
-              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-purple-900/30 rounded-lg">
@@ -696,12 +694,11 @@ export default function MySubscriptionPage() {
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        remainingProducts <= 0 ? 'bg-red-500' : 
-                        remainingProducts <= 5 ? 'bg-amber-500' : 
-                        'bg-purple-500'
-                      }`}
+                    <div
+                      className={`h-2 rounded-full transition-all ${remainingProducts <= 0 ? 'bg-red-500' :
+                        remainingProducts <= 5 ? 'bg-amber-500' :
+                          'bg-purple-500'
+                        }`}
                       style={{ width: `${Math.min((usage.products / limits.maxProducts) * 100, 100)}%` }}
                     />
                   </div>
@@ -709,7 +706,7 @@ export default function MySubscriptionPage() {
               </div>
 
               {/* Clientes */}
-              <div className="bg-slate-900 rounded-lg p-4 shadow-sm">
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-orange-900/30 rounded-lg">
@@ -732,12 +729,11 @@ export default function MySubscriptionPage() {
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        remainingClients <= 0 ? 'bg-red-500' : 
-                        remainingClients <= 2 ? 'bg-amber-500' : 
-                        'bg-orange-500'
-                      }`}
+                    <div
+                      className={`h-2 rounded-full transition-all ${remainingClients <= 0 ? 'bg-red-500' :
+                        remainingClients <= 2 ? 'bg-amber-500' :
+                          'bg-orange-500'
+                        }`}
                       style={{ width: `${Math.min((usage.clients / limits.maxClients) * 100, 100)}%` }}
                     />
                   </div>
@@ -750,7 +746,7 @@ export default function MySubscriptionPage() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-red-900">Has alcanzado el límite en algunos recursos</p>
+                    <p className="font-semibold text-red-300">Has alcanzado el límite en algunos recursos</p>
                     <p className="text-sm text-red-400 mt-1">
                       Considera actualizar tu plan para continuar usando el sistema sin restricciones.
                     </p>
@@ -829,7 +825,7 @@ export default function MySubscriptionPage() {
                 Notifica al administrador para que extienda tu suscripción
               </p>
             </div>
-            <Button 
+            <Button
               size="lg"
               onClick={() => setShowPaymentDialog(true)}
               className="bg-blue-600 hover:bg-blue-700"
@@ -850,7 +846,7 @@ export default function MySubscriptionPage() {
             <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-purple-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">⬆️</span>
+                  <span className="text-white text-sm"><ArrowUp className="h-4 w-4" /></span>
                 </div>
                 <h4 className="font-semibold text-slate-200">Mejorar Plan</h4>
               </div>
@@ -890,7 +886,7 @@ export default function MySubscriptionPage() {
             <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-green-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">💰</span>
+                  <span className="text-white text-sm"><DollarSign className="h-4 w-4" /></span>
                 </div>
                 <h4 className="font-semibold text-slate-200">Cambiar Ciclo</h4>
               </div>
@@ -938,7 +934,7 @@ export default function MySubscriptionPage() {
               Envía una notificación al administrador indicando que has realizado el pago de tu suscripción.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="payment-note">Detalles del Pago</Label>
@@ -957,14 +953,14 @@ export default function MySubscriptionPage() {
           </div>
 
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowPaymentDialog(false)}
               disabled={sending}
             >
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handlePaymentNotification}
               disabled={sending || !paymentNote.trim()}
             >
@@ -993,7 +989,7 @@ export default function MySubscriptionPage() {
               Selecciona el plan al que deseas actualizar. El administrador procesará tu solicitud.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="bg-slate-900 p-3 rounded-lg">
               <p className="text-sm text-blue-300">
@@ -1011,11 +1007,10 @@ export default function MySubscriptionPage() {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedUpgradePlan(plan.id)}
-                    className={`text-left p-4 rounded-lg border-2 transition-all ${
-                      selectedUpgradePlan === plan.id
-                        ? 'border-purple-600 bg-purple-900/30'
-                        : 'border-slate-800 hover:border-purple-300'
-                    }`}
+                    className={`text-left p-4 rounded-lg border-2 transition-all ${selectedUpgradePlan === plan.id
+                      ? 'border-purple-600 bg-purple-900/30'
+                      : 'border-slate-800 hover:border-purple-300'
+                      }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-bold text-lg">{plan.display_name}</h4>
@@ -1048,7 +1043,11 @@ export default function MySubscriptionPage() {
 
             {availablePlans.filter(p => p.price_monthly > (subscription?.subscription_plans?.price_monthly || 0)).length === 0 && (
               <p className="text-center text-gray-500 py-4">
-                Ya tienes el plan más alto disponible 🎉
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-500 font-bold">¡Todo listo!</span>
+                  <span>Ya tienes el plan más alto disponible</span>
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                </div>
               </p>
             )}
           </div>
@@ -1076,7 +1075,7 @@ export default function MySubscriptionPage() {
               Solicita extender tu suscripción por más meses
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="extend-months">Número de meses</Label>
@@ -1139,12 +1138,11 @@ export default function MySubscriptionPage() {
                 : 'Cambia a facturación mensual para mayor flexibilidad'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className={`p-4 rounded-lg border-2 ${
-                subscription?.billing_cycle === 'monthly' ? 'border-slate-700 bg-slate-950' : 'border-blue-600 bg-slate-900'
-              }`}>
+              <div className={`p-4 rounded-lg border-2 ${subscription?.billing_cycle === 'monthly' ? 'border-slate-700 bg-slate-950' : 'border-blue-600 bg-slate-900'
+                }`}>
                 <h4 className="font-bold mb-1">Actual</h4>
                 <p className="text-2xl font-bold mb-1">
                   ${subscription?.subscription_plans?.price_monthly.toFixed(2)}
@@ -1152,9 +1150,8 @@ export default function MySubscriptionPage() {
                 <p className="text-sm text-slate-400">por mes</p>
               </div>
 
-              <div className={`p-4 rounded-lg border-2 ${
-                subscription?.billing_cycle === 'yearly' ? 'border-slate-700 bg-slate-950' : 'border-green-600 bg-green-900/30'
-              }`}>
+              <div className={`p-4 rounded-lg border-2 ${subscription?.billing_cycle === 'yearly' ? 'border-slate-700 bg-slate-950' : 'border-green-600 bg-green-900/30'
+                }`}>
                 <h4 className="font-bold mb-1">Nuevo</h4>
                 <p className="text-2xl font-bold mb-1">
                   ${subscription?.billing_cycle === 'monthly'
@@ -1170,7 +1167,7 @@ export default function MySubscriptionPage() {
             {subscription?.billing_cycle === 'monthly' && (
               <div className="bg-green-900/30 p-3 rounded-lg border border-green-800">
                 <p className="text-sm text-green-300">
-                  💰 Ahorro: ${((subscription.subscription_plans?.price_monthly * 12) - (subscription.subscription_plans?.price_yearly || 0)).toFixed(2)} al año
+                  <DollarSign className="h-4 w-4 text-green-500 mr-1" /> Ahorro: ${((subscription.subscription_plans?.price_monthly * 12) - (subscription.subscription_plans?.price_yearly || 0)).toFixed(2)} al año
                 </p>
               </div>
             )}
@@ -1196,7 +1193,7 @@ export default function MySubscriptionPage() {
               ¿Necesitas algo específico? Envía tu solicitud al administrador
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="custom-request">Tu Solicitud</Label>

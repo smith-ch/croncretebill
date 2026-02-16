@@ -487,7 +487,7 @@ export default function FAQPage() {
         </motion.div>
 
         {/* Búsqueda mejorada */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-50">
+        <Card className="border-0 shadow-xl bg-slate-900 border-slate-700">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
@@ -564,7 +564,7 @@ export default function FAQPage() {
         {/* Acceso rápido a temas populares */}
         {!searchTerm && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 to-slate-900">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-slate-200">
                   <Zap className="h-5 w-5 text-amber-500" />
@@ -635,10 +635,10 @@ export default function FAQPage() {
         {filteredFaqs.length === 0 ? (
           <Card className="border-0 shadow-lg">
             <CardContent className="p-12 text-center">
-              <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-700 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <HelpCircle className="h-10 w-10 text-slate-400" />
               </div>
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No se encontraron preguntas</h3>
+              <h3 className="text-lg font-medium text-slate-100 mb-2">No se encontraron preguntas</h3>
               <p className="text-slate-400">Intenta con otros términos de búsqueda o usa los accesos rápidos de arriba</p>
             </CardContent>
           </Card>
@@ -678,9 +678,9 @@ export default function FAQPage() {
                         <Collapsible open={openItems.includes(faq.id)} onOpenChange={() => toggleItem(faq.id)}>
                           <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-slate-900">
                             <CollapsibleTrigger asChild>
-                              <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 transition-all duration-300 rounded-t-lg">
+                              <CardHeader className="cursor-pointer hover:bg-slate-800 transition-all duration-300 rounded-t-lg">
                                 <div className="flex items-center justify-between">
-                                  <h3 className="font-semibold text-left text-slate-900 hover:text-blue-900 transition-colors">
+                                  <h3 className="font-semibold text-left text-slate-100 hover:text-blue-400 transition-colors">
                                     {faq.question}
                                   </h3>
                                   <div className="flex items-center gap-2">

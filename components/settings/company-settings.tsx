@@ -10,13 +10,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Building2, 
-  Upload, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Globe, 
+import {
+  Building2,
+  Upload,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
   FileText,
   DollarSign,
   Save,
@@ -96,7 +96,7 @@ export function CompanySettings() {
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
   const { toast } = useToast()
-  
+
   const [settings, setSettings] = React.useState<CompanySettingsData>({
     company_name: "",
     company_address: "",
@@ -185,7 +185,7 @@ export function CompanySettings() {
     if (!settings.company_name || settings.company_name.trim() === "") {
       toast({
         variant: "destructive",
-        title: "❌ Campo requerido",
+        title: "Campo requerido",
         description: "El nombre de la empresa es obligatorio",
       })
       setLoading(false)
@@ -196,7 +196,7 @@ export function CompanySettings() {
     if (!settings.company_address || settings.company_address.trim() === "") {
       toast({
         variant: "destructive",
-        title: "❌ Campo requerido",
+        title: "Campo requerido",
         description: "La dirección de la empresa es obligatoria",
       })
       setLoading(false)
@@ -207,7 +207,7 @@ export function CompanySettings() {
     if (!settings.tax_id || settings.tax_id.trim() === "") {
       toast({
         variant: "destructive",
-        title: "❌ Campo requerido",
+        title: "Campo requerido",
         description: "El RNC/NIT de la empresa es obligatorio",
       })
       setLoading(false)
@@ -218,7 +218,7 @@ export function CompanySettings() {
     if (rncClean.length !== 9 && rncClean.length !== 11) {
       toast({
         variant: "destructive",
-        title: "❌ RNC inválido",
+        title: "RNC inválido",
         description: "El RNC debe contener 9 dígitos o 11 dígitos (con guiones: 123-456789-1)",
       })
       setLoading(false)
@@ -229,7 +229,7 @@ export function CompanySettings() {
     if (!settings.company_email || settings.company_email.trim() === "") {
       toast({
         variant: "destructive",
-        title: "❌ Campo requerido",
+        title: "Campo requerido",
         description: "El email de la empresa es obligatorio",
       })
       setLoading(false)
@@ -240,7 +240,7 @@ export function CompanySettings() {
     if (!emailRegex.test(settings.company_email)) {
       toast({
         variant: "destructive",
-        title: "❌ Email inválido",
+        title: "Email inválido",
         description: "Por favor ingrese un correo electrónico válido (ejemplo: contacto@empresa.com)",
       })
       setLoading(false)
@@ -251,7 +251,7 @@ export function CompanySettings() {
     if (!settings.company_phone || settings.company_phone.trim() === "") {
       toast({
         variant: "destructive",
-        title: "❌ Campo requerido",
+        title: "Campo requerido",
         description: "El teléfono de la empresa es obligatorio",
       })
       setLoading(false)
@@ -262,7 +262,7 @@ export function CompanySettings() {
     if (phoneClean.length < 10 || phoneClean.length > 15) {
       toast({
         variant: "destructive",
-        title: "⚠️ Teléfono inválido",
+        title: "Teléfono inválido",
         description: "El teléfono debe tener entre 10 y 15 dígitos",
       })
       setLoading(false)
@@ -275,7 +275,7 @@ export function CompanySettings() {
       if (!urlRegex.test(settings.company_website)) {
         toast({
           variant: "destructive",
-          title: "❌ URL inválida",
+          title: "URL inválida",
           description: "Por favor ingrese una URL válida (ejemplo: https://www.empresa.com)",
         })
         setLoading(false)
@@ -286,7 +286,7 @@ export function CompanySettings() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         toast({
           variant: "destructive",
@@ -316,7 +316,7 @@ export function CompanySettings() {
         const { data: { publicUrl } } = supabase.storage
           .from("company-assets")
           .getPublicUrl(fileName)
-        
+
         logoUrl = publicUrl
       }
 
@@ -357,7 +357,7 @@ export function CompanySettings() {
 
       setSuccess("Configuración de empresa guardada exitosamente")
       toast({
-        title: "✅ Configuración guardada",
+        title: "Configuración guardada",
         description: "La configuración de la empresa ha sido actualizada correctamente",
       })
       setLogoFile(null)
@@ -379,7 +379,7 @@ export function CompanySettings() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         setError("Error de autenticación")
         return
@@ -419,7 +419,7 @@ export function CompanySettings() {
           invoice_show_logo: data.invoice_show_logo !== false,
           invoice_auto_number: data.invoice_auto_number !== false
         })
-        
+
         if (data.company_logo) {
           setLogoPreview(data.company_logo)
         }
@@ -527,7 +527,7 @@ export function CompanySettings() {
                 </Button>
               </div>
             )}
-            
+
             <input
               id="logo-upload"
               type="file"
@@ -746,7 +746,7 @@ export function CompanySettings() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-slate-300">Color Secundario</Label>
               <div className="flex gap-2">
@@ -768,7 +768,7 @@ export function CompanySettings() {
 
           <div className="space-y-2">
             <Label className="text-slate-300">Formato de Factura</Label>
-            <Select 
+            <Select
               value={settings.invoice_format || "standard"}
               onValueChange={(value) => setSettings(prev => ({ ...prev, invoice_format: value }))}
             >
@@ -854,9 +854,9 @@ export function CompanySettings() {
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 dark:text-slate-300">Símbolo de Moneda</Label>
-              <Input 
-                value={settings.currency_symbol} 
-                disabled 
+              <Input
+                value={settings.currency_symbol}
+                disabled
                 className="bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-100"
               />
             </div>

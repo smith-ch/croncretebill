@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { 
-  Building2, 
-  Mail, 
-  Phone, 
+import {
+  Building2,
+  Mail,
+  Phone,
   MapPin,
   FileText,
   Clock,
@@ -16,6 +16,9 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  User,
+  RefreshCw,
+  Crown,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
@@ -62,7 +65,7 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
-  
+
   // Use optimized hooks instead of direct calls (must be at top level)
   const { user: authUser, loading: authLoading } = useAuth()
   const { company: companyData, user: userData, loading: companyLoading } = useCompanyData()
@@ -96,7 +99,7 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
 
-        // Ingresos mensuales
+        // Ingresos mensuales (Facturas)
         const { data: invoices } = await supabase
           .from('invoices')
           .select('total, status')
@@ -104,11 +107,25 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
           .gte('issue_date', startOfMonth.toISOString())
           .lte('issue_date', endOfMonth.toISOString())
 
-        const monthlyRevenue = (invoices as any)?.reduce((sum: number, inv: any) => 
+        const invoiceRevenue = (invoices as any)?.reduce((sum: number, inv: any) =>
           inv.status === 'paid' ? sum + inv.total : sum, 0) || 0
-        
+
         const monthlyInvoices = invoices?.length || 0
         const pendingInvoices = (invoices as any)?.filter((inv: any) => inv.status === 'pending').length || 0
+
+        // Ingresos mensuales (Recibos Térmicos)
+        const { data: receipts } = await supabase
+          .from('thermal_receipts')
+          .select('total, status')
+          .eq('user_id', authUser.id)
+          .gte('created_at', startOfMonth.toISOString())
+          .lte('created_at', endOfMonth.toISOString())
+          .neq('status', 'cancelled')
+
+        const receiptRevenue = (receipts as any)?.reduce((sum: number, receipt: any) =>
+          sum + (receipt.total || 0), 0) || 0
+
+        const monthlyRevenue = invoiceRevenue + receiptRevenue
 
         // Facturas vencidas
         const { data: overdueInvs } = await supabase
@@ -148,7 +165,7 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
     }
 
     fetchData()
-    
+
     // Actualizar cada 5 minutos
     const interval = setInterval(fetchData, 5 * 60 * 1000)
     return () => clearInterval(interval)
@@ -165,19 +182,19 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
     if (loading || !stats) {
       return null
     }
-    
+
     return (
       <div className="px-2 py-2 border-b border-slate-800 bg-gradient-to-br from-slate-900 via-blue-50/30 to-slate-50">
         <div className="flex flex-col items-center gap-1">
           {/* Indicador de estado en línea */}
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="En línea"></div>
           {/* Indicador de progreso de meta */}
-          <div 
+          <div
             className={cn(
               "w-8 h-1 rounded-full",
-              monthlyProgress >= 75 ? "bg-emerald-500" : 
-              monthlyProgress >= 50 ? "bg-amber-500" : 
-              "bg-red-500"
+              monthlyProgress >= 75 ? "bg-emerald-500" :
+                monthlyProgress >= 50 ? "bg-amber-500" :
+                  "bg-red-500"
             )}
             title={`Meta: ${monthlyProgress.toFixed(0)}%`}
           ></div>
@@ -271,9 +288,9 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
         {profile && (
           <div className="flex items-center gap-2 pt-1.5 border-t border-slate-800/50">
             <Avatar className="h-7 w-7 border-2 border-slate-700">
-              <AvatarImage 
-                src={profile.avatar_url} 
-                alt={`${profile.first_name} ${profile.last_name}`} 
+              <AvatarImage
+                src={profile.avatar_url}
+                alt={`${profile.first_name} ${profile.last_name}`}
               />
               <AvatarFallback className="bg-slate-800 text-slate-300 font-semibold text-[10px]">
                 {getInitials(profile.first_name, profile.last_name)}
@@ -281,22 +298,22 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-[10px] text-slate-200 truncate">
-                {profile.first_name && profile.last_name 
+                {profile.first_name && profile.last_name
                   ? `${profile.first_name} ${profile.last_name}`
                   : "Usuario"
                 }
               </p>
               {permissions.isRealEmployee ? (
-                <Badge className="bg-green-900/50 text-green-400 border-green-800 text-[8px] px-1 py-0 h-3.5 mt-0.5">
-                  <span className="mr-0.5">👤</span> Empleado
+                <Badge className="bg-green-900/50 text-green-400 border-green-800 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
+                  <User className="h-2 w-2" /> Empleado
                 </Badge>
               ) : permissions.role === 'employee' ? (
-                <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-[8px] px-1 py-0 h-3.5 mt-0.5">
-                  <span className="mr-0.5">🔄</span> Modo Prueba
+                <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
+                  <RefreshCw className="h-2 w-2" /> Modo Prueba
                 </Badge>
               ) : (
-                <Badge className="bg-amber-900/50 text-amber-400 border-amber-800 text-[8px] px-1 py-0 h-3.5 mt-0.5">
-                  <span className="mr-0.5">👑</span> Propietario
+                <Badge className="bg-amber-900/50 text-amber-400 border-amber-800 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
+                  <Crown className="h-2 w-2" /> Propietario
                 </Badge>
               )}
             </div>
@@ -349,9 +366,9 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
 
             <div className={cn(
               "rounded-md p-1.5 border",
-              monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" : 
-              monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" : 
-              "bg-red-900/30 border-red-800"
+              monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" :
+                monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" :
+                  "bg-red-900/30 border-red-800"
             )}>
               <div className="flex items-center gap-0.5 text-[9px] text-slate-400 mb-0.5">
                 <Target className="h-2.5 w-2.5" />
@@ -359,9 +376,9 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
               </div>
               <p className={cn(
                 "font-bold text-[11px]",
-                monthlyProgress >= 75 ? "text-emerald-400" : 
-                monthlyProgress >= 50 ? "text-amber-400" : 
-                "text-red-400"
+                monthlyProgress >= 75 ? "text-emerald-400" :
+                  monthlyProgress >= 50 ? "text-amber-400" :
+                    "text-red-400"
               )}>
                 {monthlyProgress.toFixed(0)}%
               </p>

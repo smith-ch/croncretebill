@@ -1373,7 +1373,7 @@ export default function AgendaPage() {
                             {day && (
                               <>
                                 <div className={`text-sm font-medium mb-2 flex items-center justify-between ${
-                                  dayIsToday ? 'text-blue-600 font-bold' : 'text-slate-900'
+                                  dayIsToday ? 'text-blue-400 font-bold' : 'text-slate-100'
                                 }`}>
                                   <span>{day}</span>
                                   {items.length > 0 && (

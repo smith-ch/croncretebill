@@ -34,8 +34,10 @@ import {
   Warehouse,
   Info,
   UserCog,
-  Target,
   ShoppingCart,
+  Lock,
+  AlertTriangle,
+  Target,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -163,7 +165,7 @@ const navigation = [
     ],
   },
   {
-    name: "Sistema - Info",
+    name: "Sistema & Info",
     href: "/system-info",
     icon: Info,
     module: "system",
@@ -201,9 +203,9 @@ const navigation = [
         module: "my-subscription",
       },
       {
-        name: "🔐 Suscripciones",
+        name: "Admin Suscripciones",
         href: "/subscriptions",
-        icon: CreditCard,
+        icon: Lock,
         module: "subscriptions",
         subscriptionManagerOnly: true,
       },
@@ -319,10 +321,10 @@ export function Sidebar() {
             </span>
           </Link>
         )}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setIsCollapsed(!isCollapsed)} 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
           className="h-8 w-8 p-0 hover:bg-slate-800/50 hover:scale-110 transition-all duration-300 rounded-lg"
         >
           {isCollapsed ? <Menu className="h-4 w-4 text-slate-400" /> : <X className="h-4 w-4 text-slate-400" />}
@@ -340,7 +342,7 @@ export function Sidebar() {
               // If all children are filtered out, don't show parent either
               return null
             }
-            
+
             if (filteredChildren) {
               const isOpen = openItems.includes(item.name)
               const hasActiveChild = filteredChildren.some((child) => isActive(child.href))
@@ -351,9 +353,9 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-105 shadow-sm hover:shadow-md animate-fade-in",
+                        "w-full justify-center px-2 py-2 text-left font-normal hover:bg-slate-800 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-105 shadow-sm hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                          "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-r-2 border-blue-600 shadow-md",
+                        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-r-2 border-blue-600 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -374,7 +376,7 @@ export function Sidebar() {
                             <Button
                               variant="ghost"
                               className={cn(
-                                "w-full justify-start px-3 py-2 text-sm font-normal hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 text-slate-300 transition-all duration-300 rounded-md transform hover:scale-105 animate-fade-in",
+                                "w-full justify-start px-3 py-2 text-sm font-normal hover:bg-slate-800 text-slate-300 transition-all duration-300 rounded-md transform hover:scale-105 animate-fade-in",
                                 isActive(child.href) && "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 shadow-sm",
                               )}
                               style={{ animationDelay: `${childIndex * 0.05}s` }}
@@ -398,7 +400,7 @@ export function Sidebar() {
                       className={cn(
                         "w-full justify-between px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                          "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
+                        "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -424,7 +426,7 @@ export function Sidebar() {
                           className={cn(
                             "w-full justify-start px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-400 transition-all duration-300 rounded-lg transform hover:scale-[1.02] animate-fade-in",
                             isActive(child.href) &&
-                              "bg-slate-800 text-white border-r-2 border-slate-600 shadow-sm",
+                            "bg-slate-800 text-white border-r-2 border-slate-600 shadow-sm",
                           )}
                           style={{ animationDelay: `${childIndex * 0.05}s` }}
                         >
@@ -446,27 +448,20 @@ export function Sidebar() {
                     "w-full px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive(item.href) &&
-                      "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
+                    "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
                   )}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <div className="relative">
                     <item.icon className={cn("h-5 w-5 transition-transform duration-300 hover:scale-110", !isCollapsed && "mr-3")} />
-                    {item.name === "Sistema - Info" && (
-                      <div className="absolute -top-1 -right-1">
-                        <span className="relative flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-red-500 to-red-500 shadow-lg"></span>
-                        </span>
-                      </div>
-                    )}
                   </div>
                   {!isCollapsed && (
                     <span className="font-medium flex items-center gap-2">
                       {item.name}
-                      {item.name === "Sistema - Info" && (
-                        <Badge className="bg-gradient-to-r from-red-500 to-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
+                      {item.name === "Sistema & Info" && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
                           AVISO
                         </Badge>
                       )}
@@ -481,13 +476,13 @@ export function Sidebar() {
 
       {!isCollapsed && (
         <>
-          <Separator className="bg-slate-700" />
-          <div className="p-4 bg-gradient-to-r from-slate-900 to-blue-50">
-            <div className="rounded-lg bg-gradient-to-r from-blue-100 to-blue-200 p-4 text-center border border-blue-300 shadow-md hover:shadow-lg transition-all duration-300 glass backdrop-blur-sm">
-              <p className="text-sm font-bold text-blue-300 text-gradient">ConcreteBill Pro</p>
-              <p className="text-xs text-blue-600 mt-1 font-medium">Sistema de Facturación</p>
-              <div className="mt-2 w-full bg-slate-800 rounded-full h-1">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 rounded-full animate-gradient-x" style={{ width: '85%' }}></div>
+          <Separator className="bg-slate-800" />
+          <div className="p-4 bg-slate-900 border-t border-slate-800">
+            <div className="rounded-lg bg-slate-800 p-4 text-center border border-slate-700 shadow-md transition-all duration-300">
+              <p className="text-sm font-bold text-white">ConcreteBill Pro</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Sistema de Facturación</p>
+              <div className="mt-2 w-full bg-slate-950 rounded-full h-1">
+                <div className="bg-blue-600 h-1 rounded-full" style={{ width: '85%' }}></div>
               </div>
             </div>
           </div>
@@ -495,11 +490,11 @@ export function Sidebar() {
       )}
 
       {!isCollapsed && (
-        <div className="p-4 border-t border-slate-800 bg-gradient-to-r from-slate-900 to-red-50">
+        <div className="p-4 border-t border-slate-800 bg-slate-900">
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start px-3 py-2 text-left font-medium hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-400 text-red-600 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md"
+            className="w-full justify-start px-3 py-2 text-left font-medium hover:bg-slate-800 hover:text-red-400 text-red-500 transition-all duration-300 rounded-lg transform hover:scale-[1.02] shadow-sm hover:shadow-md"
           >
             <LogOut className="h-5 w-5 mr-3" />
             <span>Cerrar Sesión</span>

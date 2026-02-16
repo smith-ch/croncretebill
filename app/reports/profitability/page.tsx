@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
 import { useDataUserId } from "@/hooks/use-data-user-id"
 import { DollarSign, TrendingUp, Package, Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
-import { format } from "date-fns"
+import { format, startOfMonth, endOfMonth, subMonths, eachMonthOfInterval } from "date-fns"
 import { es } from "date-fns/locale"
 
 interface COGSData {
@@ -23,6 +24,8 @@ interface COGSData {
   profit_margin: number
   sale_date: string
   product_name?: string
+  product_code?: string
+  type?: 'product' | 'service'
 }
 
 interface ProductProfitability {
@@ -35,6 +38,7 @@ interface ProductProfitability {
   total_cogs: number
   total_profit: number
   avg_profit_margin: number
+  last_sale_date: string
 }
 
 interface MonthlySummary {
@@ -61,50 +65,240 @@ export default function ProfitabilityReportsPage() {
     avgMargin: 0
   })
 
+  // State for month filter
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'))
+  const [availableMonths, setAvailableMonths] = useState<Date[]>([])
+
   useEffect(() => {
     if (dataUserId && !userLoading) {
-      fetchData()
+      fetchAvailableMonths()
+      fetchData(selectedMonth)
     }
-  }, [dataUserId, userLoading])
+  }, [dataUserId, userLoading, selectedMonth])
 
-  const fetchData = async () => {
+  const fetchAvailableMonths = async () => {
+    try {
+      // Get earliest date from Invoices
+      const { data: invoiceMin } = await supabase
+        .from('invoices')
+        .select('invoice_date')
+        .eq('user_id', dataUserId)
+        .neq('status', 'cancelled')
+        .order('invoice_date', { ascending: true })
+        .limit(1)
+        .single()
+
+      // Get earliest date from Thermal Receipts
+      const { data: thermalMin } = await supabase
+        .from('thermal_receipts')
+        .select('created_at')
+        .eq('user_id', dataUserId)
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+      let minDate = new Date()
+      if (invoiceMin?.invoice_date) {
+        minDate = new Date(invoiceMin.invoice_date)
+      }
+      if (thermalMin?.created_at) {
+        const thermalDate = new Date(thermalMin.created_at)
+        if (thermalDate < minDate) minDate = thermalDate
+      }
+
+      // If no data found, default to 1 month ago
+      if (!invoiceMin && !thermalMin) {
+        minDate = subMonths(new Date(), 1)
+      }
+
+      const months = eachMonthOfInterval({
+        start: startOfMonth(minDate),
+        end: new Date()
+      }).reverse()
+
+      setAvailableMonths(months)
+    } catch (error) {
+      console.error('Error fetching available months:', error)
+    }
+  }
+
+  const fetchData = async (month: string) => {
     try {
       setLoading(true)
 
-      // Fetch COGS data with product names
-      const { data: cogs, error: cogsError } = await supabase
-        .from('cost_of_goods_sold')
+      let startDate: string | null = null
+      let endDate: string | null = null
+
+      if (month !== 'all') {
+        const [year, m] = month.split('-')
+        const date = new Date(parseInt(year), parseInt(m) - 1, 1)
+
+        startDate = startOfMonth(date).toISOString()
+        endDate = endOfMonth(date).toISOString()
+      }
+
+      // 1. Fetch Products & Services for Costs
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, name, product_code, cost_price')
+        .eq('user_id', dataUserId)
+
+      const { data: services } = await supabase
+        .from('services')
+        .select('id, name, service_code, production_cost')
+        .eq('user_id', dataUserId)
+
+      const costMap = new Map<string, { cost: number, name: string, code: string, type: 'product' | 'service' }>()
+
+      products?.forEach(p => {
+        costMap.set(p.id, {
+          cost: p.cost_price || 0,
+          name: p.name,
+          code: p.product_code || '-',
+          type: 'product'
+        })
+      })
+
+      services?.forEach(s => {
+        costMap.set(s.id, {
+          cost: s.production_cost || 0,
+          name: s.name,
+          code: s.service_code || '-',
+          type: 'service'
+        })
+      })
+
+      // 2. Fetch Invoice Items (Live)
+      let invoiceQuery = supabase
+        .from('invoice_items')
         .select(`
           *,
-          products!inner(name)
+          invoices!invoice_items_invoice_id_fkey!inner(invoice_date, status)
         `)
-        .eq('user_id', dataUserId)
-        .order('sale_date', { ascending: false })
-        .limit(100)
+        .neq('invoices.status', 'cancelled')
+        .eq('invoices.user_id', dataUserId)
 
-      if (cogsError) throw cogsError
+      if (startDate && endDate) {
+        invoiceQuery = invoiceQuery
+          .gte('invoices.invoice_date', startDate)
+          .lte('invoices.invoice_date', endDate)
+      }
 
-      const cogsWithNames = cogs?.map(item => ({
-        ...item,
-        product_name: item.products?.name || 'Producto desconocido'
-      })) || []
+      const { data: invoiceItems, error: invoiceError } = await invoiceQuery
+      if (invoiceError) throw invoiceError
 
-      setCogsData(cogsWithNames)
+      // 3. Fetch Thermal Receipt Items (Live)
+      let thermalQuery = supabase
+        .from('thermal_receipt_items')
+        .select(`
+          *,
+          thermal_receipts!inner(created_at, status)
+        `)
+        .neq('thermal_receipts.status', 'cancelled')
+        .eq('thermal_receipts.user_id', dataUserId)
 
-      // Calculate product profitability
-      const productMap = new Map<string, ProductProfitability>()
-      
-      cogsWithNames.forEach(item => {
-        const existing = productMap.get(item.product_id) || {
-          product_id: item.product_id,
-          product_name: item.product_name || 'Sin nombre',
-          product_code: '',
-          total_sales: 0,
-          total_quantity_sold: 0,
-          total_revenue: 0,
-          total_cogs: 0,
-          total_profit: 0,
-          avg_profit_margin: 0
+      if (startDate && endDate) {
+        thermalQuery = thermalQuery
+          .gte('thermal_receipts.created_at', startDate)
+          .lte('thermal_receipts.created_at', endDate)
+      }
+
+      const { data: thermalItems, error: thermalError } = await thermalQuery
+      if (thermalError) console.error('Error fetching thermal items:', thermalError)
+
+      // 4. Transform & Combine
+      const invoiceData = invoiceItems?.map((item: any) => {
+        const id = item.product_id || item.service_id
+        const ref = costMap.get(id)
+
+        // If not in map, try to use item name/desc fallback logic later? 
+        // For now, if no ref, assume it's ad-hoc or deleted item.
+        // If it's ad-hoc service (no ID), cost is 0.
+
+        const quantity = item.quantity || 0
+        const salePrice = item.unit_price || 0
+        const totalSale = item.total || (quantity * salePrice)
+        const unitCost = ref?.cost || 0
+        const totalCost = quantity * unitCost
+        const grossProfit = totalSale - totalCost
+        const margin = totalSale > 0 ? (grossProfit / totalSale) * 100 : 0
+
+        return {
+          id: item.id,
+          product_id: id || 'adhoc',
+          product_name: ref?.name || item.description || 'Item desconocido',
+          product_code: ref?.code || '-',
+          type: ref?.type || (item.service_id ? 'service' : 'product'),
+          quantity_sold: quantity,
+          sale_price: salePrice,
+          total_sale: totalSale,
+          unit_cost: unitCost,
+          total_cost: totalCost,
+          gross_profit: grossProfit,
+          profit_margin: margin,
+          sale_date: item.invoices?.invoice_date
+        } as COGSData
+      }) || []
+
+      const thermalData = thermalItems?.map((item: any) => {
+        const id = item.product_id || item.service_id
+        const ref = costMap.get(id)
+
+        const quantity = item.quantity || 0
+        const salePrice = item.unit_price || 0
+        const totalSale = item.line_total || (quantity * salePrice)
+        const unitCost = ref?.cost || 0
+        const totalCost = quantity * unitCost
+        const grossProfit = totalSale - totalCost
+        const margin = totalSale > 0 ? (grossProfit / totalSale) * 100 : 0
+
+        return {
+          id: item.id,
+          product_id: id || 'adhoc',
+          product_name: ref?.name || item.item_name || 'Ítem rápido',
+          product_code: ref?.code || '-',
+          type: item.service_id ? 'service' : (ref?.type || 'product'),
+          quantity_sold: quantity,
+          sale_price: salePrice,
+          total_sale: totalSale,
+          unit_cost: unitCost,
+          total_cost: totalCost,
+          gross_profit: grossProfit,
+          profit_margin: margin,
+          sale_date: item.thermal_receipts?.created_at
+        } as COGSData
+      }) || []
+
+      const combinedData = [...invoiceData, ...thermalData].sort((a, b) =>
+        new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime()
+      )
+
+      setCogsData(combinedData)
+
+      // Calculate product/service profitability
+      const itemMap = new Map<string, ProductProfitability>()
+
+      // combinedData is sorted by date DESC, so the first item we encounter for a product is the latest one
+      combinedData.forEach(item => {
+        const id = item.product_id
+
+        let existing = itemMap.get(id)
+
+        if (!existing) {
+          existing = {
+            product_id: id,
+            product_name: item.product_name || 'Sin nombre',
+            product_code: item.product_code || '-',
+            total_sales: 0,
+            total_quantity_sold: 0,
+            total_revenue: 0,
+            total_cogs: 0,
+            total_profit: 0,
+            avg_profit_margin: 0,
+            last_sale_date: item.sale_date
+          }
+          itemMap.set(id, existing)
         }
 
         existing.total_sales += 1
@@ -112,15 +306,13 @@ export default function ProfitabilityReportsPage() {
         existing.total_revenue += item.total_sale
         existing.total_cogs += item.total_cost
         existing.total_profit += item.gross_profit
-
-        productMap.set(item.product_id, existing)
       })
 
-      const profitability = Array.from(productMap.values())
+      const profitability = Array.from(itemMap.values())
         .map(item => ({
           ...item,
-          avg_profit_margin: item.total_revenue > 0 
-            ? (item.total_profit / item.total_revenue) * 100 
+          avg_profit_margin: item.total_revenue > 0
+            ? (item.total_profit / item.total_revenue) * 100
             : 0
         }))
         .sort((a, b) => b.total_profit - a.total_profit)
@@ -129,11 +321,11 @@ export default function ProfitabilityReportsPage() {
 
       // Calculate monthly summary
       const monthMap = new Map<string, MonthlySummary>()
-      
-      cogsWithNames.forEach(item => {
-        const month = format(new Date(item.sale_date), 'yyyy-MM', { locale: es })
-        const existing = monthMap.get(month) || {
-          month,
+
+      combinedData.forEach(item => {
+        const monthKey = format(new Date(item.sale_date), 'yyyy-MM', { locale: es })
+        const existing = monthMap.get(monthKey) || {
+          month: monthKey,
           total_invoices: 0,
           total_units_sold: 0,
           total_revenue: 0,
@@ -148,14 +340,14 @@ export default function ProfitabilityReportsPage() {
         existing.total_cogs += item.total_cost
         existing.gross_profit += item.gross_profit
 
-        monthMap.set(month, existing)
+        monthMap.set(monthKey, existing)
       })
 
       const monthly = Array.from(monthMap.values())
         .map(item => ({
           ...item,
-          profit_margin: item.total_revenue > 0 
-            ? (item.gross_profit / item.total_revenue) * 100 
+          profit_margin: item.total_revenue > 0
+            ? (item.gross_profit / item.total_revenue) * 100
             : 0
         }))
         .sort((a, b) => b.month.localeCompare(a.month))
@@ -163,9 +355,9 @@ export default function ProfitabilityReportsPage() {
       setMonthlySummary(monthly)
 
       // Calculate total stats
-      const totalRevenue = cogsWithNames.reduce((sum, item) => sum + item.total_sale, 0)
-      const totalCOGS = cogsWithNames.reduce((sum, item) => sum + item.total_cost, 0)
-      const totalProfit = cogsWithNames.reduce((sum, item) => sum + item.gross_profit, 0)
+      const totalRevenue = combinedData.reduce((sum, item) => sum + item.total_sale, 0)
+      const totalCOGS = combinedData.reduce((sum, item) => sum + item.total_cost, 0)
+      const totalProfit = totalRevenue - totalCOGS
       const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
 
       setTotalStats({ totalRevenue, totalCOGS, totalProfit, avgMargin })
@@ -177,7 +369,13 @@ export default function ProfitabilityReportsPage() {
     }
   }
 
-  if (loading) {
+  // Use availableMonths or fallback to default
+  const monthList = availableMonths.length > 0 ? availableMonths : eachMonthOfInterval({
+    start: subMonths(new Date(), 2),
+    end: new Date()
+  }).reverse()
+
+  if (loading && availableMonths.length === 0) {
     return (
       <div className="container mx-auto py-10">
         <div className="animate-pulse space-y-4">
@@ -194,12 +392,31 @@ export default function ProfitabilityReportsPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Reportes de Rentabilidad</h1>
           <p className="text-muted-foreground">
-            Análisis de costos, ingresos y utilidades reales
+            Análisis de costos, ingresos y utilidades reales (Productos y Servicios)
           </p>
+        </div>
+        <div className="w-[200px]">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar mes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todo el historial</SelectItem>
+              {monthList.map(month => {
+                const value = format(month, 'yyyy-MM')
+                const label = format(month, 'MMMM yyyy', { locale: es })
+                return (
+                  <SelectItem key={value} value={value}>
+                    {label.charAt(0).toUpperCase() + label.slice(1)}
+                  </SelectItem>
+                )
+              })}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -269,7 +486,7 @@ export default function ProfitabilityReportsPage() {
       {/* Tabs */}
       <Tabs defaultValue="products" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="products">Por Producto</TabsTrigger>
+          <TabsTrigger value="products">Por Item</TabsTrigger>
           <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
           <TabsTrigger value="details">Detalle de Ventas</TabsTrigger>
         </TabsList>
@@ -278,9 +495,9 @@ export default function ProfitabilityReportsPage() {
         <TabsContent value="products" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Rentabilidad por Producto</CardTitle>
+              <CardTitle>Rentabilidad por Item</CardTitle>
               <CardDescription>
-                Análisis de utilidades por cada producto vendido
+                Análisis de utilidades por cada producto o servicio vendido
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -298,6 +515,9 @@ export default function ProfitabilityReportsPage() {
                           <p className="font-medium">{product.product_name}</p>
                           <p className="text-sm text-muted-foreground">
                             {product.total_sales} ventas • {product.total_quantity_sold} unidades
+                          </p>
+                          <p className="text-xs text-blue-500 mt-1">
+                            Última venta: {format(new Date(product.last_sale_date), 'dd/MM/yyyy', { locale: es })}
                           </p>
                         </div>
                       </div>
@@ -391,16 +611,27 @@ export default function ProfitabilityReportsPage() {
                   </p>
                 ) : (
                   cogsData.map(item => (
-                    <div key={item.id} className="flex items-center justify-between p-3 border rounded text-sm">
+                    <div key={item.id} className="flex items-center justify-between p-3 border rounded text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                       <div>
-                        <p className="font-medium">{item.product_name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${item.type === 'service'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                            }`}>
+                            {item.type === 'service' ? 'L' : 'P'}
+                          </span>
+                          <span className="text-xs font-mono text-muted-foreground bg-slate-100 dark:bg-slate-800 px-1 rounded">
+                            {item.product_code || 'N/A'}
+                          </span>
+                          <p className="font-medium">{item.product_name}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 ml-10">
                           {format(new Date(item.sale_date), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs">
-                          {item.quantity_sold} × {formatCurrency(item.sale_price)} = 
+                          {item.quantity_sold} × {formatCurrency(item.sale_price)} =
                           <span className="text-green-600 font-medium ml-1">
                             {formatCurrency(item.total_sale)}
                           </span>

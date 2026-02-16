@@ -38,9 +38,9 @@ export function NotificationBanner({ type, title, description, onDismiss, classN
       case "warning":
         return "bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300 text-amber-900 shadow-amber-100"
       case "info":
-        return "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-300 text-blue-900 shadow-blue-100"
+        return "bg-gradient-to-r from-blue-900/50 to-cyan-900/50 border-blue-700 text-blue-200 shadow-blue-900/50"
       default:
-        return "bg-gradient-to-r from-gray-50 to-slate-50 border-slate-700 text-gray-900 shadow-gray-100"
+        return "bg-gradient-to-r from-slate-800 to-slate-700 border-slate-600 text-slate-200 shadow-slate-900/50"
     }
   }
 

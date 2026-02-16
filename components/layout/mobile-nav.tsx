@@ -37,6 +37,11 @@ import {
   ChevronDown,
   ChevronUp,
   ShoppingCart,
+  LogOut,
+  ChevronRight,
+  User,
+  RefreshCw,
+  Crown
 } from "lucide-react"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -48,7 +53,7 @@ import { useCompanyData } from "@/hooks/use-company-data"
 const mobileNavigation = [
   {
     name: "Dashboard",
-    href: "/dashboard", 
+    href: "/dashboard",
     icon: LayoutDashboard,
     module: "dashboard",
   },
@@ -59,7 +64,7 @@ const mobileNavigation = [
     module: "invoices",
   },
   {
-    name: "Clientes", 
+    name: "Clientes",
     href: "/clients",
     icon: Users,
     module: "clients",
@@ -73,7 +78,7 @@ const mobileNavigation = [
   {
     name: "Inventario",
     href: "/inventory",
-    icon: Warehouse, 
+    icon: Warehouse,
     module: "inventory",
   },
   {
@@ -108,7 +113,7 @@ const mobileNavigation = [
   },
   {
     name: "Agenda",
-    href: "/agenda", 
+    href: "/agenda",
     icon: Calendar,
     module: "agenda",
   },
@@ -149,7 +154,7 @@ const mobileNavigation = [
     module: "reports",
   },
   {
-    name: "Reportes DGII", 
+    name: "Reportes DGII",
     href: "/dgii-reports",
     icon: FileBarChart,
     module: "reports",
@@ -216,7 +221,7 @@ export function MobileNav() {
   const { alertCount } = useStockAlerts()
   const { canAccessModule, permissions } = useUserPermissions()
   const { formatCurrency } = useCurrency()
-  
+
   // Use optimized hooks (must be at top level)
   const { user: authUser, loading: authLoading } = useAuth()
   const { company: companyData, user: userData } = useCompanyData()
@@ -255,9 +260,9 @@ export function MobileNav() {
           .gte('issue_date', startOfMonth.toISOString())
           .lte('issue_date', endOfMonth.toISOString())
 
-        const monthlyRevenue = (invoices as any)?.reduce((sum: number, inv: any) => 
+        const monthlyRevenue = (invoices as any)?.reduce((sum: number, inv: any) =>
           inv.status === 'paid' ? sum + inv.total : sum, 0) || 0
-        
+
         const monthlyInvoices = invoices?.length || 0
         const pendingInvoices = (invoices as any)?.filter((inv: any) => inv.status === 'pending').length || 0
 
@@ -326,12 +331,12 @@ export function MobileNav() {
               ConcreteBill
             </span>
           </Link>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsOpen(!isOpen)}
-            className="h-10 w-10 p-0 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:scale-110 transition-all duration-300 rounded-xl"
+            className="h-10 w-10 p-0 hover:bg-slate-800 hover:scale-110 transition-all duration-300 rounded-xl"
           >
             {isOpen ? (
               <X className="h-5 w-5 text-slate-300" />
@@ -345,7 +350,7 @@ export function MobileNav() {
         {isOpen && (
           <div className="absolute top-full left-0 right-0 bg-gradient-to-b from-slate-50 to-slate-100 backdrop-blur-xl border-b border-slate-800 shadow-2xl max-h-[80vh] overflow-y-auto animate-slide-down">
             <nav className="px-3 py-4">
-              
+
               {/* Información de la Empresa y Usuario */}
               <div className="mb-4 pb-3 border-b border-slate-700">
                 {/* Información de la empresa */}
@@ -413,9 +418,9 @@ export function MobileNav() {
                 {profile && !loading && (
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
                     <Avatar className="h-8 w-8 border-2 border-slate-700">
-                      <AvatarImage 
-                        src={profile.avatar_url} 
-                        alt={`${profile.first_name} ${profile.last_name}`} 
+                      <AvatarImage
+                        src={profile.avatar_url}
+                        alt={`${profile.first_name} ${profile.last_name}`}
                       />
                       <AvatarFallback className="bg-slate-800 text-blue-400 font-semibold text-xs">
                         {getInitials(profile.first_name, profile.last_name)}
@@ -423,22 +428,22 @@ export function MobileNav() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-slate-200 truncate">
-                        {profile.first_name && profile.last_name 
+                        {profile.first_name && profile.last_name
                           ? `${profile.first_name} ${profile.last_name}`
                           : "Usuario"
                         }
                       </p>
                       {permissions.isRealEmployee ? (
                         <Badge className="bg-green-900/30 text-green-400 border-green-800 text-xs px-1.5 py-0 h-4 mt-0.5">
-                          <span className="mr-1">👤</span> Empleado
+                          <User className="mr-1 h-4 w-4" /> Empleado
                         </Badge>
                       ) : permissions.role === 'employee' ? (
                         <Badge className="bg-slate-800 text-blue-400 border-slate-700 text-xs px-1.5 py-0 h-4 mt-0.5">
-                          <span className="mr-1">🔄</span> Modo Prueba
+                          <RefreshCw className="mr-1 h-4 w-4" /> Modo Prueba
                         </Badge>
                       ) : (
                         <Badge className="bg-amber-900/30 text-amber-400 border-amber-800 text-xs px-1.5 py-0 h-4 mt-0.5">
-                          <span className="mr-1">👑</span> Propietario
+                          <Crown className="mr-1 h-4 w-4" /> Propietario
                         </Badge>
                       )}
                     </div>
@@ -477,9 +482,9 @@ export function MobileNav() {
 
                       <div className={cn(
                         "rounded-lg p-2 border shadow-sm",
-                        monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" : 
-                        monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" : 
-                        "bg-red-900/30 border-red-800"
+                        monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" :
+                          monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" :
+                            "bg-red-900/30 border-red-800"
                       )}>
                         <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <Target className="h-3 w-3" />
@@ -487,9 +492,9 @@ export function MobileNav() {
                         </div>
                         <p className={cn(
                           "font-bold text-sm",
-                          monthlyProgress >= 75 ? "text-emerald-400" : 
-                          monthlyProgress >= 50 ? "text-amber-400" : 
-                          "text-red-400"
+                          monthlyProgress >= 75 ? "text-emerald-400" :
+                            monthlyProgress >= 50 ? "text-amber-400" :
+                              "text-red-400"
                         )}>
                           {monthlyProgress.toFixed(0)}%
                         </p>
@@ -520,7 +525,7 @@ export function MobileNav() {
                   </div>
                 )}
               </div>
-              
+
               {/* Main Navigation with Enhanced Styles */}
               <div className="space-y-1.5 mb-4">
                 {mobileNavigation.map((item, index) => {
@@ -542,7 +547,7 @@ export function MobileNav() {
                           "w-full justify-start px-4 py-3 text-left font-medium transition-all duration-300 rounded-xl transform hover:scale-[1.02] shadow-sm hover:shadow-md",
                           isActive(item.href)
                             ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-l-4 border-blue-600 shadow-md hover:shadow-lg"
-                            : "text-slate-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100"
+                            : "text-slate-300 hover:bg-slate-800"
                         )}
                       >
                         <div className="relative">
@@ -584,7 +589,7 @@ export function MobileNav() {
                     <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 rounded-full" style={{ width: '85%' }}></div>
                   </div>
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   onClick={async () => {

@@ -334,7 +334,7 @@ export default function VehiclesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-slate-900 to-blue-50/30 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+                  <Card className="card-hover border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>

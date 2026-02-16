@@ -575,12 +575,12 @@ export default function ProjectsPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   {viewMode === "grid" ? (
-                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
+                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-slate-900 border-slate-700 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-bold text-slate-900 text-lg">{project.name}</h3>
+                              <h3 className="font-bold text-slate-100 text-lg">{project.name}</h3>
                               <div
                                 className={`w-3 h-3 rounded-full ${getPriorityColor(project.priority || "media")}`}
                               />
@@ -678,7 +678,7 @@ export default function ProjectsPage() {
                               <div
                                 className={`w-3 h-3 rounded-full ${getPriorityColor(project.priority || "media")}`}
                               />
-                              <h3 className="font-semibold text-slate-900">{project.name}</h3>
+                              <h3 className="font-semibold text-slate-100">{project.name}</h3>
                             </div>
                             <Badge className={`${getStatusColor(project.status)} flex items-center gap-1`}>
                               {getStatusIcon(project.status)}

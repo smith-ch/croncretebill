@@ -40,13 +40,13 @@ export default function ClientLayout({
   const checkSubscription = async (userId: string) => {
     try {
       console.log('🔍 Verificando acceso de suscripción para userId:', userId)
-      
+
       // Usar la nueva función que maneja empleados y owners correctamente
       const { data: accessCheck, error: accessError } = await supabase
         .rpc('check_user_subscription_access', { p_user_id: userId })
-      
+
       console.log('🔍 Resultado check_user_subscription_access:', { accessCheck, accessError })
-      
+
       if (accessError) {
         console.error('❌ Error verificando acceso:', accessError)
         // Si hay error técnico, permitir acceso para evitar bloqueos
@@ -57,7 +57,7 @@ export default function ClientLayout({
 
       // accessCheck es un array con un solo elemento
       const access = Array.isArray(accessCheck) ? accessCheck[0] : accessCheck
-      
+
       if (!access) {
         console.log('⚠️ No se pudo obtener información de acceso, permitiendo por defecto')
         setSubscriptionError(null)
@@ -116,6 +116,29 @@ export default function ClientLayout({
     })
 
     return () => subscription.unsubscribe()
+  }, [])
+
+  // Fix: Revalidate session when app becomes visible to prevent "freeze" on resume
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('🔄 App resumed - revalidating session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        if (error || !session) {
+          console.log('⚠️ Session invalid on resume, refreshing...')
+          // Optional: Force a router refresh if critical
+          // router.refresh() 
+        } else {
+          console.log('✅ Session valid on resume')
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   if (loading) {
@@ -183,7 +206,7 @@ export default function ClientLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light">
+        <ThemeProvider attribute="class" defaultTheme="dark">
           <NotificationProvider>
             {/* Barra de progreso de navegación */}
             <NavigationProgress />
@@ -200,7 +223,7 @@ export default function ClientLayout({
                 <div className="container-responsive spacing-responsive">
                   <NotificationCenter className="mb-4 sm:mb-6" />
                   <RouteProtection>
-                    <React.Suspense 
+                    <React.Suspense
                       fallback={
                         <div className="flex items-center justify-center min-h-[400px]">
                           <div className="text-center">

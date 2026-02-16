@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, AlertCircle, CheckCircle, Plus, ArrowRight } from "lucide-react"
+import { Calendar, Clock, AlertCircle, CheckCircle, Plus, ArrowRight, MoreHorizontal, DollarSign } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import Link from "next/link"
@@ -109,11 +109,12 @@ export function AgendaWidget() {
 
   const getItemIcon = (type: string) => {
     switch (type) {
-      case "invoice": return "💰"
-      case "fixed_expense": return "📋"
-      case "expense": return "💸"
-      case "payment": return "💳"
-      default: return "📅"
+      case "invoice": return <DollarSign className="h-4 w-4 text-emerald-500" />
+      case "fixed_expense": return <MoreHorizontal className="h-4 w-4 text-purple-500" />
+      case "expense": return <DollarSign className="h-4 w-4 text-red-500" />
+      case "payment": return <DollarSign className="h-4 w-4 text-green-500" />
+      case "reminder": return <Calendar className="h-4 w-4 text-blue-500" />
+      default: return <Calendar className="h-4 w-4 text-blue-500" />
     }
   }
 
@@ -135,7 +136,7 @@ export function AgendaWidget() {
     const targetDate = new Date(date)
     const diffTime = targetDate.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
+
     if (diffDays < 0) {
       return "Vencido"
     }
@@ -224,7 +225,7 @@ export function AgendaWidget() {
                     </div>
                   </div>
                 </div>
-                
+
                 {item.status === "overdue" && (
                   <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                 )}
