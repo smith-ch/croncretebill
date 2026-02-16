@@ -625,7 +625,7 @@ export default function ExpensesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-red-400">Total Gastos</p>
-                  <p className="text-2xl font-bold text-red-900">{formatCurrency(totalExpenses)}</p>
+                  <p className="text-2xl font-bold text-red-300">{formatCurrency(totalExpenses)}</p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
                   <DollarSign className="h-5 w-5 text-white" />
@@ -639,7 +639,7 @@ export default function ExpensesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-300">Cantidad</p>
-                  <p className="text-2xl font-bold text-slate-900">{filteredExpenses.length}</p>
+                  <p className="text-2xl font-bold text-blue-300">{filteredExpenses.length}</p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg">
                   <Receipt className="h-5 w-5 text-white" />
@@ -653,7 +653,7 @@ export default function ExpensesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-amber-400">Promedio</p>
-                  <p className="text-2xl font-bold text-amber-900">{formatCurrency(averageExpense)}</p>
+                  <p className="text-2xl font-bold text-amber-300">{formatCurrency(averageExpense)}</p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-white" />
@@ -667,7 +667,7 @@ export default function ExpensesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-purple-400">Categorías</p>
-                  <p className="text-2xl font-bold text-purple-900">{categories.length}</p>
+                  <p className="text-2xl font-bold text-purple-300">{categories.length}</p>
                 </div>
                 <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg">
                   <Tag className="h-5 w-5 text-white" />
@@ -677,7 +677,7 @@ export default function ExpensesPage() {
           </Card>
         </div>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+        <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200 flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -760,7 +760,7 @@ export default function ExpensesPage() {
         </Card>
 
         {/* Expenses List */}
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+        <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
           <CardHeader>
             <CardTitle>Lista de Gastos</CardTitle>
             <CardDescription>Gestiona todos tus gastos empresariales</CardDescription>
@@ -768,10 +768,10 @@ export default function ExpensesPage() {
           <CardContent className="p-6">
             {filteredExpenses.length === 0 ? (
               <div className="text-center py-12">
-                <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <div className="p-4 bg-slate-800 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                   <Receipt className="h-10 w-10 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
                   {searchTerm || selectedCategory !== "all" || dateFilter !== "all"
                     ? "No se encontraron gastos"
                     : "No hay gastos registrados"}
@@ -797,7 +797,7 @@ export default function ExpensesPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group flex flex-col lg:flex-row lg:items-center justify-between p-4 lg:p-6 border border-slate-800 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-md gap-4"
+                    className="group flex flex-col lg:flex-row lg:items-center justify-between p-4 lg:p-6 border border-slate-800 rounded-xl hover:bg-slate-800/50 hover:border-slate-600 transition-all duration-300 hover:shadow-md gap-4"
                   >
                     <div className="flex items-start lg:items-center gap-3 lg:gap-4 flex-1 min-w-0">
                       <Checkbox
@@ -814,7 +814,7 @@ export default function ExpensesPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3 mb-2">
-                          <h4 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
+                          <h4 className="font-semibold text-slate-100 group-hover:text-blue-400 transition-colors truncate">
                             {expense.description}
                           </h4>
                           <div className="flex flex-wrap items-center gap-2">

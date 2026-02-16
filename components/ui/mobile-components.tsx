@@ -89,33 +89,33 @@ export function MobileStatsCard({
 }: MobileStatsCardProps) {
   const colorClasses = {
     blue: {
-      bg: 'from-blue-50 to-blue-100',
-      text: 'text-blue-400',
-      valueBg: 'text-blue-900',
+      bg: 'from-blue-900/50 to-blue-800/50',
+      text: 'text-blue-300',
+      valueBg: 'text-slate-200',
       iconBg: 'from-blue-500 to-blue-600'
     },
     green: {
-      bg: 'from-emerald-50 to-emerald-100',
-      text: 'text-emerald-400',
-      valueBg: 'text-emerald-900',
+      bg: 'from-emerald-900/50 to-emerald-800/50',
+      text: 'text-emerald-300',
+      valueBg: 'text-slate-200',
       iconBg: 'from-emerald-500 to-emerald-600'
     },
     red: {
-      bg: 'from-red-50 to-red-100',
-      text: 'text-red-400',
-      valueBg: 'text-red-900',
+      bg: 'from-red-900/50 to-red-800/50',
+      text: 'text-red-300',
+      valueBg: 'text-slate-200',
       iconBg: 'from-red-500 to-red-600'
     },
     yellow: {
-      bg: 'from-yellow-50 to-yellow-100',
-      text: 'text-yellow-700',
-      valueBg: 'text-yellow-900',
+      bg: 'from-yellow-900/50 to-yellow-800/50',
+      text: 'text-yellow-300',
+      valueBg: 'text-slate-200',
       iconBg: 'from-yellow-500 to-yellow-600'
     },
     purple: {
-      bg: 'from-purple-50 to-purple-100',
-      text: 'text-purple-400',
-      valueBg: 'text-purple-900',
+      bg: 'from-purple-900/50 to-purple-800/50',
+      text: 'text-purple-300',
+      valueBg: 'text-slate-200',
       iconBg: 'from-purple-500 to-purple-600'
     }
   }

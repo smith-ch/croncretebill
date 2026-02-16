@@ -28,19 +28,19 @@ const getTypeConfig = (type: ItemCardProps['type']) => {
       return {
         icon: Package,
         gradient: 'from-blue-500 to-indigo-600',
-        bgGradient: 'from-blue-50 to-indigo-100'
+        bgGradient: 'from-blue-900/50 to-indigo-900/50'
       }
     case 'service':
       return {
         icon: Wrench,
         gradient: 'from-green-500 to-teal-600',
-        bgGradient: 'from-green-50 to-teal-100'
+        bgGradient: 'from-green-900/50 to-teal-900/50'
       }
     case 'client':
       return {
         icon: Users,
         gradient: 'from-purple-500 to-pink-600',
-        bgGradient: 'from-purple-50 to-pink-100'
+        bgGradient: 'from-purple-900/50 to-pink-900/50'
       }
   }
 }

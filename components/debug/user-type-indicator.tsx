@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useUserPermissions } from '@/hooks/use-user-permissions-simple'
 import { supabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Crown, User } from 'lucide-react'
 
 /**
  * Indicador Visual de Tipo de Usuario
@@ -12,9 +12,9 @@ import { AlertCircle } from 'lucide-react'
  */
 export function UserTypeIndicator() {
   const { permissions } = useUserPermissions()
-  const [dbCheck, setDbCheck] = useState<{ hasParent: boolean | null, parentId: string | null }>({ 
-    hasParent: null, 
-    parentId: null 
+  const [dbCheck, setDbCheck] = useState<{ hasParent: boolean | null, parentId: string | null }>({
+    hasParent: null,
+    parentId: null
   })
 
   useEffect(() => {
@@ -38,23 +38,27 @@ export function UserTypeIndicator() {
   }, [])
 
   // Detectar inconsistencia
-  const isInconsistent = 
-    dbCheck.hasParent !== null && 
+  const isInconsistent =
+    dbCheck.hasParent !== null &&
     ((dbCheck.hasParent && permissions.isOwner) || (!dbCheck.hasParent && !permissions.isOwner))
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
       {/* Badge principal */}
-      <Badge 
+      <Badge
         variant={permissions.isOwner ? "default" : "secondary"}
         className="text-lg px-4 py-2"
       >
-        {permissions.isOwner ? '👑 Owner' : '👨‍💼 Empleado'}
+        {permissions.isOwner ? (
+          <span className="flex items-center gap-1"><Crown className="h-3 w-3" /> Owner</span>
+        ) : (
+          <span className="flex items-center gap-1"><User className="h-3 w-3" /> Empleado</span>
+        )}
       </Badge>
 
       {/* Badge de verificación de DB */}
       {dbCheck.hasParent !== null && (
-        <Badge 
+        <Badge
           variant="outline"
           className="text-xs"
         >
@@ -70,7 +74,7 @@ export function UserTypeIndicator() {
             <div className="font-bold">ERROR DE PERMISOS</div>
             <div>Frontend y DB no coinciden</div>
             <div className="mt-1">
-              <button 
+              <button
                 onClick={() => {
                   localStorage.clear()
                   window.location.reload()

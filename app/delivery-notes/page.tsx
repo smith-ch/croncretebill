@@ -238,7 +238,7 @@ export default function DeliveryNotesPage() {
               {filteredDeliveryNotes.map((note, index) => (
                 <div
                   key={note.id}
-                  className="flex items-center justify-between p-4 border-0 shadow-lg rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 card-hover bg-slate-900 animate-slide-up"
+                  className="flex items-center justify-between p-4 border-0 shadow-lg rounded-xl hover:bg-slate-800/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 card-hover bg-slate-900 animate-slide-up"
                   style={{animationDelay: `${index * 0.05}s`}}
                 >
                   <div className="flex-1">

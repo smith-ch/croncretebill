@@ -818,7 +818,7 @@ export default function NewInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader className="bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-t-lg">
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
@@ -1116,7 +1116,7 @@ export default function NewInvoicePage() {
                         </div>
                       )}
                       <div className="border-t border-slate-700 pt-3">
-                        <div className="flex justify-between text-lg font-bold text-slate-900">
+                        <div className="flex justify-between text-lg font-bold text-slate-100">
                           <span>Total:</span>
                           <span className={!validateInvoiceAmount(total) ? 'text-red-600' : ''}>{formatCurrency(total)}</span>
                         </div>
@@ -1142,7 +1142,7 @@ export default function NewInvoicePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50">
+          <Card className="border-0 shadow-lg bg-slate-900 border-slate-700">
             <CardHeader>
               <CardTitle className="text-slate-200">Notas Adicionales</CardTitle>
             </CardHeader>

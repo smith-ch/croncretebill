@@ -13,9 +13,9 @@ interface CurrencyConverterProps {
   variant?: "default" | "compact"
 }
 
-export function CurrencyConverter({ 
-  onToggle, 
-  exchangeRate: propExchangeRate, 
+export function CurrencyConverter({
+  onToggle,
+  exchangeRate: propExchangeRate,
   currentCurrency = "DOP",
   variant = "default"
 }: CurrencyConverterProps) {
@@ -61,7 +61,7 @@ export function CurrencyConverter({
         <DollarSign className="h-4 w-4 mr-2" />
         {showUSD ? "Mostrando en USD" : "Convertir a USD"}
       </Button>
-      
+
       <div className="flex items-center gap-2 text-sm">
         <Badge variant="outline" className="bg-slate-900">
           Tasa: 1 USD = {exchangeRate.toFixed(2)} {currentCurrency}
@@ -87,8 +87,8 @@ interface DualCurrencyDisplayProps {
   size?: "sm" | "md" | "lg"
 }
 
-export function DualCurrencyDisplay({ 
-  amount, 
+export function DualCurrencyDisplay({
+  amount,
   currencySymbol = "RD$",
   exchangeRate: propExchangeRate,
   className = "",
@@ -115,7 +115,7 @@ export function DualCurrencyDisplay({
   if (showBoth) {
     return (
       <div className={`flex flex-col items-end ${className}`}>
-        <span className={`${sizeClasses[size]} font-semibold text-gray-900`}>
+        <span className={`${sizeClasses[size]} font-semibold text-slate-200`}>
           {formatDOP(amount)}
         </span>
         <span className="text-sm text-slate-400">

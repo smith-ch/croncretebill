@@ -1042,13 +1042,13 @@ export default function DashboardPage() {
             <EmployeeMetricsCard />
 
             {/* Solo Tarjeta de Venta de Hoy */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/10"></div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-300/20 to-green-400/30 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-600/20 to-green-600/30 rounded-full -translate-y-16 translate-x-16"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-4 relative">
                 <div className="flex-1">
-                  <CardTitle className="text-lg font-bold text-emerald-400 uppercase tracking-wide mb-2">Ingresos del Día</CardTitle>
-                  <p className="text-sm text-emerald-600">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <CardTitle className="text-lg font-bold text-emerald-300 uppercase tracking-wide mb-2">Ingresos del Día</CardTitle>
+                  <p className="text-sm text-emerald-400">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg">
                   <DollarSign className="h-8 w-8 text-white" />
@@ -1056,10 +1056,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="relative">
                 <div className="flex flex-col">
-                  <span className="text-5xl font-bold text-emerald-900 mb-4">{formatCurrency(stats.todayRevenue)}</span>
+                  <span className="text-5xl font-bold text-slate-200 mb-4">{formatCurrency(stats.todayRevenue)}</span>
                   <div className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-emerald-600" />
-                    <span className="text-sm text-emerald-400">Total de ventas generadas hoy</span>
+                    <Activity className="h-5 w-5 text-emerald-400" />
+                    <span className="text-sm text-slate-300">Total de ventas generadas hoy</span>
                   </div>
                 </div>
               </CardContent>
@@ -1603,7 +1603,7 @@ export default function DashboardPage() {
 
             {/* Banner Nueva Funcionalidad - Sistema de Clasificación de Compras */}
             <div className="mb-6 lg:mb-8 animate-in slide-in-from-top duration-700">
-              <Card className="border-2 border-green-600 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+              <Card className="border-2 border-green-600 bg-gradient-to-br from-slate-900 to-slate-800 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
                 {/* Efecto de brillo animado */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-green-600/10 rounded-full blur-3xl animate-pulse"></div>
                 

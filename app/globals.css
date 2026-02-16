@@ -151,26 +151,26 @@
   }
   
   :root {
-    /* Tema claro limpio con toques slate */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%; /* slate-900 */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 215 100% 50%; /* Azul slate vibrante */
+    /* Paleta Slate oscura (Uniforme con Login - por defecto) */
+    --background: 222 47% 11%; /* slate-900 */
+    --foreground: 210 40% 98%;
+    --card: 215 28% 17%; /* slate-800 */
+    --card-foreground: 210 40% 98%;
+    --popover: 215 28% 17%; /* slate-800 */
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%; /* slate-500 con más saturación */
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 91%; /* slate-200 */
-    --secondary-foreground: 222 47% 11%;
-    --muted: 214 32% 91%; /* slate-200 */
-    --muted-foreground: 215 16% 47%; /* slate-600 */
-    --accent: 214 32% 91%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 215 20% 25%; /* slate-700 */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 20% 25%; /* slate-700 */
+    --muted-foreground: 215 16% 65%; /* slate-400 */
+    --accent: 215 20% 25%; /* slate-700 */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%; /* slate-200 */
-    --input: 214 32% 91%;
-    --ring: 215 100% 50%;
+    --border: 215 28% 25%; /* slate-700/50 */
+    --input: 215 28% 25%; /* slate-700 */
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
     
     /* Nuevas variables personalizadas para gradientes */
@@ -183,10 +183,10 @@
     --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
     --gradient-pink: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
     
-    /* Variables para efectos de cristal */
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    /* Variables oscuras para efectos de cristal (estilo login) */
+    --glass-bg: rgba(15, 23, 42, 0.8); /* slate-900/80 */
+    --glass-border: rgba(71, 85, 105, 0.5); /* slate-600/50 */
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7);
     
     /* Variables para sombras modernas */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

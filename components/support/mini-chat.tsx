@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  MessageCircle, 
-  X, 
+import {
+  MessageCircle,
+  X,
   HelpCircle,
   FileText,
   CreditCard,
@@ -159,7 +159,7 @@ export function MiniChat() {
   React.useEffect(() => {
     // Verificar si Grok está disponible
     setGrokEnabled(isGrokAvailable())
-    
+
     const loadUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -167,7 +167,7 @@ export function MiniChat() {
         if (user) {
           const firstName = user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuario'
           setUserName(firstName)
-          
+
           // Obtener hora actual para saludo personalizado
           const hour = new Date().getHours()
           let greeting = '¡Hola'
@@ -178,10 +178,10 @@ export function MiniChat() {
           } else {
             greeting = '¡Buenas noches'
           }
-          
+
           setMessages([{
             id: '0',
-            text: `${greeting}, ${firstName}! 👋\n\nSoy tu asistente virtual de ConcreteBill. Estoy aquí para ayudarte con:\n\n• Crear y gestionar facturas\n• Administrar clientes y productos\n• Configurar tu empresa\n• Responder tus dudas\n\n¿En qué puedo ayudarte hoy?`,
+            text: `${greeting}, ${firstName}! \n\nSoy tu asistente virtual de ConcreteBill. Estoy aquí para ayudarte con:\n\n• Crear y gestionar facturas\n• Administrar clientes y productos\n• Configurar tu empresa\n• Responder tus dudas\n\n¿En qué puedo ayudarte hoy?`,
             sender: 'bot',
             timestamp: new Date()
           }])
@@ -190,7 +190,7 @@ export function MiniChat() {
         console.error('Error loading user:', error)
         setMessages([{
           id: '0',
-          text: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+          text: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
           sender: 'bot',
           timestamp: new Date()
         }])
@@ -210,14 +210,14 @@ export function MiniChat() {
 
   const filteredFAQs = FAQS.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+      faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = !selectedCategory || faq.category === selectedCategory
     return matchesSearch && matchesCategory
   })
 
   const findBestMatch = (userMessage: string): { faq: FAQ | null; confidence: number; context: string } => {
     const normalizedMessage = userMessage.toLowerCase().trim()
-    
+
     // Palabras clave expandidas con sinónimos y variaciones
     const keywords: Record<string, string[]> = {
       'factura': ['factura', 'invoice', 'cobrar', 'cobro', 'crear factura', 'nueva factura', 'generar factura', 'emitir', 'documento'],
@@ -243,8 +243,8 @@ export function MiniChat() {
     // Detectar intención directa
     for (const { pattern, intent } of intentPatterns) {
       if (pattern.test(normalizedMessage)) {
-        const matchingFAQ = FAQS.find(faq => 
-          faq.id === intent.split('_')[0] || 
+        const matchingFAQ = FAQS.find(faq =>
+          faq.id === intent.split('_')[0] ||
           faq.question.toLowerCase().includes(intent.replace('_', ' '))
         )
         if (matchingFAQ) {
@@ -266,15 +266,15 @@ export function MiniChat() {
       }
 
       // Coincidencia parcial de pregunta
-      if (faq.question.toLowerCase().includes(normalizedMessage) || 
-          normalizedMessage.includes(faq.question.toLowerCase())) {
+      if (faq.question.toLowerCase().includes(normalizedMessage) ||
+        normalizedMessage.includes(faq.question.toLowerCase())) {
         score += 8
       }
 
       // Palabras clave en pregunta
       for (const word of messageWords) {
         if (word.length < 3) continue
-        
+
         if (faq.question.toLowerCase().includes(word)) {
           score += 3
         }
@@ -287,9 +287,9 @@ export function MiniChat() {
       for (const [key, words] of Object.entries(keywords)) {
         const keywordMatches = words.filter(kw => normalizedMessage.includes(kw)).length
         if (keywordMatches > 0) {
-          if (faq.question.toLowerCase().includes(key) || 
-              faq.category.toLowerCase().includes(key) ||
-              faq.answer.toLowerCase().includes(key)) {
+          if (faq.question.toLowerCase().includes(key) ||
+            faq.category.toLowerCase().includes(key) ||
+            faq.answer.toLowerCase().includes(key)) {
             score += keywordMatches * 2.5
           }
         }
@@ -322,17 +322,17 @@ export function MiniChat() {
 
     // Simular tiempo de respuesta más natural (500-1200ms)
     const responseDelay = 500 + Math.random() * 700
-    
+
     setTimeout(async () => {
       const { faq, confidence, context } = findBestMatch(userQuestion)
-      
+
       let botResponse: Message
 
       // Si tenemos alta confianza con FAQs, usarlas directamente
       if (faq && confidence > 70) {
         // Respuesta con alta confianza
         let responseText = faq.answer
-        
+
         // Agregar contexto adicional según la confianza
         if (confidence === 100) {
           responseText = `¡Exacto! ${responseText}`
@@ -341,7 +341,7 @@ export function MiniChat() {
         } else if (confidence > 70) {
           responseText = `Basándome en tu pregunta:\n\n${responseText}`
         }
-        
+
         // Agregar sugerencias de seguimiento
         const followUp = getFollowUpSuggestion(faq.category)
         if (followUp) {
@@ -355,16 +355,16 @@ export function MiniChat() {
           timestamp: new Date(),
           relatedFAQ: faq
         }
-        
+
         setIsTyping(false)
         setMessages(prev => [...prev, botResponse])
-      } 
+      }
       // Si confianza media, intentar con Grok si está disponible
       else if (grokEnabled && confidence < 70) {
         setIsUsingGrok(true)
         try {
           console.log('🤖 Llamando a Groq AI con pregunta:', userQuestion)
-          
+
           // Obtener historial reciente de conversación para contexto
           const recentHistory = messages.slice(-4).map(msg => ({
             role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
@@ -374,9 +374,9 @@ export function MiniChat() {
           console.log('📝 Historial enviado a Groq:', recentHistory)
 
           const grokResponse = await generateChatResponse(userQuestion, recentHistory)
-          
+
           console.log('✅ Respuesta de Groq recibida:', grokResponse)
-          
+
           botResponse = {
             id: (Date.now() + 1).toString(),
             text: `${grokResponse}\n\n✨ _Respuesta generada por Groq AI (Llama 3.3)_`,
@@ -390,7 +390,7 @@ export function MiniChat() {
             console.error('Error message:', error.message)
             console.error('Error stack:', error.stack)
           }
-          
+
           // Fallback a respuesta FAQ con confianza media si Grok falla
           if (faq && confidence > 40) {
             botResponse = {
@@ -403,13 +403,13 @@ export function MiniChat() {
           } else {
             // Respuesta por defecto si todo falla
             const suggestions = getSuggestedQuestions(userQuestion)
-            let suggestionText = suggestions.length > 0 
+            let suggestionText = suggestions.length > 0
               ? `\n\n¿Quizás te interesa alguna de estas preguntas?\n${suggestions.map(s => `• ${s}`).join('\n')}`
               : ''
 
             botResponse = {
               id: (Date.now() + 1).toString(),
-              text: `Disculpa, tuve problemas técnicos al consultar la IA. 😔${suggestionText}\n\nPuedes:\n• Ver las preguntas frecuentes (botón arriba)\n• Reformular tu pregunta\n• Preguntar sobre: facturas, clientes, productos, gastos, reportes\n\n¿En qué más puedo ayudarte?`,
+              text: `Disculpa, tuve problemas técnicos al consultar la IA. \n\nPuedes:\n• Ver las preguntas frecuentes (botón arriba)\n• Reformular tu pregunta\n• Preguntar sobre: facturas, clientes, productos, gastos, reportes\n\n¿En qué más puedo ayudarte?`,
               sender: 'bot',
               timestamp: new Date()
             }
@@ -417,7 +417,7 @@ export function MiniChat() {
         } finally {
           setIsUsingGrok(false)
         }
-        
+
         setIsTyping(false)
         setMessages(prev => [...prev, botResponse])
       }
@@ -431,13 +431,13 @@ export function MiniChat() {
           timestamp: new Date(),
           relatedFAQ: faq
         }
-        
+
         setIsTyping(false)
         setMessages(prev => [...prev, botResponse])
       } else {
         // Respuesta por defecto con sugerencias inteligentes
         const suggestions = getSuggestedQuestions(userQuestion)
-        let suggestionText = suggestions.length > 0 
+        let suggestionText = suggestions.length > 0
           ? `\n\n¿Quizás te interesa alguna de estas preguntas?\n${suggestions.map(s => `• ${s}`).join('\n')}`
           : ''
 
@@ -447,7 +447,7 @@ export function MiniChat() {
           sender: 'bot',
           timestamp: new Date()
         }
-        
+
         setIsTyping(false)
         setMessages(prev => [...prev, botResponse])
       }
@@ -519,7 +519,7 @@ export function MiniChat() {
   const renderFormattedText = (text: string) => {
     // Dividir por líneas para mantener la estructura
     const lines = text.split('\n')
-    
+
     return lines.map((line, index) => {
       // Encabezados con **texto**
       if (line.includes('**')) {
@@ -535,7 +535,7 @@ export function MiniChat() {
           </p>
         )
       }
-      
+
       // Listas con * o +
       if (line.trim().startsWith('*') || line.trim().startsWith('+') || line.trim().startsWith('-')) {
         const content = line.trim().substring(1).trim()
@@ -545,7 +545,7 @@ export function MiniChat() {
           </li>
         )
       }
-      
+
       // Paso numerado
       if (/^\d+\./.test(line.trim())) {
         return (
@@ -554,12 +554,12 @@ export function MiniChat() {
           </li>
         )
       }
-      
+
       // Líneas vacías
       if (line.trim() === '') {
         return <div key={index} className="h-2" />
       }
-      
+
       // Texto normal
       return <p key={index} className="mb-1 text-sm leading-relaxed">{line}</p>
     })
@@ -582,7 +582,7 @@ export function MiniChat() {
             >
               <MessageCircle className="h-6 w-6 text-white" />
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-pulse" />
-              
+
               {/* Tooltip */}
               <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="bg-slate-900 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap shadow-xl">
@@ -632,23 +632,23 @@ export function MiniChat() {
                     onClick={switchToChat}
                     className={cn(
                       "flex-1 py-3 text-sm font-medium transition-colors border-b-2",
-                      showChat 
-                        ? "border-blue-600 text-blue-600 bg-slate-900" 
+                      showChat
+                        ? "border-blue-600 text-blue-600 bg-slate-900"
                         : "border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-900"
                     )}
                   >
-                    💬 Chat
+                    Chat
                   </button>
                   <button
                     onClick={switchToFAQs}
                     className={cn(
                       "flex-1 py-3 text-sm font-medium transition-colors border-b-2",
-                      !showChat 
-                        ? "border-blue-600 text-blue-600 bg-slate-900" 
+                      !showChat
+                        ? "border-blue-600 text-blue-600 bg-slate-900"
                         : "border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-900"
                     )}
                   >
-                    📚 FAQs
+                    FAQs
                   </button>
                 </div>
 
@@ -709,7 +709,7 @@ export function MiniChat() {
                                   message.sender === 'user' ? "text-blue-100" : "text-blue-600"
                                 )}
                               >
-                                📖 Ver detalles completos
+                                Ver detalles completos
                                 <ChevronRight className="h-3 w-3" />
                               </button>
                             )}
@@ -717,9 +717,9 @@ export function MiniChat() {
                               "text-xs mt-1",
                               message.sender === 'user' ? "opacity-80" : "opacity-60"
                             )}>
-                              {message.timestamp.toLocaleTimeString('es', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                              {message.timestamp.toLocaleTimeString('es', {
+                                hour: '2-digit',
+                                minute: '2-digit'
                               })}
                             </p>
                           </div>
@@ -787,7 +787,7 @@ export function MiniChat() {
                                   Consultando Groq AI...
                                 </>
                               ) : (
-                                '🤖 Escribiendo...'
+                                'Escribiendo...'
                               )}
                             </>
                           ) : (
@@ -805,7 +805,7 @@ export function MiniChat() {
                             onClick={() => setMessages(messages.slice(0, 1))}
                             className="text-xs text-slate-500 hover:text-slate-300"
                           >
-                            🗑️ Limpiar chat
+                            Limpiar chat
                           </button>
                         )}
                       </div>

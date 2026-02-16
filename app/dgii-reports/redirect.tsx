@@ -145,7 +145,7 @@ export default function DGIIReportsRedirect() {
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-medium text-blue-900 mb-2">
+              <h3 className="text-lg font-medium text-blue-300 mb-2">
                 Sobre los Reportes IR-2
               </h3>
               <p className="text-blue-300 text-sm leading-relaxed">

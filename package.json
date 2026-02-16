@@ -54,6 +54,8 @@
     "recharts": "latest",
     "sonner": "latest",
     "speakeasy": "^2.0.0",
+    "styled-jsx": "5.1.1",
+    "sharp": "^0.33.5",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "^0.18.5"

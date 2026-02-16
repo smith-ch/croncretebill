@@ -158,7 +158,7 @@ export function AnimatedCard({
           "hover:shadow-md": variant === "default",
           "shadow-lg hover:shadow-xl": variant === "elevated",
           "backdrop-blur-md bg-white/10 border-white/20": variant === "glass",
-          "bg-gradient-to-br from-blue-50 to-indigo-50 border-slate-700": variant === "gradient",
+          "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700": variant === "gradient",
           "cursor-pointer hover:border-blue-300": variant === "interactive",
         },
         className

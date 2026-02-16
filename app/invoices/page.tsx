@@ -38,7 +38,7 @@ export default function InvoicesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
-  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'delete' | 'markPaid'}>({show: false, id: null, type: 'delete'})
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, id: string | null, type: 'delete' | 'markPaid' }>({ show: false, id: null, type: 'delete' })
   const [isProcessing, setIsProcessing] = useState(false)
   const [showUSD, setShowUSD] = useState(false)
   const { formatCurrency, formatUSD, exchangeRate } = useCurrency()
@@ -129,7 +129,7 @@ export default function InvoicesPage() {
   }
 
   const handleMarkAsPaid = async (id: string) => {
-    setDeleteConfirm({show: true, id, type: 'markPaid'})
+    setDeleteConfirm({ show: true, id, type: 'markPaid' })
   }
 
   const handleDelete = async (id: string) => {
@@ -141,8 +141,8 @@ export default function InvoicesPage() {
       })
       return
     }
-    
-    setDeleteConfirm({show: true, id, type: 'delete'})
+
+    setDeleteConfirm({ show: true, id, type: 'delete' })
   }
 
   const confirmAction = async () => {
@@ -161,7 +161,7 @@ export default function InvoicesPage() {
         if (error) {
           throw error
         }
-        
+
         toast({
           title: "Factura actualizada",
           description: "La factura ha sido marcada como pagada"
@@ -171,13 +171,13 @@ export default function InvoicesPage() {
         if (error) {
           throw error
         }
-        
+
         toast({
           title: "Factura eliminada",
           description: "La factura ha sido eliminada exitosamente"
         })
       }
-      
+
       fetchInvoices()
     } catch (error) {
       console.error("Error processing invoice:", error)
@@ -188,7 +188,7 @@ export default function InvoicesPage() {
       })
     } finally {
       setIsProcessing(false)
-      setDeleteConfirm({show: false, id: null, type: 'delete'})
+      setDeleteConfirm({ show: false, id: null, type: 'delete' })
     }
   }
 
@@ -233,7 +233,7 @@ export default function InvoicesPage() {
             <div className="h-10 w-48 bg-gray-200 rounded-lg skeleton"></div>
             <div className="h-10 w-full sm:w-40 bg-gray-200 rounded-lg skeleton"></div>
           </div>
-          
+
           {/* Stats cards skeleton */}
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
@@ -260,7 +260,7 @@ export default function InvoicesPage() {
           {/* Invoice cards skeleton */}
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Card key={i} className="skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
+              <Card key={i} className="skeleton animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
                 <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">
@@ -289,7 +289,7 @@ export default function InvoicesPage() {
       <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8 overflow-x-hidden">
         <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4 lg:gap-6">
           <div className="space-y-2">
-            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl lg:text-4xl font-bold text-slate-200">
               Gestión de Facturas
             </h1>
             <p className="text-sm lg:text-base text-slate-400">Administra y controla todas tus facturas</p>
@@ -327,12 +327,12 @@ export default function InvoicesPage() {
             <AlertDescription className={remainingInvoices === 0 ? "text-red-300" : "text-amber-300"}>
               {remainingInvoices === 0 ? (
                 <span>
-                  <strong>Límite alcanzado:</strong> Has usado todas las {limits.maxInvoices} facturas de tu {limits.planDisplayName} este mes. 
+                  <strong>Límite alcanzado:</strong> Has usado todas las {limits.maxInvoices} facturas de tu {limits.planDisplayName} este mes.
                   <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
                 </span>
               ) : (
                 <span>
-                  <strong>Atención:</strong> Te quedan solo {remainingInvoices} factura(s) de {limits.maxInvoices} en tu {limits.planDisplayName}. 
+                  <strong>Atención:</strong> Te quedan solo {remainingInvoices} factura(s) de {limits.maxInvoices} en tu {limits.planDisplayName}.
                   <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
                 </span>
               )}
@@ -346,7 +346,7 @@ export default function InvoicesPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">Total Facturas</p>
-                  <p className="text-xl sm:text-2xl font-bold text-blue-900">{totalInvoices}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-300">{totalInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <FileText className="h-5 w-5 text-white" />
@@ -355,12 +355,12 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.1s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{ animationDelay: '0.1s' }}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-emerald-400 uppercase tracking-wide mb-1">Monto Total</p>
-                  <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(totalAmount)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-emerald-400 truncate">{formatCurrency(totalAmount)}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <DollarSign className="h-5 w-5 text-white" />
@@ -369,12 +369,12 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.2s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{ animationDelay: '0.2s' }}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-green-400 uppercase tracking-wide mb-1">Pagadas</p>
-                  <p className="text-xl sm:text-2xl font-bold text-green-900">{paidInvoices}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-300">{paidInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <Eye className="h-5 w-5 text-white" />
@@ -383,12 +383,12 @@ export default function InvoicesPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{animationDelay: '0.3s'}}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 card-hover animate-scale-in" style={{ animationDelay: '0.3s' }}>
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-amber-400 uppercase tracking-wide mb-1">Pendientes</p>
-                  <p className="text-xl sm:text-2xl font-bold text-amber-900">{pendingInvoices}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-amber-300">{pendingInvoices}</p>
                 </div>
                 <div className="hidden sm:block p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex-shrink-0 ml-2 shadow-md">
                   <Calendar className="h-5 w-5 text-white" />
@@ -398,7 +398,7 @@ export default function InvoicesPage() {
           </Card>
         </div>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 overflow-hidden">
+        <Card className="border-0 shadow-lg bg-slate-900 border-slate-700 overflow-hidden">
           <CardHeader>
             <CardTitle className="text-slate-200 flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -445,8 +445,8 @@ export default function InvoicesPage() {
               </Select>
 
               <div className="flex-shrink-0">
-                <CurrencyConverter 
-                  onToggle={setShowUSD} 
+                <CurrencyConverter
+                  onToggle={setShowUSD}
                   exchangeRate={exchangeRate}
                   currentCurrency="DOP"
                   variant="compact"
@@ -456,14 +456,14 @@ export default function InvoicesPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-50 overflow-hidden">
+        <Card className="border-0 shadow-lg bg-slate-900 border-slate-700 overflow-hidden">
           <CardContent className="p-6 w-full overflow-x-hidden">
             {filteredInvoices.length === 0 ? (
               <div className="text-center py-12">
-                <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <div className="p-4 bg-slate-800 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                   <FileText className="h-10 w-10 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
                   {searchTerm || statusFilter !== "all" || dateFilter !== "all"
                     ? "No se encontraron facturas"
                     : "No hay facturas"}
@@ -488,12 +488,12 @@ export default function InvoicesPage() {
                 {filteredInvoices.map((invoice, index) => (
                   <div
                     key={invoice.id}
-                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-800 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up w-full"
-                    style={{animationDelay: `${index * 0.05}s`}}
+                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 sm:p-4 lg:p-6 border border-slate-800 rounded-xl hover:bg-slate-800/50 hover:border-slate-600 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 card-hover gap-3 lg:gap-0 animate-slide-up w-full"
+                    style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="flex-1 min-w-0 overflow-x-hidden">
                       <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
-                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-900 transition-colors truncate">
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-100 group-hover:text-blue-400 transition-colors truncate">
                           {invoice.invoice_number || "Sin número"}
                         </h3>
                         <Badge className={`${getStatusColor(invoice.status || "borrador")} border text-xs whitespace-nowrap`}>
@@ -531,7 +531,7 @@ export default function InvoicesPage() {
                       <div className="text-left lg:text-right w-full sm:w-auto">
                         {showUSD ? (
                           <div>
-                            <p className="text-xl sm:text-2xl font-bold text-green-600">
+                            <p className="text-xl sm:text-2xl font-bold text-green-400">
                               {formatUSD((invoice.total || 0) / exchangeRate)}
                             </p>
                             <p className="text-xs text-slate-500">
@@ -539,7 +539,7 @@ export default function InvoicesPage() {
                             </p>
                           </div>
                         ) : (
-                          <DualCurrencyDisplay 
+                          <DualCurrencyDisplay
                             amount={invoice.total || 0}
                             exchangeRate={exchangeRate}
                             showBoth={true}
@@ -563,7 +563,7 @@ export default function InvoicesPage() {
                             </Link>
                           </Button>
                         )}
-                        <InvoicePDFPreview 
+                        <InvoicePDFPreview
                           invoiceId={invoice.id}
                           invoiceNumber={invoice.invoice_number}
                         />
@@ -610,7 +610,7 @@ export default function InvoicesPage() {
 
       <ConfirmDialog
         open={deleteConfirm.show}
-        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null, type: 'delete'})}
+        onOpenChange={(isOpen) => setDeleteConfirm({ show: isOpen, id: null, type: 'delete' })}
         title={deleteConfirm.type === 'markPaid' ? "Marcar como Pagada" : "Eliminar Factura"}
         description={
           deleteConfirm.type === 'markPaid'

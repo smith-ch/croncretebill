@@ -60,7 +60,7 @@ export default function NewPurchasePage() {
         {/* Información importante */}
         <Card className="mb-6 border-slate-700 bg-slate-900">
           <CardHeader>
-            <CardTitle className="text-blue-900">¿Cómo clasificar tu compra?</CardTitle>
+            <CardTitle className="text-blue-300">¿Cómo clasificar tu compra?</CardTitle>
             <CardDescription className="text-blue-400">
               Selecciona la opción correcta según el uso del artículo
             </CardDescription>

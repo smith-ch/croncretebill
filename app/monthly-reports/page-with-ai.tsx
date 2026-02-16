@@ -367,7 +367,7 @@ export default function MonthlyReportsWithAI() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Reportes Mensuales con IA</h1>
+          <h1 className="text-3xl font-bold text-slate-100">Reportes Mensuales con IA</h1>
           <p className="text-slate-400 mt-1">Análisis inteligente de tu rendimiento financiero</p>
         </div>
         <Button
@@ -407,12 +407,12 @@ export default function MonthlyReportsWithAI() {
           <TabsContent value="overview" className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-900/50 to-blue-800/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-blue-600 font-medium uppercase">Ingresos Totales</p>
-                      <p className="text-xl font-bold text-blue-900">{formatCurrency(kpiData.totalRevenue)}</p>
+                      <p className="text-xl font-bold text-blue-300">{formatCurrency(kpiData.totalRevenue)}</p>
                       <div className="flex items-center space-x-1">
                         <ArrowUpRight className="h-3 w-3 text-emerald-600" />
                         <span className="text-xs text-emerald-600">+{kpiData.revenueGrowthTrend}%</span>
@@ -423,28 +423,28 @@ export default function MonthlyReportsWithAI() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-900/50 to-emerald-800/50 border-emerald-700/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-emerald-600 font-medium uppercase">Ganancia Neta</p>
-                      <p className="text-xl font-bold text-emerald-900">{formatCurrency(kpiData.netProfit)}</p>
+                      <p className="text-xs text-emerald-400 font-medium uppercase">Ganancia Neta</p>
+                      <p className="text-xl font-bold text-emerald-200">{formatCurrency(kpiData.netProfit)}</p>
                       <div className="flex items-center space-x-1">
-                        <Percent className="h-3 w-3 text-emerald-600" />
-                        <span className="text-xs text-emerald-400">{kpiData.profitMargin.toFixed(1)}% margen</span>
+                        <Percent className="h-3 w-3 text-emerald-400" />
+                        <span className="text-xs text-emerald-300">{kpiData.profitMargin.toFixed(1)}% margen</span>
                       </div>
                     </div>
-                    <TrendingUp className="h-8 w-8 text-emerald-600" />
+                    <TrendingUp className="h-8 w-8 text-emerald-400" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-900/50 to-purple-800/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-purple-600 font-medium uppercase">Salud del Negocio</p>
-                      <p className="text-xl font-bold text-purple-900">{kpiData.businessHealthScore}/100</p>
+                      <p className="text-xl font-bold text-purple-300">{kpiData.businessHealthScore}/100</p>
                       <div className="flex items-center space-x-1">
                         <Award className="h-3 w-3 text-purple-600" />
                         <span className="text-xs text-purple-400">
@@ -457,12 +457,12 @@ export default function MonthlyReportsWithAI() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-900/50 to-amber-800/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-amber-600 font-medium uppercase">Crecimiento</p>
-                      <p className="text-xl font-bold text-amber-900">+{kpiData.averageGrowth}%</p>
+                      <p className="text-xl font-bold text-amber-300">+{kpiData.averageGrowth}%</p>
                       <div className="flex items-center space-x-1">
                         <Activity className="h-3 w-3 text-amber-600" />
                         <span className="text-xs text-amber-400">promedio</span>
@@ -564,7 +564,7 @@ export default function MonthlyReportsWithAI() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-900">
+                    <div className="text-3xl font-bold text-blue-300">
                       {formatCurrency(aiInsights.predictions.nextMonthRevenue)}
                     </div>
                     <div className="text-sm text-blue-400">Próximo Mes</div>
@@ -581,7 +581,7 @@ export default function MonthlyReportsWithAI() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-900/50 to-emerald-800/50 border-emerald-700/50">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-emerald-300">
                     <Lightbulb className="h-5 w-5" />

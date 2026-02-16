@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
+import { CheckCircle, AlertCircle, Info, X, Bell, Check, AlertTriangle } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -42,7 +42,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const addNotification = (notification: Omit<Notification, 'id'>) => {
     // Create a unique key for this notification to prevent duplicates
     const notificationKey = `${notification.type}-${notification.title}-${notification.message}`
-    
+
     // Check if this notification was recently shown or dismissed
     if (recentNotifications.has(notificationKey) || dismissedNotifications.has(notificationKey)) {
       return
@@ -51,9 +51,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Use timestamp + counter for truly unique ID generation
     const id = `notification-${Date.now()}-${idCounter}`
     setIdCounter(prev => prev + 1)
-    
+
     const newNotification = { ...notification, id }
-    
+
     // Limit the number of notifications shown at once (max 5)
     setNotifications(prev => {
       const newNotifications = [newNotification, ...prev]
@@ -86,7 +86,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       const notificationKey = `${notification.type}-${notification.title}-${notification.message}`
       setDismissedNotifications(prev => new Set(prev).add(notificationKey))
     }
-    
+
     setNotifications(prev => prev.filter(notification => notification.id !== id))
   }
 
@@ -96,7 +96,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       const notificationKey = `${notification.type}-${notification.title}-${notification.message}`
       setDismissedNotifications(prev => new Set(prev).add(notificationKey))
     })
-    
+
     setNotifications([])
   }
 
@@ -167,7 +167,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
         return {
           icon: CheckCircle,
           colors: 'from-emerald-500 to-green-600',
-          bgColors: 'from-emerald-50 to-green-50',
+          bgColors: 'from-emerald-900/50 to-green-900/50',
           textColors: 'text-emerald-900',
           borderColors: 'border-emerald-800',
         }
@@ -191,7 +191,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
         return {
           icon: Info,
           colors: 'from-blue-500 to-indigo-600',
-          bgColors: 'from-blue-50 to-indigo-50',
+          bgColors: 'from-blue-900/50 to-indigo-900/50',
           textColors: 'text-blue-900',
           borderColors: 'border-slate-700',
         }
@@ -212,7 +212,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
       <div className={`absolute inset-0 bg-gradient-to-r ${config.colors}/5`}></div>
       <div className="relative p-4">
         <div className="flex items-start gap-3">
-          <motion.div 
+          <motion.div
             className={`p-2 bg-gradient-to-r ${config.colors} rounded-xl shadow-lg flex-shrink-0`}
             initial={{ rotate: -180, scale: 0 }}
             animate={{ rotate: 0, scale: 1 }}
@@ -221,7 +221,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
             <IconComponent className="h-5 w-5 text-white" />
           </motion.div>
           <div className="flex-1 min-w-0">
-            <motion.h4 
+            <motion.h4
               className={`font-bold ${config.textColors} text-sm mb-1`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -229,7 +229,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ notification, onRem
             >
               {notification.title}
             </motion.h4>
-            <motion.p 
+            <motion.p
               className={`${config.textColors} text-sm leading-relaxed`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
