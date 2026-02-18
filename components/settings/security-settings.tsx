@@ -9,19 +9,18 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading"
-import { 
-  Shield, 
-  Key, 
+import {
+  Shield,
+  Key,
   Smartphone,
   Lock,
-  AlertTriangle, 
-  Eye, 
-  EyeOff, 
-  Save, 
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  Save,
   CheckCircle
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { RoleSecuritySettings } from "./role-security-settings"
 
 interface SecuritySettings {
   current_password: string
@@ -46,7 +45,7 @@ export function SecuritySettingsComponent() {
   const [showCurrentPassword, setShowCurrentPassword] = React.useState(false)
   const [showNewPassword, setShowNewPassword] = React.useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
-  
+
   const [settings, setSettings] = React.useState<SecuritySettings>({
     current_password: "",
     new_password: "",
@@ -69,7 +68,7 @@ export function SecuritySettingsComponent() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         setError("Error de autenticación")
         return
@@ -172,7 +171,7 @@ export function SecuritySettingsComponent() {
       }
 
       setSuccess("Configuración de seguridad actualizada exitosamente")
-      
+
       // Limpiar campos de contraseña
       setSettings(prev => ({
         ...prev,
@@ -189,7 +188,7 @@ export function SecuritySettingsComponent() {
   }
 
   const updateSetting = <K extends keyof SecuritySettings>(
-    key: K, 
+    key: K,
     value: SecuritySettings[K]
   ) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -199,7 +198,7 @@ export function SecuritySettingsComponent() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         setError("Error de autenticación")
         return
@@ -508,9 +507,6 @@ export function SecuritySettingsComponent() {
           <AlertDescription className="text-green-300 dark:text-green-300">{success}</AlertDescription>
         </Alert>
       )}
-
-      {/* Role Security Settings */}
-      <RoleSecuritySettings />
 
       {/* Save Button */}
       <div className="flex justify-end">

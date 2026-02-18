@@ -48,8 +48,14 @@ import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useAuth } from "@/hooks/use-auth"
-import { useCompanyData } from "@/hooks/use-company-data"
+import { useCompanyData, type CompanyData } from "@/hooks/use-company-data"
 
+interface ProfileData {
+  first_name: string
+  last_name: string
+  email: string
+  avatar_url?: string
+}
 const mobileNavigation = [
   {
     name: "Dashboard",
@@ -182,17 +188,10 @@ const mobileNavigation = [
     href: "/faq",
     icon: HelpCircle,
     module: "faq",
-  },
+  }
 ]
 
-interface CompanyData {
-  company_name: string
-  company_email: string
-  company_phone: string
-  company_address: string
-  tax_id: string
-  business_type: string
-}
+
 
 interface ProfileData {
   first_name: string
@@ -603,11 +602,9 @@ export function MobileNav() {
                       console.error("Error logging out:", error)
                     }
                   }}
-                  className="w-full justify-start px-4 py-3 text-left font-semibold text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-400 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md"
+                  className="w-full justify-start px-4 py-4 text-left font-semibold text-red-600 hover:bg-red-50/10 hover:text-red-400 rounded-xl transition-all duration-300 transform active:scale-95 shadow-sm active:shadow-inner"
                 >
-                  <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
+                  <LogOut className="h-5 w-5 mr-3" />
                   Cerrar Sesión
                 </Button>
               </div>

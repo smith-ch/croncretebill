@@ -10,7 +10,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { NotificationProvider } from "@/components/notifications/notification-provider"
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { Toaster } from "@/components/ui/toaster"
-import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { useAutoLogout } from "@/hooks/use-auto-logout"
 import { SessionIndicator } from "@/components/auth/session-indicator"
 import { RouteProtection } from "@/components/auth/route-protection"
@@ -176,7 +175,6 @@ export default function ClientLayout({
                 )}
               </div>
               <Toaster />
-              <SonnerToaster />
             </NotificationProvider>
           </ThemeProvider>
         </body>
@@ -195,7 +193,6 @@ export default function ClientLayout({
                 {children}
               </div>
               <Toaster />
-              <SonnerToaster />
             </NotificationProvider>
           </ThemeProvider>
         </body>
@@ -256,7 +253,6 @@ export default function ClientLayout({
               <OfflineIndicator />
             </div>
             <Toaster />
-            <SonnerToaster />
           </NotificationProvider>
         </ThemeProvider>
       </body>
