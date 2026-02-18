@@ -24,17 +24,8 @@ import { supabase } from "@/lib/supabase"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useAuth } from "@/hooks/use-auth"
-import { useCompanyData } from "@/hooks/use-company-data"
+import { useCompanyData, type CompanyData, type UserData } from "@/hooks/use-company-data"
 import { cn } from "@/lib/utils"
-
-interface CompanyData {
-  company_name: string
-  company_email: string
-  company_phone: string
-  company_address: string
-  tax_id: string
-  business_type: string
-}
 
 interface ProfileData {
   first_name: string
@@ -221,186 +212,217 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
   return (
     <div className="border-b border-slate-800/50 bg-slate-900/80 backdrop-blur-sm">
       {/* Sección de Empresa y Perfil */}
-      <div className="px-3 py-2 space-y-2">
+      <div className={cn("transition-all duration-300", isCollapsed ? "p-2" : "px-3 py-2 space-y-2")}>
         {/* Información de la empresa */}
         {company && (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="p-1 bg-slate-800 rounded-md flex-shrink-0 border border-slate-700/50">
-                  <Building2 className="h-3.5 w-3.5 text-slate-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-xs text-slate-200 truncate">
-                    {company.company_name || "Sin nombre"}
-                  </h3>
-                  <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-700 text-[9px] px-1 py-0 mt-0.5">
-                    {company.business_type || "SRL"}
-                  </Badge>
-                </div>
+          isCollapsed ? (
+            <div className="flex justify-center mb-2">
+              <div className="p-1.5 bg-slate-800 rounded-lg border border-slate-700/50" title={company.company_name}>
+                <Building2 className="h-5 w-5 text-slate-400" />
               </div>
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="p-0.5 hover:bg-slate-800/50 rounded-md transition-all duration-200 flex-shrink-0 hover:scale-110"
-                aria-label={isExpanded ? "Contraer información" : "Expandir información"}
-              >
-                {isExpanded ? (
-                  <ChevronUp className="h-3 w-3 text-slate-400 transition-transform duration-200" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-slate-400 transition-transform duration-200" />
-                )}
-              </button>
             </div>
-
-            {/* Información expandida de la empresa */}
-            {isExpanded && (
-              <div className="space-y-1 pl-1.5 text-[10px] text-slate-400 animate-slide-down">
-                {company.company_email && (
-                  <div className="flex items-center gap-1 truncate">
-                    <Mail className="h-2.5 w-2.5 text-slate-500 flex-shrink-0" />
-                    <span className="truncate">{company.company_email}</span>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <div className="p-1.5 bg-slate-800 rounded-lg flex-shrink-0 border border-slate-700/50">
+                    <Building2 className="h-4 w-4 text-slate-400" />
                   </div>
-                )}
-                {company.company_phone && (
-                  <div className="flex items-center gap-1">
-                    <Phone className="h-2.5 w-2.5 text-slate-500 flex-shrink-0" />
-                    <span>{company.company_phone}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-xs sm:text-sm text-slate-200 truncate leading-none">
+                      {company.company_name || "Sin nombre"}
+                    </h3>
+                    <Badge variant="outline" className="bg-slate-800 text-slate-400 border-slate-700 text-[10px] px-1.5 py-0 mt-1 w-fit">
+                      {company.business_type || "SRL"}
+                    </Badge>
                   </div>
-                )}
-                {company.company_address && (
-                  <div className="flex items-center gap-1 truncate">
-                    <MapPin className="h-2.5 w-2.5 text-slate-500 flex-shrink-0" />
-                    <span className="truncate text-[9px]">{company.company_address}</span>
-                  </div>
-                )}
-                {company.tax_id && (
-                  <div className="flex items-center gap-1">
-                    <FileText className="h-2.5 w-2.5 text-slate-500 flex-shrink-0" />
-                    <span>RNC: {company.tax_id}</span>
-                  </div>
-                )}
+                </div>
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="p-1 hover:bg-slate-800/50 rounded-md transition-all duration-200 flex-shrink-0 hover:scale-110"
+                  aria-label={isExpanded ? "Contraer información" : "Expandir información"}
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 transition-transform duration-200" />
+                  )}
+                </button>
               </div>
-            )}
-          </div>
+
+              {/* Información expandida de la empresa */}
+              {isExpanded && (
+                <div className="space-y-1.5 pl-2 text-xs text-slate-400 animate-slide-down pt-1">
+                  {company.company_email && (
+                    <div className="flex items-center gap-2 truncate">
+                      <Mail className="h-3 w-3 text-slate-500 flex-shrink-0" />
+                      <span className="truncate">{company.company_email}</span>
+                    </div>
+                  )}
+                  {company.company_phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-3 w-3 text-slate-500 flex-shrink-0" />
+                      <span>{company.company_phone}</span>
+                    </div>
+                  )}
+                  {company.company_address && (
+                    <div className="flex items-center gap-2 truncate">
+                      <MapPin className="h-3 w-3 text-slate-500 flex-shrink-0" />
+                      <span className="truncate">{company.company_address}</span>
+                    </div>
+                  )}
+                  {company.tax_id && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-3 w-3 text-slate-500 flex-shrink-0" />
+                      <span>RNC: {company.tax_id}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
         )}
 
         {/* Perfil del usuario */}
         {profile && (
-          <div className="flex items-center gap-2 pt-1.5 border-t border-slate-800/50">
-            <Avatar className="h-7 w-7 border-2 border-slate-700">
-              <AvatarImage
-                src={profile.avatar_url}
-                alt={`${profile.first_name} ${profile.last_name}`}
-              />
-              <AvatarFallback className="bg-slate-800 text-slate-300 font-semibold text-[10px]">
-                {getInitials(profile.first_name, profile.last_name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-[10px] text-slate-200 truncate">
-                {profile.first_name && profile.last_name
-                  ? `${profile.first_name} ${profile.last_name}`
-                  : "Usuario"
-                }
-              </p>
-              {permissions.isRealEmployee ? (
-                <Badge className="bg-green-900/50 text-green-400 border-green-800 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
-                  <User className="h-2 w-2" /> Empleado
-                </Badge>
-              ) : permissions.role === 'employee' ? (
-                <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
-                  <RefreshCw className="h-2 w-2" /> Modo Prueba
-                </Badge>
-              ) : (
-                <Badge className="bg-amber-900/50 text-amber-400 border-amber-800 text-[8px] px-1 py-0 h-3.5 mt-0.5 flex items-center gap-1">
-                  <Crown className="h-2 w-2" /> Propietario
-                </Badge>
-              )}
+          isCollapsed ? (
+            <div className="flex justify-center pt-2 border-t border-slate-800/50">
+              <Avatar className="h-8 w-8 border-2 border-slate-700 shadow-sm" title={`${profile.first_name} ${profile.last_name}`}>
+                <AvatarImage
+                  src={profile.avatar_url}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                />
+                <AvatarFallback className="bg-slate-800 text-slate-300 font-semibold text-xs">
+                  {getInitials(profile.first_name, profile.last_name)}
+                </AvatarFallback>
+              </Avatar>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3 pt-2.5 border-t border-slate-800/50">
+              <Avatar className="h-9 w-9 border-2 border-slate-700 shadow-sm">
+                <AvatarImage
+                  src={profile.avatar_url}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                />
+                <AvatarFallback className="bg-slate-800 text-slate-300 font-semibold text-xs">
+                  {getInitials(profile.first_name, profile.last_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-xs sm:text-sm text-slate-200 truncate leading-none mb-1">
+                  {profile.first_name && profile.last_name
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : "Usuario"
+                  }
+                </p>
+                {permissions.isRealEmployee ? (
+                  <Badge className="bg-green-900/50 text-green-400 border-green-800 text-[10px] px-1.5 py-0 h-4 flex items-center gap-1 w-fit">
+                    <User className="h-2.5 w-2.5" /> <span className="truncate">Empleado</span>
+                  </Badge>
+                ) : permissions.role === 'employee' ? (
+                  <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-[10px] px-1.5 py-0 h-4 flex items-center gap-1 w-fit">
+                    <RefreshCw className="h-2.5 w-2.5" /> <span className="truncate">Modo Prueba</span>
+                  </Badge>
+                ) : (
+                  <Badge className="bg-amber-900/50 text-amber-400 border-amber-800 text-[10px] px-1.5 py-0 h-4 flex items-center gap-1 w-fit">
+                    <Crown className="h-2.5 w-2.5" /> <span className="truncate">Propietario</span>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )
         )}
       </div>
 
-      {/* Métricas clave */}
-      {stats && (
-        <div className="px-3 py-2 bg-slate-900/90 border-t border-slate-800 space-y-1.5">
+      {/* Métricas clave - Only show if not collapsed */}
+      {stats && !isCollapsed && (
+        <div className="px-3 py-3 bg-slate-900/90 border-t border-slate-800 space-y-2">
           {/* Estado en línea y última actualización */}
-          <div className="flex items-center justify-between text-[9px]">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-900/30 rounded border border-green-800">
-              <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="font-medium text-green-400">En línea</span>
+          <div className="flex items-center justify-between text-[10px] sm:text-xs">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-900/20 rounded-full border border-emerald-800/50">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-medium text-emerald-400">En línea</span>
             </div>
-            <div className="flex items-center gap-0.5 text-slate-400">
-              <Clock className="h-2.5 w-2.5" />
+            <div className="flex items-center gap-1 text-slate-400">
+              <Clock className="h-3 w-3" />
               <span>{lastUpdate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
 
-          {/* Métricas en grid compacto */}
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="bg-slate-800 rounded-md p-1.5 border border-slate-700">
-              <div className="flex items-center gap-0.5 text-[9px] text-slate-400 mb-0.5">
-                <DollarSign className="h-2.5 w-2.5 text-blue-400" />
-                <span>Ingresos:</span>
+          {/* Métricas en grid responsive */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-slate-800/50 rounded-lg p-2 border border-slate-700/50 hover:bg-slate-800 transition-colors duration-200">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <DollarSign className="h-3 w-3 text-blue-400" />
+                <span>Ingresos</span>
               </div>
-              <p className="font-bold text-[11px] text-blue-400 truncate">
+              <p className="font-bold text-xs sm:text-sm text-blue-400 truncate tracking-tight">
                 {formatCurrency(stats.monthlyRevenue)}
               </p>
             </div>
 
-            <div className="bg-slate-800 rounded-md p-1.5 border border-slate-700">
-              <div className="flex items-center gap-0.5 text-[9px] text-slate-400 mb-0.5">
-                <Users className="h-2.5 w-2.5 text-green-400" />
-                <span>Clientes:</span>
+            <div className="bg-slate-800/50 rounded-lg p-2 border border-slate-700/50 hover:bg-slate-800 transition-colors duration-200">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <Users className="h-3 w-3 text-emerald-400" />
+                <span>Clientes</span>
               </div>
-              <p className="font-bold text-[11px] text-green-400">{stats.totalClients}</p>
+              <p className="font-bold text-xs sm:text-sm text-emerald-400 truncate">
+                {stats.totalClients}
+              </p>
             </div>
 
-            <div className="bg-slate-800 rounded-md p-1.5 border border-slate-700">
-              <div className="flex items-center gap-0.5 text-[9px] text-slate-400 mb-0.5">
-                <FileText className="h-2.5 w-2.5 text-purple-400" />
-                <span>Facturas:</span>
+            <div className="bg-slate-800/50 rounded-lg p-2 border border-slate-700/50 hover:bg-slate-800 transition-colors duration-200">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <FileText className="h-3 w-3 text-purple-400" />
+                <span>Facturas</span>
               </div>
-              <p className="font-bold text-[11px] text-purple-400">{stats.monthlyInvoices}</p>
+              <p className="font-bold text-xs sm:text-sm text-purple-400 truncate">
+                {stats.monthlyInvoices}
+              </p>
             </div>
 
             <div className={cn(
-              "rounded-md p-1.5 border",
-              monthlyProgress >= 75 ? "bg-emerald-900/30 border-emerald-800" :
-                monthlyProgress >= 50 ? "bg-amber-900/30 border-amber-800" :
-                  "bg-red-900/30 border-red-800"
+              "rounded-lg p-2 border transition-colors duration-200",
+              monthlyProgress >= 75 ? "bg-emerald-900/10 border-emerald-800/30 hover:bg-emerald-900/20" :
+                monthlyProgress >= 50 ? "bg-amber-900/10 border-amber-800/30 hover:bg-amber-900/20" :
+                  "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800"
             )}>
-              <div className="flex items-center gap-0.5 text-[9px] text-slate-400 mb-0.5">
-                <Target className="h-2.5 w-2.5" />
-                <span>Meta:</span>
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <Target className="h-3 w-3" />
+                <span>Meta</span>
               </div>
-              <p className={cn(
-                "font-bold text-[11px]",
-                monthlyProgress >= 75 ? "text-emerald-400" :
-                  monthlyProgress >= 50 ? "text-amber-400" :
-                    "text-red-400"
-              )}>
-                {monthlyProgress.toFixed(0)}%
-              </p>
+              <div className="flex items-baseline gap-1">
+                <p className={cn(
+                  "font-bold text-xs sm:text-sm truncate",
+                  monthlyProgress >= 75 ? "text-emerald-400" :
+                    monthlyProgress >= 50 ? "text-amber-400" :
+                      "text-slate-200"
+                )}>
+                  {monthlyProgress.toFixed(0)}%
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Alertas */}
           {(stats.overdueInvoices > 0 || stats.pendingInvoices > 5) && (
-            <div className="space-y-1">
+            <div className="space-y-1.5 pt-1">
               {stats.overdueInvoices > 0 && (
-                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-900/30 rounded border border-red-800">
-                  <AlertCircle className="h-2.5 w-2.5 text-red-400 flex-shrink-0" />
-                  <span className="text-[9px] font-semibold text-red-400">
-                    {stats.overdueInvoices} vencida{stats.overdueInvoices !== 1 ? 's' : ''}
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-red-900/20 rounded-lg border border-red-800/30">
+                  <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-medium text-red-300">
+                    {stats.overdueInvoices} facturas vencidas
                   </span>
                 </div>
               )}
               {stats.pendingInvoices > 5 && (
-                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-900/30 rounded border border-amber-800">
-                  <Clock className="h-2.5 w-2.5 text-amber-400 flex-shrink-0" />
-                  <span className="text-[9px] font-semibold text-amber-400">
-                    {stats.pendingInvoices} pendiente{stats.pendingInvoices !== 1 ? 's' : ''}
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-amber-900/20 rounded-lg border border-amber-800/30">
+                  <Clock className="h-3 w-3 text-amber-400 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-medium text-amber-300">
+                    {stats.pendingInvoices} facturas pendientes
                   </span>
                 </div>
               )}

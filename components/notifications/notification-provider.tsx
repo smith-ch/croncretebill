@@ -2,10 +2,10 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react"
 import { toast } from "@/hooks/use-toast"
-import { toast as sonnerToast } from "sonner"
+import { ToastAction } from "@/components/ui/toast"
 
 export type NotificationType = "success" | "error" | "warning" | "info"
-export type NotificationStyle = "toast" | "sonner" | "banner"
+export type NotificationStyle = "toast" | "banner"
 
 interface NotificationOptions {
   title?: string
@@ -53,68 +53,37 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const showToastNotification = useCallback(
     (type: NotificationType, message: string, options: NotificationOptions = {}) => {
-      const { title, description, duration = 5000, action, style = "toast" } = options
+      const { title, description, duration = 5000, action } = options
 
-      if (style === "sonner") {
-        switch (type) {
-          case "success":
-            sonnerToast.success(title || message, {
-              description: description || (title ? message : undefined),
-              duration,
-              action: action
-                ? {
-                    label: action.label,
-                    onClick: action.onClick,
-                  }
-                : undefined,
-            })
-            break
-          case "error":
-            sonnerToast.error(title || message, {
-              description: description || (title ? message : undefined),
-              duration,
-              action: action
-                ? {
-                    label: action.label,
-                    onClick: action.onClick,
-                  }
-                : undefined,
-            })
-            break
-          case "warning":
-            sonnerToast.warning(title || message, {
-              description: description || (title ? message : undefined),
-              duration,
-              action: action
-                ? {
-                    label: action.label,
-                    onClick: action.onClick,
-                  }
-                : undefined,
-            })
-            break
-          case "info":
-            sonnerToast.info(title || message, {
-              description: description || (title ? message : undefined),
-              duration,
-              action: action
-                ? {
-                    label: action.label,
-                    onClick: action.onClick,
-                  }
-                : undefined,
-            })
-            break
-        }
-      } else {
-        // Use custom toast system
-        toast({
-          title: title || message,
-          description: description || (title ? message : undefined),
-          variant: type === "error" ? "destructive" : "default",
-          duration,
-        })
+      // Map notification types to toast variants
+      let variant: "default" | "destructive" | "success" | "warning" | "info" = "default"
+
+      switch (type) {
+        case "error":
+          variant = "destructive"
+          break
+        case "success":
+          variant = "success"
+          break
+        case "warning":
+          variant = "warning"
+          break
+        case "info":
+          variant = "info"
+          break
       }
+
+      toast({
+        title: title || message,
+        description: description || (title ? message : undefined),
+        variant: variant,
+        duration,
+        action: action ? (
+          <ToastAction altText={action.label} onClick={action.onClick}>
+            {action.label}
+          </ToastAction>
+        ) : undefined,
+      })
     },
     [],
   )

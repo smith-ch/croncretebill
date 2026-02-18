@@ -11,13 +11,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  User, 
-  Camera, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Globe, 
+import {
+  User,
+  Camera,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
   Clock,
   Star,
   Edit2,
@@ -136,7 +136,7 @@ export function ProfileSettings() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         setError("Error de autenticación")
         setLoading(false)
@@ -162,7 +162,7 @@ export function ProfileSettings() {
         const { data: { publicUrl } } = supabase.storage
           .from("avatars")
           .getPublicUrl(fileName)
-        
+
         avatarUrl = publicUrl
       }
 
@@ -201,7 +201,7 @@ export function ProfileSettings() {
     try {
       const { data: { session }, error: authError } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (authError || !user) {
         setError("Error de autenticación")
         return
@@ -243,7 +243,7 @@ export function ProfileSettings() {
   return (
     <div className="space-y-8">
       {/* Header with Avatar */}
-      <Card variant="elevated" className="border-0 shadow-2xl bg-gradient-to-r from-slate-900 to-blue-50">
+      <Card variant="elevated" className="border border-slate-800 shadow-2xl bg-gradient-to-r from-slate-900 to-slate-950">
         <CardContent className="p-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative group">
@@ -253,7 +253,7 @@ export function ProfileSettings() {
                   {getInitials(profile.first_name || "U", profile.last_name || "S")}
                 </AvatarFallback>
               </Avatar>
-              
+
               <motion.div
                 className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                 whileHover={{ scale: 1.05 }}
@@ -261,7 +261,7 @@ export function ProfileSettings() {
               >
                 <Camera className="h-8 w-8 text-white" />
               </motion.div>
-              
+
               <input
                 id="avatar-upload"
                 type="file"
@@ -281,18 +281,18 @@ export function ProfileSettings() {
                   <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-md">{profile.bio}</p>
                 )}
               </div>
-              
+
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                <Badge variant="secondary" className="bg-slate-800 text-blue-400 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                <Badge variant="secondary" className="bg-blue-900/30 text-blue-300 border border-blue-800">
                   <User className="h-3 w-3 mr-1" />
                   Administrador
                 </Badge>
-                <Badge variant="secondary" className="bg-green-900/30 text-green-400 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+                <Badge variant="secondary" className="bg-green-900/30 text-green-300 border border-green-800">
                   <Star className="h-3 w-3 mr-1" />
                   Plan Pro
                 </Badge>
                 {profile.location && (
-                  <Badge variant="outline" className="bg-slate-800/80 dark:bg-slate-800/80 dark:border-slate-600 dark:text-slate-100">
+                  <Badge variant="outline" className="bg-slate-800/50 border-slate-700 text-slate-300">
                     <MapPin className="h-3 w-3 mr-1" />
                     {profile.location}
                   </Badge>
@@ -317,7 +317,7 @@ export function ProfileSettings() {
                     </>
                   )}
                 </Button>
-                
+
                 {editing && (
                   <Button
                     onClick={handleSave}
@@ -336,10 +336,10 @@ export function ProfileSettings() {
 
       {/* Profile Information */}
       <div className="grid gap-8 md:grid-cols-2">
-        <Card variant="glass" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
+        <Card variant="glass" className="border border-slate-800 shadow-xl bg-slate-900/40 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
-              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="flex items-center gap-2 text-slate-200">
+              <User className="h-5 w-5 text-blue-500" />
               Información Personal
             </CardTitle>
           </CardHeader>
@@ -384,10 +384,10 @@ export function ProfileSettings() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
+        <Card variant="glass" className="border border-slate-800 shadow-xl bg-slate-900/40 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 dark:text-slate-200">
-              <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="flex items-center gap-2 text-slate-200">
+              <Mail className="h-5 w-5 text-blue-500" />
               Información de Contacto
             </CardTitle>
           </CardHeader>
@@ -462,10 +462,10 @@ export function ProfileSettings() {
       </div>
 
       {/* Preferences */}
-      <Card variant="elevated" className="border-0 shadow-xl dark:bg-slate-800/80 dark:backdrop-blur-xl">
+      <Card variant="elevated" className="border border-slate-800 shadow-xl bg-slate-900/40 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 dark:text-slate-200">
-            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <CardTitle className="flex items-center gap-2 text-slate-200">
+            <Clock className="h-5 w-5 text-blue-500" />
             Preferencias de Notificación
           </CardTitle>
         </CardHeader>

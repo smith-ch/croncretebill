@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { toast } from '@/hooks/use-toast'
+import { ToastAction } from '@/components/ui/toast'
 
 /**
  * Hook to check if user's subscription plan has access to specific features
@@ -142,12 +143,15 @@ export function usePlanAccess() {
    */
   function requireAccess(featureName: string, hasAccess: boolean) {
     if (!hasAccess && !isLoading) {
-      toast.error(`Acceso Restringido`, {
+      toast({
+        variant: "destructive",
+        title: "Acceso Restringido",
         description: `El ${featureName} no está disponible en el Plan Gratuito. Actualiza tu plan para acceder.`,
-        action: {
-          label: 'Ver Planes',
-          onClick: () => router.push('/subscriptions/my-subscription'),
-        },
+        action: (
+          <ToastAction altText="Ver Planes" onClick={() => router.push('/subscriptions/my-subscription')}>
+            Ver Planes
+          </ToastAction>
+        ),
         duration: 5000,
       })
       router.push('/dashboard')

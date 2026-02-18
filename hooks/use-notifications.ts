@@ -13,7 +13,6 @@ export function useNotificationHelpers() {
     notifications.showSuccess(message, {
       title: options?.title,
       duration: options?.duration || 4000,
-      style: "sonner",
     })
   }
 
@@ -21,7 +20,6 @@ export function useNotificationHelpers() {
     notifications.showError(message, {
       title: options?.title || "Error",
       duration: options?.duration || 6000,
-      style: "sonner",
     })
   }
 
@@ -29,7 +27,6 @@ export function useNotificationHelpers() {
     notifications.showWarning(message, {
       title: options?.title || "Advertencia",
       duration: options?.duration || 5000,
-      style: "sonner",
     })
   }
 
@@ -37,7 +34,6 @@ export function useNotificationHelpers() {
     notifications.showInfo(message, {
       title: options?.title || "Información",
       duration: options?.duration || 4000,
-      style: "sonner",
     })
   }
 
@@ -52,7 +48,6 @@ export function useNotificationHelpers() {
   const notifyInvoicePaid = (invoiceNumber: string) => {
     notifications.showSuccess(`Factura ${invoiceNumber} marcada como pagada`, {
       title: "¡Pago registrado!",
-      style: "sonner",
       duration: 4000,
     })
   }
@@ -60,7 +55,6 @@ export function useNotificationHelpers() {
   const notifyInvoiceCreated = (invoiceNumber: string) => {
     notifications.showSuccess(`Factura ${invoiceNumber} creada exitosamente`, {
       title: "¡Factura creada!",
-      style: "sonner",
       duration: 4000,
     })
   }

@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { fetchWithDedup, getCacheKey, ClientCacheTTL } from '@/lib/client-fetch'
 
-interface CompanyData {
+export interface CompanyData {
   company_name?: string
   company_email?: string
   company_phone?: string
@@ -19,7 +19,7 @@ interface CompanyData {
   currency_code?: string
 }
 
-interface UserData {
+export interface UserData {
   id: string
   email: string
   first_name?: string
@@ -78,7 +78,7 @@ export function useCompanyData(): UseCompanyDataReturn {
         .maybeSingle()
 
       // Use owner's ID if employee, otherwise use current user's ID
-      const ownerUserId = profile?.parent_user_id || userData.id
+      const ownerUserId = (profile as any)?.parent_user_id || userData.id
 
       // Get company settings with deduplication
       const companyData = await fetchWithDedup(
