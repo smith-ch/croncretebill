@@ -574,7 +574,7 @@ export function MiniChat() {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-40"
+            className="fixed bottom-24 lg:bottom-6 right-6 z-40"
           >
             <Button
               onClick={() => setIsOpen(true)}
@@ -605,7 +605,7 @@ export function MiniChat() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', duration: 0.5 }}
-            className="fixed bottom-20 right-4 left-4 md:left-auto md:right-6 z-40 w-auto md:w-full md:max-w-md"
+            className="fixed bottom-36 lg:bottom-20 right-4 left-4 md:left-auto md:right-6 z-40 w-auto md:w-full md:max-w-md"
           >
             <Card className="border-0 shadow-2xl h-[70vh] md:h-[600px] flex flex-col">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg flex-shrink-0">
@@ -691,7 +691,7 @@ export function MiniChat() {
                               "max-w-[80%] rounded-lg px-4 py-3 shadow-sm",
                               message.sender === 'user'
                                 ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
-                                : "bg-slate-900 text-slate-900 border border-slate-800"
+                                : "bg-slate-800 text-slate-200 border border-slate-700"
                             )}
                           >
                             {message.sender === 'bot' ? (

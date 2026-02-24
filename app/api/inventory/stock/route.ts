@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   console.warn('Supabase environment variables not found. API routes may not work properly.')
 }
 
-const supabaseAdmin = supabaseUrl && supabaseServiceKey ? 
+const supabaseAdmin = supabaseUrl && supabaseServiceKey ?
   createClient(supabaseUrl, supabaseServiceKey) : null
 
 export async function GET(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
     const warehouseId = searchParams.get('warehouse_id')
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
@@ -80,9 +80,10 @@ export async function GET(request: NextRequest) {
     // Calculate additional metrics
     const enrichedStock = stock?.map(item => {
       const currentStock = item.current_stock || 0
-      const costPrice = item.product?.cost_price || item.product?.unit_price || 0
-      const reorderPoint = item.product?.reorder_point || 0
-      
+      const product = item.product as any
+      const costPrice = product?.cost_price || product?.unit_price || 0
+      const reorderPoint = product?.reorder_point || 0
+
       return {
         ...item,
         stock_value: currentStock * costPrice,

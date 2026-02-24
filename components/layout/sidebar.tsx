@@ -355,7 +355,7 @@ export function Sidebar() {
                       className={cn(
                         "w-full justify-center px-2 py-2 text-left font-normal hover:bg-slate-800 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-105 shadow-sm hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-r-2 border-blue-600 shadow-md",
+                        "bg-blue-600/10 text-blue-300 border-l-3 border-blue-500 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -377,7 +377,7 @@ export function Sidebar() {
                               variant="ghost"
                               className={cn(
                                 "w-full justify-start px-3 py-2 text-sm font-normal hover:bg-slate-800 text-slate-300 transition-all duration-300 rounded-md transform hover:scale-105 animate-fade-in",
-                                isActive(child.href) && "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 shadow-sm",
+                                isActive(child.href) && "bg-blue-600/10 text-blue-300 shadow-sm",
                               )}
                               style={{ animationDelay: `${childIndex * 0.05}s` }}
                             >
@@ -400,7 +400,7 @@ export function Sidebar() {
                       className={cn(
                         "w-full justify-between px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                         (isActive(item.href) || hasActiveChild) &&
-                        "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
+                        "bg-blue-600/10 text-blue-300 border-l-3 border-blue-500 shadow-md",
                       )}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
@@ -426,7 +426,7 @@ export function Sidebar() {
                           className={cn(
                             "w-full justify-start px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-400 transition-all duration-300 rounded-lg transform hover:scale-[1.02] animate-fade-in",
                             isActive(child.href) &&
-                            "bg-slate-800 text-white border-r-2 border-slate-600 shadow-sm",
+                            "bg-blue-600/10 text-blue-300 border-l-3 border-blue-500 shadow-sm",
                           )}
                           style={{ animationDelay: `${childIndex * 0.05}s` }}
                         >
@@ -448,7 +448,7 @@ export function Sidebar() {
                     "w-full px-3 py-2 text-left font-normal hover:bg-slate-800/50 text-slate-300 transition-all duration-300 rounded-lg transform hover:scale-[1.02] hover:shadow-md animate-fade-in",
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive(item.href) &&
-                    "bg-slate-800 text-white border-r-2 border-slate-600 shadow-md",
+                    "bg-blue-600/10 text-blue-300 border-l-3 border-blue-500 shadow-md",
                   )}
                   style={{ animationDelay: `${index * 0.1}s` }}
                   title={isCollapsed ? item.name : undefined}

@@ -958,7 +958,7 @@ export default function ThermalReceiptsPage() {
 
             {/* Quick Stats - Reorganizado para móvil */}
             {receipts.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:gap-3">
                 <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-2 lg:p-3 border border-blue-100">
                   <div className="flex items-center gap-1.5 lg:gap-2 mb-1">
                     <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4 text-blue-600 flex-shrink-0" />
