@@ -58,136 +58,61 @@ interface ProfileData {
 }
 const mobileNavigation = [
   {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    module: "dashboard",
+    section: "Principal",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, module: "dashboard" },
+    ]
   },
   {
-    name: "Facturas",
-    href: "/invoices",
-    icon: FileText,
-    module: "invoices",
+    section: "Ventas",
+    items: [
+      { name: "Facturas", href: "/invoices", icon: FileText, module: "invoices" },
+      { name: "Clientes", href: "/clients", icon: Users, module: "clients" },
+      { name: "Recibos Térmicos", href: "/thermal-receipts", icon: Receipt, module: "thermal-receipts" },
+      { name: "Comprobantes de Pago", href: "/payment-receipts", icon: CreditCard, module: "payment-receipts" },
+    ]
   },
   {
-    name: "Clientes",
-    href: "/clients",
-    icon: Users,
-    module: "clients",
+    section: "Inventario",
+    items: [
+      { name: "Productos", href: "/products", icon: Package, module: "products" },
+      { name: "Servicios", href: "/services", icon: Wrench, module: "services" },
+      { name: "Inventario", href: "/inventory", icon: Warehouse, module: "inventory" },
+      { name: "Presupuestos", href: "/products/budgets", icon: Calculator, module: "budgets" },
+    ]
   },
   {
-    name: "Productos",
-    href: "/products",
-    icon: Package,
-    module: "products",
+    section: "Finanzas",
+    items: [
+      { name: "Gastos", href: "/expenses", icon: DollarSign, module: "expenses" },
+      { name: "Compras", href: "/purchases", icon: ShoppingCart, module: "purchases" },
+      { name: "Rentabilidad", href: "/reports/profitability", icon: TrendingUp, module: "reports" },
+    ]
   },
   {
-    name: "Inventario",
-    href: "/inventory",
-    icon: Warehouse,
-    module: "inventory",
+    section: "Gestión",
+    items: [
+      { name: "Proyectos", href: "/projects", icon: FolderOpen, module: "projects" },
+      { name: "Agenda", href: "/agenda", icon: Calendar, module: "agenda" },
+      { name: "Empleados", href: "/settings/employee-config", icon: Users, module: "employees" },
+      { name: "Metas de Empleados", href: "/settings/employee-goals", icon: Target, module: "goals" },
+    ]
   },
   {
-    name: "Servicios",
-    href: "/services",
-    icon: Wrench,
-    module: "services",
+    section: "Reportes",
+    items: [
+      { name: "Reportes Mensuales", href: "/monthly-reports", icon: TrendingUp, module: "reports" },
+      { name: "Reportes DGII", href: "/dgii-reports", icon: FileBarChart, module: "reports" },
+    ]
   },
   {
-    name: "Proyectos",
-    href: "/projects",
-    icon: FolderOpen,
-    module: "projects",
-  },
-  {
-    name: "Gastos",
-    href: "/expenses",
-    icon: DollarSign,
-    module: "expenses",
-  },
-  {
-    name: "Compras",
-    href: "/purchases",
-    icon: ShoppingCart,
-    module: "purchases",
-  },
-  {
-    name: "Rentabilidad",
-    href: "/reports/profitability",
-    icon: TrendingUp,
-    module: "reports",
-  },
-  {
-    name: "Agenda",
-    href: "/agenda",
-    icon: Calendar,
-    module: "agenda",
-  },
-  {
-    name: "Recibos Térmicos",
-    href: "/thermal-receipts",
-    icon: Receipt,
-    module: "thermal-receipts",
-  },
-  {
-    name: "Comprobantes de Pago",
-    href: "/payment-receipts",
-    icon: CreditCard,
-    module: "payment-receipts",
-  },
-  {
-    name: "Empleados",
-    href: "/settings/employee-config",
-    icon: Users,
-    module: "employees",
-  },
-  {
-    name: "Metas de Empleados",
-    href: "/settings/employee-goals",
-    icon: Target,
-    module: "goals",
-  },
-  {
-    name: "Mi Suscripción",
-    href: "/subscriptions/my-subscription",
-    icon: CreditCard,
-    module: "subscription",
-  },
-  {
-    name: "Reportes Mensuales",
-    href: "/monthly-reports",
-    icon: TrendingUp,
-    module: "reports",
-  },
-  {
-    name: "Reportes DGII",
-    href: "/dgii-reports",
-    icon: FileBarChart,
-    module: "reports",
-  },
-  {
-    name: "Presupuestos",
-    href: "/products/budgets",
-    icon: Calculator,
-    module: "budgets",
-  },
-  {
-    name: "Sistema - Info",
-    href: "/system-info",
-    icon: Info,
-    module: "system",
-  },
-  {
-    name: "Configuración",
-    href: "/settings",
-    icon: Settings,
-    module: "settings",
-  },
-  {
-    name: "Ayuda",
-    href: "/faq",
-    icon: HelpCircle,
-    module: "faq",
+    section: "Sistema",
+    items: [
+      { name: "Configuración", href: "/settings", icon: Settings, module: "settings" },
+      { name: "Mi Suscripción", href: "/subscriptions/my-subscription", icon: CreditCard, module: "subscription" },
+      { name: "Sistema - Info", href: "/system-info", icon: Info, module: "system" },
+      { name: "Ayuda", href: "/faq", icon: HelpCircle, module: "faq" },
+    ]
   }
 ]
 
@@ -320,7 +245,7 @@ export function MobileNav() {
   return (
     <>
       {/* Mobile Header - Enhanced Design */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pwa-header bg-gradient-to-r from-slate-900 to-blue-50 backdrop-blur-md border-b border-slate-800 shadow-lg">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pwa-header bg-gradient-to-r from-slate-900 to-slate-800 backdrop-blur-md border-b border-slate-800 shadow-lg">
         <div className="flex items-center justify-between px-4 h-16">
           <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/25">
@@ -347,7 +272,7 @@ export function MobileNav() {
 
         {/* Mobile Menu Overlay - Enhanced Design with Animations */}
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 bg-gradient-to-b from-slate-50 to-slate-100 backdrop-blur-xl border-b border-slate-800 shadow-2xl max-h-[80vh] overflow-y-auto animate-slide-down">
+          <div className="absolute top-full left-0 right-0 bg-gradient-to-b from-slate-900/98 to-slate-950/98 backdrop-blur-xl border-b border-slate-800 shadow-2xl max-h-[80vh] overflow-y-auto animate-slide-down">
             <nav className="px-3 py-4">
 
               {/* Información de la Empresa y Usuario */}
@@ -453,7 +378,7 @@ export function MobileNav() {
                 {stats && !loading && (
                   <div className="mt-3 pt-3 border-t border-slate-800">
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-slate-900 rounded-lg p-2 border border-blue-100 shadow-sm">
+                      <div className="bg-slate-800/80 rounded-lg p-2 border border-blue-900/50 shadow-sm">
                         <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <DollarSign className="h-3 w-3 text-blue-500" />
                           <span>Ingresos:</span>
@@ -463,7 +388,7 @@ export function MobileNav() {
                         </p>
                       </div>
 
-                      <div className="bg-slate-900 rounded-lg p-2 border border-green-100 shadow-sm">
+                      <div className="bg-slate-800/80 rounded-lg p-2 border border-green-900/50 shadow-sm">
                         <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <Users className="h-3 w-3 text-green-500" />
                           <span>Clientes:</span>
@@ -471,7 +396,7 @@ export function MobileNav() {
                         <p className="font-bold text-sm text-green-400">{stats.totalClients}</p>
                       </div>
 
-                      <div className="bg-slate-900 rounded-lg p-2 border border-purple-100 shadow-sm">
+                      <div className="bg-slate-800/80 rounded-lg p-2 border border-purple-900/50 shadow-sm">
                         <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
                           <FileText className="h-3 w-3 text-purple-500" />
                           <span>Facturas:</span>
@@ -525,65 +450,78 @@ export function MobileNav() {
                 )}
               </div>
 
-              {/* Main Navigation with Enhanced Styles */}
-              <div className="space-y-1.5 mb-4">
-                {mobileNavigation.map((item, index) => {
-                  if (item.module && !canAccessModule(item.module)) {
-                    return null
-                  }
+              {/* Main Navigation with Sections */}
+              <div className="space-y-4 mb-4">
+                {mobileNavigation.map((section, sectionIndex) => {
+                  const visibleItems = section.items.filter(item =>
+                    !item.module || canAccessModule(item.module)
+                  )
+                  if (visibleItems.length === 0) return null
 
                   return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className="animate-fade-in"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <Button
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-start px-4 py-3 text-left font-medium transition-all duration-300 rounded-xl transform hover:scale-[1.02] shadow-sm hover:shadow-md",
-                          isActive(item.href)
-                            ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-400 border-l-4 border-blue-600 shadow-md hover:shadow-lg"
-                            : "text-slate-300 hover:bg-slate-800"
-                        )}
-                      >
-                        <div className="relative">
-                          <item.icon className="h-5 w-5 mr-3 transition-transform duration-300 hover:scale-110" />
-                          {item.name === "Sistema - Info" && (
-                            <div className="absolute -top-1 -right-1">
-                              <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-red-500 to-red-500 shadow-lg"></span>
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <span className="font-semibold flex items-center gap-2">
-                          {item.name}
-                          {item.name === "Sistema - Info" && (
-                            <Badge className="bg-gradient-to-r from-red-500 to-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
-                              AVISO
-                            </Badge>
-                          )}
+                    <div key={section.section}>
+                      {/* Section label */}
+                      <div className="px-4 mb-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          {section.section}
                         </span>
-                        {item.name === "Inventario" && alertCount > 0 && (
-                          <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0.5 animate-pulse">
-                            {alertCount > 9 ? '9+' : alertCount}
-                          </Badge>
-                        )}
-                      </Button>
-                    </Link>
+                      </div>
+                      <div className="space-y-1">
+                        {visibleItems.map((item, index) => (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className="animate-fade-in"
+                            style={{ animationDelay: `${(sectionIndex * 4 + index) * 0.03}s` }}
+                          >
+                            <Button
+                              variant="ghost"
+                              className={cn(
+                                "w-full justify-start px-4 py-3 text-left font-medium transition-all duration-300 rounded-xl",
+                                isActive(item.href)
+                                  ? "bg-blue-600/15 text-blue-300 border-l-4 border-blue-500 shadow-sm"
+                                  : "text-slate-300 hover:bg-slate-800/60"
+                              )}
+                            >
+                              <div className="relative">
+                                <item.icon className="h-5 w-5 mr-3" />
+                                {item.name === "Sistema - Info" && (
+                                  <div className="absolute -top-1 -right-1">
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-lg"></span>
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <span className="font-semibold flex items-center gap-2">
+                                {item.name}
+                                {item.name === "Sistema - Info" && (
+                                  <Badge className="bg-red-600/80 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse shadow-md">
+                                    AVISO
+                                  </Badge>
+                                )}
+                              </span>
+                              {item.name === "Inventario" && alertCount > 0 && (
+                                <Badge variant="destructive" className="ml-auto text-xs px-1.5 py-0.5 animate-pulse">
+                                  {alertCount > 9 ? '9+' : alertCount}
+                                </Badge>
+                              )}
+                            </Button>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
 
               {/* Logout Section with Enhanced Design */}
               <div className="border-t border-slate-700 pt-4 mt-4">
-                <div className="rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 p-3 mb-3 text-center border border-blue-300 shadow-md">
+                <div className="rounded-xl bg-gradient-to-r from-blue-900/30 to-blue-800/20 p-3 mb-3 text-center border border-blue-700/50 shadow-md">
                   <p className="text-sm font-bold text-blue-300">ConcreteBill Pro</p>
-                  <p className="text-xs text-blue-600 mt-0.5 font-medium">Sistema de Facturación</p>
+                  <p className="text-xs text-blue-400 mt-0.5 font-medium">Sistema de Facturación</p>
                   <div className="mt-2 w-full bg-slate-800 rounded-full h-1">
                     <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 rounded-full" style={{ width: '85%' }}></div>
                   </div>

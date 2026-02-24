@@ -565,7 +565,7 @@ export default function MySubscriptionPage() {
         {/* Límites de la Suscripción */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-slate-200 mb-4">Límites del Plan</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             <div className="text-center p-4 bg-slate-900 rounded-lg">
               <p className="text-2xl font-bold text-blue-600">
                 {subscription.current_max_users === null ? "∞" : subscription.current_max_users}

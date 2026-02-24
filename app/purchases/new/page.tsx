@@ -31,7 +31,7 @@ export default function NewPurchasePage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
-          
+
           <div className="flex items-center gap-3 mb-2">
             <div className="h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center">
               <ShoppingCart className="h-6 w-6 text-blue-600" />
@@ -67,11 +67,11 @@ export default function NewPurchasePage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-blue-300">
             <div className="flex gap-3">
-              <div className="font-semibold min-w-[180px]">🏪 Producto para Venta:</div>
+              <div className="font-semibold">🏪 Producto para Venta:</div>
               <div>Artículos que vas a revender a tus clientes. Se registran en inventario y el costo se reconoce cuando se venden.</div>
             </div>
             <div className="flex gap-3">
-              <div className="font-semibold min-w-[180px]">🔧 Uso Interno/Operación:</div>
+              <div className="font-semibold">🔧 Uso Interno/Operación:</div>
               <div>Materiales, servicios o insumos para uso en tu negocio. Se registran como gasto inmediato.</div>
             </div>
           </CardContent>
@@ -79,7 +79,7 @@ export default function NewPurchasePage() {
 
         {/* Formulario */}
         <div className="bg-slate-900 rounded-lg shadow-sm p-6">
-          <PurchaseClassificationForm 
+          <PurchaseClassificationForm
             onSuccess={handleSuccess}
             onCancel={() => router.back()}
           />
@@ -105,7 +105,7 @@ export default function NewPurchasePage() {
                   <li>• Mercancía en general</li>
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-orange-400 mb-3 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-orange-500"></span>

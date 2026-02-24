@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   console.warn('Supabase environment variables not found. API routes may not work properly.')
 }
 
-const supabaseAdmin = supabaseUrl && supabaseServiceKey ? 
+const supabaseAdmin = supabaseUrl && supabaseServiceKey ?
   createClient(supabaseUrl, supabaseServiceKey) : null
 
 export async function GET(request: NextRequest) {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const warehouseId = searchParams.get('warehouse_id')
     const startDate = searchParams.get('start_date')
     const endDate = searchParams.get('end_date')
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
@@ -92,9 +92,9 @@ async function getInventorySummary(userId: string, _warehouseId?: string | null)
 
   // Calculate summary metrics
   const totalProducts = products.length
-  const totalStockValue = products.reduce((sum, p) => 
+  const totalStockValue = products.reduce((sum, p) =>
     sum + ((p.current_stock || 0) * (p.cost_price || 0)), 0)
-  const lowStockItems = products.filter(p => 
+  const lowStockItems = products.filter(p =>
     p.reorder_point && (p.current_stock || 0) <= p.reorder_point).length
   const outOfStockItems = products.filter(p => (p.current_stock || 0) === 0).length
   const totalItemsInStock = products.reduce((sum, p) => sum + (p.current_stock || 0), 0)
@@ -170,12 +170,15 @@ async function getInventoryValuation(userId: string, warehouseId?: string | null
     throw error
   }
 
-  const valuation = stockData?.map(item => ({
-    ...item,
-    cost_value: (item.current_stock || 0) * (item.product?.cost_price || 0),
-    retail_value: (item.current_stock || 0) * (item.product?.unit_price || 0),
-    potential_profit: ((item.product?.unit_price || 0) - (item.product?.cost_price || 0)) * (item.current_stock || 0)
-  })) || []
+  const valuation = stockData?.map(item => {
+    const product = item.product as any
+    return {
+      ...item,
+      cost_value: (item.current_stock || 0) * (product?.cost_price || 0),
+      retail_value: (item.current_stock || 0) * (product?.unit_price || 0),
+      potential_profit: ((product?.unit_price || 0) - (product?.cost_price || 0)) * (item.current_stock || 0)
+    }
+  }) || []
 
   return NextResponse.json({ valuation })
 }
@@ -225,7 +228,7 @@ async function getMovementsReport(userId: string, warehouseId?: string | null, s
     return acc
   }, {} as any) || {}
 
-  return NextResponse.json({ 
+  return NextResponse.json({
     movements: movements || [],
     summary: movementsSummary
   })
@@ -278,14 +281,14 @@ async function getLowStockReport(userId: string, warehouseId?: string | null) {
     throw error
   }
 
-  const lowStockItems = stockData?.filter(item => 
-    item.product?.reorder_point && 
+  const lowStockItems = stockData?.filter(item =>
+    item.product?.reorder_point &&
     (item.current_stock || 0) <= item.product.reorder_point
   ).map(item => ({
     ...item,
     shortage: (item.product?.reorder_point || 0) - (item.current_stock || 0),
-    recommended_order: item.product?.max_stock ? 
-      (item.product.max_stock - (item.current_stock || 0)) : 
+    recommended_order: item.product?.max_stock ?
+      (item.product.max_stock - (item.current_stock || 0)) :
       (item.product?.reorder_point || 0) * 2
   })) || []
 
@@ -352,14 +355,14 @@ async function getABCAnalysis(userId: string, warehouseId?: string | null, start
   const classifiedProducts = sortedProducts.map((product: any) => {
     cumulativeValue += product.total_value
     const cumulativePercentage = (cumulativeValue / totalValue) * 100
-    
+
     let category = 'C'
     if (cumulativePercentage <= 80) {
       category = 'A'
     } else if (cumulativePercentage <= 95) {
       category = 'B'
     }
-    
+
     return {
       ...product,
       percentage_of_value: (product.total_value / totalValue) * 100,

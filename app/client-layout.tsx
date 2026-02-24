@@ -15,6 +15,7 @@ import { SessionIndicator } from "@/components/auth/session-indicator"
 import { RouteProtection } from "@/components/auth/route-protection"
 import { PWAUpdateNotification } from "@/components/pwa/pwa-update-notification"
 import { MobileNav } from "@/components/layout/mobile-nav"
+import { MobileBottomTabs } from "@/components/layout/mobile-bottom-tabs"
 import { RoutePreloader } from "@/hooks/use-route-preloader"
 import { MiniChat } from "@/components/support/mini-chat"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -216,7 +217,7 @@ export default function ClientLayout({
               <div className="lg:hidden">
                 <MobileNav />
               </div>
-              <main className="flex-1 overflow-auto pt-16 lg:pt-0">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden pt-16 lg:pt-0 pb-20 lg:pb-0">
                 <div className="container-responsive spacing-responsive">
                   <NotificationCenter className="mb-4 sm:mb-6" />
                   <RouteProtection>
@@ -235,6 +236,8 @@ export default function ClientLayout({
                   </RouteProtection>
                 </div>
               </main>
+              {/* Mobile Bottom Tabs */}
+              <MobileBottomTabs />
             </div>
             {/* Indicador de sesión flotante */}
             <SessionIndicator timeoutMinutes={30} />
