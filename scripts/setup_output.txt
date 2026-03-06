@@ -1,0 +1,3 @@
+--- Configuracion de acceso para aguacostassuprema@gmail.com ---
+Usuario Auth NO ENCONTRADO. Creando...
+[ERROR]: A user with this email address has already been registered

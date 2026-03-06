@@ -38,6 +38,10 @@ import {
   Lock,
   AlertTriangle,
   Target,
+  Map,
+  Truck,
+  MapPin,
+  User,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useStockAlerts } from "@/components/inventory/stock-alerts"
@@ -169,6 +173,50 @@ const navigation = [
     href: "/system-info",
     icon: Info,
     module: "system",
+  },
+  {
+    name: "Rutas Logísticas",
+    href: "/routes",
+    icon: Map,
+    module: "routes",
+    children: [
+      {
+        name: "Gestión de Rutas",
+        href: "/routes",
+        icon: Map,
+        module: "routes",
+      },
+      {
+        name: "Despacho del Día",
+        href: "/routes/dispatch",
+        icon: Truck,
+        module: "routes",
+      },
+      {
+        name: "Asignar Clientes",
+        href: "/routes/assign",
+        icon: MapPin,
+        module: "routes",
+      },
+      {
+        name: "Vehículos",
+        href: "/routes/vehicles",
+        icon: Truck,
+        module: "routes",
+      },
+      {
+        name: "Choferes",
+        href: "/routes/drivers",
+        icon: User,
+        module: "routes",
+      },
+      {
+        name: "Conduces",
+        href: "/routes/delivery-notes",
+        icon: FileText,
+        module: "routes",
+      },
+    ],
   },
   {
     name: "Configuración",

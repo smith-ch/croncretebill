@@ -1,0 +1,294 @@
+{
+  "profile": null,
+  "subscription": null,
+  "roles": [
+    {
+      "id": "8bf6ab20-815e-4971-a084-96d03f1508c6",
+      "name": "owner",
+      "display_name": "Propietario",
+      "description": "Acceso completo al sistema",
+      "permissions": {
+        "all": true
+      },
+      "is_active": true,
+      "created_at": "2025-09-15T21:29:34.157012+00:00",
+      "updated_at": "2025-09-15T21:29:34.157012+00:00"
+    },
+    {
+      "id": "e46ba5c4-ad65-46ba-a45b-dee7a44b7221",
+      "name": "manager",
+      "display_name": "Gerente",
+      "description": "Acceso a la mayoría de funciones excepto configuración crítica",
+      "permissions": {
+        "clients": {
+          "read": true,
+          "create": true,
+          "delete": true,
+          "update": true
+        },
+        "reports": {
+          "read": true
+        },
+        "finances": {
+          "read": true
+        },
+        "invoices": {
+          "read": true,
+          "create": true,
+          "delete": true,
+          "update": true
+        },
+        "products": {
+          "read": true,
+          "create": true,
+          "delete": true,
+          "update": true
+        },
+        "inventory": {
+          "read": true,
+          "create": true,
+          "delete": false,
+          "update": true
+        }
+      },
+      "is_active": true,
+      "created_at": "2025-09-15T21:29:34.157012+00:00",
+      "updated_at": "2025-09-15T21:29:34.157012+00:00"
+    },
+    {
+      "id": "f831a68e-2a68-477b-ae2c-f842063e0487",
+      "name": "employee",
+      "display_name": "Empleado",
+      "description": "Acceso limitado para tareas operativas",
+      "permissions": {
+        "clients": {
+          "read": true,
+          "create": false,
+          "delete": false,
+          "update": false
+        },
+        "invoices": {
+          "read": true,
+          "create": true,
+          "delete": false,
+          "update": false
+        },
+        "products": {
+          "read": true,
+          "create": false,
+          "delete": false,
+          "update": false
+        },
+        "inventory": {
+          "read": true,
+          "create": false,
+          "delete": false,
+          "update": false
+        }
+      },
+      "is_active": true,
+      "created_at": "2025-09-15T21:29:34.157012+00:00",
+      "updated_at": "2025-09-15T21:29:34.157012+00:00"
+    },
+    {
+      "id": "ab236dae-da10-49a5-9388-69fb3a7a3837",
+      "name": "cashier",
+      "display_name": "Cajero",
+      "description": "Solo creación de facturas y consulta básica",
+      "permissions": {
+        "clients": {
+          "read": true,
+          "create": false,
+          "delete": false,
+          "update": false
+        },
+        "invoices": {
+          "read": true,
+          "create": true,
+          "delete": false,
+          "update": false
+        },
+        "products": {
+          "read": true,
+          "create": false,
+          "delete": false,
+          "update": false
+        }
+      },
+      "is_active": true,
+      "created_at": "2025-09-15T21:29:34.157012+00:00",
+      "updated_at": "2025-09-15T21:29:34.157012+00:00"
+    },
+    {
+      "id": "d63cbb90-23c2-4506-a16e-0de93a51bde7",
+      "name": "subscription_manager",
+      "display_name": "Gestor de Suscripciones",
+      "description": "Acceso completo para gestionar suscripciones de todos los usuarios",
+      "permissions": {
+        "all": true,
+        "users": {
+          "read": true,
+          "view_subscriptions": true
+        },
+        "reports": {
+          "finances": true,
+          "subscriptions": true
+        },
+        "subscriptions": {
+          "read": true,
+          "create": true,
+          "delete": true,
+          "update": true,
+          "manage_all": true
+        }
+      },
+      "is_active": true,
+      "created_at": "2026-01-03T00:47:13.563492+00:00",
+      "updated_at": "2026-01-03T00:47:13.563492+00:00"
+    },
+    {
+      "id": "3a6080fb-2613-4bf8-b5d5-9b36457b2b2f",
+      "name": "super_admin",
+      "display_name": "Super Administrador",
+      "description": "Administrador supremo con acceso total al sistema, métricas globales y gestión completa",
+      "permissions": {},
+      "is_active": true,
+      "created_at": "2026-01-06T03:45:56.636327+00:00",
+      "updated_at": "2026-01-06T03:45:56.636327+00:00"
+    }
+  ],
+  "plans": [
+    {
+      "id": "96d42fdd-bd8f-41f2-9059-0fc7f315b85e",
+      "name": "free",
+      "display_name": "Plan Gratuito",
+      "description": "Plan básico gratuito con funcionalidades limitadas - Perfecto para comenzar",
+      "price_monthly": 0,
+      "price_yearly": 0,
+      "max_users": 1,
+      "max_invoices": 5,
+      "max_products": 10,
+      "max_clients": 5,
+      "features": [
+        "Hasta 1 usuario (sin empleados)",
+        "Máximo 5 facturas/recibos por mes",
+        "Hasta 10 productos",
+        "Hasta 5 clientes",
+        "Reportes básicos",
+        "Soporte por email"
+      ],
+      "is_active": true,
+      "created_at": "2026-01-06T03:05:58.207452+00:00",
+      "updated_at": "2026-01-06T03:05:58.207452+00:00"
+    },
+    {
+      "id": "00c2e999-be52-41f8-9287-85fe4724e71a",
+      "name": "starter",
+      "display_name": "Plan Starter",
+      "description": "Plan básico para pequeños negocios que están comenzando",
+      "price_monthly": 19.99,
+      "price_yearly": 199.9,
+      "max_users": 5,
+      "max_invoices": 250,
+      "max_products": 300,
+      "max_clients": 100,
+      "features": [
+        "Facturación completa",
+        "Hasta 5 Usuarios",
+        "250 Facturas/mes (incluye recibos térmicos)",
+        "300 Productos/Servicios",
+        "100 Clientes",
+        "Gestión de empleados y metas",
+        "Acceso a reportes básicos",
+        "Soporte por email"
+      ],
+      "is_active": true,
+      "created_at": "2026-01-06T03:03:50.574372+00:00",
+      "updated_at": "2026-01-06T03:06:31.474578+00:00"
+    },
+    {
+      "id": "b3a19d38-a44d-485c-bcc4-a665b220e4aa",
+      "name": "professional",
+      "display_name": "Plan Professional",
+      "description": "Plan ideal para negocios en crecimiento",
+      "price_monthly": 39.99,
+      "price_yearly": 399.9,
+      "max_users": 5,
+      "max_invoices": 1000,
+      "max_products": 1000,
+      "max_clients": 500,
+      "features": [
+        "Facturación avanzada",
+        "Hasta 5 Usuarios",
+        "1,000 Facturas/mes (incluye recibos térmicos)",
+        "1,000 Productos/Servicios",
+        "500 Clientes",
+        "Reportes DGII completos",
+        "Reportes mensuales",
+        "Acceso a todos los módulos",
+        "Soporte prioritario"
+      ],
+      "is_active": true,
+      "created_at": "2026-01-06T03:03:50.574372+00:00",
+      "updated_at": "2026-01-06T03:06:31.474578+00:00"
+    },
+    {
+      "id": "e4353a46-8a4c-44ff-82ff-d294cf26cc78",
+      "name": "business",
+      "display_name": "Plan Business",
+      "description": "Plan completo para empresas establecidas",
+      "price_monthly": 59.99,
+      "price_yearly": 599.9,
+      "max_users": 15,
+      "max_invoices": 5000,
+      "max_products": 5000,
+      "max_clients": 2500,
+      "features": [
+        "Facturación completa",
+        "Hasta 15 Usuarios",
+        "5,000 Facturas/mes (incluye recibos térmicos)",
+        "5,000 Productos/Servicios",
+        "2,500 Clientes",
+        "Reportes DGII avanzados",
+        "Reportes personalizados",
+        "Gestión de proyectos",
+        "Control de gastos",
+        "API Access",
+        "Soporte prioritario 24/7"
+      ],
+      "is_active": true,
+      "created_at": "2026-01-06T03:03:50.574372+00:00",
+      "updated_at": "2026-01-06T03:06:31.474578+00:00"
+    },
+    {
+      "id": "c95a29dc-9de5-4fb1-94ee-69dbbe1a6b69",
+      "name": "enterprise",
+      "display_name": "Plan Enterprise",
+      "description": "Plan empresarial con límites expandidos para grandes corporaciones",
+      "price_monthly": 89.99,
+      "price_yearly": 899.9,
+      "max_users": 100,
+      "max_invoices": 20000,
+      "max_products": 20000,
+      "max_clients": 10000,
+      "features": [
+        "Límites empresariales",
+        "Hasta 100 Usuarios",
+        "20,000 Facturas/mes (incluye recibos térmicos)",
+        "20,000 Productos/Servicios",
+        "10,000 Clientes",
+        "Reportes DGII ilimitados",
+        "Multi-sucursales",
+        "Gestión completa de proyectos",
+        "Control total de gastos y vehículos",
+        "Integración API completa",
+        "Cuenta dedicada",
+        "Soporte premium 24/7",
+        "Capacitación personalizada"
+      ],
+      "is_active": true,
+      "created_at": "2026-01-06T03:03:50.574372+00:00",
+      "updated_at": "2026-01-06T03:06:31.474578+00:00"
+    }
+  ]
+}
