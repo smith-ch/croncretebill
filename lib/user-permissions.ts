@@ -30,10 +30,10 @@ export async function ensureUserProfile(userId?: string) {
       .single()
 
     if (profile && !profileError) {
-      return { 
-        success: true, 
-        profile, 
-        message: "Perfil existe y es válido" 
+      return {
+        success: true,
+        profile,
+        message: "Perfil existe y es válido"
       }
     }
 
@@ -90,8 +90,8 @@ export async function diagnosePermissionIssues() {
 
     const issues: string[] = []
     const diagnostics: any = {
-      userId: user.user.id,
-      email: user.user.email,
+      userId: user.id,
+      email: user.email,
       issues: [],
       recommendations: []
     }
@@ -100,7 +100,7 @@ export async function diagnosePermissionIssues() {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", user.user.id)
+      .eq("id", user.id)
       .single()
 
     if (!profile || profileError) {
@@ -115,7 +115,7 @@ export async function diagnosePermissionIssues() {
       const { count, error: clientsError } = await supabase
         .from("clients")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.user.id)
+        .eq("user_id", user.id)
 
       if (clientsError) {
         issues.push("CLIENTS_PERMISSION_ERROR")
@@ -134,7 +134,7 @@ export async function diagnosePermissionIssues() {
       const { count, error: productsError } = await supabase
         .from("products")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.user.id)
+        .eq("user_id", user.id)
 
       if (productsError) {
         issues.push("PRODUCTS_PERMISSION_ERROR")
@@ -152,8 +152,8 @@ export async function diagnosePermissionIssues() {
       success: issues.length === 0,
       issues,
       diagnostics,
-      message: issues.length === 0 
-        ? "No se encontraron problemas de permisos" 
+      message: issues.length === 0
+        ? "No se encontraron problemas de permisos"
         : `Se encontraron ${issues.length} problemas de permisos`
     }
 
@@ -179,11 +179,11 @@ export async function repairUserPermissions() {
 
     // Ejecutar diagnóstico para verificar si los problemas se resolvieron
     const diagnosis = await diagnosePermissionIssues()
-    
+
     return {
       success: diagnosis.success,
-      message: diagnosis.success 
-        ? "Permisos reparados exitosamente" 
+      message: diagnosis.success
+        ? "Permisos reparados exitosamente"
         : "Algunos problemas de permisos persisten",
       profileResult,
       diagnosis

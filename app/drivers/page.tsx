@@ -12,18 +12,27 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, UserCheck, Edit, Trash2, Phone, CreditCard, Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Plus, Search, UserCheck, Edit, Trash2, Phone, CreditCard, Loader2, User } from "lucide-react"
 import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 
+interface Employee {
+  user_id: string
+  display_name: string
+  email?: string
+}
+
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<any[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [editingDriver, setEditingDriver] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("")
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const { hasAccessToDrivers, requireAccess, isLoading: planLoading } = usePlanAccess()
@@ -38,6 +47,7 @@ export default function DriversPage() {
 
   useEffect(() => {
     fetchDrivers()
+    fetchEmployees()
   }, [])
 
   const fetchDrivers = async () => {
@@ -50,7 +60,7 @@ export default function DriversPage() {
 
       const { data, error } = await supabase
         .from("drivers")
-        .select("*")
+        .select("*, employee:employee_id(id, email, raw_user_meta_data)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -60,6 +70,28 @@ export default function DriversPage() {
       console.error("Error fetching drivers:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchEmployees = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
+      if (!user) return
+
+      // Obtener empleados del owner desde user_profiles
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("user_id, display_name, email")
+        .eq("parent_user_id", user.id)
+        .order("display_name", { ascending: true })
+
+      if (error) throw error
+      setEmployees(data || [])
+    } catch (error) {
+      console.error("Error fetching employees:", error)
     }
   }
 
@@ -74,6 +106,7 @@ export default function DriversPage() {
       cedula: formData.get("cedula") as string,
       phone: formData.get("phone") as string,
       license_number: formData.get("license_number") as string,
+      employee_id: selectedEmployeeId && selectedEmployeeId !== "none" ? selectedEmployeeId : null,
     }
 
     try {
@@ -96,6 +129,7 @@ export default function DriversPage() {
 
       setShowForm(false)
       setEditingDriver(null)
+      setSelectedEmployeeId("")
       fetchDrivers()
     } catch (error: any) {
       setError(error.message)
@@ -206,6 +240,7 @@ export default function DriversPage() {
             if (!open) {
               setEditingDriver(null)
               setError(null)
+              setSelectedEmployeeId("")
             }
           }}
         >
@@ -244,6 +279,34 @@ export default function DriversPage() {
                     placeholder="LIC123456"
                   />
                 </div>
+              </div>
+
+              {/* Selector de Empleado */}
+              <div className="space-y-2">
+                <Label htmlFor="employee_id">Vincular con Empleado</Label>
+                <Select
+                  value={selectedEmployeeId}
+                  onValueChange={setSelectedEmployeeId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar empleado (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin vincular</SelectItem>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.user_id} value={emp.user_id}>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          <span>{emp.display_name}</span>
+                          {emp.email && <span className="text-xs text-slate-500">({emp.email})</span>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  Al vincular un empleado, este podrá ver las rutas asignadas a este conductor en el Módulo Empleado
+                </p>
               </div>
 
               {error && (
@@ -310,6 +373,7 @@ export default function DriversPage() {
                             size="sm"
                             onClick={() => {
                               setEditingDriver(driver)
+                              setSelectedEmployeeId(driver.employee_id || "")
                               setShowForm(true)
                             }}
                             className="hover:bg-slate-800 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
@@ -345,6 +409,14 @@ export default function DriversPage() {
                           <p className="text-slate-400 dark:text-gray-400">
                             <span className="font-medium">Licencia:</span> {driver.license_number}
                           </p>
+                        )}
+                        {driver.employee_id && (
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-700">
+                            <User className="h-4 w-4 text-green-500" />
+                            <span className="text-green-400 text-xs">
+                              Vinculado: {employees.find(e => e.user_id === driver.employee_id)?.display_name || 'Empleado'}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </CardContent>

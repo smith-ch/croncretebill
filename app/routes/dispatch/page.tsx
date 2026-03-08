@@ -404,7 +404,7 @@ export default function DailyDispatchDashboard() {
     const [viewMode, setViewMode] = useState<ViewMode>("dashboard")
     const [loadingDispatch, setLoadingDispatch] = useState<any>(null)
 
-    const { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited } = useDailyDispatch()
+    const { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems } = useDailyDispatch()
     const { routes } = useRoutes()
     const { drivers } = useDrivers()
     const { vehicles } = useFleetVehicles()
@@ -640,7 +640,20 @@ export default function DailyDispatchDashboard() {
                                     {totalItems === 0 ? (
                                         <div className="p-8 text-center text-slate-500">
                                             <p>No hay clientes programados para este despacho.</p>
-                                            <p className="text-xs mt-2">Asigne clientes a esta ruta desde la pantalla de Asignación.</p>
+                                            <p className="text-xs mt-2 mb-4">Asigne clientes a esta ruta desde la pantalla de Asignación.</p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={async () => {
+                                                    if (selectedDispatch?.route_id) {
+                                                        await regenerateDispatchItems(selectedDispatchId!, selectedDispatch.route_id, selectedDate)
+                                                    }
+                                                }}
+                                                className="border-orange-600 text-orange-400 hover:bg-orange-900/20 hover:text-orange-300"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                Generar Paradas desde Clientes Asignados
+                                            </Button>
                                         </div>
                                     ) : (
                                         <ul className="divide-y divide-slate-800">

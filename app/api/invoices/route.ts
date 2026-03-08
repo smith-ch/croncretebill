@@ -208,6 +208,38 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Crear cuenta por cobrar si el método de pago es crédito
+    if (payment_method === 'credito' || payment_method === 'credit') {
+      try {
+        const dueDate = new Date(due_date)
+        
+        const { error: arError } = await supabaseAdmin
+          .from('accounts_receivable')
+          .insert({
+            user_id,
+            client_id: client_id || null,
+            invoice_id: invoice.id,
+            document_number: invoice_number,
+            description: `Crédito por factura ${invoice_number}`,
+            total_amount: total,
+            issue_date: invoice_date,
+            due_date: dueDate.toISOString().split('T')[0],
+            payment_terms: Math.ceil((dueDate.getTime() - new Date(invoice_date).getTime()) / (1000 * 60 * 60 * 24)),
+            status: 'pendiente'
+          })
+
+        if (arError) {
+          console.warn('No se pudo crear cuenta por cobrar:', arError.message)
+          // No lanzar error, solo advertir - la tabla puede no existir aún
+        } else {
+          console.log('Cuenta por cobrar creada para factura:', invoice_number)
+        }
+      } catch (arError) {
+        console.warn('Error al crear cuenta por cobrar:', arError)
+        // No fallar la factura por esto
+      }
+    }
+
     return NextResponse.json({ 
       success: true, 
       invoice: invoice,

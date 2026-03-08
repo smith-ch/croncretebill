@@ -16,6 +16,7 @@ export interface Driver {
     license_expiry: string | null
     is_active: boolean
     notes: string | null
+    employee_id: string | null
     created_at: string
 }
 

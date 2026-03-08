@@ -1,13 +1,13 @@
-﻿app/api/inventory/reports/route.ts(175,60): error TS2339: Property 'cost_price' does not exist on type '{ id: any; name: any; unit: any; cost_price: any; unit_price: any; category: any; user_id: any; }[]'.
-app/api/inventory/reports/route.ts(176,62): error TS2339: Property 'unit_price' does not exist on type '{ id: any; name: any; unit: any; cost_price: any; unit_price: any; category: any; user_id: any; }[]'.
-app/api/inventory/reports/route.ts(177,39): error TS2339: Property 'unit_price' does not exist on type '{ id: any; name: any; unit: any; cost_price: any; unit_price: any; category: any; user_id: any; }[]'.
-app/api/inventory/reports/route.ts(177,73): error TS2339: Property 'cost_price' does not exist on type '{ id: any; name: any; unit: any; cost_price: any; unit_price: any; category: any; user_id: any; }[]'.
-app/api/inventory/stock/route.ts(83,39): error TS2339: Property 'cost_price' does not exist on type '{ id: any; name: any; unit: any; unit_price: any; cost_price: any; current_stock: any; reorder_point: any; max_stock: any; category: any; barcode: any; is_trackable: any; user_id: any; }[]'.
-app/api/inventory/stock/route.ts(83,67): error TS2339: Property 'unit_price' does not exist on type '{ id: any; name: any; unit: any; unit_price: any; cost_price: any; current_stock: any; reorder_point: any; max_stock: any; category: any; barcode: any; is_trackable: any; user_id: any; }[]'.
-app/api/inventory/stock/route.ts(84,42): error TS2339: Property 'reorder_point' does not exist on type '{ id: any; name: any; unit: any; unit_price: any; cost_price: any; current_stock: any; reorder_point: any; max_stock: any; category: any; barcode: any; is_trackable: any; user_id: any; }[]'.
-app/client-layout.tsx(45,14): error TS2345: Argument of type '"check_user_subscription_access"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/delivery-notes/new/page.tsx(64,50): error TS2345: Argument of type '"get_next_delivery_number"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/delivery-notes/new/page.tsx(66,25): error TS2345: Argument of type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }' is not assignable to parameter of type 'SetStateAction<string>'.
+app/api/invoices/route.ts(99,27): error TS2339: Property 'id' does not exist on type '{}'.
+app/api/invoices/route.ts(118,70): error TS2339: Property 'id' does not exist on type '{}'.
+app/api/invoices/route.ts(188,41): error TS2339: Property 'id' does not exist on type '{}'.
+app/api/invoices/route.ts(190,53): error TS2339: Property 'invoice_number' does not exist on type '{}'.
+app/delivery-notes/[id]/edit/page.tsx(58,42): error TS2339: Property 'client_id' does not exist on type '{ delivery_note_items: SelectQueryError<"could not find the relation between delivery_notes and delivery_note_items">; }'.
+app/delivery-notes/[id]/edit/page.tsx(63,48): error TS2339: Property 'map' does not exist on type 'SelectQueryError<"could not find the relation between delivery_notes and delivery_note_items">'.
+app/delivery-notes/new/page.tsx(140,44): error TS2339: Property 'id' does not exist on type '{}'.
+app/dgii-reports/page.tsx(595,9): error TS2322: Type '({ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; } | { ...; })[]' is not assignable to type 'Expense[]'.
+  Type '{ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; } | { ...; }' is not assignable to type 'Expense'.
+    Type '{ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; }' is missing the following properties from type 'Expense': id, amount, expense_date, description, and 2 more.
 app/dgii-reports/page.tsx(596,9): error TS2322: Type '({ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; } | { ...; })[]' is not assignable to type 'Invoice[]'.
   Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; } | { ...; }' is not assignable to type 'Invoice'.
     Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }' is not assignable to type 'Invoice'.
@@ -35,12 +35,21 @@ app/dgii-reports/page.tsx(731,44): error TS2769: No overload matches this call.
         Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }' is not assignable to type 'Invoice'.
           Types of property 'clients' are incompatible.
             Type 'SelectQueryError<"could not find the relation between invoices and clients">' is not assignable to type '{ id: string; name: string; email: string; phone: string; rnc: string; id_number: string; tipo_id: string; address?: string | undefined; } | undefined'.
+app/dgii-reports/page.tsx(739,9): error TS2322: Type '({ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; } | { ...; })[]' is not assignable to type 'Expense[]'.
+  Type '{ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; } | { ...; }' is not assignable to type 'Expense'.
+    Type '{ expense_categories: SelectQueryError<"could not find the relation between expenses and expense_categories">; clients: SelectQueryError<"could not find the relation between expenses and clients">; }' is missing the following properties from type 'Expense': id, amount, expense_date, description, and 2 more.
 app/dgii-reports/page.tsx(740,9): error TS2322: Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }[]' is not assignable to type 'Invoice[]'.
   Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }' is not assignable to type 'Invoice'.
     Types of property 'clients' are incompatible.
       Type 'SelectQueryError<"could not find the relation between invoices and clients">' is not assignable to type '{ id: string; name: string; email: string; phone: string; rnc: string; id_number: string; tipo_id: string; address?: string | undefined; } | undefined'.
 app/dgii-reports/page.tsx(742,9): error TS2322: Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }' is not assignable to type 'number'.
 app/dgii-reports/page.tsx(744,9): error TS2322: Type '{ id: any; invoice_number: any; created_at: any; total: any; subtotal: any; tax_amount: any; ncf: any; user_id: any; payment_method: any; monto_bienes: any; monto_servicios: any; monto_exento: any; tipo_comprobante: any; indicador_anulacion: any; clients: SelectQueryError<...>; }' is not assignable to type 'number'.
+app/dgii-reports/page.tsx(1106,25): error TS2345: Argument of type '(invoice: Invoice) => void' is not assignable to parameter of type '(value: {}, index: number, array: {}[]) => void'.
+  Types of parameters 'invoice' and 'value' are incompatible.
+    Type '{}' is missing the following properties from type 'Invoice': id, invoice_number, created_at, total, and 4 more.
+app/dgii-reports/page.tsx(1250,25): error TS2345: Argument of type '(invoice: Invoice) => void' is not assignable to parameter of type '(value: {}, index: number, array: {}[]) => void'.
+  Types of parameters 'invoice' and 'value' are incompatible.
+    Type '{}' is missing the following properties from type 'Invoice': id, invoice_number, created_at, total, and 4 more.
 app/dgii-reports/page.tsx(2444,60): error TS2769: No overload matches this call.
   Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
@@ -125,46 +134,132 @@ app/dgii-reports/page.tsx(2605,53): error TS2769: No overload matches this call.
   Overload 2 of 4, '(value: string | number): Date', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
       Type 'undefined' is not assignable to type 'string | number'.
+app/employee/pos/page.tsx(168,52): error TS2345: Argument of type '{ clientId: string; stopId: string; dispatchId: string; items: { productId: string; name: string; price: number; quantity: number; isReturnable: boolean; }[]; returns: { productId: string; name: string; quantity: number; }[]; paymentMethod: "cash" | ... 2 more ... | "credit"; totalAmount: number; }' is not assignable to parameter of type 'ProcessSaleInput'.
+  Type '{ clientId: string; stopId: string; dispatchId: string; items: { productId: string; name: string; price: number; quantity: number; isReturnable: boolean; }[]; returns: { productId: string; name: string; quantity: number; }[]; paymentMethod: "cash" | ... 2 more ... | "credit"; totalAmount: number; }' is missing the following properties from type 'ProcessSaleInput': clientName, cart
+app/employee/pos/page.tsx(171,28): error TS2339: Property 'receiptId' does not exist on type '{ success: boolean; receiptNumber: any; error?: undefined; } | { success: boolean; error: any; receiptNumber?: undefined; }'.
+  Property 'receiptId' does not exist on type '{ success: boolean; receiptNumber: any; error?: undefined; }'.
+app/employee/pos/page.tsx(171,59): error TS2339: Property 'receiptId' does not exist on type '{ success: boolean; receiptNumber: any; error?: undefined; } | { success: boolean; error: any; receiptNumber?: undefined; }'.
+  Property 'receiptId' does not exist on type '{ success: boolean; receiptNumber: any; error?: undefined; }'.
+app/employee/pos/page.tsx(245,30): error TS2304: Cannot find name 'Package'.
+app/employee/route/page.tsx(50,51): error TS2339: Property 'dispatch_status' does not exist on type '{}'.
+app/employee/route/page.tsx(63,56): error TS2339: Property 'id' does not exist on type '{}'.
+app/employee/route/page.tsx(72,106): error TS2339: Property 'name' does not exist on type 'SelectQueryError<"could not find the relation between dispatch_items and clients">'.
+app/employee/route/page.tsx(73,106): error TS2339: Property 'address' does not exist on type 'SelectQueryError<"could not find the relation between dispatch_items and clients">'.
+app/employee/route/page.tsx(76,54): error TS2339: Property 'id' does not exist on type '{}'.
+app/employee/route/page.tsx(186,89): error TS2322: Type '{ value: number; className: string; indicatorClassName: string; }' is not assignable to type 'IntrinsicAttributes & Omit<ProgressProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<HTMLDivElement>'.
+  Property 'indicatorClassName' does not exist on type 'IntrinsicAttributes & Omit<ProgressProps & RefAttributes<HTMLDivElement>, "ref"> & RefAttributes<HTMLDivElement>'.
+app/expenses/page.tsx(154,19): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<Expense[]>'.
+  Type '{}[]' is not assignable to type 'Expense[]'.
+    Type '{}' is missing the following properties from type 'Expense': id, description, amount, category, and 2 more.
+app/expenses/page.tsx(173,21): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<ExpenseCategory[]>'.
+  Type '{}[]' is not assignable to type 'ExpenseCategory[]'.
+    Type '{}' is missing the following properties from type 'ExpenseCategory': id, name, color, user_id, created_at
 app/inventory/page.tsx(93,5): error TS2322: Type 'Timeout' is not assignable to type 'number'.
+app/invoices/[id]/edit/page.tsx(181,23): error TS2352: Conversion of type '{ invoice_items: SelectQueryError<"could not find the relation between invoices and invoice_items_invoice_id_fkey">; }' to type 'Invoice' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ invoice_items: SelectQueryError<"could not find the relation between invoices and invoice_items_invoice_id_fkey">; }' is missing the following properties from type 'Invoice': id, invoice_number, client_id, invoice_date, and 2 more.
 app/invoices/[id]/edit/page.tsx(367,13): error TS2304: Cannot find name 'toast'.
 app/invoices/[id]/edit/page.tsx(379,13): error TS2304: Cannot find name 'toast'.
 app/invoices/[id]/edit/page.tsx(394,13): error TS2304: Cannot find name 'toast'.
 app/invoices/[id]/edit/page.tsx(403,13): error TS2304: Cannot find name 'toast'.
-app/invoices/new/page.tsx(110,50): error TS2345: Argument of type '"get_next_invoice_number"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/invoices/new/page.tsx(114,24): error TS2345: Argument of type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }' is not assignable to parameter of type 'SetStateAction<string>'.
 app/invoices/new/page.tsx(931,41): error TS2367: This comparison appears to be unintentional because the types '"service"' and '"product"' have no overlap.
 app/payment-receipts/page.tsx(537,11): error TS7034: Variable 'invoiceItems' implicitly has type 'any[]' in some locations where its type cannot be determined.
 app/payment-receipts/page.tsx(557,26): error TS7005: Variable 'invoiceItems' implicitly has an 'any[]' type.
+app/payment-receipts/page.tsx(579,39): error TS2345: Argument of type '{ invoice: { id: string; invoice_number: string; total_amount: number; client_name: string; client: { id: string; name: string; email: string | null; rnc: string | null; phone: string | null; address: string | null; } | null; invoice_items: any[]; }; }' is not assignable to parameter of type 'PaymentReceiptData'.
+  Type '{ invoice: { id: string; invoice_number: string; total_amount: number; client_name: string; client: { id: string; name: string; email: string | null; rnc: string | null; phone: string | null; address: string | null; } | null; invoice_items: any[]; }; }' is missing the following properties from type 'PaymentReceiptData': id, receipt_number, payment_date, payment_method, and 4 more.
+app/payment-receipts/page.tsx(699,39): error TS2345: Argument of type '{ invoice: { id: any; invoice_number: string; total_amount: any; client_name: any; client: { id: string; name: any; email: null; rnc: any; phone: null; address: null; }; invoice_items: { id: any; quantity: number; unit_price: any; total: any; products: { ...; }; }[]; }; }' is not assignable to parameter of type 'PaymentReceiptData'.
+  Type '{ invoice: { id: any; invoice_number: string; total_amount: any; client_name: any; client: { id: string; name: any; email: null; rnc: any; phone: null; address: null; }; invoice_items: { id: any; quantity: number; unit_price: any; total: any; products: { ...; }; }[]; }; }' is missing the following properties from type 'PaymentReceiptData': id, receipt_number, payment_date, payment_method, and 4 more.
 app/payment-receipts/page.tsx(738,11): error TS2322: Type '{ id: any; quantity: any; unit_price: any; subtotal: any; product_id: any; service_id: any; products: SelectQueryError<"could not find the relation between invoice_items and products">; services: SelectQueryError<...>; }[]' is not assignable to type '{ id: string; quantity: number; unit_price: number; total: number; products?: { id: string; name: string; description?: string | null | undefined; } | null | undefined; services?: { id: string; name: string; description?: string | ... 1 more ... | undefined; } | null | undefined; }[]'.
   Property 'total' is missing in type '{ id: any; quantity: any; unit_price: any; subtotal: any; product_id: any; service_id: any; products: SelectQueryError<"could not find the relation between invoice_items and products">; services: SelectQueryError<...>; }' but required in type '{ id: string; quantity: number; unit_price: number; total: number; products?: { id: string; name: string; description?: string | null | undefined; } | null | undefined; services?: { id: string; name: string; description?: string | ... 1 more ... | undefined; } | null | undefined; }'.
+app/products/[id]/edit/page.tsx(90,18): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<Product | null>'.
+app/products/[id]/edit/page.tsx(92,20): error TS2339: Property 'name' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(93,27): error TS2339: Property 'description' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(94,26): error TS2339: Property 'unit_price' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(95,20): error TS2339: Property 'unit' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(96,24): error TS2339: Property 'category' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(97,21): error TS2339: Property 'brand' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(98,19): error TS2339: Property 'sku' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(99,23): error TS2339: Property 'barcode' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(100,30): error TS2339: Property 'stock_quantity' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(101,25): error TS2339: Property 'min_stock' does not exist on type '{}'.
+app/products/[id]/edit/page.tsx(102,29): error TS2339: Property 'reorder_point' does not exist on type '{}'.
+app/products/budgets/[id]/edit/page.tsx(93,31): error TS2339: Property 'client_id' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(94,32): error TS2339: Property 'project_id' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(95,33): error TS2339: Property 'budget_date' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(96,33): error TS2339: Property 'valid_until' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(97,28): error TS2339: Property 'status' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(98,27): error TS2339: Property 'notes' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(99,38): error TS2339: Property 'terms_conditions' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(101,35): error TS2339: Property 'itbis_rate' does not exist on type '{ budget_items: SelectQueryError<"could not find the relation between budgets and budget_items">; }'.
+app/products/budgets/[id]/edit/page.tsx(105,34): error TS2339: Property 'map' does not exist on type 'SelectQueryError<"could not find the relation between budgets and budget_items">'.
+app/products/budgets/new/page.tsx(266,27): error TS2339: Property 'id' does not exist on type '{}'.
 app/products/page.tsx(67,5): error TS2322: Type 'Timeout' is not assignable to type 'number'.
+app/products/page.tsx(135,21): error TS2345: Argument of type '{ categories: SelectQueryError<"could not find the relation between products and categories">; }[]' is not assignable to parameter of type 'SetStateAction<Product[]>'.
+  Type '{ categories: SelectQueryError<"could not find the relation between products and categories">; }[]' is not assignable to type 'Product[]'.
+    Type '{ categories: SelectQueryError<"could not find the relation between products and categories">; }' is missing the following properties from type 'Product': id, name, unit_price, unit, created_at
 app/products/page.tsx(141,21): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type 'SetStateAction<Product[]>'.
   Type 'unknown[]' is not assignable to type 'Product[]'.
     Type 'unknown' is not assignable to type 'Product'.
 app/products/page.tsx(492,36): error TS2339: Property 'current_stock' does not exist on type 'Product'.
 app/products/page.tsx(492,75): error TS2339: Property 'current_stock' does not exist on type 'Product'.
 app/products/page.tsx(501,55): error TS2339: Property 'current_stock' does not exist on type 'Product'.
+app/products/precios-multiples/page.tsx(71,19): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<Product[]>'.
+  Type '{}[]' is not assignable to type 'Product[]'.
+    Type '{}' is missing the following properties from type 'Product': id, name, unit_price, description, and 3 more.
+app/purchases/page.tsx(85,20): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<PurchaseRecord[]>'.
+  Type '{}[]' is not assignable to type 'PurchaseRecord[]'.
+    Type '{}' is missing the following properties from type 'PurchaseRecord': id, purchase_type, description, amount, and 2 more.
+app/purchases/page.tsx(86,22): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'PurchaseRecord[]'.
+  Type '{}' is missing the following properties from type 'PurchaseRecord': id, purchase_type, description, amount, and 2 more.
+app/services/multiple-prices/page.tsx(52,21): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<Service[]>'.
+  Type '{}[]' is not assignable to type 'Service[]'.
+    Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
 app/services/page.tsx(70,5): error TS2322: Type 'Timeout' is not assignable to type 'number'.
+app/services/page.tsx(173,21): error TS2345: Argument of type '{ categories: SelectQueryError<"could not find the relation between services and categories">; }[]' is not assignable to parameter of type 'SetStateAction<Service[]>'.
+  Type '{ categories: SelectQueryError<"could not find the relation between services and categories">; }[]' is not assignable to type 'Service[]'.
+    Type '{ categories: SelectQueryError<"could not find the relation between services and categories">; }' is missing the following properties from type 'Service': id, name, price, unit, created_at
 app/services/page.tsx(303,12): error TS2304: Cannot find name 'AlertCircle'.
 app/subscriptions/my-subscription/page.tsx(162,23): error TS2345: Argument of type '{ id: any; status: any; start_date: any; end_date: any; current_max_users: any; current_max_invoices: any; current_max_products: any; current_max_clients: any; notes: any; subscription_plans: SelectQueryError<...>; }' is not assignable to parameter of type 'SetStateAction<Subscription | null>'.
   Type '{ id: any; status: any; start_date: any; end_date: any; current_max_users: any; current_max_invoices: any; current_max_products: any; current_max_clients: any; notes: any; subscription_plans: SelectQueryError<...>; }' is missing the following properties from type 'Subscription': billing_cycle, plan_id
 app/subscriptions/my-subscription/page.tsx(1170,86): error TS18048: 'subscription.subscription_plans.price_monthly' is possibly 'undefined'.
-app/subscriptions/page.tsx(185,75): error TS2345: Argument of type '"is_subscription_manager"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(189,81): error TS2345: Argument of type '"is_super_admin"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(430,50): error TS2345: Argument of type '"create_manual_subscription"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(489,77): error TS2345: Argument of type '"create_manual_subscription"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(514,52): error TS2345: Argument of type '"update_subscription_status"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(769,50): error TS2345: Argument of type '"process_payment_notification"' is not assignable to parameter of type '"get_employee_metrics"'.
-app/subscriptions/page.tsx(810,54): error TS2345: Argument of type '"create_manual_subscription"' is not assignable to parameter of type '"get_employee_metrics"'.
+app/subscriptions/page.tsx(250,16): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<SubscriptionPlan[]>'.
+  Type '{}[]' is not assignable to type 'SubscriptionPlan[]'.
+    Type '{}' is missing the following properties from type 'SubscriptionPlan': id, name, display_name, description, and 8 more.
+app/subscriptions/page.tsx(290,60): error TS2339: Property 'id' does not exist on type '{}'.
+app/subscriptions/page.tsx(297,30): error TS2339: Property 'name' does not exist on type '{}'.
+app/subscriptions/page.tsx(298,38): error TS2339: Property 'display_name' does not exist on type '{}'.
+app/subscriptions/page.tsx(336,18): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<SubscriptionHistory[]>'.
+  Type '{}[]' is not assignable to type 'SubscriptionHistory[]'.
+    Type '{}' is missing the following properties from type 'SubscriptionHistory': id, subscription_id, action, old_status, and 4 more.
+app/subscriptions/page.tsx(381,45): error TS2339: Property 'id' does not exist on type '{}'.
+app/subscriptions/page.tsx(386,28): error TS2339: Property 'name' does not exist on type '{}'.
+app/subscriptions/page.tsx(387,36): error TS2339: Property 'display_name' does not exist on type '{}'.
+app/system-info/page.tsx(87,41): error TS2551: Property 'invoice_id' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'. Did you mean 'invoices'?
+app/system-info/page.tsx(87,60): error TS2339: Property 'product_id' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(97,53): error TS2339: Property 'product_id' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(99,33): error TS2339: Property 'quantity' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(100,34): error TS2339: Property 'unit_price' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(101,30): error TS2339: Property 'total' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(109,30): error TS2551: Property 'invoice_id' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'. Did you mean 'invoices'?
+app/system-info/page.tsx(110,30): error TS2339: Property 'product_id' does not exist on type '{ invoices: SelectQueryError<"could not find the relation between invoice_items and invoices">; }'.
+app/system-info/page.tsx(152,41): error TS2551: Property 'thermal_receipt_id' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'. Did you mean 'thermal_receipts'?
+app/system-info/page.tsx(152,68): error TS2339: Property 'product_id' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/system-info/page.tsx(159,53): error TS2339: Property 'product_id' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/system-info/page.tsx(161,33): error TS2339: Property 'quantity' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/system-info/page.tsx(162,34): error TS2339: Property 'unit_price' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/system-info/page.tsx(163,30): error TS2339: Property 'line_total' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/system-info/page.tsx(171,38): error TS2551: Property 'thermal_receipt_id' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'. Did you mean 'thermal_receipts'?
+app/system-info/page.tsx(172,30): error TS2339: Property 'product_id' does not exist on type '{ thermal_receipts: SelectQueryError<"could not find the relation between thermal_receipt_items and thermal_receipts">; }'.
+app/thermal-receipts/page.tsx(408,20): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<Profile | null>'.
 components/auth/auth-form.tsx(46,27): error TS2345: Argument of type 'Timeout' is not assignable to parameter of type 'SetStateAction<number | null>'.
-components/auth/modern-auth-form.tsx(246,64): error TS2339: Property 'name' does not exist on type 'SelectQueryError<"could not find the relation between user_profiles and user_roles">'.
-components/auth/modern-auth-form.tsx(247,57): error TS2339: Property 'name' does not exist on type 'SelectQueryError<"could not find the relation between user_profiles and user_roles">'.
+components/auth/modern-auth-form.tsx(248,64): error TS2339: Property 'name' does not exist on type 'SelectQueryError<"could not find the relation between user_profiles and user_roles">'.
+components/auth/modern-auth-form.tsx(249,57): error TS2339: Property 'name' does not exist on type 'SelectQueryError<"could not find the relation between user_profiles and user_roles">'.
 components/auth/session-indicator.tsx(21,11): error TS2339: Property 'extendSession' does not exist on type '{ resetTimer: () => void; logout: () => Promise<void>; }'.
 components/auth/session-indicator.tsx(21,45): error TS2353: Object literal may only specify known properties, and 'enabled' does not exist in type 'UseAutoLogoutOptions'.
 components/dashboard/company-profile-widget.tsx(70,20): error TS2345: Argument of type '{ company_name: any; company_email: any; company_phone: any; company_address: any; company_logo: any; tax_id: any; business_type: any; foundation_year: any; employee_count: any; }' is not assignable to parameter of type 'SetStateAction<CompanyData | null>'.
   Type '{ company_name: any; company_email: any; company_phone: any; company_address: any; company_logo: any; tax_id: any; business_type: any; foundation_year: any; employee_count: any; }' is missing the following properties from type 'CompanyData': company_website, currency_symbol
-components/debug/permissions-debugger.tsx(39,12): error TS2345: Argument of type '"get_user_permissions_simple"' is not assignable to parameter of type '"get_employee_metrics"'.
 components/debug/permissions-debugger.tsx(131,54): error TS2322: Type '{}' is not assignable to type 'ReactNode'.
+components/forms/product-form.tsx(168,37): error TS2339: Property 'id' does not exist on type '{}'.
+components/forms/purchase-classification-form.tsx(199,34): error TS2339: Property 'id' does not exist on type '{}'.
 components/forms/service-form.tsx(172,13): error TS2322: Type 'string | null' is not assignable to type 'string'.
   Type 'null' is not assignable to type 'string'.
 components/inventory/warehouse-transfer.tsx(119,28): error TS2345: Argument of type '{ id: any; current_stock: any; product: SelectQueryError<"could not find the relation between product_warehouse_stock and products">; warehouse: SelectQueryError<"could not find the relation between product_warehouse_stock and warehouses">; }[]' is not assignable to parameter of type 'SetStateAction<WarehouseStock[]>'.
@@ -172,8 +267,6 @@ components/inventory/warehouse-transfer.tsx(119,28): error TS2345: Argument of t
     Type '{ id: any; current_stock: any; product: SelectQueryError<"could not find the relation between product_warehouse_stock and products">; warehouse: SelectQueryError<"could not find the relation between product_warehouse_stock and warehouses">; }' is not assignable to type 'WarehouseStock'.
       Types of property 'product' are incompatible.
         Type '{ error: true; } & String' is missing the following properties from type 'Product': id, name, unit, current_stock
-components/layout/sidebar.tsx(238,77): error TS2345: Argument of type '"is_subscription_manager"' is not assignable to parameter of type '"get_employee_metrics"'.
-components/layout/sidebar.tsx(243,83): error TS2345: Argument of type '"is_super_admin"' is not assignable to parameter of type '"get_employee_metrics"'.
 components/services/service-prices-manager.tsx(78,27): error TS2345: Argument of type '{ price_name: string; price: number; min_quantity: number; max_quantity: number | null; description: string | null; valid_from: string | null; valid_until: string | null; customer_type: string | null; customer_id: string | null; }' is not assignable to parameter of type 'Omit<ServicePrice, "id" | "created_at" | "updated_at" | "service_id">'.
   Property 'is_default' is missing in type '{ price_name: string; price: number; min_quantity: number; max_quantity: number | null; description: string | null; valid_from: string | null; valid_until: string | null; customer_type: string | null; customer_id: string | null; }' but required in type 'Omit<ServicePrice, "id" | "created_at" | "updated_at" | "service_id">'.
 components/services/service-prices-manager.tsx(141,24): error TS2769: No overload matches this call.
@@ -190,6 +283,27 @@ components/services/service-prices-manager.tsx(141,70): error TS2769: No overloa
   Overload 2 of 4, '(value: string | number): Date', gave the following error.
     Argument of type 'string | null' is not assignable to parameter of type 'string | number'.
       Type 'null' is not assignable to type 'string | number'.
+components/settings/company-settings.tsx(402,30): error TS2339: Property 'company_name' does not exist on type '{}'.
+components/settings/company-settings.tsx(403,33): error TS2339: Property 'company_address' does not exist on type '{}'.
+components/settings/company-settings.tsx(404,31): error TS2339: Property 'company_phone' does not exist on type '{}'.
+components/settings/company-settings.tsx(405,31): error TS2339: Property 'company_email' does not exist on type '{}'.
+components/settings/company-settings.tsx(406,33): error TS2339: Property 'company_website' does not exist on type '{}'.
+components/settings/company-settings.tsx(407,24): error TS2339: Property 'tax_id' does not exist on type '{}'.
+components/settings/company-settings.tsx(408,30): error TS2339: Property 'company_logo' does not exist on type '{}'.
+components/settings/company-settings.tsx(409,31): error TS2339: Property 'currency_code' does not exist on type '{}'.
+components/settings/company-settings.tsx(410,33): error TS2339: Property 'currency_symbol' does not exist on type '{}'.
+components/settings/company-settings.tsx(411,31): error TS2339: Property 'business_type' does not exist on type '{}'.
+components/settings/company-settings.tsx(412,33): error TS2339: Property 'foundation_year' does not exist on type '{}'.
+components/settings/company-settings.tsx(413,32): error TS2339: Property 'employee_count' does not exist on type '{}'.
+components/settings/company-settings.tsx(414,26): error TS2339: Property 'industry' does not exist on type '{}'.
+components/settings/company-settings.tsx(415,39): error TS2339: Property 'invoice_primary_color' does not exist on type '{}'.
+components/settings/company-settings.tsx(416,41): error TS2339: Property 'invoice_secondary_color' does not exist on type '{}'.
+components/settings/company-settings.tsx(417,32): error TS2339: Property 'invoice_format' does not exist on type '{}'.
+components/settings/company-settings.tsx(418,40): error TS2339: Property 'invoice_footer_message' does not exist on type '{}'.
+components/settings/company-settings.tsx(419,35): error TS2339: Property 'invoice_show_logo' does not exist on type '{}'.
+components/settings/company-settings.tsx(420,37): error TS2339: Property 'invoice_auto_number' does not exist on type '{}'.
+components/settings/company-settings.tsx(423,18): error TS2339: Property 'company_logo' does not exist on type '{}'.
+components/settings/company-settings.tsx(424,31): error TS2339: Property 'company_logo' does not exist on type '{}'.
 components/ui/animated-components.tsx(56,6): error TS2322: Type '{ children: (ReactNode | Element)[]; disabled?: boolean | undefined; form?: string | undefined; formAction?: string | ((formData: FormData) => void | Promise<...>) | undefined; ... 282 more ...; className: string; } | ... 4 more ... | { ...; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLMotionProps<"button">, "ref"> & RefAttributes<HTMLButtonElement>'.
   Type '{ children: (ReactNode | Element)[]; disabled?: boolean | undefined; form?: string | undefined; formAction?: string | ((formData: FormData) => void | Promise<...>) | undefined; ... 282 more ...; className: string; }' is not assignable to type 'Omit<HTMLMotionProps<"button">, "ref">'.
     Types of property 'onDrag' are incompatible.
@@ -206,36 +320,44 @@ components/ui/animated-components.tsx(153,6): error TS2322: Type '{ children: Re
           Type '{ duration: number; repeat: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
             Types of property 'ease' are incompatible.
               Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
-components/ui/category-selector.tsx(60,44): error TS2345: Argument of type '{ name: string; description: string; color: string; icon: string; type: "product" | "service" | "both"; }' is not assignable to parameter of type 'Omit<Category, "user_id" | "id" | "created_at" | "updated_at">'.
-  Property 'is_active' is missing in type '{ name: string; description: string; color: string; icon: string; type: "product" | "service" | "both"; }' but required in type 'Omit<Category, "user_id" | "id" | "created_at" | "updated_at">'.
+components/ui/category-selector.tsx(60,44): error TS2345: Argument of type '{ name: string; description: string; color: string; icon: string; type: "both" | "product" | "service"; }' is not assignable to parameter of type 'Omit<Category, "id" | "created_at" | "user_id" | "updated_at">'.
+  Property 'is_active' is missing in type '{ name: string; description: string; color: string; icon: string; type: "both" | "product" | "service"; }' but required in type 'Omit<Category, "id" | "created_at" | "user_id" | "updated_at">'.
 hooks/use-categories.ts(81,82): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
-hooks/use-optimized-data.ts(40,37): error TS2345: Argument of type '"min_stock"' is not assignable to parameter of type '"get_employee_metrics"'.
+hooks/use-service-prices.ts(42,17): error TS2345: Argument of type '{}[]' is not assignable to parameter of type 'SetStateAction<ServicePrice[]>'.
+  Type '{}[]' is not assignable to type 'ServicePrice[]'.
+    Type '{}' is missing the following properties from type 'ServicePrice': id, service_id, price_name, price, and 10 more.
 hooks/use-services.ts(1,55): error TS2307: Cannot find module '@tanstack/react-query' or its corresponding type declarations.
+hooks/use-services.ts(47,7): error TS2322: Type '{}[]' is not assignable to type 'Service[]'.
+  Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
+hooks/use-services.ts(78,7): error TS2740: Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
+hooks/use-services.ts(100,7): error TS2740: Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
+hooks/use-services.ts(137,7): error TS2740: Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
 hooks/use-services.ts(139,17): error TS7006: Parameter '_' implicitly has an 'any' type.
 hooks/use-services.ts(139,20): error TS7006: Parameter 'variables' implicitly has an 'any' type.
-hooks/use-subscription-limits.ts(79,14): error TS2345: Argument of type '"get_effective_subscription"' is not assignable to parameter of type '"get_employee_metrics"'.
-hooks/use-subscription-limits.ts(98,40): error TS2339: Property 'length' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-subscription-limits.ts(99,21): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-  Property '0' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-subscription-limits.ts(150,14): error TS2345: Argument of type '"get_subscription_usage"' is not assignable to parameter of type '"get_employee_metrics"'.
-hooks/use-subscription-limits.ts(159,34): error TS2339: Property 'length' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-subscription-limits.ts(160,23): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-  Property '0' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(100,14): error TS2345: Argument of type '"get_user_permissions_simple"' is not assignable to parameter of type '"get_employee_metrics"'.
-hooks/use-user-permissions-db.ts(122,28): error TS2339: Property 'isOwner' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(131,27): error TS2339: Property 'display_name' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(132,20): error TS2339: Property 'role' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(135,33): error TS2339: Property 'canCreateInvoices' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(136,31): error TS2339: Property 'canViewFinances' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(137,34): error TS2339: Property 'canManageInventory' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(138,32): error TS2339: Property 'canManageClients' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(139,34): error TS2339: Property 'canManageEmployees' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-db.ts(140,32): error TS2339: Property 'maxInvoiceAmount' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions-simple.ts(558,11): error TS2741: Property 'isRealEmployee' is missing in type '{ canCreateInvoices: true; canViewFinances: false; canManageInventory: true; canManageClients: true; maxInvoiceAmount: number; role: string; isOwner: false; wasOriginallyOwner: true; canEditInvoices: false; ... 16 more ...; canDeleteExpenses: false; }' but required in type '{ canCreateInvoices: boolean; canViewFinances: boolean; canManageInventory: boolean; canManageClients: boolean; maxInvoiceAmount: number | null; role: string; isOwner: boolean; wasOriginallyOwner: boolean; ... 18 more ...; canDeleteExpenses: boolean; }'.
-hooks/use-user-permissions.tsx(47,14): error TS2345: Argument of type '"get_user_profile"' is not assignable to parameter of type '"get_employee_metrics"'.
-hooks/use-user-permissions.tsx(53,24): error TS2339: Property 'length' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-hooks/use-user-permissions.tsx(54,20): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
-  Property '0' does not exist on type '{ ventas_total: number; facturas_cantidad: number; clientes_nuevos: number; }'.
+hooks/use-services.ts(211,9): error TS2322: Type '{}[]' is not assignable to type 'Service[]'.
+  Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
+hooks/use-services.ts(225,7): error TS2322: Type '{}[]' is not assignable to type 'Service[]'.
+  Type '{}' is missing the following properties from type 'Service': id, name, service_code, description, and 4 more.
+lib/agenda-events.ts(42,5): error TS2322: Type '{}[]' is not assignable to type 'AgendaEvent[]'.
+  Type '{}' is missing the following properties from type 'AgendaEvent': id, user_id, title, due_date, and 5 more.
+lib/agenda-events.ts(78,5): error TS2740: Type '{}' is missing the following properties from type 'AgendaEvent': id, user_id, title, due_date, and 5 more.
+lib/agenda-events.ts(113,5): error TS2740: Type '{}' is missing the following properties from type 'AgendaEvent': id, user_id, title, due_date, and 5 more.
+lib/agenda-events.ts(296,42): error TS2339: Property 'due_date' does not exist on type '{}'.
+lib/agenda-events.ts(300,25): error TS2339: Property 'frequency' does not exist on type '{}'.
+lib/agenda-events.ts(319,37): error TS2339: Property 'name' does not exist on type '{}'.
+lib/agenda-events.ts(319,66): error TS2339: Property 'amount' does not exist on type '{}'.
+lib/agenda-events.ts(324,28): error TS2339: Property 'name' does not exist on type '{}'.
+lib/agenda-events.ts(325,48): error TS2339: Property 'frequency' does not exist on type '{}'.
+lib/agenda-events.ts(325,94): error TS2339: Property 'frequency' does not exist on type '{}'.
+lib/agenda-events.ts(325,155): error TS2339: Property 'category' does not exist on type '{}'.
+lib/agenda-events.ts(325,180): error TS2339: Property 'category' does not exist on type '{}'.
+lib/agenda-events.ts(328,29): error TS2339: Property 'amount' does not exist on type '{}'.
+lib/agenda-events.ts(338,25): error TS2339: Property 'frequency' does not exist on type '{}'.
+lib/fixed-expenses.ts(16,5): error TS2322: Type '{}[]' is not assignable to type 'FixedExpense[]'.
+  Type '{}' is missing the following properties from type 'FixedExpense': id, name, amount, due_date, and 2 more.
+lib/fixed-expenses.ts(46,5): error TS2740: Type '{}' is missing the following properties from type 'FixedExpense': id, name, amount, due_date, and 2 more.
+lib/fixed-expenses.ts(67,5): error TS2740: Type '{}' is missing the following properties from type 'FixedExpense': id, name, amount, due_date, and 2 more.
+lib/fixed-expenses.ts(120,5): error TS2740: Type '{}' is missing the following properties from type 'FixedExpense': id, name, amount, due_date, and 2 more.
 lib/user-permissions.ts(93,20): error TS2339: Property 'user' does not exist on type 'User'.
 lib/user-permissions.ts(94,19): error TS2339: Property 'user' does not exist on type 'User'.
 lib/user-permissions.ts(103,22): error TS2339: Property 'user' does not exist on type 'User'.

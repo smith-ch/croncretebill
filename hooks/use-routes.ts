@@ -284,6 +284,47 @@ export function useDailyDispatch() {
                 .select("*, routes(name), drivers(full_name), fleet_vehicles(plate_number)")
                 .single()
             if (error) throw error
+
+            // Crear dispatch_items a partir de los clientes asignados a esta ruta
+            const dispatch = data as any
+            
+            console.log('📅 Creando dispatch_items para fecha:', date, 'ruta:', routeId)
+            
+            // Obtener TODOS los clientes asignados a esta ruta (sin filtrar por día)
+            const { data: assignments, error: assignError } = await (supabase as any)
+                .from("client_route_assignments")
+                .select("client_id, visit_order")
+                .eq("route_id", routeId)
+                .eq("user_id", dataUserId)
+                .order("visit_order", { ascending: true })
+
+            if (assignError) {
+                console.error('Error obteniendo asignaciones:', assignError)
+            } else if (assignments && assignments.length > 0) {
+                console.log('👥 Clientes asignados encontrados:', assignments.length)
+                
+                // Crear los dispatch_items
+                const itemsToInsert = assignments.map((a: any, index: number) => ({
+                    dispatch_id: dispatch.id,
+                    client_id: a.client_id,
+                    visit_order: a.visit_order || index + 1,
+                    is_visited: false
+                }))
+
+                const { error: itemsError } = await (supabase as any)
+                    .from("dispatch_items")
+                    .insert(itemsToInsert)
+
+                if (itemsError) {
+                    console.error('Error creando dispatch_items:', itemsError)
+                    toast({ title: "Advertencia", description: "Despacho creado pero sin paradas. Asigne clientes manualmente.", variant: "destructive" })
+                } else {
+                    console.log('✅ Dispatch items creados:', itemsToInsert.length)
+                }
+            } else {
+                console.log('⚠️ No hay clientes asignados a esta ruta para el día:', dayOfWeek)
+            }
+
             toast({ title: "Despacho creado", description: "El despacho del día fue generado" })
             fetchDispatches(date)
             return data
@@ -324,5 +365,56 @@ export function useDailyDispatch() {
         }
     }
 
-    return { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited }
+    // Función para regenerar/agregar paradas a un despacho existente
+    const regenerateDispatchItems = async (dispatchId: string, routeId: string, date: string) => {
+        if (!dataUserId) return false
+        try {
+            console.log('🔄 Regenerando dispatch_items para dispatch:', dispatchId, 'ruta:', routeId)
+
+            // Obtener TODOS los clientes asignados a esta ruta
+            const { data: assignments, error: assignError } = await (supabase as any)
+                .from("client_route_assignments")
+                .select("client_id, visit_order")
+                .eq("route_id", routeId)
+                .eq("user_id", dataUserId)
+                .order("visit_order", { ascending: true })
+
+            if (assignError) throw assignError
+
+            if (!assignments || assignments.length === 0) {
+                toast({ title: "Sin clientes", description: "No hay clientes asignados a esta ruta. Primero asigne clientes en 'Asignar Clientes'.", variant: "destructive" })
+                return false
+            }
+
+            // Eliminar items existentes del dispatch
+            await (supabase as any)
+                .from("dispatch_items")
+                .delete()
+                .eq("dispatch_id", dispatchId)
+
+            // Crear los nuevos dispatch_items
+            const itemsToInsert = assignments.map((a: any, index: number) => ({
+                dispatch_id: dispatchId,
+                client_id: a.client_id,
+                visit_order: a.visit_order || index + 1,
+                is_visited: false
+            }))
+
+            const { error: itemsError } = await (supabase as any)
+                .from("dispatch_items")
+                .insert(itemsToInsert)
+
+            if (itemsError) throw itemsError
+
+            toast({ title: "Paradas generadas", description: `Se agregaron ${itemsToInsert.length} paradas al despacho` })
+            fetchDispatchItems(dispatchId)
+            return true
+        } catch (error: any) {
+            console.error('Error regenerando dispatch_items:', error)
+            toast({ title: "Error", description: error.message || "No se pudieron generar las paradas", variant: "destructive" })
+            return false
+        }
+    }
+
+    return { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems }
 }

@@ -1,18 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, User, Edit, Trash2, Phone, CreditCard, ArrowLeft } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Plus, Search, User, Edit, Trash2, Phone, CreditCard, ArrowLeft, UserCheck } from "lucide-react"
 import { useDrivers } from "@/hooks/use-fleet"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 
-const emptyForm = { full_name: "", cedula: "", phone: "", license_number: "", license_expiry: "", notes: "" }
+interface Employee {
+    user_id: string
+    display_name: string
+    email?: string
+}
+
+const emptyForm = { full_name: "", cedula: "", phone: "", license_number: "", license_expiry: "", notes: "", employee_id: "" }
 
 export default function DriversPage() {
     const { drivers, loading, createDriver, updateDriver, deleteDriver } = useDrivers()
@@ -20,14 +28,43 @@ export default function DriversPage() {
     const [showForm, setShowForm] = useState(false)
     const [editing, setEditing] = useState<any>(null)
     const [formData, setFormData] = useState(emptyForm)
+    const [employees, setEmployees] = useState<Employee[]>([])
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
     const [isDeleting, setIsDeleting] = useState(false)
     const { toast } = useToast()
 
+    // Cargar empleados al iniciar
+    useEffect(() => {
+        fetchEmployees()
+    }, [])
+
+    const fetchEmployees = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            const user = session?.user
+            if (!user) return
+
+            const { data, error } = await supabase
+                .from("user_profiles")
+                .select("user_id, display_name, email")
+                .eq("parent_user_id", user.id)
+                .order("display_name", { ascending: true })
+
+            if (error) throw error
+            setEmployees(data || [])
+        } catch (error) {
+            console.error("Error fetching employees:", error)
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!formData.full_name.trim()) return
-        const payload = { ...formData, license_expiry: formData.license_expiry || null }
+        const payload = { 
+            ...formData, 
+            license_expiry: formData.license_expiry || null,
+            employee_id: formData.employee_id && formData.employee_id !== "none" ? formData.employee_id : null
+        }
         if (editing) {
             await updateDriver(editing.id, payload as any)
         } else {
@@ -47,6 +84,7 @@ export default function DriversPage() {
             license_number: driver.license_number || "",
             license_expiry: driver.license_expiry || "",
             notes: driver.notes || "",
+            employee_id: driver.employee_id || "",
         })
         setShowForm(true)
     }
@@ -132,6 +170,33 @@ export default function DriversPage() {
                                                 <input type="date" value={formData.license_expiry} onChange={(e) => setFormData({ ...formData, license_expiry: e.target.value })} className="w-full border border-slate-700 bg-slate-800 text-slate-200 rounded-md text-sm p-2 outline-none focus:ring-2 focus:ring-violet-500" />
                                             </div>
                                         </div>
+                                        
+                                        {/* Selector de Empleado */}
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-400 mb-1">Vincular con Empleado</label>
+                                            <Select
+                                                value={formData.employee_id}
+                                                onValueChange={(value) => setFormData({ ...formData, employee_id: value })}
+                                            >
+                                                <SelectTrigger className="w-full border-slate-700 bg-slate-800 text-slate-200">
+                                                    <SelectValue placeholder="Seleccionar empleado (opcional)" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-slate-800 border-slate-700">
+                                                    <SelectItem value="none" className="text-slate-300">Sin vincular</SelectItem>
+                                                    {employees.map((emp) => (
+                                                        <SelectItem key={emp.user_id} value={emp.user_id} className="text-slate-300">
+                                                            <div className="flex items-center gap-2">
+                                                                <UserCheck className="h-3 w-3" />
+                                                                <span>{emp.display_name}</span>
+                                                                {emp.email && <span className="text-xs text-slate-500">({emp.email})</span>}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-[10px] text-slate-500 mt-1">El empleado podrá ver las rutas asignadas a este chofer</p>
+                                        </div>
+
                                         <div>
                                             <label className="block text-xs font-medium text-slate-400 mb-1">Notas</label>
                                             <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Observaciones..." className="w-full border border-slate-700 bg-slate-800 text-slate-200 rounded-md px-3 py-2 text-sm resize-none h-16 outline-none focus:ring-2 focus:ring-violet-500 placeholder:text-slate-500" />
@@ -188,6 +253,14 @@ export default function DriversPage() {
                                                     {driver.cedula && <div className="flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> {driver.cedula}</div>}
                                                     {driver.phone && <div className="flex items-center gap-1.5"><Phone className="w-3 h-3" /> {driver.phone}</div>}
                                                     {driver.license_number && <p>Lic: {driver.license_number}</p>}
+                                                    {driver.employee_id && (
+                                                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-700">
+                                                            <UserCheck className="w-3 h-3 text-green-400" />
+                                                            <span className="text-green-400">
+                                                                Vinculado: {employees.find(e => e.user_id === driver.employee_id)?.display_name || 'Empleado'}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </CardContent>
                                         </Card>

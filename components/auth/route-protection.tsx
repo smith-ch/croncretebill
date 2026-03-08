@@ -49,7 +49,9 @@ export function RouteProtection({
       'agenda': 'agenda',
       'users': 'users',
       'settings': 'settings',
-      'faq': 'faq'
+      'faq': 'faq',
+      'employee': 'employee',
+      'routes': 'routes'
     }
 
     return routeModuleMap[firstSegment] || firstSegment

@@ -107,14 +107,14 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
         // Ingresos mensuales (Recibos Térmicos)
         const { data: receipts } = await supabase
           .from('thermal_receipts')
-          .select('total, status')
+          .select('total_amount, status')
           .eq('user_id', authUser.id)
           .gte('created_at', startOfMonth.toISOString())
           .lte('created_at', endOfMonth.toISOString())
           .neq('status', 'cancelled')
 
         const receiptRevenue = (receipts as any)?.reduce((sum: number, receipt: any) =>
-          sum + (receipt.total || 0), 0) || 0
+          sum + (receipt.total_amount || 0), 0) || 0
 
         const monthlyRevenue = invoiceRevenue + receiptRevenue
 
