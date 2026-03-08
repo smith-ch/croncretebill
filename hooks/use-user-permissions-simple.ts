@@ -733,7 +733,8 @@ export function useUserPermissions() {
       case 'receivables':
       case 'cuentas-por-cobrar':
       case 'returnables':
-        return true // EMPLEADOS SÍ pueden acceder a comprobantes, CXC y retornables (crear, descargar, no editar ni eliminar)
+      case 'cash-register':
+        return true // EMPLEADOS SÍ pueden acceder a comprobantes, CXC, retornables y control de caja (con restricciones)
 
       case 'agenda':
         return false // EMPLEADOS NO pueden acceder a agenda - COMPLETAMENTE BLOQUEADO

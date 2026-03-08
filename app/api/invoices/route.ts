@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       include_itbis,
       ncf,
       payment_method,
-      items
+      items,
+      cash_shift_id
     } = body
 
     // Validate required fields (client_id is optional)
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
         include_itbis,
         ncf: include_itbis ? ncf : null,
         payment_method: payment_method || "credito",
+        cash_shift_id: cash_shift_id || null,
       })
       .select()
       .single()

@@ -240,7 +240,8 @@ export default function RoutePage() {
 
     const handleStartSale = (client_id: string, dispatch_item_id: string) => {
         if (!dailyDispatch) return;
-        router.push(`/employee/pos?client_id=${client_id}&stop_id=${dispatch_item_id}&dispatch_id=${dailyDispatch.id}`)
+        // Navegar a recibos térmicos con cliente preseleccionado
+        router.push(`/thermal-receipts?client_id=${client_id}&from=route&stop_id=${dispatch_item_id}&dispatch_id=${dailyDispatch.id}`)
     }
 
     const handleNavigate = (address: string) => {
@@ -318,25 +319,8 @@ export default function RoutePage() {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-200 mb-3">No hay rutas activas</h3>
                             <p className="text-slate-400 mb-6 max-w-md mx-auto">
-                                {debugInfo?.driverFound 
-                                    ? `Chofer vinculado encontrado. Buscando despachos asignados...`
-                                    : `No se encontró un chofer vinculado a tu cuenta de empleado.`
-                                }
+                                No tienes rutas asignadas para hoy. Contacta al administrador si crees que esto es un error.
                             </p>
-                            {debugInfo && (
-                                <div className="mt-4 p-4 bg-slate-800/50 rounded-lg text-left text-xs text-slate-500 max-w-sm mx-auto">
-                                    <p><strong>Info de diagnóstico:</strong></p>
-                                    <p>• Tu ID: {debugInfo.employeeUserId?.slice(0,8)}...</p>
-                                    <p>• Chofer vinculado: {debugInfo.driverFound ? 'Sí' : 'No'}</p>
-                                    {debugInfo.driverId && <p>• Driver ID: {debugInfo.driverId?.slice(0,8)}...</p>}
-                                    <p className="mt-2 text-amber-500">
-                                        {!debugInfo.driverFound 
-                                            ? '⚠️ Pide al administrador que vincule un chofer a tu cuenta.'
-                                            : '⚠️ El chofer no tiene despachos en estado "preparando", "despachado" o "en_ruta".'
-                                        }
-                                    </p>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
                 ) : (
@@ -359,20 +343,6 @@ export default function RoutePage() {
                                     </div>
                                 </div>
                                 <Progress value={progress} className="h-2 bg-slate-800" />
-                                
-                                {/* Debug info cuando hay dispatch pero sin paradas */}
-                                {totalStops === 0 && debugInfo && (
-                                    <div className="mt-4 p-4 bg-amber-950/30 border border-amber-900/50 rounded-lg text-xs text-amber-300">
-                                        <p className="font-bold mb-2">⚠️ Debug: Despacho encontrado pero sin paradas visibles</p>
-                                        <p>• Dispatch ID: {debugInfo.dispatchId?.slice(0,8)}...</p>
-                                        <p>• Items encontrados: {debugInfo.dispatchItemsCount}</p>
-                                        {debugInfo.itemsError && <p className="text-red-400">• Error: {debugInfo.itemsError}</p>}
-                                        <p className="mt-2 text-slate-400">
-                                            Posible causa: Las políticas RLS no permiten al empleado ver los dispatch_items.
-                                            Verifica que el SQL se ejecutó correctamente en Supabase.
-                                        </p>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
 

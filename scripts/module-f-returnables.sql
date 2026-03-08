@@ -169,6 +169,10 @@ $$ LANGUAGE plpgsql;
 -- =====================================================
 ALTER TABLE client_returnables_ledger ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own returnables ledger" ON client_returnables_ledger;
+DROP POLICY IF EXISTS "Users can insert their own returnables entries" ON client_returnables_ledger;
+
 -- Policy para SELECT
 CREATE POLICY "Users can view their own returnables ledger"
 ON client_returnables_ledger FOR SELECT

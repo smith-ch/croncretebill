@@ -109,7 +109,7 @@ export default function ClientReturnablesPage() {
     
     // Adjustment form state
     const [adjustDialogOpen, setAdjustDialogOpen] = useState(false)
-    const [adjustType, setAdjustType] = useState<'ajuste_ganancia' | 'ajuste_perdida' | 'saldo_inicial'>('ajuste_ganancia')
+    const [adjustType, setAdjustType] = useState<'devolucion' | 'entrega' | 'ajuste_ganancia' | 'ajuste_perdida' | 'saldo_inicial'>('devolucion')
     const [adjustProductId, setAdjustProductId] = useState<string>('')
     const [adjustQuantity, setAdjustQuantity] = useState<string>('')
     const [adjustNotes, setAdjustNotes] = useState<string>('')
@@ -218,10 +218,22 @@ export default function ClientReturnablesPage() {
     }, [dataUserId, clientId, fetchData])
 
     const handleAdjustment = async () => {
-        if (!adjustProductId || !adjustQuantity || !adjustNotes.trim()) {
+        // Notes are required only for adjustments, not for devolucion/entrega
+        const requiresNotes = ['ajuste_ganancia', 'ajuste_perdida', 'saldo_inicial'].includes(adjustType)
+        
+        if (!adjustProductId || !adjustQuantity) {
             toast({
                 title: "Error",
-                description: "Complete todos los campos. La justificación es obligatoria.",
+                description: "Seleccione un producto y cantidad.",
+                variant: "destructive"
+            })
+            return
+        }
+        
+        if (requiresNotes && !adjustNotes.trim()) {
+            toast({
+                title: "Error",
+                description: "La justificación es obligatoria para ajustes.",
                 variant: "destructive"
             })
             return
@@ -248,7 +260,7 @@ export default function ClientReturnablesPage() {
                     transaction_type: adjustType,
                     quantity: quantity,
                     reference_type: 'manual',
-                    notes: adjustNotes.trim(),
+                    notes: adjustNotes.trim() || null,
                     created_by: dataUserId
                 })
 
@@ -256,11 +268,75 @@ export default function ClientReturnablesPage() {
                 throw error
             }
 
+            // Actualizar stock del producto según el tipo de movimiento
+            // - devolucion: Cliente devuelve → stock AUMENTA
+            // - entrega: Sale sin factura → stock DISMINUYE
+            if (adjustType === 'devolucion' || adjustType === 'entrega') {
+                const stockChange = adjustType === 'devolucion' ? quantity : -quantity
+                
+                // Obtener stock actual y datos del producto
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select('current_stock, cost_price, name')
+                    .eq('id', adjustProductId)
+                    .single()
+
+                if (!productError && productData) {
+                    const currentStock = productData.current_stock || 0
+                    const newStock = Math.max(0, currentStock + stockChange)
+
+                    // Actualizar stock del producto
+                    await supabase
+                        .from('products')
+                        .update({ current_stock: newStock })
+                        .eq('id', adjustProductId)
+
+                    // Obtener almacén principal del usuario
+                    const { data: warehouse } = await supabase
+                        .from('warehouses')
+                        .select('id')
+                        .eq('user_id', dataUserId)
+                        .order('created_at', { ascending: true })
+                        .limit(1)
+                        .single()
+
+                    // Registrar movimiento en el historial de inventario
+                    if (warehouse) {
+                        const movementType = adjustType === 'devolucion' ? 'devolucion' : 'salida'
+                        const unitCost = productData.cost_price || 0
+
+                        await supabase
+                            .from('stock_movements')
+                            .insert({
+                                user_id: dataUserId,
+                                product_id: adjustProductId,
+                                warehouse_id: warehouse.id,
+                                movement_type: movementType,
+                                quantity_before: currentStock,
+                                quantity_change: stockChange,
+                                quantity_after: newStock,
+                                unit_cost: unitCost,
+                                total_cost: Math.abs(stockChange) * unitCost,
+                                reference_type: 'returnable',
+                                notes: adjustType === 'devolucion' 
+                                    ? `Devolución de envase retornable: ${productData.name}${adjustNotes ? ' - ' + adjustNotes : ''}`
+                                    : `Entrega de envase sin factura: ${productData.name}${adjustNotes ? ' - ' + adjustNotes : ''}`
+                            })
+                    }
+                }
+            }
+
+            const typeLabels: Record<string, string> = {
+                'devolucion': 'devolución',
+                'entrega': 'entrega',
+                'saldo_inicial': 'saldo inicial',
+                'ajuste_ganancia': 'ajuste positivo',
+                'ajuste_perdida': 'ajuste negativo'
+            }
+
             toast({
-                title: "Ajuste registrado",
-                description: `Se registró el ${adjustType === 'ajuste_ganancia' ? 'ajuste positivo' : 
-                              adjustType === 'ajuste_perdida' ? 'ajuste negativo' : 
-                              'saldo inicial'} de ${quantity} unidades.`
+                title: "Movimiento registrado",
+                description: `Se registró la ${typeLabels[adjustType]} de ${quantity} unidades.`
             })
 
             // Reset form
@@ -268,7 +344,7 @@ export default function ClientReturnablesPage() {
             setAdjustProductId('')
             setAdjustQuantity('')
             setAdjustNotes('')
-            setAdjustType('ajuste_ganancia')
+            setAdjustType('devolucion')
 
             // Refresh data
             fetchData()
@@ -359,29 +435,31 @@ export default function ClientReturnablesPage() {
                     {canEdit('products') && (
                         <Dialog open={adjustDialogOpen} onOpenChange={setAdjustDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button className="bg-gradient-to-r from-blue-600 to-cyan-600">
-                                    <Settings className="w-4 h-4 mr-2" />
-                                    Ajuste Manual
+                                <Button className="bg-gradient-to-r from-green-600 to-emerald-600">
+                                    <ArrowDownCircle className="w-4 h-4 mr-2" />
+                                    Registrar Movimiento
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700">
                                 <DialogHeader>
-                                    <DialogTitle className="text-slate-100">Ajuste Manual de Retornables</DialogTitle>
+                                    <DialogTitle className="text-slate-100">Registrar Movimiento de Envases</DialogTitle>
                                     <DialogDescription className="text-slate-400">
-                                        Registrar ajuste de inventario de materiales retornables.
-                                        <span className="text-amber-400 block mt-1">
-                                            ⚠️ Esta acción queda registrada en el historial.
+                                        Registrar devolución, entrega o ajuste de materiales retornables.
+                                        <span className="text-slate-500 block mt-1">
+                                            Esta acción queda registrada en el historial.
                                         </span>
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label className="text-slate-300">Tipo de Ajuste</Label>
+                                        <Label className="text-slate-300">Tipo de Movimiento</Label>
                                         <Select value={adjustType} onValueChange={(v: any) => setAdjustType(v)}>
                                             <SelectTrigger className="bg-slate-800 border-slate-700">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className="bg-slate-800 border-slate-700">
+                                                <SelectItem value="devolucion">✅ Devolución (Cliente devuelve)</SelectItem>
+                                                <SelectItem value="entrega">📤 Entrega (Sin factura)</SelectItem>
                                                 <SelectItem value="saldo_inicial">📦 Saldo Inicial (Migración)</SelectItem>
                                                 <SelectItem value="ajuste_ganancia">➕ Ajuste Positivo (Agregar)</SelectItem>
                                                 <SelectItem value="ajuste_perdida">➖ Ajuste Negativo (Pérdida/Rotura)</SelectItem>
@@ -421,11 +499,15 @@ export default function ClientReturnablesPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-slate-300">Justificación *</Label>
+                                        <Label className="text-slate-300">
+                                            Notas {['ajuste_ganancia', 'ajuste_perdida', 'saldo_inicial'].includes(adjustType) ? '*' : '(opcional)'}
+                                        </Label>
                                         <Textarea
                                             value={adjustNotes}
                                             onChange={(e) => setAdjustNotes(e.target.value)}
-                                            placeholder="Explique el motivo del ajuste (requerido)..."
+                                            placeholder={['devolucion', 'entrega'].includes(adjustType) 
+                                                ? "Observaciones opcionales..." 
+                                                : "Explique el motivo del ajuste (requerido)..."}
                                             className="bg-slate-800 border-slate-700"
                                             rows={3}
                                         />
@@ -437,10 +519,13 @@ export default function ClientReturnablesPage() {
                                     </Button>
                                     <Button 
                                         onClick={handleAdjustment}
-                                        disabled={submitting || !adjustProductId || !adjustQuantity || !adjustNotes.trim()}
+                                        disabled={submitting || !adjustProductId || !adjustQuantity || 
+                                            (['ajuste_ganancia', 'ajuste_perdida', 'saldo_inicial'].includes(adjustType) && !adjustNotes.trim())}
+                                        className={adjustType === 'devolucion' ? 'bg-green-600 hover:bg-green-700' : ''}
                                     >
                                         {submitting ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : null}
-                                        Registrar Ajuste
+                                        {adjustType === 'devolucion' ? 'Registrar Devolución' : 
+                                         adjustType === 'entrega' ? 'Registrar Entrega' : 'Registrar Movimiento'}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>

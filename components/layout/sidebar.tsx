@@ -113,6 +113,12 @@ const navigation = [
     module: "expenses",
   },
   {
+        name: "Liquidación y Cierres",
+        href: "/route-liquidation",
+        icon: Calculator,
+        module: "routes",
+      },
+  {
     name: "Compras",
     href: "/purchases",
     icon: ShoppingCart,
@@ -129,6 +135,12 @@ const navigation = [
     href: "/agenda",
     icon: Calendar,
     module: "agenda",
+  },
+  {
+    name: "Control de Caja",
+    href: "/cash-register",
+    icon: Banknote,
+    module: "cash-register",
   },
   {
     name: "Recibos",
@@ -229,6 +241,7 @@ const navigation = [
         icon: FileText,
         module: "routes",
       },
+      
     ],
   },
   {

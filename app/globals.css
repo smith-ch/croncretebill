@@ -983,7 +983,7 @@ label[data-required]::after,
 
 /* Print styles */
 @media print {
-  .no-print {
+  .no-print, .print\\:hidden {
     display: none !important;
   }
 
@@ -997,6 +997,141 @@ label[data-required]::after,
 
   .print-break-inside-avoid {
     page-break-inside: avoid;
+  }
+
+  /* Report Z Print Styles */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .report-z-print {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .report-z-print .print-header {
+    border-bottom: 3px solid #1a1a2e !important;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+
+  .report-z-print .print-section {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    page-break-inside: avoid;
+    background: white !important;
+  }
+
+  .report-z-print .print-section-title {
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+    border-bottom: 2px solid #3b82f6 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .report-z-print .print-grid-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .report-z-print .print-card {
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    text-align: center !important;
+  }
+
+  .report-z-print .print-card.cash { border-color: #22c55e !important; }
+  .report-z-print .print-card.card { border-color: #3b82f6 !important; }
+  .report-z-print .print-card.transfer { border-color: #a855f7 !important; }
+  .report-z-print .print-card.credit { border-color: #f59e0b !important; }
+
+  .report-z-print .print-value {
+    font-size: 16pt !important;
+    font-weight: 700 !important;
+  }
+
+  .report-z-print .print-value.cash { color: #16a34a !important; }
+  .report-z-print .print-value.card { color: #2563eb !important; }
+  .report-z-print .print-value.transfer { color: #9333ea !important; }
+  .report-z-print .print-value.credit { color: #d97706 !important; }
+
+  .report-z-print .print-result-box {
+    border: 3px solid !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    text-align: center !important;
+    page-break-inside: avoid;
+  }
+
+  .report-z-print .print-result-box.success {
+    border-color: #22c55e !important;
+    background: #f0fdf4 !important;
+  }
+
+  .report-z-print .print-result-box.error {
+    border-color: #ef4444 !important;
+    background: #fef2f2 !important;
+  }
+
+  .report-z-print .print-result-box.warning {
+    border-color: #f59e0b !important;
+    background: #fffbeb !important;
+  }
+
+  .report-z-print table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  .report-z-print th {
+    background: #f3f4f6 !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    padding: 8px !important;
+    border-bottom: 2px solid #d1d5db !important;
+  }
+
+  .report-z-print td {
+    padding: 6px 8px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  .report-z-print .print-footer {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 2px solid #1a1a2e !important;
+    text-align: center;
+    font-size: 10pt;
+    color: #6b7280;
+  }
+
+  .report-z-print .print-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #d1d5db;
+  }
+
+  .report-z-print .print-summary-row.total {
+    border-bottom: none;
+    border-top: 2px solid #1a1a2e;
+    padding-top: 12px;
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 14pt;
   }
 }
 

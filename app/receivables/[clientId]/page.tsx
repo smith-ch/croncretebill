@@ -24,6 +24,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrency } from '@/hooks/use-currency'
 import { useDataUserId } from '@/hooks/use-data-user-id'
@@ -102,8 +103,12 @@ export default function ClientReceivablesPage() {
     const [paymentReference, setPaymentReference] = useState('')
     const [paymentNotes, setPaymentNotes] = useState('')
     const [useFIFO, setUseFIFO] = useState(true)
+    const [selectedAccountId, setSelectedAccountId] = useState<string>('')
     const [selectedAccounts, setSelectedAccounts] = useState<string[]>([])
     const [submitting, setSubmitting] = useState(false)
+    
+    // Cash register shift (Módulo G)
+    const [activeCashShiftId, setActiveCashShiftId] = useState<string | null>(null)
 
     const fetchClientData = useCallback(async () => {
         if (!dataUserId || !clientId) {
@@ -150,6 +155,22 @@ export default function ClientReceivablesPage() {
                 throw paymentsError
             }
             setPayments((paymentsData || []) as Payment[])
+
+            // Fetch active cash shift (Módulo G)
+            try {
+                const { data: shiftData, error: shiftErr } = await supabase
+                    .from('cash_register_shifts')
+                    .select('id')
+                    .eq('user_id', dataUserId)
+                    .eq('status', 'abierta')
+                    .maybeSingle()
+                
+                if (!shiftErr && shiftData?.id) {
+                    setActiveCashShiftId(shiftData.id)
+                }
+            } catch {
+                // No active shift - this is ok
+            }
 
         } catch (error: any) {
             console.error('Error fetching client data:', error)
@@ -198,6 +219,13 @@ export default function ClientReceivablesPage() {
         [accounts]
     )
 
+    // Cuentas ya pagadas (historial)
+    const paidAccounts = useMemo(() => 
+        accounts.filter(ar => parseFloat(String(ar.balance)) <= 0 && ar.status === 'pagado')
+            .sort((a, b) => new Date(b.issue_date).getTime() - new Date(a.issue_date).getTime()),
+        [accounts]
+    )
+
     const getAgingBadge = (dueDate: string) => {
         const daysOverdue = differenceInDays(new Date(), new Date(dueDate))
         if (daysOverdue <= 0) {
@@ -226,10 +254,25 @@ export default function ClientReceivablesPage() {
             return
         }
 
-        if (amount > summary.totalBalance) {
+        // Validate selection when not using FIFO
+        if (!useFIFO && !selectedAccountId) {
             toast({
                 title: "Error",
-                description: `El monto excede el balance pendiente (${formatCurrency(summary.totalBalance)}).`,
+                description: "Seleccione un crédito a pagar.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        // Validate amount against selected account or total balance
+        const maxAmount = !useFIFO && selectedAccountId 
+            ? (pendingAccounts.find(a => a.id === selectedAccountId)?.balance || 0)
+            : summary.totalBalance
+        
+        if (amount > maxAmount) {
+            toast({
+                title: "Error",
+                description: `El monto excede el balance pendiente (${formatCurrency(maxAmount)}).`,
                 variant: "destructive"
             })
             return
@@ -251,7 +294,8 @@ export default function ClientReceivablesPage() {
                     payment_method: paymentMethod,
                     reference_number: paymentReference || null,
                     notes: paymentNotes || null,
-                    payment_date: new Date().toISOString()
+                    payment_date: new Date().toISOString(),
+                    cash_shift_id: activeCashShiftId
                 })
                 .select()
                 .single()
@@ -284,16 +328,15 @@ export default function ClientReceivablesPage() {
                         amount_applied: applyAmount
                     })
 
-                    // Update account receivable
+                    // Update account receivable (balance is GENERATED, don't update it directly)
                     const newPaidAmount = (parseFloat(String(ar.paid_amount)) || 0) + applyAmount
-                    const newBalance = (parseFloat(String(ar.total_amount)) || 0) - newPaidAmount
-                    const newStatus = newBalance <= 0.01 ? 'pagado' : 'parcial'
+                    const totalAmount = parseFloat(String(ar.total_amount)) || 0
+                    const newStatus = (totalAmount - newPaidAmount) <= 0.01 ? 'pagado' : 'parcial'
 
                     await supabase
                         .from('accounts_receivable')
                         .update({
                             paid_amount: newPaidAmount,
-                            balance: Math.max(0, newBalance),
                             status: newStatus,
                             updated_at: new Date().toISOString()
                         })
@@ -322,17 +365,12 @@ export default function ClientReceivablesPage() {
 
                     remainingAmount -= applyAmount
                 }
-            } else if (selectedAccounts.length > 0) {
-                // Apply to selected accounts
-                let remainingAmount = amount
-                const selected = pendingAccounts.filter(ar => selectedAccounts.includes(ar.id))
-
-                for (const ar of selected) {
-                    if (remainingAmount <= 0) {
-                        break
-                    }
+            } else if (selectedAccountId) {
+                // Apply to specific selected account
+                const ar = pendingAccounts.find(a => a.id === selectedAccountId)
+                if (ar) {
                     const arBalance = parseFloat(String(ar.balance))
-                    const applyAmount = Math.min(remainingAmount, arBalance)
+                    const applyAmount = Math.min(amount, arBalance)
 
                     await supabase.from('ar_payment_applications').insert({
                         payment_id: paymentId,
@@ -341,14 +379,13 @@ export default function ClientReceivablesPage() {
                     })
 
                     const newPaidAmount = (parseFloat(String(ar.paid_amount)) || 0) + applyAmount
-                    const newBalance = (parseFloat(String(ar.total_amount)) || 0) - newPaidAmount
-                    const newStatus = newBalance <= 0.01 ? 'pagado' : 'parcial'
+                    const totalAmount = parseFloat(String(ar.total_amount)) || 0
+                    const newStatus = (totalAmount - newPaidAmount) <= 0.01 ? 'pagado' : 'parcial'
 
                     await supabase
                         .from('accounts_receivable')
                         .update({
                             paid_amount: newPaidAmount,
-                            balance: Math.max(0, newBalance),
                             status: newStatus,
                             updated_at: new Date().toISOString()
                         })
@@ -373,8 +410,6 @@ export default function ClientReceivablesPage() {
                                 .eq('id', ar.thermal_receipt_id)
                         }
                     }
-
-                    remainingAmount -= applyAmount
                 }
             }
 
@@ -388,7 +423,9 @@ export default function ClientReceivablesPage() {
             setPaymentAmount('')
             setPaymentReference('')
             setPaymentNotes('')
+            setSelectedAccountId('')
             setSelectedAccounts([])
+            setUseFIFO(true)
             fetchClientData()
 
         } catch (error: any) {
@@ -573,7 +610,12 @@ export default function ClientReceivablesPage() {
                                     <Checkbox 
                                         id="fifo" 
                                         checked={useFIFO} 
-                                        onCheckedChange={(checked) => setUseFIFO(checked as boolean)}
+                                        onCheckedChange={(checked) => {
+                                            setUseFIFO(checked as boolean)
+                                            if (checked) {
+                                                setSelectedAccountId('')
+                                            }
+                                        }}
                                     />
                                     <Label htmlFor="fifo" className="text-slate-200 cursor-pointer">
                                         Aplicar automáticamente (FIFO)
@@ -583,6 +625,42 @@ export default function ClientReceivablesPage() {
                                     El pago se aplicará primero a las facturas más antiguas.
                                 </p>
                             </div>
+
+                            {/* Invoice Selector - when FIFO is off */}
+                            {!useFIFO && (
+                                <div className="space-y-2">
+                                    <Label className="text-slate-200">Seleccionar Crédito a Pagar *</Label>
+                                    <Select 
+                                        value={selectedAccountId} 
+                                        onValueChange={(value) => {
+                                            setSelectedAccountId(value)
+                                            const selected = pendingAccounts.find(a => a.id === value)
+                                            if (selected) {
+                                                setPaymentAmount(String(selected.balance))
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="bg-slate-900 border-slate-700">
+                                            <SelectValue placeholder="Seleccione un crédito..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-60">
+                                            {pendingAccounts.map((ar) => (
+                                                <SelectItem key={ar.id} value={ar.id}>
+                                                    <span className="flex items-center justify-between gap-4">
+                                                        <span className="font-medium">{ar.document_number || 'Sin número'}</span>
+                                                        <span className="text-amber-400">{formatCurrency(ar.balance)}</span>
+                                                    </span>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {selectedAccountId && (
+                                        <p className="text-xs text-emerald-400">
+                                            Saldo de este crédito: {formatCurrency(pendingAccounts.find(a => a.id === selectedAccountId)?.balance || 0)}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Notes */}
                             <div className="space-y-2">
@@ -598,7 +676,7 @@ export default function ClientReceivablesPage() {
                             {/* Submit */}
                             <Button
                                 onClick={handleSubmitPayment}
-                                disabled={submitting || !paymentAmount}
+                                disabled={submitting || !paymentAmount || (!useFIFO && !selectedAccountId)}
                                 className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
                             >
                                 {submitting ? (
@@ -678,123 +756,211 @@ export default function ClientReceivablesPage() {
                 </Card>
             </div>
 
-            {/* Pending Accounts Table */}
-            <Card className="bg-slate-900 border-slate-800">
-                <CardHeader className="border-b border-slate-800">
-                    <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-amber-400" />
-                        Documentos Pendientes ({pendingAccounts.length})
-                    </CardTitle>
-                    <CardDescription>
-                        Facturas y documentos con saldo pendiente, ordenados por antigüedad
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {pendingAccounts.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                            </div>
-                            <h3 className="text-lg font-medium text-slate-300">Sin saldos pendientes</h3>
-                            <p className="text-slate-500">Este cliente no tiene facturas pendientes de pago.</p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-800 text-slate-400 text-sm">
-                                        <th className="text-left p-4 font-medium">Referencia</th>
-                                        <th className="text-left p-4 font-medium">Fecha</th>
-                                        <th className="text-left p-4 font-medium">Vencimiento</th>
-                                        <th className="text-right p-4 font-medium">Total</th>
-                                        <th className="text-right p-4 font-medium">Pagado</th>
-                                        <th className="text-right p-4 font-medium">Saldo</th>
-                                        <th className="text-center p-4 font-medium">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-800/50">
-                                    {pendingAccounts.map((ar) => {
-                                        const daysOverdue = differenceInDays(new Date(), new Date(ar.due_date))
-                                        return (
-                                            <tr 
-                                                key={ar.id} 
-                                                className={`hover:bg-slate-800/30 transition-colors ${
-                                                    daysOverdue > 15 ? 'bg-red-950/10' : ''
-                                                }`}
-                                            >
-                                                <td className="p-4">
-                                                    <div>
-                                                        <p className="font-medium text-slate-200">{ar.reference_number}</p>
-                                                        <p className="text-xs text-slate-500 capitalize">{ar.reference_type}</p>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-slate-300">
-                                                    {format(new Date(ar.issue_date), 'dd/MM/yyyy', { locale: es })}
-                                                </td>
-                                                <td className="p-4 text-slate-300">
-                                                    {format(new Date(ar.due_date), 'dd/MM/yyyy', { locale: es })}
-                                                </td>
-                                                <td className="p-4 text-right text-slate-300">
-                                                    {formatCurrency(ar.total_amount)}
-                                                </td>
-                                                <td className="p-4 text-right text-emerald-400">
-                                                    {formatCurrency(ar.paid_amount)}
-                                                </td>
-                                                <td className="p-4 text-right font-bold text-amber-400">
-                                                    {formatCurrency(ar.balance)}
-                                                </td>
-                                                <td className="p-4 text-center">
-                                                    {getAgingBadge(ar.due_date)}
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            {/* Tabs: Pendientes / Pagadas / Historial de Pagos */}
+            <Tabs defaultValue="pendientes" className="w-full">
+                <TabsList className="bg-slate-900 border-slate-800 w-full grid grid-cols-3 mb-4">
+                    <TabsTrigger value="pendientes" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Pendientes ({pendingAccounts.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="pagadas" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400">
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Pagadas ({paidAccounts.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="pagos" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
+                        <History className="h-4 w-4 mr-2" />
+                        Pagos ({payments.length})
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Payment History */}
-            <Card className="bg-slate-900 border-slate-800">
-                <CardHeader className="border-b border-slate-800">
-                    <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-                        <History className="h-5 w-5 text-emerald-400" />
-                        Historial de Pagos
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {payments.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500">
-                            No hay pagos registrados para este cliente.
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-slate-800/50">
-                            {payments.map((payment) => (
-                                <div key={payment.id} className="p-4 flex justify-between items-center hover:bg-slate-800/30">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-emerald-500/10 rounded-lg">
-                                            <Banknote className="h-5 w-5 text-emerald-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-slate-200">{payment.payment_number}</p>
-                                            <p className="text-sm text-slate-500 flex items-center gap-2">
-                                                <Calendar className="h-3 w-3" />
-                                                {format(new Date(payment.payment_date), "dd/MM/yyyy 'a las' HH:mm", { locale: es })}
-                                                <span className="capitalize">• {payment.payment_method}</span>
-                                            </p>
-                                        </div>
+                {/* Tab: Pendientes */}
+                <TabsContent value="pendientes">
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader className="border-b border-slate-800">
+                            <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-amber-400" />
+                                Documentos Pendientes
+                            </CardTitle>
+                            <CardDescription>
+                                Facturas y documentos con saldo pendiente, ordenados por antigüedad
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {pendingAccounts.length === 0 ? (
+                                <div className="p-12 text-center">
+                                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                                     </div>
-                                    <span className="text-lg font-bold text-emerald-400">
-                                        +{formatCurrency(payment.amount)}
-                                    </span>
+                                    <h3 className="text-lg font-medium text-slate-300">Sin saldos pendientes</h3>
+                                    <p className="text-slate-500">Este cliente no tiene facturas pendientes de pago.</p>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-slate-800 text-slate-400 text-sm">
+                                                <th className="text-left p-4 font-medium">Referencia</th>
+                                                <th className="text-left p-4 font-medium">Fecha</th>
+                                                <th className="text-left p-4 font-medium">Vencimiento</th>
+                                                <th className="text-right p-4 font-medium">Total</th>
+                                                <th className="text-right p-4 font-medium">Pagado</th>
+                                                <th className="text-right p-4 font-medium">Saldo</th>
+                                                <th className="text-center p-4 font-medium">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800/50">
+                                            {pendingAccounts.map((ar) => {
+                                                const daysOverdue = differenceInDays(new Date(), new Date(ar.due_date))
+                                                return (
+                                                    <tr 
+                                                        key={ar.id} 
+                                                        className={`hover:bg-slate-800/30 transition-colors ${
+                                                            daysOverdue > 15 ? 'bg-red-950/10' : ''
+                                                        }`}
+                                                    >
+                                                        <td className="p-4">
+                                                            <div>
+                                                                <p className="font-medium text-slate-200">{ar.document_number}</p>
+                                                                <p className="text-xs text-slate-500">{ar.description}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 text-slate-300">
+                                                            {format(new Date(ar.issue_date), 'dd/MM/yyyy', { locale: es })}
+                                                        </td>
+                                                        <td className="p-4 text-slate-300">
+                                                            {format(new Date(ar.due_date), 'dd/MM/yyyy', { locale: es })}
+                                                        </td>
+                                                        <td className="p-4 text-right text-slate-300">
+                                                            {formatCurrency(ar.total_amount)}
+                                                        </td>
+                                                        <td className="p-4 text-right text-emerald-400">
+                                                            {formatCurrency(ar.paid_amount)}
+                                                        </td>
+                                                        <td className="p-4 text-right font-bold text-amber-400">
+                                                            {formatCurrency(ar.balance)}
+                                                        </td>
+                                                        <td className="p-4 text-center">
+                                                            {getAgingBadge(ar.due_date)}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Tab: Pagadas */}
+                <TabsContent value="pagadas">
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader className="border-b border-slate-800">
+                            <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
+                                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                                Facturas Pagadas
+                            </CardTitle>
+                            <CardDescription>
+                                Historial de créditos que el cliente ya saldó completamente
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {paidAccounts.length === 0 ? (
+                                <div className="p-12 text-center">
+                                    <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <FileText className="h-8 w-8 text-slate-500" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-slate-300">Sin historial de pagos</h3>
+                                    <p className="text-slate-500">Este cliente aún no ha saldado ningún crédito.</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-slate-800 text-slate-400 text-sm">
+                                                <th className="text-left p-4 font-medium">Referencia</th>
+                                                <th className="text-left p-4 font-medium">Fecha Emisión</th>
+                                                <th className="text-right p-4 font-medium">Total</th>
+                                                <th className="text-center p-4 font-medium">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800/50">
+                                            {paidAccounts.map((ar) => (
+                                                <tr key={ar.id} className="hover:bg-slate-800/30 transition-colors">
+                                                    <td className="p-4">
+                                                        <div>
+                                                            <p className="font-medium text-slate-200">{ar.document_number}</p>
+                                                            <p className="text-xs text-slate-500">{ar.description}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-slate-300">
+                                                        {format(new Date(ar.issue_date), 'dd/MM/yyyy', { locale: es })}
+                                                    </td>
+                                                    <td className="p-4 text-right text-slate-300">
+                                                        {formatCurrency(ar.total_amount)}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                                                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                            Pagada
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Tab: Historial de Pagos */}
+                <TabsContent value="pagos">
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader className="border-b border-slate-800">
+                            <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
+                                <History className="h-5 w-5 text-blue-400" />
+                                Historial de Pagos/Abonos
+                            </CardTitle>
+                            <CardDescription>
+                                Todos los pagos realizados por este cliente
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {payments.length === 0 ? (
+                                <div className="p-8 text-center text-slate-500">
+                                    No hay pagos registrados para este cliente.
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-slate-800/50">
+                                    {payments.map((payment) => (
+                                        <div key={payment.id} className="p-4 flex justify-between items-center hover:bg-slate-800/30">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                                    <Banknote className="h-5 w-5 text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-slate-200">{payment.payment_number}</p>
+                                                    <p className="text-sm text-slate-500 flex items-center gap-2">
+                                                        <Calendar className="h-3 w-3" />
+                                                        {format(new Date(payment.payment_date), "dd/MM/yyyy 'a las' HH:mm", { locale: es })}
+                                                        <span className="capitalize">• {payment.payment_method}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className="text-lg font-bold text-emerald-400">
+                                                +{formatCurrency(payment.amount)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }

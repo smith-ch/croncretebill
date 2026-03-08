@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useCurrency } from "@/hooks/use-currency"
 import { useNotificationHelpers } from "@/hooks/use-notifications"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -343,11 +344,25 @@ export default function ThermalReceiptsPage() {
   const [returnedItems, setReturnedItems] = useState<{product_id: string, product_name: string, quantity: number}[]>([])
   const [showReturnablesSection, setShowReturnablesSection] = useState(false)
   
+  // Cash register shift (Módulo G)
+  const [activeCashShiftId, setActiveCashShiftId] = useState<string | null>(null)
+  
+  // Dialog state for controlled opening (from route navigation)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [autoOpenProcessed, setAutoOpenProcessed] = useState(false) // Evitar reabrir el diálogo
+  
   const { formatCurrency } = useCurrency()
   const { notifySuccess, notifyError } = useNotificationHelpers()
   const { canDelete, permissions } = useUserPermissions()
   const { toast } = useToast()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+  
+  // URL params for pre-selecting client from route
+  const searchParams = useSearchParams()
+  const urlClientId = searchParams.get('client_id')
+  const fromRoute = searchParams.get('from') === 'route'
+  const stopId = searchParams.get('stop_id')
+  const dispatchId = searchParams.get('dispatch_id')
 
   // Use proper permissions system for delete operations
 
@@ -450,6 +465,23 @@ export default function ThermalReceiptsPage() {
       } else {
         setRegisteredClients(clientsResult.data || [])
       }
+
+      // Fetch active cash shift (Módulo G) - usar maybeSingle para evitar error 406
+      try {
+        const { data: shiftData, error: shiftError } = await supabase
+          .from('cash_register_shifts')
+          .select('id')
+          .eq('user_id', dataUserId)
+          .eq('status', 'abierta')
+          .maybeSingle()
+        
+        if (!shiftError && shiftData?.id) {
+          setActiveCashShiftId(shiftData.id)
+        }
+      } catch (shiftErr) {
+        // Table may not exist or no active shift - this is ok
+        console.log("No active cash shift found")
+      }
     } catch (error) {
       console.error("Error fetching data:", error)
       notifyError("Error al cargar los datos. Verifica que las tablas estén configuradas.")
@@ -463,6 +495,23 @@ export default function ThermalReceiptsPage() {
       fetchData()
     }
   }, [fetchData, userIdLoading, dataUserId])
+
+  // Auto-select client from URL params (from employee route)
+  useEffect(() => {
+    if (urlClientId && registeredClients.length > 0 && !autoOpenProcessed) {
+      const clientExists = registeredClients.find(c => c.id === urlClientId)
+      if (clientExists) {
+        setClientType("registered")
+        setSelectedClientId(urlClientId)
+        setClientName(clientExists.name || clientExists.client_name || '')
+        // If coming from route, open the dialog automatically (only once)
+        if (fromRoute) {
+          setDialogOpen(true)
+          setAutoOpenProcessed(true) // Marcar como procesado para no reabrir
+        }
+      }
+    }
+  }, [urlClientId, registeredClients, fromRoute, autoOpenProcessed])
 
   const addItem = () => {
     setItems([...items, { item_name: "", quantity: 1, unit_price: 0, line_total: 0 }])
@@ -760,7 +809,8 @@ export default function ThermalReceiptsPage() {
           verification_code,
           digital_receipt_url: qr_url,
           notes: notes || null,
-          status: paymentStatus === 'pendiente' ? 'pendiente' : 'active'
+          status: paymentStatus === 'pendiente' ? 'pendiente' : 'active',
+          cash_shift_id: activeCashShiftId
         })
         .select()
         .single()
@@ -882,6 +932,58 @@ export default function ThermalReceiptsPage() {
             console.warn("No se pudieron registrar movimientos de retornables:", retErr.message)
           } else {
             console.log(`Registrados ${returnablesEntries.length} movimientos de retornables`)
+            
+            // Obtener almacén principal del usuario
+            const { data: warehouse } = await supabase
+              .from('warehouses')
+              .select('id')
+              .eq('user_id', dataUserId)
+              .order('created_at', { ascending: true })
+              .limit(1)
+              .single()
+
+            // Actualizar stock para las devoluciones (envases que regresan al inventario)
+            for (const returned of returnedItems) {
+              if (returned.quantity > 0) {
+                const { data: productData } = await supabase
+                  .from('products')
+                  .select('current_stock, cost_price, name')
+                  .eq('id', returned.product_id)
+                  .single()
+
+                if (productData) {
+                  const currentStock = productData.current_stock || 0
+                  const newStock = currentStock + returned.quantity
+                  
+                  // Actualizar stock del producto
+                  await supabase
+                    .from('products')
+                    .update({ current_stock: newStock })
+                    .eq('id', returned.product_id)
+
+                  // Registrar movimiento en el historial de inventario
+                  if (warehouse) {
+                    const unitCost = productData.cost_price || 0
+                    await supabase
+                      .from('stock_movements')
+                      .insert({
+                        user_id: dataUserId,
+                        product_id: returned.product_id,
+                        warehouse_id: warehouse.id,
+                        movement_type: 'devolucion',
+                        quantity_before: currentStock,
+                        quantity_change: returned.quantity,
+                        quantity_after: newStock,
+                        unit_cost: unitCost,
+                        total_cost: returned.quantity * unitCost,
+                        reference_type: 'returnable',
+                        reference_id: (receiptData as any).id,
+                        notes: `Devolución de envase con recibo ${receipt_number}: ${productData.name}`
+                      })
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -904,6 +1006,22 @@ export default function ThermalReceiptsPage() {
       setClientType("occasional")
 
       notifySuccess("Recibo térmico creado exitosamente")
+      setDialogOpen(false) // Close dialog after successful save
+      
+      // Si viene de la ruta, marcar la parada como completada
+      if (fromRoute && stopId) {
+        try {
+          await supabase
+            .from('dispatch_items')
+            .update({ 
+              is_visited: true
+            })
+            .eq('id', stopId)
+        } catch (stopError) {
+          console.error('Error marking stop as completed:', stopError)
+        }
+      }
+      
       await fetchData()
 
       // Generate and print receipt with company data - AUTO IMPRESIÓN
@@ -1303,7 +1421,7 @@ export default function ThermalReceiptsPage() {
 
             {/* Botón CTA Principal */}
             <div className="flex flex-col sm:flex-row gap-2 lg:gap-3" data-section="new-receipt">
-              <Dialog>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-4 lg:px-8 py-2.5 lg:py-3 text-sm lg:text-base font-semibold relative overflow-hidden group w-full">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
