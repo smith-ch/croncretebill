@@ -225,19 +225,22 @@ export function useDispatchLoading() {
 
             // 4. Generate "salida_planta" delivery note
             const noteNumber = `CS-${Date.now().toString(36).toUpperCase()}`
+            const deliveryNoteRow: Record<string, unknown> = {
+                user_id: dataUserId,
+                dispatch_id: payload.dispatch_id,
+                driver_id: payload.driver_id,
+                vehicle_id: payload.vehicle_id,
+                note_number: noteNumber,
+                delivery_date: new Date().toISOString().split("T")[0],
+                status: "en_transito",
+                note_type: "salida_planta",
+                notes: `Fondo de caja: RD$${payload.petty_cash_amount}. Productos: ${payload.items.length} tipo(s).`,
+            }
+            // owner_id: requerido si existe columna (trigger set_owner_id_on_insert usa NEW.owner_id)
+            deliveryNoteRow.owner_id = dataUserId
             const { error: noteErr } = await (supabase as any)
                 .from("delivery_notes")
-                .insert({
-                    user_id: dataUserId,
-                    dispatch_id: payload.dispatch_id,
-                    driver_id: payload.driver_id,
-                    vehicle_id: payload.vehicle_id,
-                    note_number: noteNumber,
-                    delivery_date: new Date().toISOString().split("T")[0],
-                    status: "en_transito",
-                    note_type: "salida_planta",
-                    notes: `Fondo de caja: RD$${payload.petty_cash_amount}. Productos: ${payload.items.length} tipo(s).`,
-                })
+                .insert(deliveryNoteRow)
             if (noteErr) throw noteErr
 
             toast({ title: "¡Despacho confirmado!", description: `Conduce de salida ${noteNumber} generado. El vehículo está en ruta.` })

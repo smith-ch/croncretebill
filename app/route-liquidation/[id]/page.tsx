@@ -50,13 +50,10 @@ export default function RouteLiquidationProcess({ params }: { params: { id: stri
                 .single()
 
             if (error) throw error
-            const dispatchData = data as any;
+            const dispatchData = data as any
             setDispatch(dispatchData)
-
-            // Si el estado no es en_liquidacion ni cerrado, lo pasamos a en_liquidacion
-            if (dispatchData.dispatch_status === 'despachado' || dispatchData.dispatch_status === 'en_ruta') {
-                await startLiquidation(dispatchData.id)
-            }
+            // No cambiar estado aquí: la liquidación se inicia al guardar el primer paso (inventario)
+            // o al hacer clic en "Iniciar liquidación", para no marcar el camión en liquidación solo por abrir la página.
         } catch (error: any) {
             console.error('Error fetching dispatch:', error)
             toast({
@@ -160,6 +157,9 @@ export default function RouteLiquidationProcess({ params }: { params: { id: stri
                             dispatch={dispatch}
                             isClosed={isClosed}
                             onNext={() => setActiveTab('returns')}
+                            onStartLiquidation={async () => {
+                                await startLiquidation(dispatch.id)
+                            }}
                         />
                     </TabsContent>
 

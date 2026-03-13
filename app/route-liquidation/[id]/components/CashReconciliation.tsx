@@ -23,31 +23,18 @@ export default function CashReconciliation({ dispatch, isClosed, onNext, onBack 
         const fetchCashSales = async () => {
             if (!dispatch?.id) return
             try {
-                const dispatchDate = dispatch.dispatch_date
-
-                // Buscar recibos desde la fecha del despacho hasta hoy
-                // (las ventas pueden ocurrir en días posteriores al despacho inicial)
-                const startDate = new Date(`${dispatchDate}T00:00:00`)
-                startDate.setHours(startDate.getHours() - 4)
-                const endDate = new Date()
-                endDate.setHours(23, 59, 59, 999)
-
+                // Solo ventas en efectivo de ESTE despacho (recibos con dispatch_id = dispatch.id)
                 const { data: receipts, error } = await supabase
                     .from('thermal_receipts')
                     .select('id, payment_method, amount_received, total_amount')
-                    .eq('user_id', dispatch.user_id)
-                    .gte('created_at', startDate.toISOString())
-                    .lte('created_at', endDate.toISOString())
+                    .eq('dispatch_id', dispatch.id)
                     .neq('status', 'cancelled')
 
                 if (error) throw error
 
-                // Sumamos los recibos que fueron pagados en efectivo
                 let cashSum = 0
                 if (receipts) {
                     receipts.forEach((r: any) => {
-                        // asumiendo que method='cash' (o 'efectivo' dependiendo de cómo lo guarden en el POS)
-                        // Tomamos amount_received, o si no, total_amount
                         if (r.payment_method === 'cash' || r.payment_method === 'efectivo') {
                             cashSum += (parseFloat(r.total_amount) || 0)
                         }

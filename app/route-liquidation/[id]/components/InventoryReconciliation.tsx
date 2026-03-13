@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { RefreshCcw, Save, AlertTriangle, ArrowRight } from 'lucide-react'
 
-export default function InventoryReconciliation({ dispatch, isClosed, onNext }: any) {
+export default function InventoryReconciliation({ dispatch, isClosed, onNext, onStartLiquidation }: { dispatch: any; isClosed: boolean; onNext: () => void; onStartLiquidation?: () => Promise<void> }) {
     const { toast } = useToast()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -35,35 +35,14 @@ export default function InventoryReconciliation({ dispatch, isClosed, onNext }: 
 
                 if (liqErr) throw liqErr
 
-                // 3. Obtener ventas reales de la ruta (recibos térmicos)
-                const dispatchDate = dispatch.dispatch_date // YYYY-MM-DD
-
-                // Buscar recibos desde la fecha del despacho hasta hoy
-                // (las ventas pueden ocurrir en días posteriores al despacho inicial)
-                const startDate = new Date(`${dispatchDate}T00:00:00`)
-                startDate.setHours(startDate.getHours() - 4) // 4 horas antes para cubrir zonas horarias
-                
-                // Si el despacho no está cerrado, buscar hasta ahora; si está cerrado, usar fecha de cierre o +7 días
-                const endDate = new Date()
-                endDate.setHours(23, 59, 59, 999) // Hasta el final del día actual
-
-                console.log('🚛 Cuadre - Buscando recibos:', {
-                    dispatchId: dispatch.id,
-                    dispatchDate,
-                    userId: dispatch.user_id,
-                    startDate: startDate.toISOString(),
-                    endDate: endDate.toISOString()
-                })
-
+                // 3. Obtener ventas de ESTA ruta: solo recibos vinculados a este dispatch_id
+                // (evita mezclar ventas de otros camiones del mismo día)
                 const { data: receiptsData, error: recErr } = await supabase
                     .from('thermal_receipts')
-                    .select('id, created_at, user_id, thermal_receipt_items(product_id, quantity)')
-                    .eq('user_id', dispatch.user_id)
-                    .gte('created_at', startDate.toISOString())
-                    .lte('created_at', endDate.toISOString())
+                    .select('id, created_at, thermal_receipt_items(product_id, quantity)')
+                    .eq('dispatch_id', dispatch.id)
                     .neq('status', 'cancelled')
 
-                console.log('🧾 Recibos encontrados:', receiptsData?.length || 0, receiptsData)
                 if (recErr) console.error("Error fetching receipts:", recErr)
 
                 // Sumar totales vendidos por producto
@@ -126,6 +105,10 @@ export default function InventoryReconciliation({ dispatch, isClosed, onNext }: 
     const handleSave = async () => {
         setSaving(true)
         try {
+            // Si aún no está en liquidación, iniciarla al guardar el primer paso
+            if (onStartLiquidation && (dispatch.dispatch_status === 'despachado' || dispatch.dispatch_status === 'en_ruta')) {
+                await onStartLiquidation()
+            }
             // Guardar (Upsert) cada item en dispatch_liquidations
             for (const item of inventoryItems) {
                 // Chequear si existe

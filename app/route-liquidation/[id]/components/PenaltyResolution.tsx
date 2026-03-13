@@ -58,6 +58,24 @@ export default function PenaltyResolution({ dispatch, isClosed, onBack, onSucces
                 .select('product_id, quantity_loaded')
                 .eq('dispatch_id', dispatch.id)
 
+            // Ventas por producto de este despacho (recibos con dispatch_id)
+            const { data: receipts } = await supabase
+                .from('thermal_receipts')
+                .select('id, thermal_receipt_items(product_id, quantity)')
+                .eq('dispatch_id', dispatch.id)
+                .neq('status', 'cancelled')
+
+            const soldByProduct: Record<string, number> = {}
+            if (receipts) {
+                receipts.forEach((r: any) => {
+                    r.thermal_receipt_items?.forEach((item: any) => {
+                        if (item.product_id) {
+                            soldByProduct[item.product_id] = (soldByProduct[item.product_id] || 0) + (parseFloat(item.quantity) || 0)
+                        }
+                    })
+                })
+            }
+
             const issuesList: any[] = []
 
             if (diff < 0) {
@@ -66,21 +84,22 @@ export default function PenaltyResolution({ dispatch, isClosed, onBack, onSucces
                     type: 'faltante_efectivo',
                     label: 'Faltante de Caja',
                     amount: Math.abs(diff),
-                    chargeToEmployee: true, // Default a cobrar
+                    chargeToEmployee: true,
                     unit: 'RD$'
                 })
             }
 
-            // Simplificado: Para cada carga verificamos si falta (Asumiendo 0 ventas temporales)
+            // Para cada carga: esperado = cargado - vendido; faltante si devuelto < esperado
             if (loads && liquidations) {
                 const loadsArray = loads as any[]
                 const liquidationsArray = liquidations as any[]
                 for (const l of loadsArray) {
                     const liq = liquidationsArray.find(x => x.product_id === l.product_id)
-                    const returnedFull = liq ? liq.quantity_full_returned : 0
-                    const expectedFull = l.quantity_loaded // TODO: Restar items vendidos
+                    const returnedFull = liq ? parseFloat(liq.quantity_full_returned) || 0 : 0
+                    const sold = soldByProduct[l.product_id] || 0
+                    const expectedFull = Math.max(0, (parseFloat(l.quantity_loaded) || 0) - sold)
 
-                    if (returnedFull < expectedFull) {
+                    if (expectedFull > 0 && returnedFull < expectedFull) {
                         issuesList.push({
                             id: `prod_${l.product_id}`,
                             product_id: l.product_id,
@@ -109,21 +128,33 @@ export default function PenaltyResolution({ dispatch, isClosed, onBack, onSucces
     const handleApproveLiquidation = async () => {
         setSaving(true)
         try {
-            // 1. Cargar todas las penalizaciones seleccionadas
             const authStr = await supabase.auth.getUser()
             const ownerId = authStr.data.user?.id
+            if (!ownerId) {
+                toast({ title: "Error", description: "No se pudo identificar el usuario.", variant: "destructive" })
+                return
+            }
 
-            for (const issue of discrepancies) {
-                if (issue.chargeToEmployee) {
-                    await supabase.from('employee_penalties').insert({
-                        user_id: ownerId,
-                        driver_id: dispatch.driver_id,
-                        dispatch_id: dispatch.id,
-                        amount: issue.type === 'faltante_efectivo' ? issue.amount : 0, // TODO: Calcular precio si es producto
-                        reason: issue.type,
-                        notes: `Faltante detectado en liquidación. Concepto: ${issue.label}`,
-                        status: 'pendiente'
-                    })
+            // Evitar duplicar penalidades si se cierra dos veces
+            const { data: existingPenalties } = await supabase
+                .from('employee_penalties')
+                .select('id')
+                .eq('dispatch_id', dispatch.id)
+            if (existingPenalties && existingPenalties.length > 0) {
+                toast({ title: "Aviso", description: "Este despacho ya tiene penalidades registradas. Solo se actualizará el cierre.", variant: "default" })
+            } else {
+                for (const issue of discrepancies) {
+                    if (issue.chargeToEmployee) {
+                        await supabase.from('employee_penalties').insert({
+                            user_id: ownerId,
+                            driver_id: dispatch.driver_id,
+                            dispatch_id: dispatch.id,
+                            amount: issue.type === 'faltante_efectivo' ? issue.amount : 0,
+                            reason: issue.type,
+                            notes: `Faltante detectado en liquidación. Concepto: ${issue.label}`,
+                            status: 'pendiente'
+                        })
+                    }
                 }
             }
 

@@ -70,7 +70,7 @@ export default function RouteLiquidationDashboard() {
                     fleet_vehicles(plate_number, brand)
                 `)
                 .eq('dispatch_date', dateStr)
-                .in('dispatch_status', ['despachado', 'en_ruta', 'en_liquidacion', 'liquidado'])
+                .in('dispatch_status', ['despachado', 'en_ruta', 'en_liquidacion', 'liquidado', 'cerrado'])
                 .order('created_at', { ascending: false })
 
             if (error) throw error
@@ -95,7 +95,7 @@ export default function RouteLiquidationDashboard() {
 
     const pendingCount = dispatches.filter(d => d.dispatch_status === 'en_ruta').length
     const liquidatingCount = dispatches.filter(d => d.dispatch_status === 'en_liquidacion').length
-    const finishedCount = dispatches.filter(d => d.dispatch_status === 'liquidado').length
+    const finishedCount = dispatches.filter(d => d.dispatch_status === 'liquidado' || d.dispatch_status === 'cerrado').length
 
     const goToPreviousDay = () => setSelectedDate(prev => subDays(prev, 1))
     const goToNextDay = () => setSelectedDate(prev => addDays(prev, 1))
@@ -261,7 +261,7 @@ export default function RouteLiquidationDashboard() {
                             {filteredDispatches.map((dispatch) => (
                                 <div key={dispatch.id} className="p-4 sm:p-6 hover:bg-slate-800/30 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-xl shrink-0 ${dispatch.dispatch_status === 'liquidado' ? 'bg-emerald-500/10 text-emerald-500' :
+                                        <div className={`p-3 rounded-xl shrink-0 ${(dispatch.dispatch_status === 'liquidado' || dispatch.dispatch_status === 'cerrado') ? 'bg-emerald-500/10 text-emerald-500' :
                                             dispatch.dispatch_status === 'en_liquidacion' ? 'bg-amber-500/10 text-amber-500' :
                                                 'bg-blue-500/10 text-blue-500'
                                             }`}>
@@ -276,11 +276,11 @@ export default function RouteLiquidationDashboard() {
                                                     {dispatch.fleet_vehicles?.plate_number || 'Sin placa'}
                                                 </Badge>
                                                 <Badge variant="outline" className={`
-                                                    ${dispatch.dispatch_status === 'liquidado' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : ''}
+                                                    ${(dispatch.dispatch_status === 'liquidado' || dispatch.dispatch_status === 'cerrado') ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : ''}
                                                     ${dispatch.dispatch_status === 'en_liquidacion' ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' : ''}
-                                                    ${dispatch.dispatch_status === 'en_ruta' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' : ''}
+                                                    ${(dispatch.dispatch_status === 'en_ruta' || dispatch.dispatch_status === 'despachado') ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' : ''}
                                                 `}>
-                                                    {dispatch.dispatch_status.replace('_', ' ').toUpperCase()}
+                                                    {(dispatch.dispatch_status === 'cerrado' ? 'LIQUIDADO' : dispatch.dispatch_status).replace('_', ' ').toUpperCase()}
                                                 </Badge>
                                                 <span className="text-xs text-slate-500 flex items-center">
                                                     <Clock className="w-3 h-3 mr-1" />
@@ -291,7 +291,7 @@ export default function RouteLiquidationDashboard() {
                                     </div>
 
                                     <div className="w-full sm:w-auto">
-                                        {dispatch.dispatch_status === 'liquidado' ? (
+                                        {(dispatch.dispatch_status === 'liquidado' || dispatch.dispatch_status === 'cerrado') ? (
                                             <Button
                                                 variant="outline"
                                                 className="w-full sm:w-auto border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
