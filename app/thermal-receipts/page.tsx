@@ -741,12 +741,12 @@ export default function ThermalReceiptsPage() {
       }
 
       // Validar descuentos para empleados (máximo 20%)
-      console.log("🔍 Validación de descuento - isOwner:", permissions.isOwner, "| generalDiscountPercentage:", generalDiscountPercentage, "| generalDiscountAmount:", generalDiscountAmount)
+      console.log("[Search] Validación de descuento - isOwner:", permissions.isOwner, "| generalDiscountPercentage:", generalDiscountPercentage, "| generalDiscountAmount:", generalDiscountAmount)
       
       if (!permissions.isOwner) {
         // Validar descuento por porcentaje
         if (generalDiscountPercentage > 20) {
-          console.log("❌ Descuento por porcentaje rechazado:", generalDiscountPercentage)
+          console.log("[X] Descuento por porcentaje rechazado:", generalDiscountPercentage)
           notifyError("Los empleados solo pueden aplicar descuentos de hasta el 20%")
           setSaving(false)
           return
@@ -755,17 +755,17 @@ export default function ThermalReceiptsPage() {
         // Validar descuento por monto fijo
         if (generalDiscountAmount > 0) {
           const discountPercentage = (generalDiscountAmount / subtotal) * 100
-          console.log("💰 Descuento fijo equivalente:", discountPercentage.toFixed(2) + "%")
+          console.log("[DollarSign] Descuento fijo equivalente:", discountPercentage.toFixed(2) + "%")
           if (discountPercentage > 20) {
-            console.log("❌ Descuento fijo rechazado - supera 20%")
+            console.log("[X] Descuento fijo rechazado - supera 20%")
             notifyError(`Descuento no permitido. El descuento supera el 20% permitido. Descuento máximo: ${formatCurrency(subtotal * 0.20)}`)
             setSaving(false)
             return
           }
         }
-        console.log("✅ Descuento aprobado para empleado")
+        console.log("[CheckCircle2] Descuento aprobado para empleado")
       } else {
-        console.log("👑 Usuario es propietario - sin límite de descuento")
+        console.log("[Sparkles] Usuario es propietario - sin límite de descuento")
       }
 
       // Validar stock disponible antes de guardar
@@ -1520,9 +1520,9 @@ export default function ThermalReceiptsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cash">💵 Efectivo</SelectItem>
-                      <SelectItem value="card">💳 Tarjeta</SelectItem>
-                      <SelectItem value="transfer">🏦 Transferencia</SelectItem>
+                      <SelectItem value="cash"><Banknote className="inline h-4 w-4 mr-1 text-green-600" /> Efectivo</SelectItem>
+                      <SelectItem value="card"><CreditCard className="inline h-4 w-4 mr-1 text-cyan-600" /> Tarjeta</SelectItem>
+                      <SelectItem value="transfer"><Building2 className="inline h-4 w-4 mr-1 text-blue-600" /> Transferencia</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1533,12 +1533,12 @@ export default function ThermalReceiptsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pagado">✅ Pagado</SelectItem>
-                      <SelectItem value="pendiente">⏰ Pendiente (Cuenta por Cobrar)</SelectItem>
+                      <SelectItem value="pagado"><CheckCircle2 className="inline h-4 w-4 mr-1 text-green-600" /> Pagado</SelectItem>
+                      <SelectItem value="pendiente"><Clock className="inline h-4 w-4 mr-1 text-amber-600" /> Pendiente (Cuenta por Cobrar)</SelectItem>
                     </SelectContent>
                   </Select>
                   {paymentStatus === 'pendiente' && !selectedClientId && (
-                    <p className="text-xs text-amber-500 mt-1">⚠️ Requiere cliente registrado</p>
+                    <p className="text-xs text-amber-500 mt-1"><AlertCircle className="inline h-4 w-4 mr-1 text-amber-500" /> Requiere cliente registrado</p>
                   )}
                   {paymentStatus === 'pendiente' && selectedClientId && (
                     <p className="text-xs text-green-500 mt-1">✓ Se creará cuenta por cobrar</p>
@@ -1620,7 +1620,7 @@ export default function ThermalReceiptsPage() {
                   {/* Items devueltos */}
                   {returnedItems.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-blue-700">
-                      <p className="text-xs text-green-400 mb-2">📦 Envases a devolver:</p>
+                      <p className="text-xs text-green-400 mb-2"><Package className="inline h-4 w-4 mr-1 text-green-400" /> Envases a devolver:</p>
                       <div className="space-y-2">
                         {returnedItems.map(item => (
                           <div key={item.product_id} className="flex items-center justify-between bg-green-900/20 p-2 rounded">
@@ -2078,7 +2078,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-blue-300 mb-1">{receipts.length}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-blue-600 font-medium">📊 {todayReceipts.length} hoy</p>
+                    <p className="text-xs text-blue-600 font-medium"><BarChart3 className="inline h-4 w-4 mr-1 text-blue-600" /> {todayReceipts.length} hoy</p>
                     {todayReceipts.length > 0 && (
                       <div className="flex items-center space-x-1">
                         <ArrowUp className="h-3 w-3 text-green-500" />
@@ -2099,7 +2099,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-green-300 mb-1">{formatCurrency(todayAmount)}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-green-600 font-medium">💰 {todayReceipts.length} recibos</p>
+                    <p className="text-xs text-green-600 font-medium"><DollarSign className="inline h-4 w-4 mr-1 text-green-600" /> {todayReceipts.length} recibos</p>
                     {todayAmount > 0 && (
                       <div className="flex items-center space-x-1">
                         <TrendingUp className="h-3 w-3 text-green-500" />
@@ -2120,7 +2120,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-purple-300 mb-1">{formatCurrency(weeklyAmount)}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-purple-600 font-medium">📅 {weeklyReceipts.length} recibos</p>
+                    <p className="text-xs text-purple-600 font-medium"><Calendar className="inline h-4 w-4 mr-1 text-purple-600" /> {weeklyReceipts.length} recibos</p>
                     <div className="flex items-center space-x-1">
                       <Clock className="h-3 w-3 text-purple-500" />
                       <span className="text-xs text-purple-600 font-semibold">7d</span>
@@ -2139,7 +2139,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-indigo-800 mb-1">{formatCurrency(monthlyAmount)}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-indigo-600 font-medium">📈 {monthlyReceipts.length} recibos</p>
+                    <p className="text-xs text-indigo-600 font-medium"><TrendingUp className="inline h-4 w-4 mr-1 text-indigo-600" /> {monthlyReceipts.length} recibos</p>
                     <div className="flex items-center space-x-1">
                       <TrendingUp className="h-3 w-3 text-indigo-500" />
                       <span className="text-xs text-indigo-600 font-semibold">Mensual</span>
@@ -2158,7 +2158,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-orange-300 mb-1">{receipts.filter(r => r.payment_method === 'cash').length}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-orange-600 font-medium">💵 {formatCurrency(receipts.filter(r => r.payment_method === 'cash').reduce((sum, r) => sum + r.total_amount, 0))}</p>
+                    <p className="text-xs text-orange-600 font-medium"><Banknote className="inline h-4 w-4 mr-1 text-orange-600" /> {formatCurrency(receipts.filter(r => r.payment_method === 'cash').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <Banknote className="h-3 w-3 text-orange-500" />
                   </div>
                 </CardContent>
@@ -2175,7 +2175,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-cyan-800 mb-1">{receipts.filter(r => r.payment_method === 'card').length}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-cyan-600 font-medium">💳 {formatCurrency(receipts.filter(r => r.payment_method === 'card').reduce((sum, r) => sum + r.total_amount, 0))}</p>
+                    <p className="text-xs text-cyan-600 font-medium"><CreditCard className="inline h-4 w-4 mr-1 text-cyan-600" /> {formatCurrency(receipts.filter(r => r.payment_method === 'card').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <div className="flex items-center space-x-1">
                       <Users className="h-3 w-3 text-cyan-500" />
                       <span className="text-xs text-cyan-600 font-semibold">Digital</span>
@@ -2195,7 +2195,7 @@ export default function ThermalReceiptsPage() {
                 <CardContent className="relative z-10">
                   <div className="text-2xl lg:text-3xl font-bold text-amber-300 mb-1">{receipts.filter(r => r.payment_method === 'credit').length}</div>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-amber-600 font-medium">⏰ {formatCurrency(receipts.filter(r => r.payment_method === 'credit').reduce((sum, r) => sum + r.total_amount, 0))}</p>
+                    <p className="text-xs text-amber-600 font-medium"><Clock className="inline h-4 w-4 mr-1 text-amber-600" /> {formatCurrency(receipts.filter(r => r.payment_method === 'credit').reduce((sum, r) => sum + r.total_amount, 0))}</p>
                     <div className="flex items-center space-x-1">
                       <AlertCircle className="h-3 w-3 text-amber-500" />
                       <span className="text-xs text-amber-600 font-semibold">Por cobrar</span>
@@ -2262,10 +2262,10 @@ export default function ThermalReceiptsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">📊 Todos los estados</SelectItem>
-                  <SelectItem value="active">✅ Pagados</SelectItem>
-                  <SelectItem value="pendiente">⏰ Pendientes</SelectItem>
-                  <SelectItem value="cancelled">❌ Cancelados</SelectItem>
+                  <SelectItem value="all"><BarChart3 className="inline h-4 w-4 mr-1 text-blue-600" /> Todos los estados</SelectItem>
+                  <SelectItem value="active"><CheckCircle2 className="inline h-4 w-4 mr-1 text-green-600" /> Pagados</SelectItem>
+                  <SelectItem value="pendiente"><Clock className="inline h-4 w-4 mr-1 text-amber-600" /> Pendientes</SelectItem>
+                  <SelectItem value="cancelled"><X className="inline h-4 w-4 mr-1 text-red-600" /> Cancelados</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2280,12 +2280,12 @@ export default function ThermalReceiptsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">💳 Todos los métodos</SelectItem>
-                  <SelectItem value="cash">💵 Efectivo</SelectItem>
-                  <SelectItem value="card">💳 Tarjeta</SelectItem>
-                  <SelectItem value="transfer">🏦 Transferencia</SelectItem>
-                  <SelectItem value="credit">⏰ Crédito (Pendiente)</SelectItem>
-                  <SelectItem value="paid_credit">✅ Crédito Pagado</SelectItem>
+                  <SelectItem value="all"><CreditCard className="inline h-4 w-4 mr-1 text-cyan-600" /> Todos los métodos</SelectItem>
+                  <SelectItem value="cash"><Banknote className="inline h-4 w-4 mr-1 text-green-600" /> Efectivo</SelectItem>
+                  <SelectItem value="card"><CreditCard className="inline h-4 w-4 mr-1 text-cyan-600" /> Tarjeta</SelectItem>
+                  <SelectItem value="transfer"><Building2 className="inline h-4 w-4 mr-1 text-blue-600" /> Transferencia</SelectItem>
+                  <SelectItem value="credit"><Clock className="inline h-4 w-4 mr-1 text-amber-600" /> Crédito (Pendiente)</SelectItem>
+                  <SelectItem value="paid_credit"><CheckCircle2 className="inline h-4 w-4 mr-1 text-green-600" /> Crédito Pagado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2389,7 +2389,7 @@ export default function ThermalReceiptsPage() {
                             'bg-slate-800 text-slate-200'
                           }
                         >
-                          {receipt.status === 'pendiente' ? '⏰ Pendiente' : receipt.status === 'active' ? '✅ Pagado' : '❌ Cancelado'}
+                          {receipt.status === 'pendiente' ? <Clock className="inline h-4 w-4 mr-1 text-amber-600" /> : receipt.status === 'active' ? <CheckCircle2 className="inline h-4 w-4 mr-1 text-green-600" /> : <X className="inline h-4 w-4 mr-1 text-red-600" />} {receipt.status === 'pendiente' ? 'Pendiente' : receipt.status === 'active' ? 'Pagado' : 'Cancelado'}
                         </Badge>
                       </div>
                       <div className="text-sm text-blue-600">
@@ -2510,7 +2510,7 @@ export default function ThermalReceiptsPage() {
                     <div className="flex justify-between">
                       <span className="text-slate-400">Estado:</span>
                       <Badge variant={selectedReceipt.status === 'pendiente' ? 'outline' : selectedReceipt.status === 'active' ? 'default' : 'secondary'}>
-                        {selectedReceipt.status === 'pendiente' ? '⏰ Pendiente' : selectedReceipt.status === 'active' ? '✅ Pagado' : '❌ Cancelado'}
+                        {selectedReceipt.status === 'pendiente' ? <Clock className="inline h-4 w-4 mr-1 text-amber-600" /> : selectedReceipt.status === 'active' ? <CheckCircle2 className="inline h-4 w-4 mr-1 text-green-600" /> : <X className="inline h-4 w-4 mr-1 text-red-600" />} {selectedReceipt.status === 'pendiente' ? 'Pendiente' : selectedReceipt.status === 'active' ? 'Pagado' : 'Cancelado'}
                       </Badge>
                     </div>
                   </div>

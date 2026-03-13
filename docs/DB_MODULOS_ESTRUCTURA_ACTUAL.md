@@ -9,6 +9,18 @@ Fuente: introspeccion OpenAPI de Supabase (`public`) + uso real de tablas en `ap
 - Modulos con acceso a BD detectados: 19
 - Tablas unicas detectadas en esos modulos: 37
 
+## Flujo Revisado del Sistema
+
+1. Seguridad y acceso: `profiles`, `user_profiles`, `user_roles`.
+2. Catalogo base: `clients`, `products`, `services`, `categories`, `warehouses`.
+3. Operacion comercial: `invoices`, `invoice_items`, `thermal_receipts`, `thermal_receipt_items`.
+4. Inventario y costos: `product_warehouse_stock`, `stock_movements`, `purchase_history`, `cost_of_goods_sold`.
+5. Caja y cobranzas: `cash_register_shifts`, `cash_register_withdrawals`, `accounts_receivable`, `ar_payments`, `ar_payment_applications`.
+6. Logistica y rutas: `routes`, `daily_dispatches`, `dispatch_items`, `dispatch_inventory_loads`, `dispatch_liquidations`, `employee_penalties`.
+7. Suscripciones y control de acceso por plan: `subscription_plans`, `user_subscriptions`, `subscription_requests`, `subscription_history`, `payment_notifications`.
+
+Este flujo resume el orden recomendado para revisar y refactorizar durante la migracion.
+
 ## Modulo: actions
 
 Tabla: dispatch_items
