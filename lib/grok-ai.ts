@@ -40,8 +40,7 @@ function getGrokApiKey(): string | undefined {
   return process.env.GROQ_API_KEY || 
          process.env.NEXT_PUBLIC_GROQ_API_KEY || 
          process.env.GROK_API_KEY ||
-         process.env.NEXT_PUBLIC_GROK_API_KEY ||
-         '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' // Fallback para desarrollo
+         process.env.NEXT_PUBLIC_GROK_API_KEY
 }
 
 /**

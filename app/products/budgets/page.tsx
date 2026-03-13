@@ -71,9 +71,11 @@ export default function BudgetsPage() {
       const user = session?.user
       if (!user) return
 
-      const { data, error } = await supabase.from("company_settings").select("*").eq("user_id", user.id).single()
+      const { data, error } = await supabase.from("company_settings").select("*").eq("user_id", user.id).maybeSingle()
 
-      if (error && error.code !== "PGRST116") throw error
+      if (error) {
+        console.warn('No company settings found:', error)
+      }
       setCompanySettings(data)
     } catch (error) {
       console.error("Error fetching company settings:", error)

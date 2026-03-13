@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ServiceForm } from "@/components/forms/service-form"
 import { CategoryFilter } from "@/components/ui/category-filter"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, Clock, ShieldCheck } from "lucide-react"
+import { Plus, Search, Wrench, Edit, Trash2, DollarSign, Calculator, AlertCircle } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useToast } from "@/hooks/use-toast"
@@ -50,7 +50,7 @@ export default function ServicesPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, id: string | null }>({ show: false, id: null })
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
@@ -108,8 +108,8 @@ export default function ServicesPage() {
                   No tienes permisos para acceder a los servicios. Esta función requiere permisos de gestión de inventario.
                 </p>
               </div>
-              <Button
-                onClick={() => window.history.back()}
+              <Button 
+                onClick={() => window.history.back()} 
                 className="bg-red-600 hover:bg-red-700"
               >
                 Volver
@@ -160,23 +160,23 @@ export default function ServicesPage() {
           .range(from, to)
 
         if (error) throw error
-
+        
         setTotalItems(count || 0)
-
+        
         // Guardar en cache para uso offline
         if (data) {
           for (const service of data) {
             await offlineCache.set('services', dataUserId, service, 'VERY_LONG')
           }
         }
-
+        
         setServices(data || [])
       } catch (error) {
         // Si falla (sin internet o error), cargar desde cache
         console.log("🔧 Loading services from cache (offline mode)")
         const cachedServices = await offlineCache.getAll<Service>('services', dataUserId)
         setServices(cachedServices)
-
+        
         if (cachedServices.length === 0) {
           toast({
             title: "🔧 Modo offline",
@@ -201,8 +201,8 @@ export default function ServicesPage() {
       })
       return
     }
-
-    setDeleteConfirm({ show: true, id })
+    
+    setDeleteConfirm({show: true, id})
   }
 
   const confirmDelete = async () => {
@@ -212,7 +212,7 @@ export default function ServicesPage() {
     try {
       const { error } = await supabase.from("services").delete().eq("id", deleteConfirm.id)
       if (error) throw error
-
+      
       toast({
         title: "Servicio eliminado",
         description: "El servicio ha sido eliminado exitosamente"
@@ -227,7 +227,7 @@ export default function ServicesPage() {
       })
     } finally {
       setIsDeleting(false)
-      setDeleteConfirm({ show: false, id: null })
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -267,7 +267,7 @@ export default function ServicesPage() {
           </Button>
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button
+              <Button 
                 onClick={(e) => {
                   if (!canAddProducts()) {
                     e.preventDefault()
@@ -304,12 +304,12 @@ export default function ServicesPage() {
           <AlertDescription className={remainingProducts === 0 ? "text-red-300" : "text-amber-300"}>
             {remainingProducts === 0 ? (
               <span>
-                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}.
+                <strong>Límite alcanzado:</strong> Has usado todos los {limits.maxProducts} productos/servicios de tu {limits.planDisplayName}. 
                 <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Actualiza tu plan</Link>
               </span>
             ) : (
               <span>
-                <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s)/servicio(s) de {limits.maxProducts} en tu {limits.planDisplayName}.
+                <strong>Atención:</strong> Te quedan solo {remainingProducts} producto(s)/servicio(s) de {limits.maxProducts} en tu {limits.planDisplayName}. 
                 <Link href="/subscriptions/my-subscription" className="underline font-semibold ml-1">Ver planes</Link>
               </span>
             )}
@@ -408,11 +408,11 @@ export default function ServicesPage() {
                         )}
                       </div>
                     </div>
-
+                    
                     {service.description && (
                       <p className="text-sm text-slate-400 dark:text-gray-400 mb-3 line-clamp-2">{service.description}</p>
                     )}
-
+                    
                     <div className="space-y-3">
                       {/* Precios */}
                       {service.price !== null ? (
@@ -494,17 +494,17 @@ export default function ServicesPage() {
                       <div className="flex gap-2 flex-wrap">
                         {service.duration && (
                           <Badge variant="outline" className="border-green-300 text-green-400 text-xs">
-                            <Clock className="h-3 w-3 mr-1" /> {service.duration}
+                            ⏱️ {service.duration}
                           </Badge>
                         )}
                         {service.warranty_months && service.warranty_months > 0 && (
                           <Badge variant="outline" className="border-purple-300 text-purple-400 text-xs">
-                            <ShieldCheck className="h-3 w-3 mr-1" /> {service.warranty_months}m garantía
+                            🛡️ {service.warranty_months}m garantía
                           </Badge>
                         )}
                         {service.price === null && (
                           <Badge variant="outline" className="border-amber-300 text-amber-400 bg-amber-900/30 text-xs">
-                            <DollarSign className="h-3 w-3 mr-1" /> Precio personalizado
+                            💰 Precio personalizado
                           </Badge>
                         )}
                       </div>
@@ -514,7 +514,7 @@ export default function ServicesPage() {
               ))}
             </div>
           )}
-
+          
           {/* Paginación */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-6 border-t">
@@ -569,10 +569,10 @@ export default function ServicesPage() {
           )}
         </CardContent>
       </Card>
-
+      
       <ConfirmDialog
         open={deleteConfirm.show}
-        onOpenChange={(isOpen) => setDeleteConfirm({ show: isOpen, id: null })}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
         title="Eliminar Servicio"
         description="¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"

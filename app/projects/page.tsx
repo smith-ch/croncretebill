@@ -49,7 +49,7 @@ export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [editingProject, setEditingProject] = useState<any>(null)
   const [showForm, setShowForm] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, id: string | null }>({ show: false, id: null })
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null}>({show: false, id: null})
   const [isDeleting, setIsDeleting] = useState(false)
   const { formatCurrency } = useCurrency()
   const { canDelete, permissions } = useUserPermissions()
@@ -81,8 +81,8 @@ export default function ProjectsPage() {
                   No tienes permisos para acceder a los proyectos. Esta función requiere permisos de gestión de clientes.
                 </p>
               </div>
-              <Button
-                onClick={() => window.history.back()}
+              <Button 
+                onClick={() => window.history.back()} 
                 className="bg-red-600 hover:bg-red-700"
               >
                 Volver
@@ -133,7 +133,7 @@ export default function ProjectsPage() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
-      if (error) { throw error }
+      if (error) {throw error}
 
       const projectsWithMetrics = (data || []).map((project: any) => {
         const totalInvoiced = project.invoices?.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0) || 0
@@ -180,8 +180,8 @@ export default function ProjectsPage() {
       })
       return
     }
-
-    setDeleteConfirm({ show: true, id })
+    
+    setDeleteConfirm({show: true, id})
   }
 
   const confirmDelete = async () => {
@@ -191,7 +191,7 @@ export default function ProjectsPage() {
     try {
       const { error } = await supabase.from("projects").delete().eq("id", deleteConfirm.id)
       if (error) throw error
-
+      
       toast({
         title: "Proyecto eliminado",
         description: "El proyecto ha sido eliminado exitosamente"
@@ -206,7 +206,7 @@ export default function ProjectsPage() {
       })
     } finally {
       setIsDeleting(false)
-      setDeleteConfirm({ show: false, id: null })
+      setDeleteConfirm({show: false, id: null})
     }
   }
 
@@ -288,7 +288,7 @@ export default function ProjectsPage() {
 
   const activeProjects = projects.filter((p) => p.status === "activo").length
   const completedThisMonth = projects.filter((p) => {
-    if (p.status !== "completado") { return false }
+    if (p.status !== "completado") {return false}
     const completedDate = new Date(p.end_date || p.updated_at)
     const now = new Date()
     return completedDate.getMonth() === now.getMonth() && completedDate.getFullYear() === now.getFullYear()
@@ -310,9 +310,9 @@ export default function ProjectsPage() {
           </div>
 
           {/* Stats cards skeleton */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{ animationDelay: `${i * 0.05}s` }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-scale-in" style={{animationDelay: `${i * 0.05}s`}}>
                 <CardContent className="p-4">
                   <div className="space-y-2">
                     <div className="h-4 w-20 bg-gray-200 rounded"></div>
@@ -336,8 +336,8 @@ export default function ProjectsPage() {
 
           {/* Project cards skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
+            {[1,2,3,4,5,6].map((i) => (
+              <Card key={i} className="border-0 shadow-lg skeleton animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
@@ -575,7 +575,7 @@ export default function ProjectsPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   {viewMode === "grid" ? (
-                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-slate-900 border-slate-700 animate-scale-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                    <Card className="card-hover transition-all duration-300 border-0 shadow-lg bg-slate-900 border-slate-700 animate-scale-in" style={{animationDelay: `${index * 0.05}s`}}>
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
@@ -728,7 +728,7 @@ export default function ProjectsPage() {
 
       <ConfirmDialog
         open={deleteConfirm.show}
-        onOpenChange={(isOpen) => setDeleteConfirm({ show: isOpen, id: null })}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null})}
         title="Eliminar Proyecto"
         description="¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"

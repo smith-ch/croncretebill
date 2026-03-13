@@ -466,16 +466,16 @@ export function ModernAuthForm() {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-transparent to-slate-950/60 pointer-events-none" />
 
       {/* Main Content - Two Column Layout */}
-      <div className="w-full max-w-7xl relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="w-full max-w-7xl relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
 
         {/* Left Column - Login Form */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="w-full"
+          className="w-full h-full"
         >
-          <Card className="backdrop-blur-2xl bg-slate-900/70 border border-slate-700/40 shadow-2xl shadow-blue-950/20 ring-1 ring-white/5">
+          <Card className="backdrop-blur-2xl bg-slate-900/70 border border-slate-700/40 shadow-2xl shadow-blue-950/20 ring-1 ring-white/5 h-full flex flex-col">
             <CardHeader className="text-center pb-4 pt-8">
               <motion.div
                 variants={itemVariants}
@@ -504,20 +504,20 @@ export function ModernAuthForm() {
               </motion.p>
             </CardHeader>
 
-            <CardContent className="p-6">
+            <CardContent className="p-6 flex-1 flex flex-col justify-center">
               <motion.div variants={itemVariants}>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-800/60 border border-slate-600/40 p-1.5 rounded-xl backdrop-blur-sm">
+                  <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-800/80 border border-slate-700/50 p-1 rounded-xl backdrop-blur-sm">
                     <TabsTrigger
                       value="signin"
-                      className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-200 data-[state=active]:border-blue-500/30 data-[state=active]:border data-[state=active]:shadow-sm text-slate-400 transition-all duration-300 rounded-lg flex items-center gap-2 justify-center py-2.5"
+                      className="data-[state=active]:bg-blue-600/30 data-[state=active]:text-white data-[state=active]:shadow-lg text-slate-400 hover:text-slate-200 transition-all duration-300 rounded-lg flex items-center justify-center gap-2 py-2.5 text-sm font-medium"
                     >
                       <LogIn className="h-4 w-4" />
                       Iniciar Sesión
                     </TabsTrigger>
                     <TabsTrigger
                       value="signup"
-                      className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-200 data-[state=active]:border-blue-500/30 data-[state=active]:border data-[state=active]:shadow-sm text-slate-400 transition-all duration-300 rounded-lg flex items-center gap-2 justify-center py-2.5"
+                      className="data-[state=active]:bg-blue-600/30 data-[state=active]:text-white data-[state=active]:shadow-lg text-slate-400 hover:text-slate-200 transition-all duration-300 rounded-lg flex items-center justify-center gap-2 py-2.5 text-sm font-medium"
                     >
                       <UserPlus className="h-4 w-4" />
                       Registrarse
@@ -580,8 +580,7 @@ export function ModernAuthForm() {
                       transition={{ duration: 0.4 }}
                     >
                       <motion.div variants={itemVariants} className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
+                        <Label htmlFor="email" className="text-sm font-medium text-slate-300">
                           Correo Electrónico
                         </Label>
                         <div className="relative group">
@@ -598,8 +597,7 @@ export function ModernAuthForm() {
                       </motion.div>
 
                       <motion.div variants={itemVariants} className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <Lock className="h-4 w-4" />
+                        <Label htmlFor="password" className="text-sm font-medium text-slate-300">
                           Contraseña
                         </Label>
                         <div className="relative group">
@@ -728,8 +726,7 @@ export function ModernAuthForm() {
                     >
                       {/* Signup form fields */}
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <User className="h-4 w-4" />
+                        <Label htmlFor="fullName" className="text-sm font-medium text-slate-300">
                           Nombre Completo
                         </Label>
                         <div className="relative group">
@@ -746,8 +743,7 @@ export function ModernAuthForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="companyName" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
+                        <Label htmlFor="companyName" className="text-sm font-medium text-slate-300">
                           Nombre de la Empresa
                         </Label>
                         <div className="relative group">
@@ -764,8 +760,7 @@ export function ModernAuthForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email-signup" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
+                        <Label htmlFor="email-signup" className="text-sm font-medium text-slate-300">
                           Correo Electrónico
                         </Label>
                         <div className="relative group">
@@ -782,8 +777,7 @@ export function ModernAuthForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="password-signup" className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                          <Lock className="h-4 w-4" />
+                        <Label htmlFor="password-signup" className="text-sm font-medium text-slate-300">
                           Contraseña
                         </Label>
                         <div className="relative group">
@@ -807,8 +801,7 @@ export function ModernAuthForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="plan-select" className="text-sm font-medium text-white/90 flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
+                        <Label htmlFor="plan-select" className="text-sm font-medium text-slate-300">
                           Plan de Suscripción
                         </Label>
                         <Select value={selectedPlanId} onValueChange={setSelectedPlanId} required>
@@ -903,9 +896,9 @@ export function ModernAuthForm() {
                             type="button"
                             onClick={handleFacebookSignIn}
                             disabled={loading}
-                            className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border border-[#1877F2]/50 text-white transition-all duration-300 rounded-xl shadow-lg shadow-[#1877F2]/10"
+                            className="w-full h-12 bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/40 text-white transition-all duration-300 rounded-xl hover:border-slate-500/50"
                           >
-                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
                               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                             </svg>
                             Facebook
@@ -1052,7 +1045,7 @@ export function ModernAuthForm() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="hidden lg:block"
+          className="hidden lg:block h-full"
         >
           <Card className="backdrop-blur-2xl bg-slate-900/70 border border-slate-700/40 shadow-2xl shadow-purple-950/10 ring-1 ring-white/5 h-full flex flex-col">
             <CardHeader className="text-center pb-2 pt-6">

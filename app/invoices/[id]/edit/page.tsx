@@ -189,7 +189,7 @@ export default function EditInvoicePage() {
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId),
         supabase.from("drivers").select("id, name").eq("user_id", dataUserId),
         supabase.from("vehicles").select("id, model, plate").eq("user_id", dataUserId),
-        supabase.from("company_settings").select("*").eq("user_id", dataUserId).single(),
+        supabase.from("company_settings").select("*").eq("user_id", dataUserId).maybeSingle(),
       ])
 
       setClients((clientsRes.data as Client[]) || [])

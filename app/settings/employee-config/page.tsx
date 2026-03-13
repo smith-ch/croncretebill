@@ -500,7 +500,7 @@ export default function EmployeeConfigPage() {
           <div className="space-y-3 p-4 bg-slate-900 border border-slate-700 rounded-lg">
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-blue-600" />
-              <Label className="text-base font-semibold text-blue-300">Permisos del Empleado</Label>
+              <Label className="text-base font-semibold text-blue-900">Permisos del Empleado</Label>
             </div>
             <p className="text-sm text-blue-300 mb-4">Selecciona los permisos que tendrá este empleado:</p>
             
@@ -854,7 +854,7 @@ export default function EmployeeConfigPage() {
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-300 space-y-1">
+            <div className="text-sm text-blue-900 space-y-1">
               <p className="font-medium">Cómo funciona:</p>
               <ul className="list-disc list-inside space-y-1 text-blue-300">
                 <li>Los empleados se crean inmediatamente con su email y contraseña</li>

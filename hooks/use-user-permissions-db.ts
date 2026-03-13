@@ -11,15 +11,15 @@ interface UserPermissions {
   isOwner: boolean
   displayName: string
   role: string
-  
+
   // Permisos generales
   canCreateInvoices: boolean
-  canViewFinances: boolean  
+  canViewFinances: boolean
   canManageInventory: boolean
   canManageClients: boolean
   canManageEmployees: boolean
   maxInvoiceAmount: number | null
-  
+
   // Permisos de edición
   canEditInvoices: boolean
   canEditClients: boolean
@@ -30,7 +30,7 @@ interface UserPermissions {
   canEditThermalReceipts: boolean
   canEditAgendaEvents: boolean
   canEditExpenses: boolean
-  
+
   // Permisos de eliminación
   canDeleteInvoices: boolean
   canDeleteClients: boolean
@@ -41,6 +41,7 @@ interface UserPermissions {
   canDeleteThermalReceipts: boolean
   canDeleteAgendaEvents: boolean
   canDeleteExpenses: boolean
+  canDeleteExpenseCategories: boolean
 }
 
 const DEFAULT_OWNER_PERMISSIONS: UserPermissions = {
@@ -73,7 +74,8 @@ const DEFAULT_OWNER_PERMISSIONS: UserPermissions = {
   canDeleteVehicles: true,
   canDeleteThermalReceipts: true,
   canDeleteAgendaEvents: true,
-  canDeleteExpenses: true
+  canDeleteExpenses: true,
+  canDeleteExpenseCategories: true
 }
 
 export function useUserPermissionsDB() {
@@ -88,7 +90,7 @@ export function useUserPermissionsDB() {
 
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
-      
+
       if (!user) {
         setPermissions(DEFAULT_OWNER_PERMISSIONS)
         setLoading(false)
@@ -121,7 +123,7 @@ export function useUserPermissionsDB() {
 
       const isOwner = data.isOwner || false
       const rootOwnerId = profileData?.root_owner_id || profileData?.user_id || user.id
-      
+
       // Mapear los permisos desde la respuesta de la función
       const mappedPermissions: UserPermissions = {
         userId: user.id,
@@ -130,7 +132,7 @@ export function useUserPermissionsDB() {
         isOwner: isOwner,
         displayName: data.display_name || profileData?.display_name || user.email?.split('@')[0] || 'Usuario',
         role: data.role || 'employee',
-        
+
         // Permisos generales
         canCreateInvoices: data.canCreateInvoices || false,
         canViewFinances: data.canViewFinances || false,
@@ -138,7 +140,7 @@ export function useUserPermissionsDB() {
         canManageClients: data.canManageClients || false,
         canManageEmployees: data.canManageEmployees || false,
         maxInvoiceAmount: data.maxInvoiceAmount || null,
-        
+
         // Permisos de edición - por defecto solo para owners
         canEditInvoices: isOwner,
         canEditClients: isOwner,
@@ -149,7 +151,7 @@ export function useUserPermissionsDB() {
         canEditThermalReceipts: isOwner,
         canEditAgendaEvents: isOwner,
         canEditExpenses: isOwner,
-        
+
         // Permisos de eliminación - por defecto solo para owners
         canDeleteInvoices: isOwner,
         canDeleteClients: isOwner,
@@ -159,7 +161,8 @@ export function useUserPermissionsDB() {
         canDeleteVehicles: isOwner,
         canDeleteThermalReceipts: isOwner,
         canDeleteAgendaEvents: isOwner,
-        canDeleteExpenses: isOwner
+        canDeleteExpenses: isOwner,
+        canDeleteExpenseCategories: isOwner
       }
 
       setPermissions(mappedPermissions)

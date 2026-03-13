@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CategorySelector } from "@/components/ui/category-selector"
-import { Loader2, WifiOff } from "lucide-react"
+import { Loader2, WifiOff, Package } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useOnlineStatus } from "@/hooks/use-online-status"
+import { Checkbox } from "@/components/ui/checkbox"
 import { offlineCache } from "@/lib/offline-cache"
 import { syncQueue } from "@/lib/sync-queue"
 import { useDataUserId } from "@/hooks/use-data-user-id"
@@ -28,6 +29,7 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(product?.category_id || "")
+  const [isReturnable, setIsReturnable] = useState<boolean>(product?.is_returnable || false)
   const { toast } = useToast()
   const isOnline = useOnlineStatus()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
@@ -103,6 +105,10 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
       return
     }
 
+    // Obtener valores de retornables
+    const returnableDepositStr = formData.get("returnable_deposit") as string
+    const returnableDeposit = returnableDepositStr ? Number.parseFloat(returnableDepositStr) : 0
+
     const productData = {
       name: name.trim(),
       description: formData.get("description") as string,
@@ -117,6 +123,8 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
       stock_quantity: stockQuantity,
       min_stock: minStock,
       reorder_point: minStock,
+      is_returnable: isReturnable,
+      returnable_deposit: isReturnable ? returnableDeposit : 0,
     }
 
     try {
@@ -455,6 +463,51 @@ export function ProductForm({ product, onSuccess, inModal = false }: ProductForm
               placeholder="0"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Materiales Retornables */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <Package className="w-5 h-5 text-blue-500" />
+          Material Retornable
+        </h3>
+        <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="is_returnable"
+              checked={isReturnable}
+              onCheckedChange={(checked) => setIsReturnable(checked === true)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="is_returnable" className="text-sm font-medium cursor-pointer">
+                Este producto incluye envase/material retornable
+              </Label>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Activa esta opción si el producto viene con un envase que el cliente debe devolver
+                (ej: botellones, pallets, cilindros, cajas).
+              </p>
+            </div>
+          </div>
+          
+          {isReturnable && (
+            <div className="mt-4 ml-7 space-y-2">
+              <Label htmlFor="returnable_deposit">Valor del Depósito (opcional)</Label>
+              <Input
+                id="returnable_deposit"
+                name="returnable_deposit"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={product?.returnable_deposit || 0}
+                placeholder="0.00"
+                className="max-w-xs"
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Monto que se cobra como depósito por el envase (si aplica).
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

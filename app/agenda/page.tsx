@@ -38,12 +38,12 @@ import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
 import { FixedExpense } from "@/types"
-import {
-  getFixedExpenses,
-  createFixedExpense,
-  updateFixedExpense,
-  deleteFixedExpense,
-  calculateNextPayment
+import { 
+  getFixedExpenses, 
+  createFixedExpense, 
+  updateFixedExpense, 
+  deleteFixedExpense, 
+  calculateNextPayment 
 } from "@/lib/fixed-expenses"
 import {
   getAgendaEvents,
@@ -81,7 +81,7 @@ export default function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
   const [editingItem, setEditingItem] = useState<AgendaItem | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, id: string | null, type: 'event' | 'expense' }>({ show: false, id: null, type: 'event' })
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, id: string | null, type: 'event' | 'expense'}>({show: false, id: null, type: 'event'})
   const [isDeleting, setIsDeleting] = useState(false)
   // All hooks must be called first before any conditional returns
   const [autoRefresh, setAutoRefresh] = useState(false) // Cambiado a false para evitar refrescos automáticos no deseados
@@ -89,14 +89,14 @@ export default function AgendaPage() {
   const { canAccessModule, canDelete, permissions } = useUserPermissions()
   const { hasAccessToAgenda, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
-
+  
   // Check plan access
   useEffect(() => {
     if (!planLoading) {
       requireAccess('Módulo de Agenda y Gastos Fijos', hasAccessToAgenda())
     }
   }, [planLoading, hasAccessToAgenda])
-
+  
   // Form states
   const [newItem, setNewItem] = useState({
     title: "",
@@ -200,8 +200,8 @@ export default function AgendaPage() {
         due_date: invoice.due_date,
         type: "invoice" as const,
         amount: invoice.total,
-        status: invoice.status === "pagada" ? "completed" :
-          new Date(invoice.due_date) < new Date() ? "overdue" : "pending",
+        status: invoice.status === "pagada" ? "completed" : 
+                new Date(invoice.due_date) < new Date() ? "overdue" : "pending",
         priority: "high" as const,
         created_at: new Date().toISOString(),
       }))
@@ -253,7 +253,7 @@ export default function AgendaPage() {
       }
 
       // Use selected calendar date if no date is specified
-      const itemDate = newItem.due_date ||
+      const itemDate = newItem.due_date || 
         (selectedCalendarDate ? selectedCalendarDate.toISOString().split('T')[0] : '')
 
       if (!itemDate) {
@@ -302,12 +302,12 @@ export default function AgendaPage() {
       }
 
       setAgendaItems(prev => [...prev, newAgendaItem])
-
+      
       toast({
         title: "✅ Evento creado exitosamente",
         description: `${newItem.title} ha sido agregado a la agenda`,
       })
-
+      
       // Reset form
       setNewItem({
         title: "",
@@ -344,10 +344,10 @@ export default function AgendaPage() {
       if (!itemId.startsWith('invoice-')) {
         await markAgendaEventCompleted(itemId)
       }
-
-      setAgendaItems(prev =>
-        prev.map(item =>
-          item.id === itemId
+      
+      setAgendaItems(prev => 
+        prev.map(item => 
+          item.id === itemId 
             ? { ...item, status: "completed" as const }
             : item
         )
@@ -360,7 +360,7 @@ export default function AgendaPage() {
 
   const editItem = (item: AgendaItem) => {
     setEditingItem(item)
-
+    
     // Formatear fecha para input type="date" (YYYY-MM-DD)
     const formatDate = (dateString: string) => {
       try {
@@ -370,7 +370,7 @@ export default function AgendaPage() {
         return dateString
       }
     }
-
+    
     setNewItem({
       title: item.title,
       description: item.description || "",
@@ -402,18 +402,18 @@ export default function AgendaPage() {
         await updateAgendaEvent(editingItem.id, updates)
       }
 
-      setAgendaItems(prev =>
-        prev.map(item =>
-          item.id === editingItem.id
+      setAgendaItems(prev => 
+        prev.map(item => 
+          item.id === editingItem.id 
             ? {
-              ...item,
-              title: newItem.title,
-              description: newItem.description,
-              due_date: newItem.due_date,
-              type: newItem.type,
-              amount: newItem.amount,
-              priority: newItem.priority,
-            }
+                ...item,
+                title: newItem.title,
+                description: newItem.description,
+                due_date: newItem.due_date,
+                type: newItem.type,
+                amount: newItem.amount,
+                priority: newItem.priority,
+              }
             : item
         )
       )
@@ -443,8 +443,8 @@ export default function AgendaPage() {
       })
       return
     }
-
-    setDeleteConfirm({ show: true, id: itemId, type: 'event' })
+    
+    setDeleteConfirm({show: true, id: itemId, type: 'event'})
   }
 
   const handleDeleteFixedExpense = async (expenseId: string) => {
@@ -456,8 +456,8 @@ export default function AgendaPage() {
       })
       return
     }
-
-    setDeleteConfirm({ show: true, id: expenseId, type: 'expense' })
+    
+    setDeleteConfirm({show: true, id: expenseId, type: 'expense'})
   }
 
   const confirmDelete = async () => {
@@ -494,7 +494,7 @@ export default function AgendaPage() {
       })
     } finally {
       setIsDeleting(false)
-      setDeleteConfirm({ show: false, id: null, type: 'event' })
+      setDeleteConfirm({show: false, id: null, type: 'event'})
     }
   }
 
@@ -525,10 +525,10 @@ export default function AgendaPage() {
       })
 
       if (updatedExpense) {
-        setFixedExpenses(prev =>
+        setFixedExpenses(prev => 
           prev.map(exp => exp.id === expenseId ? updatedExpense : exp)
         )
-
+        
         // Recargar agenda para mostrar el nuevo evento
         const agendaEventsData = await getAgendaEvents()
         const agendaEventItems: AgendaItem[] = agendaEventsData.map((event: AgendaEvent) => ({
@@ -542,11 +542,11 @@ export default function AgendaPage() {
           priority: event.priority,
           created_at: event.created_at,
         }))
-
+        
         // Mantener las facturas en la lista
         const invoiceItems = agendaItems.filter(item => item.id.startsWith('invoice-'))
         setAgendaItems([...agendaEventItems, ...invoiceItems])
-
+        
         toast({
           title: "✅ Gasto marcado como pagado",
           description: "Se ha generado el próximo evento automáticamente",
@@ -585,12 +585,12 @@ export default function AgendaPage() {
         })
 
         if (updatedExpense) {
-          setFixedExpenses(prev =>
-            prev.map(expense =>
+          setFixedExpenses(prev => 
+            prev.map(expense => 
               expense.id === editingExpense.id ? updatedExpense : expense
             )
           )
-
+          
           toast({
             title: "✅ Gasto fijo actualizado",
             description: "Los eventos se generarán automáticamente",
@@ -611,14 +611,14 @@ export default function AgendaPage() {
 
         if (newExpense) {
           setFixedExpenses(prev => [...prev, newExpense])
-
+          
           toast({
             title: "✅ Gasto fijo creado",
             description: "Los eventos se generarán automáticamente cada mes",
           })
         }
       }
-
+      
       // Recargar agenda
       const agendaEventsData = await getAgendaEvents()
       const agendaEventItems: AgendaItem[] = agendaEventsData.map((event: AgendaEvent) => ({
@@ -632,7 +632,7 @@ export default function AgendaPage() {
         priority: event.priority,
         created_at: event.created_at,
       }))
-
+      
       // Mantener las facturas en la lista
       const invoiceItems = agendaItems.filter(item => item.id.startsWith('invoice-'))
       setAgendaItems([...agendaEventItems, ...invoiceItems])
@@ -677,8 +677,8 @@ export default function AgendaPage() {
     const notifications = []
 
     // Eventos vencidos
-    const overdueItems = agendaItems.filter(item =>
-      item.status === "overdue" ||
+    const overdueItems = agendaItems.filter(item => 
+      item.status === "overdue" || 
       (item.status === "pending" && new Date(item.due_date) < today)
     )
     if (overdueItems.length > 0) {
@@ -732,7 +732,7 @@ export default function AgendaPage() {
     }).length
 
     const totalPending = agendaItems.filter(item => item.status === "pending").length
-
+    
     return {
       completedThisWeek,
       totalPending,
@@ -745,7 +745,7 @@ export default function AgendaPage() {
       alert('No hay datos de agenda para exportar')
       return
     }
-
+    
     const headers = ['Título', 'Descripción', 'Fecha', 'Tipo', 'Estado', 'Prioridad', 'Monto']
     const csvData = [
       headers,
@@ -754,16 +754,16 @@ export default function AgendaPage() {
         item.description || '',
         new Date(item.due_date).toLocaleDateString('es-ES'),
         item.type === 'invoice' ? 'Factura' :
-          item.type === 'expense' ? 'Gasto' :
-            item.type === 'payment' ? 'Pago' : 'Recordatorio',
+        item.type === 'expense' ? 'Gasto' :
+        item.type === 'payment' ? 'Pago' : 'Recordatorio',
         item.status === 'pending' ? 'Pendiente' :
-          item.status === 'completed' ? 'Completado' : 'Vencido',
+        item.status === 'completed' ? 'Completado' : 'Vencido',
         item.priority === 'high' ? 'Alta' :
-          item.priority === 'medium' ? 'Media' : 'Baja',
+        item.priority === 'medium' ? 'Media' : 'Baja',
         item.amount ? formatCurrency(item.amount) : ''
       ])
     ]
-
+    
     const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -780,12 +780,12 @@ export default function AgendaPage() {
     if (!permissions.canViewFinances) {
       return
     }
-
+    
     if (fixedExpenses.length === 0) {
       alert('No hay gastos fijos para exportar')
       return
     }
-
+    
     const headers = ['Nombre', 'Monto', 'Frecuencia', 'Próximo Pago', 'Categoría']
     const csvData = [
       headers,
@@ -793,12 +793,12 @@ export default function AgendaPage() {
         expense.name,
         formatCurrency(expense.amount),
         expense.frequency === 'monthly' ? 'Mensual' :
-          expense.frequency === 'quarterly' ? 'Trimestral' : 'Anual',
+        expense.frequency === 'quarterly' ? 'Trimestral' : 'Anual',
         new Date(expense.due_date).toLocaleDateString('es-ES'),
         expense.category || ''
       ])
     ]
-
+    
     const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -813,11 +813,11 @@ export default function AgendaPage() {
 
   const filteredItems = agendaItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesFilter = selectedFilter === "all" ||
-      selectedFilter === item.status ||
-      selectedFilter === item.type
+                         item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesFilter = selectedFilter === "all" || 
+                         selectedFilter === item.status ||
+                         selectedFilter === item.type
 
     return matchesSearch && matchesFilter
   })
@@ -852,24 +852,24 @@ export default function AgendaPage() {
   const generateCalendarDays = () => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
-
+    
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
     const daysInMonth = lastDay.getDate()
     const startDate = firstDay.getDay() // 0 = Sunday
-
+    
     const days = []
-
+    
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startDate; i++) {
       days.push(null)
     }
-
+    
     // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day)
     }
-
+    
     return days
   }
 
@@ -877,17 +877,17 @@ export default function AgendaPage() {
     if (!day) {
       return []
     }
-
+    
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-
-    const agendaForDate = agendaItems.filter(item =>
+    
+    const agendaForDate = agendaItems.filter(item => 
       item.due_date === dateStr
     )
-
-    const expensesForDate = fixedExpenses.filter(expense =>
+    
+    const expensesForDate = fixedExpenses.filter(expense => 
       expense.due_date === dateStr || expense.next_payment === dateStr
     )
-
+    
     return [...agendaForDate, ...expensesForDate.map(exp => ({
       id: exp.id,
       title: exp.name,
@@ -917,9 +917,9 @@ export default function AgendaPage() {
       return false
     }
     const today = new Date()
-    return today.getDate() === day &&
-      today.getMonth() === currentDate.getMonth() &&
-      today.getFullYear() === currentDate.getFullYear()
+    return today.getDate() === day && 
+           today.getMonth() === currentDate.getMonth() && 
+           today.getFullYear() === currentDate.getFullYear()
   }
 
   const isSelectedDate = (day: number) => {
@@ -927,8 +927,8 @@ export default function AgendaPage() {
       return false
     }
     return selectedCalendarDate.getDate() === day &&
-      selectedCalendarDate.getMonth() === currentDate.getMonth() &&
-      selectedCalendarDate.getFullYear() === currentDate.getFullYear()
+           selectedCalendarDate.getMonth() === currentDate.getMonth() &&
+           selectedCalendarDate.getFullYear() === currentDate.getFullYear()
   }
 
   if (loading) {
@@ -997,10 +997,11 @@ export default function AgendaPage() {
             </h2>
             <div className="grid gap-3">
               {getUpcomingNotifications().map((notification, index) => (
-                <Card key={index} className={`border-l-4 ${notification.type === "error" ? "border-l-red-500 bg-red-900/30" :
-                    notification.type === "warning" ? "border-l-amber-500 bg-amber-900/30" :
-                      "border-l-blue-500 bg-slate-900"
-                  }`}>
+                <Card key={index} className={`border-l-4 ${
+                  notification.type === "error" ? "border-l-red-500 bg-red-900/30" :
+                  notification.type === "warning" ? "border-l-amber-500 bg-amber-900/30" :
+                  "border-l-blue-500 bg-slate-900"
+                }`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1047,11 +1048,12 @@ export default function AgendaPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-slate-500">Rendimiento semanal</p>
-                  <div className={`text-2xl font-bold ${getProductivityInsights().completionRate >= 70 ? 'text-green-600' :
-                      getProductivityInsights().completionRate >= 40 ? 'text-amber-600' : 'text-red-600'
-                    }`}>
+                  <div className={`text-2xl font-bold ${
+                    getProductivityInsights().completionRate >= 70 ? 'text-green-600' :
+                    getProductivityInsights().completionRate >= 40 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
                     {getProductivityInsights().completionRate >= 70 ? '🎯' :
-                      getProductivityInsights().completionRate >= 40 ? '⚡' : '📈'}
+                     getProductivityInsights().completionRate >= 40 ? '⚡' : '📈'}
                   </div>
                 </div>
               </div>
@@ -1190,11 +1192,11 @@ export default function AgendaPage() {
                             <div className="flex flex-wrap items-center gap-2">
                               <Badge className={getStatusColor(item.status)}>
                                 {item.status === "pending" ? "Pendiente" :
-                                  item.status === "completed" ? "Completado" : "Vencido"}
+                                 item.status === "completed" ? "Completado" : "Vencido"}
                               </Badge>
                               <Badge className={getPriorityColor(item.priority)}>
                                 {item.priority === "high" ? "Alta" :
-                                  item.priority === "medium" ? "Media" : "Baja"}
+                                 item.priority === "medium" ? "Media" : "Baja"}
                               </Badge>
                             </div>
                           </div>
@@ -1260,37 +1262,37 @@ export default function AgendaPage() {
                               <h3 className="font-semibold text-base lg:text-lg truncate">{expense.name}</h3>
                               <Badge variant="outline">
                                 {expense.frequency === "monthly" ? "Mensual" :
-                                  expense.frequency === "quarterly" ? "Trimestral" : "Anual"}
+                                 expense.frequency === "quarterly" ? "Trimestral" : "Anual"}
                               </Badge>
                             </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-500">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">Próximo: {new Date(expense.next_payment).toLocaleDateString('es-ES')}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">{formatCurrency(expense.amount)}</span>
-                              </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">Próximo: {new Date(expense.next_payment).toLocaleDateString('es-ES')}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{formatCurrency(expense.amount)}</span>
                             </div>
                           </div>
-                          <div className="flex gap-2 flex-shrink-0 self-end lg:self-auto">
-                            <Button size="sm" variant="outline" onClick={() => editFixedExpense(expense)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => markExpensePaid(expense.id)}>
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            {canDelete('expenses') && (
-                              <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-400">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                        <div className="flex gap-2 flex-shrink-0 self-end lg:self-auto">
+                          <Button size="sm" variant="outline" onClick={() => editFixedExpense(expense)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => markExpensePaid(expense.id)}>
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          {canDelete('expenses') && (
+                            <Button size="sm" variant="outline" onClick={() => handleDeleteFixedExpense(expense.id)} className="text-red-600 hover:text-red-400">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
                 ) : (
                   <Card>
                     <CardContent className="p-8 text-center">
@@ -1319,22 +1321,22 @@ export default function AgendaPage() {
                         {currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                       </CardTitle>
                       <div className="flex gap-2">
-                        <Button
-                          variant="outline"
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           onClick={() => navigateMonth('prev')}
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           onClick={() => setCurrentDate(new Date())}
                         >
                           Hoy
                         </Button>
-                        <Button
-                          variant="outline"
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           onClick={() => navigateMonth('next')}
                         >
@@ -1352,46 +1354,52 @@ export default function AgendaPage() {
                         </div>
                       ))}
                     </div>
-
+                    
                     {/* Calendar days */}
                     <div className="grid grid-cols-7">
                       {generateCalendarDays().map((day, index) => {
                         const items = day ? getItemsForCalendarDate(day) : []
                         const dayIsToday = day && isToday(day)
                         const dayIsSelected = day && isSelectedDate(day)
-
+                        
                         return (
-                          <div
+                          <div 
                             key={index}
-                            className={`min-h-[120px] p-2 border-r border-b last-in-row:border-r-0 cursor-pointer transition-colors ${dayIsToday ? 'bg-slate-900 border-slate-700' : 'hover:bg-slate-900'
-                              } ${dayIsSelected ? 'ring-2 ring-blue-400 bg-slate-900' : ''}`}
+                            className={`min-h-[120px] p-2 border-r border-b last-in-row:border-r-0 cursor-pointer transition-colors ${
+                              dayIsToday ? 'bg-slate-900 border-slate-700' : 'hover:bg-slate-900'
+                            } ${dayIsSelected ? 'ring-2 ring-blue-400 bg-slate-900' : ''}`}
                             onClick={() => day && setSelectedCalendarDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
                           >
                             {day && (
                               <>
-                                <div className={`text-sm font-medium mb-2 flex items-center justify-between ${dayIsToday ? 'text-blue-400 font-bold' : 'text-slate-100'
-                                  }`}>
+                                <div className={`text-sm font-medium mb-2 flex items-center justify-between ${
+                                  dayIsToday ? 'text-blue-400 font-bold' : 'text-slate-100'
+                                }`}>
                                   <span>{day}</span>
                                   {items.length > 0 && (
                                     <div className="flex gap-1">
-                                      <div className={`w-2 h-2 rounded-full ${items.some(item => item.type === 'invoice') ? 'bg-red-400' : ''
-                                        }`} />
-                                      <div className={`w-2 h-2 rounded-full ${items.some(item => item.type === 'expense') ? 'bg-orange-400' : ''
-                                        }`} />
-                                      <div className={`w-2 h-2 rounded-full ${items.some(item => item.type === 'reminder') ? 'bg-blue-400' : ''
-                                        }`} />
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'invoice') ? 'bg-red-400' : ''
+                                      }`} />
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'expense') ? 'bg-orange-400' : ''
+                                      }`} />
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        items.some(item => item.type === 'reminder') ? 'bg-blue-400' : ''
+                                      }`} />
                                     </div>
                                   )}
                                 </div>
                                 <div className="space-y-1">
                                   {items.slice(0, 2).map((item, i) => (
-                                    <div
+                                    <div 
                                       key={i}
-                                      className={`text-xs p-1.5 rounded-md text-white truncate transition-all hover:scale-105 ${item.type === 'invoice' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                                          item.type === 'expense' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-                                            item.type === 'payment' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                                              'bg-gradient-to-r from-blue-500 to-blue-600'
-                                        }`}
+                                      className={`text-xs p-1.5 rounded-md text-white truncate transition-all hover:scale-105 ${
+                                        item.type === 'invoice' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                                        item.type === 'expense' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        item.type === 'payment' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        'bg-gradient-to-r from-blue-500 to-blue-600'
+                                      }`}
                                       title={`${item.title} ${item.amount ? `- ${formatCurrency(item.amount)}` : ''}`}
                                     >
                                       <div className="flex items-center gap-1">
@@ -1424,8 +1432,8 @@ export default function AgendaPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">
-                      {selectedCalendarDate ?
-                        `${selectedCalendarDate.getDate()} de ${selectedCalendarDate.toLocaleDateString('es-ES', { month: 'long' })}` :
+                      {selectedCalendarDate ? 
+                        `${selectedCalendarDate.getDate()} de ${selectedCalendarDate.toLocaleDateString('es-ES', { month: 'long' })}` : 
                         'Selecciona una fecha'
                       }
                     </CardTitle>
@@ -1446,15 +1454,16 @@ export default function AgendaPage() {
                                   </div>
                                 )}
                                 <div className="flex items-center justify-between">
-                                  <Badge
-                                    variant="outline"
-                                    className={`text-xs ${item.type === 'invoice' ? 'border-red-800 text-red-600' :
-                                        item.type === 'expense' ? 'border-orange-800 text-orange-600' :
-                                          'border-slate-700 text-blue-600'
-                                      }`}
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${
+                                      item.type === 'invoice' ? 'border-red-800 text-red-600' :
+                                      item.type === 'expense' ? 'border-orange-800 text-orange-600' :
+                                      'border-slate-700 text-blue-600'
+                                    }`}
                                   >
                                     {item.type === 'invoice' ? 'Factura' :
-                                      item.type === 'expense' ? 'Gasto' : 'Evento'}
+                                     item.type === 'expense' ? 'Gasto' : 'Evento'}
                                   </Badge>
                                   <Button size="sm" variant="ghost">
                                     <MoreHorizontal className="h-3 w-3" />
@@ -1472,7 +1481,7 @@ export default function AgendaPage() {
                     )}
                   </CardContent>
                 </Card>
-
+                
                 {/* Calendar Legend */}
                 <Card>
                   <CardHeader>
@@ -1534,19 +1543,19 @@ export default function AgendaPage() {
                     <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button
-                      onClick={() => openNewItemDialog(selectedCalendarDate || undefined)}
-                      className="w-full"
+                    <Button 
+                      onClick={() => openNewItemDialog(selectedCalendarDate || undefined)} 
+                      className="w-full" 
                       size="sm"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Nuevo Evento
                     </Button>
                     {permissions.canViewFinances && (
-                      <Button
-                        onClick={() => setShowFixedExpenseDialog(true)}
-                        variant="outline"
-                        className="w-full"
+                      <Button 
+                        onClick={() => setShowFixedExpenseDialog(true)} 
+                        variant="outline" 
+                        className="w-full" 
                         size="sm"
                       >
                         <Receipt className="h-4 w-4 mr-2" />
@@ -1604,7 +1613,7 @@ export default function AgendaPage() {
                   onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="due_date">Fecha</Label>
                   <Input
@@ -1697,8 +1706,8 @@ export default function AgendaPage() {
                 </div>
                 <div>
                   <Label htmlFor="expense-frequency">Frecuencia</Label>
-                  <Select
-                    value={newFixedExpense.frequency}
+                  <Select 
+                    value={newFixedExpense.frequency} 
                     onValueChange={(value: any) => setNewFixedExpense(prev => ({ ...prev, frequency: value }))}
                   >
                     <SelectTrigger>
@@ -1736,7 +1745,7 @@ export default function AgendaPage() {
 
       <ConfirmDialog
         open={deleteConfirm.show}
-        onOpenChange={(isOpen) => setDeleteConfirm({ show: isOpen, id: null, type: 'event' })}
+        onOpenChange={(isOpen) => setDeleteConfirm({show: isOpen, id: null, type: 'event'})}
         title={deleteConfirm.type === 'expense' ? "Eliminar Gasto Fijo" : "Eliminar Evento"}
         description={
           deleteConfirm.type === 'expense'

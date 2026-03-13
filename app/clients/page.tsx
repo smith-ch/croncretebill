@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/forms/client-form"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Search, Users, Edit, Trash2, Mail, Phone, AlertCircle } from "lucide-react"
+import { Plus, Search, Users, Edit, Trash2, Mail, Phone, AlertCircle, Package } from "lucide-react"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useDataUserId } from "@/hooks/use-data-user-id"
 import { useToast } from "@/hooks/use-toast"
@@ -285,6 +285,16 @@ export default function ClientsPage() {
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-bold text-lg text-slate-200 dark:text-white group-hover:text-purple-400 transition-colors truncate">{client.name}</h3>
                         <div className="flex gap-1">
+                          <Link href={`/clients/${client.id}/returnables`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-blue-900/30 hover:text-blue-400 transition-all duration-200 hover:scale-110 active:scale-95 tap-target"
+                              title="Ver envases retornables"
+                            >
+                              <Package className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           {canEdit('clients') && (
                             <Button
                               variant="ghost"

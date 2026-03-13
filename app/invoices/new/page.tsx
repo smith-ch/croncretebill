@@ -89,7 +89,7 @@ export default function NewInvoicePage() {
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId).order("name"),
         supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", dataUserId).order("name"),
         supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", dataUserId).order("name"),
-        supabase.from("company_settings").select("*").eq("user_id", dataUserId).single(),
+        supabase.from("company_settings").select("*").eq("user_id", dataUserId).maybeSingle(),
       ])
 
       setClients(clientsRes.data || [])

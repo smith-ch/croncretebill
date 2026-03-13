@@ -30,7 +30,9 @@ import {
   Smartphone,
   CheckCircle2,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  Truck,
+  Wallet
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -800,6 +802,135 @@ export default function SystemInfoPage() {
             </div>
           </CardContent>
         </Card>
+        {/* Módulos Nuevos - Documentación */}
+        <Card className="border-purple-500/50 bg-purple-950/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-500">
+              <Package className="w-6 h-6" />
+              Módulos Nuevos del Sistema
+            </CardTitle>
+            <p className="text-slate-400 text-sm">
+              Documentación de las funcionalidades más recientes agregadas a ConcreteBill.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {/* Control de Caja */}
+            <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <h3 className="font-semibold text-lg text-emerald-400 flex items-center gap-2 mb-3">
+                <Wallet className="w-5 h-5" />
+                Control de Caja (Módulo G)
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p><strong>¿Para qué sirve?</strong> Permite llevar control del efectivo en caja, abriendo y cerrando turnos con arqueos exactos.</p>
+                <div className="bg-slate-800 p-3 rounded mt-2">
+                  <p className="text-slate-400 font-medium mb-2">Flujo de uso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                    <li><strong>Abrir Turno:</strong> El cajero inicia con un monto base en efectivo</li>
+                    <li><strong>Registrar Ventas:</strong> Durante el día se registran ventas de contado y crédito</li>
+                    <li><strong>Cerrar Turno:</strong> Al final se declara el efectivo físico y el sistema compara con lo esperado</li>
+                    <li><strong>Reporte Z:</strong> Se genera un resumen detallado con ventas, métodos de pago y diferencias</li>
+                  </ol>
+                </div>
+                <p className="text-amber-400 text-xs mt-2">
+                  💡 Las ventas a crédito (por cobrar) no se cuentan como efectivo en caja hasta que se cobren.
+                </p>
+              </div>
+            </div>
+
+            {/* Sistema de Rutas para Empleados */}
+            <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <h3 className="font-semibold text-lg text-blue-400 flex items-center gap-2 mb-3">
+                <Truck className="w-5 h-5" />
+                Sistema de Rutas para Choferes/Empleados
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p><strong>¿Para qué sirve?</strong> Los choferes pueden ver su ruta diaria, los clientes a visitar, y registrar ventas directamente desde el móvil.</p>
+                <div className="bg-slate-800 p-3 rounded mt-2">
+                  <p className="text-slate-400 font-medium mb-2">Flujo de uso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                    <li><strong>Ver Ruta:</strong> El empleado ingresa y ve las paradas asignadas del día</li>
+                    <li><strong>Atender Cliente:</strong> Toca el botón para crear un recibo térmico rápido</li>
+                    <li><strong>Completar Parada:</strong> Al guardar el recibo, la parada se marca como visitada automáticamente</li>
+                    <li><strong>Progreso:</strong> Se muestra el avance en barra de progreso (X de Y paradas)</li>
+                  </ol>
+                </div>
+                <p className="text-amber-400 text-xs mt-2">
+                  💡 El chofer debe estar vinculado a su cuenta de empleado para ver despachos asignados.
+                </p>
+              </div>
+            </div>
+
+            {/* Envases Retornables */}
+            <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <h3 className="font-semibold text-lg text-orange-400 flex items-center gap-2 mb-3">
+                <Package className="w-5 h-5" />
+                Envases Retornables (Módulo F)
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p><strong>¿Para qué sirve?</strong> Controla los envases prestados a clientes (tanques de gas, botellones, etc.) y sus devoluciones.</p>
+                <div className="bg-slate-800 p-3 rounded mt-2">
+                  <p className="text-slate-400 font-medium mb-2">Flujo de uso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                    <li><strong>Configurar:</strong> Marcar productos como "retornable" en el catálogo</li>
+                    <li><strong>Ventas:</strong> Al vender un retornable se registra automáticamente como pendiente</li>
+                    <li><strong>Devoluciones:</strong> Registrar cuando el cliente devuelve el envase</li>
+                    <li><strong>Reportes:</strong> Ver qué clientes tienen envases pendientes y cuántos</li>
+                  </ol>
+                </div>
+                <p className="text-amber-400 text-xs mt-2">
+                  💡 El valor del depósito puede descontarse al cliente o dejarse como garantía.
+                </p>
+              </div>
+            </div>
+
+            {/* Cuentas por Cobrar */}
+            <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <h3 className="font-semibold text-lg text-rose-400 flex items-center gap-2 mb-3">
+                <DollarSign className="w-5 h-5" />
+                Cuentas por Cobrar Mejorado
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p><strong>¿Para qué sirve?</strong> Gestiona las ventas a crédito, pagos parciales y seguimiento de deudas por cliente.</p>
+                <div className="bg-slate-800 p-3 rounded mt-2">
+                  <p className="text-slate-400 font-medium mb-2">Flujo de uso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                    <li><strong>Crear Venta a Crédito:</strong> Marcar recibo como "por cobrar" en lugar de contado</li>
+                    <li><strong>Ver Deudas:</strong> En el panel de Cuentas por Cobrar aparecen todas las facturas pendientes</li>
+                    <li><strong>Registrar Pago:</strong> Aplicar pagos parciales o totales a las deudas</li>
+                    <li><strong>Historial:</strong> Ver el historial completo de pagos por cliente</li>
+                  </ol>
+                </div>
+                <p className="text-amber-400 text-xs mt-2">
+                  💡 Los pagos se reflejan automáticamente en el Control de Caja cuando se reciben.
+                </p>
+              </div>
+            </div>
+
+            {/* Recibos Térmicos */}
+            <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+              <h3 className="font-semibold text-lg text-cyan-400 flex items-center gap-2 mb-3">
+                <FileText className="w-5 h-5" />
+                Recibos Térmicos con NCF
+              </h3>
+              <div className="space-y-3 text-sm text-slate-300">
+                <p><strong>¿Para qué sirve?</strong> Crear facturas rápidas para ventas de mostrador con NCF válido para DGII.</p>
+                <div className="bg-slate-800 p-3 rounded mt-2">
+                  <p className="text-slate-400 font-medium mb-2">Características:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-400">
+                    <li>Selección rápida de cliente o crear nuevo al vuelo</li>
+                    <li>Agregar productos con búsqueda instantánea</li>
+                    <li>NCF automático tipo B02 (Consumidor Final)</li>
+                    <li>Formato optimizado para impresoras térmicas de 80mm</li>
+                    <li>Opción de contado, crédito o mixto</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 pb-8">
           <Button asChild variant="outline" size="lg">

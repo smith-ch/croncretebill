@@ -1,0 +1,95 @@
+// prisma/schema.prisma
+// Módulo A: Gestión de Rutas y Programación
+
+// Configuración general del cliente Prisma
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// ----------------------------------------------------------------------
+// 1. Estructura de Datos y Modelos (Base de Datos)
+// ----------------------------------------------------------------------
+
+// Enum para días de la semana
+enum DayOfWeek {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+// Enum para frecuencia de visita
+enum Frequency {
+  SEMANAL
+  QUINCENAL
+  MENSUAL
+}
+
+// Enum para el estado del despacho
+enum DispatchStatus {
+  PENDIENTE
+  EN_PROGRESO
+  COMPLETADA
+}
+
+// Modelo: Ruta
+model Route {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  assignments ClientRouteAssignment[]
+  dispatches  DailyDispatch[]
+}
+
+// Modelo: Asignación Cliente-Ruta (Tabla pivote con info extra)
+model ClientRouteAssignment {
+  id         String    @id @default(uuid())
+  
+  // En tu codebase, el ID de cliente puede apuntar a la tabla externa del CRM (Supabase anterior)
+  clientId   String    
+  // Si tienes el modelo Client en el mismo Prisma: 
+  // client    Client   @relation(fields: [clientId], references: [id])
+  
+  routeId    String
+  route      Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek  DayOfWeek
+  frequency  Frequency
+  visitOrder Int       @default(0) // Orden de visita
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // No permitir que un cliente esté asignado a la misma ruta el mismo día dos veces
+  @@unique([clientId, routeId, dayOfWeek])
+}
+
+// Modelo: Despacho del Día / Historial
+model DailyDispatch {
+  id          String         @id @default(uuid())
+  
+  routeId     String
+  route       Route          @relation(fields: [routeId], references: [id])
+  
+  date        DateTime       @db.Date // Guardar solo la fecha exacta
+  status      DispatchStatus @default(PENDIENTE)
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Evitar que la misma ruta se despache dos veces la misma fecha (si la regla de negocio lo exige)
+  @@unique([routeId, date])
+}

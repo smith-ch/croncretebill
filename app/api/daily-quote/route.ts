@@ -6,8 +6,7 @@ const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
 function getGroqApiKey(): string | undefined {
   return process.env.GROQ_API_KEY || 
-         process.env.NEXT_PUBLIC_GROQ_API_KEY || 
-         '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'
+         process.env.NEXT_PUBLIC_GROQ_API_KEY
 }
 
 async function generateQuoteWithGroq(): Promise<string> {

@@ -564,6 +564,7 @@ export function useUserPermissions() {
             role: 'employee',
             isOwner: false,
             wasOriginallyOwner: true,
+            isRealEmployee: false,
             // Los empleados NO pueden editar ABSOLUTAMENTE NADA
             canEditInvoices: false,
             canEditClients: false,
@@ -729,13 +730,26 @@ export function useUserPermissions() {
       case 'payment-receipts':
       case 'recibos':
       case 'comprobantes':
-        return true // EMPLEADOS SÍ pueden acceder a comprobantes (crear, descargar, no editar ni eliminar)
+      case 'receivables':
+      case 'cuentas-por-cobrar':
+      case 'returnables':
+      case 'cash-register':
+        return true // EMPLEADOS SÍ pueden acceder a comprobantes, CXC, retornables y control de caja (con restricciones)
 
       case 'agenda':
         return false // EMPLEADOS NO pueden acceder a agenda - COMPLETAMENTE BLOQUEADO
 
       case 'faq':
         return true // FAQ siempre accesible
+
+      case 'employee':
+      case 'employee/route':
+      case 'employee/pos':
+        return true // EMPLEADOS SÍ pueden acceder al módulo de empleado
+
+      case 'routes':
+      case 'rutas': 
+        return false// EMPLEADOS SÍ pueden acceder a rutas (solo lectura)
 
       // MÓDULOS CON ACCESO LIMITADO PARA EMPLEADOS
       case 'inventory':
