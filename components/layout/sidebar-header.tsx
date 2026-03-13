@@ -105,7 +105,7 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
         const pendingInvoices = (invoices as any)?.filter((inv: any) => inv.status === 'pending').length || 0
 
         // Ingresos mensuales (Recibos Térmicos)
-        const { data: receipts } = await supabase
+        const { data: receipts, error: receiptsError } = await supabase
           .from('thermal_receipts')
           .select('total_amount, status')
           .eq('user_id', authUser.id)
@@ -113,8 +113,9 @@ export function SidebarHeader({ isCollapsed }: SidebarHeaderProps) {
           .lte('created_at', endOfMonth.toISOString())
           .neq('status', 'cancelled')
 
-        const receiptRevenue = (receipts as any)?.reduce((sum: number, receipt: any) =>
-          sum + (receipt.total_amount || 0), 0) || 0
+        // Handle thermal_receipts gracefully if table doesn't exist
+        const receiptRevenue = receiptsError ? 0 : ((receipts as any)?.reduce((sum: number, receipt: any) =>
+          sum + (receipt.total_amount || 0), 0) || 0)
 
         const monthlyRevenue = invoiceRevenue + receiptRevenue
 

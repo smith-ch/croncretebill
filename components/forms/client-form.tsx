@@ -130,6 +130,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
         const { error } = await supabase.from("clients").insert({
           ...clientData,
           user_id: dataUserId,
+          owner_id: dataUserId, // Required for RLS policies
         })
         if (error) { throw error }
         

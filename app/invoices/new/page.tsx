@@ -69,9 +69,6 @@ export default function NewInvoicePage() {
   })
   const [notes, setNotes] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("credito")
-  
-  // Cash register shift (Módulo G)
-  const [activeCashShiftId, setActiveCashShiftId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {
@@ -92,7 +89,7 @@ export default function NewInvoicePage() {
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId).order("name"),
         supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", dataUserId).order("name"),
         supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", dataUserId).order("name"),
-        supabase.from("company_settings").select("*").eq("user_id", dataUserId).single(),
+        supabase.from("company_settings").select("*").eq("user_id", dataUserId).maybeSingle(),
       ])
 
       setClients(clientsRes.data || [])
@@ -100,22 +97,6 @@ export default function NewInvoicePage() {
       setProducts(productsRes.data || [])
       setServices(servicesRes.data || [])
       setCompanySettings(companyRes.data || null)
-      
-      // Fetch active cash shift (Módulo G)
-      try {
-        const { data: shiftData, error: shiftErr } = await supabase
-          .from('cash_register_shifts')
-          .select('id')
-          .eq('user_id', dataUserId)
-          .eq('status', 'abierta')
-          .maybeSingle()
-        
-        if (!shiftErr && shiftData?.id) {
-          setActiveCashShiftId(shiftData.id)
-        }
-      } catch {
-        // No active shift - this is ok
-      }
     } catch (error) {
       console.error("Error fetching data:", error)
       setError("Error al cargar los datos iniciales")
@@ -445,8 +426,7 @@ export default function NewInvoicePage() {
           include_itbis: includeItbis,
           ncf: includeItbis ? ncf.trim() : null,
           payment_method: paymentMethod,
-          items: apiItems,
-          cash_shift_id: activeCashShiftId
+          items: apiItems
         }),
       })
 

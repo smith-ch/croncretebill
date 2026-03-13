@@ -88,10 +88,11 @@ export function useCompanyData(): UseCompanyDataReturn {
             .from('company_settings')
             .select('company_name, company_email, company_phone, company_address, company_logo, tax_id, business_type, currency_symbol, currency_code')
             .eq('user_id', ownerUserId)
-            .single()
+            .maybeSingle()
 
-          if (companyError && companyError.code !== 'PGRST116') {
-            throw companyError
+          if (companyError) {
+            console.warn('Error fetching company settings:', companyError)
+            return null
           }
 
           return data
@@ -148,10 +149,11 @@ export function useCompanySettings() {
               .from('company_settings')
               .select('company_name, company_email, company_phone, company_address, company_logo, tax_id, business_type, currency_symbol, currency_code')
               .eq('user_id', user.id)
-              .single()
+              .maybeSingle()
 
-            if (error && error.code !== 'PGRST116') {
-              throw error
+            if (error) {
+              console.warn('Error fetching company settings:', error)
+              return null
             }
 
             return data
