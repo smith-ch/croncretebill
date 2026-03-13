@@ -31,7 +31,9 @@ export async function getCompanySettings(userId: string) {
           business_type,
           invoice_primary_color,
           invoice_secondary_color,
-          invoice_show_logo
+          invoice_show_logo,
+          invoice_format,
+          invoice_footer_message
         `)
         .eq('user_id', userId)
         .single()
@@ -48,7 +50,8 @@ export async function getCompanySettings(userId: string) {
 }
 
 /**
- * Get user profile with caching
+ * Get user profile with caching.
+ * Usa user_profiles (tabla real de la app); fallback a profiles si existe.
  */
 export async function getUserProfile(userId: string) {
   const cacheKey = getCacheKey('profile', userId)
@@ -57,27 +60,48 @@ export async function getUserProfile(userId: string) {
     cacheKey,
     async () => {
       const { data, error } = await supabaseAdmin
-        .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          role,
-          company_name,
-          phone,
-          avatar_url
-        `)
-        .eq('id', userId)
-        .single()
+        .from('user_profiles')
+        .select('user_id, email, display_name, phone')
+        .eq('user_id', userId)
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching user profile:', error)
         return null
       }
-
-      return data
+      if (data) {
+        return {
+          id: data.user_id,
+          email: data.email,
+          full_name: data.display_name,
+          company_name: data.display_name,
+          phone: data.phone,
+        }
+      }
+      return null
     },
     CacheTTL.MEDIUM // 15 minutes
+  )
+}
+
+/**
+ * Resuelve el user_id del dueño de la empresa para un usuario dado.
+ * Si es empleado (tiene parent_user_id), devuelve el owner; si no, el mismo userId.
+ */
+export async function getCompanyOwnerUserId(userId: string): Promise<string> {
+  const cacheKey = getCacheKey('company_owner', userId)
+  return serverCache.get(
+    cacheKey,
+    async () => {
+      const { data } = await supabaseAdmin
+        .from('user_profiles')
+        .select('root_owner_id, parent_user_id')
+        .eq('user_id', userId)
+        .maybeSingle()
+      const ownerId = data?.root_owner_id ?? data?.parent_user_id ?? userId
+      return ownerId
+    },
+    CacheTTL.MEDIUM
   )
 }
 

@@ -193,17 +193,74 @@ export default function InvoicesPage() {
 
   const downloadInvoicePDF = async (invoiceId: string) => {
     try {
-      const response = await fetch(`/api/invoices/${invoiceId}/pdf`)
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Error generating PDF")
+      if (!dataUserId) {
+        toast({ title: "Error", description: "No se pudo identificar la empresa.", variant: "destructive" })
+        return
       }
 
-      const blob = await response.blob()
+      const [invRes, itemsRes, companyRes, profileRes] = await Promise.all([
+        supabase
+          .from("invoices")
+          .select("*, clients(name, email, phone, address, rnc), projects(name)")
+          .eq("id", invoiceId)
+          .single(),
+        supabase.from("invoice_items").select("*, products(name, unit), services(name, unit)").eq("invoice_id", invoiceId),
+        supabase
+          .from("company_settings")
+          .select("company_name, company_address, company_phone, company_email, company_website, tax_id, company_logo, currency_code, currency_symbol, usd_exchange_rate, business_type, invoice_primary_color, invoice_secondary_color, invoice_show_logo, invoice_format, invoice_footer_message")
+          .eq("user_id", dataUserId)
+          .maybeSingle(),
+        supabase.from("user_profiles").select("user_id, email, display_name, phone").eq("user_id", dataUserId).maybeSingle(),
+      ])
+
+      const inv = invRes.data
+      const invErr = invRes.error
+      if (invErr || !inv) {
+        toast({
+          title: "Error",
+          description: "No se pudo cargar la factura. " + (invErr?.message || "No encontrada."),
+          variant: "destructive",
+        })
+        return
+      }
+
+      const items = itemsRes.data ?? []
+      const companySettings = companyRes.data ?? null
+      const profileRow = profileRes.data
+
+      const invoicePayload = {
+        ...inv,
+        invoice_date: inv.invoice_date ?? inv.issue_date,
+        clients: Array.isArray(inv.clients) ? inv.clients[0] : inv.clients,
+        projects: Array.isArray(inv.projects) ? inv.projects[0] : inv.projects,
+        invoice_items: items,
+      }
+
+      const profile = profileRow
+        ? { id: profileRow.user_id, email: (profileRow as any).email, full_name: (profileRow as any).display_name, company_name: (profileRow as any).display_name, phone: (profileRow as any).phone }
+        : null
+
+      const response = await fetch("/api/invoices/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice: invoicePayload,
+          companySettings,
+          profile,
+        }),
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || "Error al generar el PDF")
+      }
+
+      const html = await response.text()
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `factura-${invoiceId}.html`
+      a.download = `factura-${(inv as any).invoice_number || invoiceId}.html`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
