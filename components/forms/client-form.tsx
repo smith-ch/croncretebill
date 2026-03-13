@@ -107,6 +107,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
       email: email,
       phone: phone,
       address: formData.get("address") as string,
+      notes: (formData.get("notes") as string) || null,
     }
 
     try {
@@ -270,7 +271,7 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address">Dirección</Label>
               <Textarea
                 id="address"
@@ -280,6 +281,17 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
                 rows={2}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notas</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              defaultValue={client?.notes}
+              placeholder="Notas internas sobre el cliente (opcional)"
+              rows={3}
+            />
           </div>
 
           {error && (
