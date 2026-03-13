@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import {
     Map, CheckCircle2, Circle, Calendar as CalendarIcon, ChevronRight, ArrowLeft,
     Truck, Play, Pause, User, Package, DollarSign, ClipboardCheck, ChevronLeft,
-    PackageOpen, Loader2, Printer, Plus, Minus
+    PackageOpen, Loader2, Printer, Plus, Minus, Trash2
 } from "lucide-react"
 import { useDailyDispatch, useRoutes } from "@/hooks/use-routes"
 import { useDrivers, useFleetVehicles } from "@/hooks/use-fleet"
@@ -16,6 +16,7 @@ import { useDispatchLoading, DispatchInventoryItem } from "@/hooks/use-dispatch-
 import { useToast } from "@/hooks/use-toast"
 import { useCompanyData } from "@/hooks/use-company-data"
 import ConduceSalidaPrint from "@/components/conduce-salida-print"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import Link from "next/link"
 
 type DispatchStatusType = "pendiente" | "en_progreso" | "completada"
@@ -404,13 +405,14 @@ export default function DailyDispatchDashboard() {
     const [viewMode, setViewMode] = useState<ViewMode>("dashboard")
     const [loadingDispatch, setLoadingDispatch] = useState<any>(null)
 
-    const { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems } = useDailyDispatch()
+    const { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems, deleteDispatch } = useDailyDispatch()
     const { routes } = useRoutes()
     const { drivers } = useDrivers()
     const { vehicles } = useFleetVehicles()
     const { toast } = useToast()
     const [dispatchDriverId, setDispatchDriverId] = useState("")
     const [dispatchVehicleId, setDispatchVehicleId] = useState("")
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
 
     useEffect(() => {
         fetchDispatches(selectedDate)
@@ -445,6 +447,20 @@ export default function DailyDispatchDashboard() {
     const handleStartLoading = (dispatch: any) => {
         setLoadingDispatch(dispatch)
         setViewMode("loading-wizard")
+    }
+
+    const handleDeleteDispatch = (e: React.MouseEvent, dispatchId: string) => {
+        e.stopPropagation()
+        setDeleteConfirm({ show: true, id: dispatchId })
+    }
+
+    const confirmDeleteDispatch = async () => {
+        if (!deleteConfirm.id) return
+        await deleteDispatch(deleteConfirm.id, selectedDate)
+        setDeleteConfirm({ show: false, id: null })
+        if (selectedDispatchId === deleteConfirm.id) {
+            setSelectedDispatchId(null)
+        }
     }
 
     const tabs = [
@@ -580,16 +596,27 @@ export default function DailyDispatchDashboard() {
                                                             {dispatch.status === "completada" && <><Pause className="h-3 w-3 mr-1" /> Reabrir</>}
                                                         </Button>
                                                     </div>
-                                                    {(!(dispatch as any).dispatch_status || (dispatch as any).dispatch_status === "preparando") && (
+                                                    <div className="flex items-center gap-1">
+                                                        {(!(dispatch as any).dispatch_status || (dispatch as any).dispatch_status === "preparando") && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={(e) => { e.stopPropagation(); handleStartLoading(dispatch) }}
+                                                                className="text-[10px] text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 p-1 h-auto"
+                                                            >
+                                                                <PackageOpen className="h-3 w-3 mr-1" /> Cargar
+                                                            </Button>
+                                                        )}
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={(e) => { e.stopPropagation(); handleStartLoading(dispatch) }}
-                                                            className="text-[10px] text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 p-1 h-auto"
+                                                            onClick={(e) => handleDeleteDispatch(e, dispatch.id)}
+                                                            className="text-[10px] text-red-400 hover:text-red-300 hover:bg-red-900/20 p-1 h-auto"
+                                                            title="Eliminar despacho"
                                                         >
-                                                            <PackageOpen className="h-3 w-3 mr-1" /> Cargar
+                                                            <Trash2 className="h-3 w-3" />
                                                         </Button>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -688,6 +715,16 @@ export default function DailyDispatchDashboard() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteConfirm.show}
+                onOpenChange={(open) => !open && setDeleteConfirm({ show: false, id: null })}
+                onConfirm={confirmDeleteDispatch}
+                title="Eliminar despacho"
+                description="¿Está seguro de eliminar este despacho? Se eliminarán también sus paradas. Esta acción no se puede deshacer."
+                confirmLabel="Eliminar"
+                variant="danger"
+            />
         </div>
     )
 }

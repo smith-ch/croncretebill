@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, UserCheck, Edit, Trash2, Phone, CreditCard, Loader2, User } from "lucide-react"
 import { usePlanAccess } from "@/hooks/use-plan-access"
 import { useToast } from "@/hooks/use-toast"
+import { useDataUserId } from "@/hooks/use-data-user-id"
 
 interface Employee {
   user_id: string
@@ -37,6 +38,7 @@ export default function DriversPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { hasAccessToDrivers, requireAccess, isLoading: planLoading } = usePlanAccess()
   const { toast } = useToast()
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
   // Check plan access
   useEffect(() => {
@@ -46,9 +48,11 @@ export default function DriversPage() {
   }, [planLoading, hasAccessToDrivers])
 
   useEffect(() => {
-    fetchDrivers()
-    fetchEmployees()
-  }, [])
+    if (!userIdLoading) {
+      fetchDrivers()
+      fetchEmployees()
+    }
+  }, [userIdLoading, dataUserId])
 
   const fetchDrivers = async () => {
     try {
@@ -57,11 +61,13 @@ export default function DriversPage() {
       } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) return
+      const uid = dataUserId ?? user.id
+      if (!uid) return
 
       const { data, error } = await supabase
         .from("drivers")
         .select("*, employee:employee_id(id, email, raw_user_meta_data)")
-        .eq("user_id", user.id)
+        .eq("user_id", uid)
         .order("created_at", { ascending: false })
 
       if (error) throw error
@@ -116,13 +122,15 @@ export default function DriversPage() {
       const user = session?.user
       if (!user) throw new Error("Usuario no autenticado")
 
+      const ownerId = dataUserId ?? user.id
       if (editingDriver) {
         const { error } = await supabase.from("drivers").update(driverData).eq("id", editingDriver.id)
         if (error) throw error
       } else {
         const { error } = await supabase.from("drivers").insert({
           ...driverData,
-          user_id: user.id,
+          user_id: ownerId,
+          owner_id: ownerId,
         })
         if (error) throw error
       }

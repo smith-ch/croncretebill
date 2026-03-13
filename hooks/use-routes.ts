@@ -365,6 +365,21 @@ export function useDailyDispatch() {
         }
     }
 
+    const deleteDispatch = async (dispatchId: string, date?: string) => {
+        try {
+            const { error } = await (supabase as any)
+                .from("daily_dispatches")
+                .delete()
+                .eq("id", dispatchId)
+            if (error) throw error
+            toast({ title: "Despacho eliminado", description: "El despacho fue eliminado correctamente." })
+            if (date) fetchDispatches(date)
+        } catch (error: any) {
+            console.error("Error deleting dispatch:", error)
+            toast({ title: "Error", description: error.message || "No se pudo eliminar el despacho", variant: "destructive" })
+        }
+    }
+
     // Función para regenerar/agregar paradas a un despacho existente
     const regenerateDispatchItems = async (dispatchId: string, routeId: string, date: string) => {
         if (!dataUserId) return false
@@ -416,5 +431,5 @@ export function useDailyDispatch() {
         }
     }
 
-    return { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems }
+    return { dispatches, dispatchItems, loading, fetchDispatches, fetchDispatchItems, createDispatch, updateDispatchStatus, markClientVisited, regenerateDispatchItems, deleteDispatch }
 }
