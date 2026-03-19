@@ -321,6 +321,7 @@ export default function ThermalReceiptsPage() {
   const [clientName, setClientName] = useState("")
   const [clientType, setClientType] = useState<"registered" | "occasional">("occasional")
   const [selectedClientId, setSelectedClientId] = useState("")
+  const [registeredClientSearch, setRegisteredClientSearch] = useState("")
   const [registeredClients, setRegisteredClients] = useState<any[]>([])
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [paymentStatus, setPaymentStatus] = useState<"pagado" | "pendiente">("pagado")
@@ -363,6 +364,25 @@ export default function ThermalReceiptsPage() {
   const fromRoute = searchParams.get('from') === 'route'
   const stopId = searchParams.get('stop_id')
   const dispatchId = searchParams.get('dispatch_id')
+
+  const filteredRegisteredClientsForSelect = useMemo(() => {
+    const q = registeredClientSearch.trim().toLowerCase()
+    let list = registeredClients
+    if (q) {
+      list = registeredClients.filter(
+        (c) =>
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.contact_person || "").toLowerCase().includes(q),
+      )
+    }
+    if (selectedClientId) {
+      const sel = registeredClients.find((c) => c.id === selectedClientId)
+      if (sel && !list.some((c) => c.id === selectedClientId)) {
+        list = [sel, ...list]
+      }
+    }
+    return list
+  }, [registeredClients, registeredClientSearch, selectedClientId])
 
   // Use proper permissions system for delete operations
 
@@ -1454,6 +1474,7 @@ export default function ThermalReceiptsPage() {
                       setClientType(value)
                       if (value === "occasional") {
                         setSelectedClientId("")
+                        setRegisteredClientSearch("")
                         setClientName("")
                         setClientReturnablesBalance([])
                         setReturnedItems([])
@@ -1475,6 +1496,16 @@ export default function ThermalReceiptsPage() {
                   {clientType === "registered" ? (
                     <div className="space-y-2">
                       <Label htmlFor="selectedClient">Seleccionar Cliente</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                        <Input
+                          id="registered_client_search"
+                          value={registeredClientSearch}
+                          onChange={(e) => setRegisteredClientSearch(e.target.value)}
+                          placeholder="Buscar por nombre..."
+                          className="border-slate-700 pl-9 focus:border-blue-500 mb-2"
+                        />
+                      </div>
                       <Select 
                         value={selectedClientId} 
                         onValueChange={(value) => {
@@ -1489,11 +1520,17 @@ export default function ThermalReceiptsPage() {
                           <SelectValue placeholder="Selecciona un cliente..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {registeredClients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>
-                              {client.name} {client.contact_person && `(${client.contact_person})`}
+                          {filteredRegisteredClientsForSelect.length > 0 ? (
+                            filteredRegisteredClientsForSelect.map((client) => (
+                              <SelectItem key={client.id} value={client.id}>
+                                {client.name} {client.contact_person && `(${client.contact_person})`}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-match" disabled>
+                              Ningún cliente coincide con la búsqueda
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Percent,
   DollarSign,
+  Search,
 } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -52,6 +53,7 @@ interface Client {
   address?: string
   phone?: string
   email?: string
+  contact_person?: string | null
 }
 
 interface Project {
@@ -113,6 +115,7 @@ export default function EditInvoicePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [selectedClient, setSelectedClient] = useState("")
+  const [clientSearch, setClientSearch] = useState("")
   const [items, setItems] = useState<InvoiceItemLocal[]>([
     { product_id: "", service_id: "", quantity: 1, unit_price: 0, type: "product", original_description: "" },
   ])
@@ -185,7 +188,7 @@ export default function EditInvoicePage() {
       setNcf(invoice.ncf || "")
 
       const [clientsRes, projectsRes, driversRes, vehiclesRes, companyRes] = await Promise.all([
-        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", dataUserId),
+        supabase.from("clients").select("id, name, rnc, address, phone, email, contact_person").eq("user_id", dataUserId),
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId),
         supabase.from("drivers").select("id, name").eq("user_id", dataUserId),
         supabase.from("vehicles").select("id, model, plate").eq("user_id", dataUserId),
@@ -777,16 +780,33 @@ export default function EditInvoicePage() {
                   <Label htmlFor="client_id" className="text-slate-300 font-medium">
                     Cliente *
                   </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <Input
+                      id="client_search"
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      placeholder="Buscar cliente por nombre..."
+                      className="border-slate-800 pl-9 focus:border-blue-500 focus:ring-blue-500 mb-2"
+                    />
+                  </div>
                   <Select name="client_id" value={selectedClient} onValueChange={setSelectedClient} required>
                     <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
+                      {filteredClientsForSelect.length > 0 ? (
+                        filteredClientsForSelect.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                            {client.contact_person ? ` (${client.contact_person})` : ""}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-match" disabled>
+                          Ningún cliente coincide con la búsqueda
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
