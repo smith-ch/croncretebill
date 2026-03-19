@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useDataUserId } from '@/hooks/use-data-user-id'
 
 export interface ProductPrice {
   id: string
@@ -38,23 +39,22 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
   const [prices, setPrices] = useState<ProductPrice[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { dataUserId, loading: userIdLoading } = useDataUserId()
 
-  const fetchPrices = async () => {
+  const fetchPrices = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
-        setError('Usuario no autenticado')
+      if (!dataUserId) {
+        setPrices([])
         return
       }
 
       let query = (supabase as any)
         .from('product_prices')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', dataUserId)
         .order('product_id')
         .order('is_default', { ascending: false })
         .order('min_quantity', { ascending: false })
@@ -76,13 +76,11 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
     } finally {
       setLoading(false)
     }
-  }
+  }, [dataUserId, productId])
 
   const createPrice = async (priceData: Omit<ProductPrice, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<ProductPrice | null> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         throw new Error('Usuario no autenticado')
       }
 
@@ -91,7 +89,7 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
         .from('product_prices')
         .select('price_name')
         .eq('product_id', priceData.product_id)
-        .eq('user_id', user.id)
+        .eq('user_id', dataUserId)
         .eq('price_name', priceData.price_name)
         .eq('is_active', true)
 
@@ -103,7 +101,7 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
         .from('product_prices')
         .insert({
           ...priceData,
-          user_id: user.id
+          user_id: dataUserId
         })
         .select()
         .single()
@@ -186,9 +184,7 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
 
   const setAsDefault = async (priceId: string, productId: string): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) {
+      if (!dataUserId) {
         throw new Error('Usuario no autenticado')
       }
 
@@ -197,7 +193,7 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
         .from('product_prices')
         .update({ is_default: false })
         .eq('product_id', productId)
-        .eq('user_id', user.id)
+        .eq('user_id', dataUserId)
 
       // Then set the selected price as default
       const { error: updateError } = await (supabase as any)
@@ -263,8 +259,9 @@ export function useProductPrices(productId?: string): UseProductPricesReturn {
   }
 
   useEffect(() => {
+    if (userIdLoading) return
     fetchPrices()
-  }, [productId]) // fetchPrices is stable and doesn't need to be in deps
+  }, [userIdLoading, fetchPrices])
 
   return {
     prices,

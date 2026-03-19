@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Loader2, Plus, Trash2, Percent, DollarSign, FileText, Calculator, ArrowLeft, AlertCircle, CheckCircle2, AlertTriangle, Search } from "lucide-react"
 import { useCurrency } from "@/hooks/use-currency"
 import { useToast } from "@/hooks/use-toast"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
@@ -47,6 +47,7 @@ export default function NewInvoicePage() {
   const [products, setProducts] = useState<any[]>([])
   const [services, setServices] = useState<any[]>([])
   const [selectedClient, setSelectedClient] = useState("no-client")
+  const [clientSearch, setClientSearch] = useState("")
   const [selectedProject, setSelectedProject] = useState("")
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: "item-1", item_id: "", item_type: "product", quantity: 1, unit_price: 0 },
@@ -85,7 +86,7 @@ export default function NewInvoicePage() {
       }
 
       const [clientsRes, projectsRes, productsRes, servicesRes, companyRes] = await Promise.all([
-        supabase.from("clients").select("id, name, rnc, address, phone, email").eq("user_id", dataUserId).order("name"),
+        supabase.from("clients").select("id, name, rnc, address, phone, email, contact_person").eq("user_id", dataUserId).order("name"),
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId).order("name"),
         supabase.from("products").select("id, name, unit, unit_price, product_code").eq("user_id", dataUserId).order("name"),
         supabase.from("services").select("id, name, unit, price, service_code").eq("user_id", dataUserId).order("name"),
@@ -534,6 +535,25 @@ export default function NewInvoicePage() {
 
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient && selectedClient !== "no-client")
 
+  const filteredClientsForSelect = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase()
+    let list = clients
+    if (q) {
+      list = clients.filter(
+        (c) =>
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.contact_person || "").toLowerCase().includes(q),
+      )
+    }
+    if (selectedClient && selectedClient !== "no-client") {
+      const sel = clients.find((c) => c.id === selectedClient)
+      if (sel && !list.some((c) => c.id === selectedClient)) {
+        list = [sel, ...list]
+      }
+    }
+    return list
+  }, [clients, clientSearch, selectedClient])
+
   const validItemsForDisplay = items.filter(
     (item) => item.item_id && item.item_id.trim() !== "" && item.item_id !== "no-items",
   )
@@ -717,6 +737,16 @@ export default function NewInvoicePage() {
                   <Label htmlFor="client_id" className="text-slate-300 font-medium">
                     Cliente <span className="text-slate-400">(Opcional)</span>
                   </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <Input
+                      id="client_search"
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      placeholder="Buscar cliente por nombre..."
+                      className="border-slate-800 pl-9 focus:border-blue-500 focus:ring-blue-500 mb-2"
+                    />
+                  </div>
                   <Select value={selectedClient} onValueChange={setSelectedClient}>
                     <SelectTrigger className="border-slate-800 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Seleccionar cliente (opcional)" />
@@ -724,11 +754,18 @@ export default function NewInvoicePage() {
                     <SelectContent>
                       <SelectItem value="no-client">Sin cliente específico</SelectItem>
                       {clients.length > 0 ? (
-                        clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
+                        filteredClientsForSelect.length > 0 ? (
+                          filteredClientsForSelect.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                              {client.contact_person ? ` (${client.contact_person})` : ""}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-match" disabled>
+                            Ningún cliente coincide con la búsqueda
                           </SelectItem>
-                        ))
+                        )
                       ) : (
                         <SelectItem value="no-clients" disabled>
                           No hay clientes disponibles
