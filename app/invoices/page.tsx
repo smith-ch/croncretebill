@@ -55,7 +55,9 @@ export default function InvoicesPage() {
 
   const fetchInvoices = async () => {
     try {
-      if (!dataUserId) return
+      if (!dataUserId) {
+        return
+      }
 
       const { data, error } = await supabase
         .from("invoices")
@@ -64,7 +66,6 @@ export default function InvoicesPage() {
           clients(name, rnc),
           projects(name)
         `)
-        .eq("user_id", dataUserId)
         .order("created_at", { ascending: false })
 
       if (error) {

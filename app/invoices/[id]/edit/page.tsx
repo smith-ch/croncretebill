@@ -29,6 +29,7 @@ import {
 import { useCurrency } from "@/hooks/use-currency"
 import { useUserPermissions } from "@/hooks/use-user-permissions-simple"
 import { useDataUserId } from "@/hooks/use-data-user-id"
+import { useToast } from "@/hooks/use-toast"
 import { InvoicePreview } from "@/components/invoices/invoice-preview"
 
 // Type definitions
@@ -104,14 +105,22 @@ interface InvoiceItemLocal {
 export default function EditInvoicePage() {
   const router = useRouter()
   const params = useParams()
+  const invoiceId = useMemo(() => {
+    const raw = params?.id
+    if (typeof raw === "string" && raw.trim()) {
+      return raw.trim()
+    }
+    if (Array.isArray(raw) && raw[0] && String(raw[0]).trim()) {
+      return String(raw[0]).trim()
+    }
+    return ""
+  }, [params?.id])
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [clients, setClients] = useState<Client[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [drivers, setDrivers] = useState<any[]>([])
-  const [vehicles, setVehicles] = useState<any[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [selectedClient, setSelectedClient] = useState("")
@@ -132,10 +141,14 @@ export default function EditInvoicePage() {
   const { formatCurrency } = useCurrency()
   const { permissions } = useUserPermissions()
   const { dataUserId, loading: userIdLoading } = useDataUserId()
+  const { toast } = useToast()
 
   const fetchInvoiceData = useCallback(async () => {
     try {
       if (!dataUserId) {
+        return
+      }
+      if (!invoiceId) {
         return
       }
 
@@ -167,38 +180,44 @@ export default function EditInvoicePage() {
       setProducts(fetchedProducts)
       setServices(fetchedServices)
 
+      // Sin filtro user_id: RLS (owner_id / current_root_owner_id) ya limita acceso.
+      // El filtro .eq("user_id", dataUserId) excluía facturas con user_id del empleado u datos legacy.
       const { data: invoiceData, error: invoiceError } = await supabase
         .from("invoices")
-        .select(`
-          *,
-          invoice_items:invoice_items_invoice_id_fkey(*)
-        `)
-        .eq("id", params.id)
-        .eq("user_id", dataUserId)
+        .select("*")
+        .eq("id", invoiceId)
         .single()
 
       if (invoiceError) {
         throw invoiceError
       }
-      
-      const invoice = invoiceData as Invoice
+
+      const { data: invoiceItemsRows, error: itemsError } = await supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoiceId)
+
+      if (itemsError) {
+        console.error("Error fetching invoice_items:", itemsError)
+      }
+
+      const invoice = {
+        ...invoiceData,
+        invoice_items: (invoiceItemsRows as InvoiceItem[]) || [],
+      } as unknown as Invoice
       setInvoice(invoice)
       setSelectedClient(invoice.client_id || "")
       setIncludeItbis(invoice.include_itbis || false)
       setNcf(invoice.ncf || "")
 
-      const [clientsRes, projectsRes, driversRes, vehiclesRes, companyRes] = await Promise.all([
+      const [clientsRes, projectsRes, companyRes] = await Promise.all([
         supabase.from("clients").select("id, name, rnc, address, phone, email, contact_person").eq("user_id", dataUserId),
         supabase.from("projects").select("id, name, client_id").eq("user_id", dataUserId),
-        supabase.from("drivers").select("id, name").eq("user_id", dataUserId),
-        supabase.from("vehicles").select("id, model, plate").eq("user_id", dataUserId),
         supabase.from("company_settings").select("*").eq("user_id", dataUserId).maybeSingle(),
       ])
 
       setClients((clientsRes.data as Client[]) || [])
       setProjects((projectsRes.data as Project[]) || [])
-      setDrivers(driversRes.data || [])
-      setVehicles(vehiclesRes.data || [])
       setCompanySettings(companyRes.data || null)
 
       // Set the additional form values
@@ -243,13 +262,32 @@ export default function EditInvoicePage() {
     } finally {
       setFetchLoading(false)
     }
-  }, [params.id, dataUserId])
+  }, [invoiceId, dataUserId])
 
   useEffect(() => {
     if (!userIdLoading && dataUserId) {
       fetchInvoiceData()
     }
   }, [fetchInvoiceData, userIdLoading, dataUserId])
+
+  const filteredClientsForSelect = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase()
+    let list = clients
+    if (q) {
+      list = clients.filter(
+        (c) =>
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.contact_person || "").toLowerCase().includes(q),
+      )
+    }
+    if (selectedClient) {
+      const sel = clients.find((c) => c.id === selectedClient)
+      if (sel && !list.some((c) => c.id === selectedClient)) {
+        list = [sel, ...list]
+      }
+    }
+    return list
+  }, [clients, clientSearch, selectedClient])
 
   // Block employee access to editing invoices
   if (!permissions.canEditInvoices) {
@@ -446,7 +484,7 @@ export default function EditInvoicePage() {
       const { error: invoiceError, data: updatedInvoice } = await (supabase
         .from("invoices") as any)
         .update(invoiceData)
-        .eq("id", params.id)
+        .eq("id", invoiceId)
         .eq("user_id", user.id)
         .select()
 
@@ -465,7 +503,7 @@ export default function EditInvoicePage() {
       const { error: deleteError, count: deletedCount } = await (supabase
         .from("invoice_items") as any)
         .delete({ count: "exact" })
-        .eq("invoice_id", params.id)
+        .eq("invoice_id", invoiceId)
 
       if (deleteError) {
         console.error("[v0] Error deleting old invoice items:", deleteError)
@@ -476,7 +514,7 @@ export default function EditInvoicePage() {
 
       const invoiceItems = validItems.map((item, index) => {
         const itemData: any = {
-          invoice_id: params.id,
+          invoice_id: invoiceId,
           quantity: Math.max(item.quantity, 0.01),
           unit_price: Math.max(item.unit_price, 0),
           total: Math.max(item.quantity, 0.01) * Math.max(item.unit_price, 0),
@@ -652,6 +690,7 @@ export default function EditInvoicePage() {
   }
 
   const filteredProjects = projects.filter((p) => p.client_id === selectedClient)
+
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
   let discountAmount = 0
   if (discountValue > 0) {
@@ -1248,23 +1287,4 @@ export default function EditInvoicePage() {
       </div>
     </div>
   )
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "borrador":
-      return "bg-slate-100 text-slate-200 border-slate-800"
-    case "pendiente":
-      return "bg-slate-800 text-blue-300 border-slate-700"
-    case "enviada":
-      return "bg-amber-900/30 text-amber-300 border-amber-800"
-    case "pagada":
-      return "bg-emerald-900/30 text-emerald-300 border-emerald-800"
-    case "vencida":
-      return "bg-red-900/30 text-red-300 border-red-800"
-    case "cancelada":
-      return "bg-slate-800 text-slate-200 border-slate-800"
-    default:
-      return "bg-slate-100 text-slate-200 border-slate-800"
-  }
 }
